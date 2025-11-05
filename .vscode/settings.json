@@ -1,0 +1,27 @@
+{
+	"php.suggest.basic": false,
+	"phpcs.executablePath": "${workspaceFolder}/vendor/bin/phpcs",
+	"phpcbf.executablePath": "${workspaceFolder}/vendor/bin/phpcbf",
+	"phpcs.autoConfigSearch": true,
+	"phpcs.showWarnings": true,
+	"phpcs.showSources": true,
+	"phpcs.showNotices": true,
+	"phpcs.composerJsonPath": "${workspaceFolder}/composer.json",
+	"phpSniffer.run": "onSave",
+	"phpSniffer.standard": "phpcs.xml.dist",
+	"phpSniffer.executablesFolder": "${workspaceFolder}/vendor/bin",
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.formatOnSave": true,
+	"prettier.requireConfig": true,
+	"[javascript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.formatOnSave": true
+	},
+	"[json]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"eslint.validate": ["javascript", "javascriptreact"],
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit"
+	}
+}

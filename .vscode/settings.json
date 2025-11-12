@@ -1,5 +1,4 @@
 {
-    // PHP Sniffer & Beautifier (PHPCS/PHPCBF)
     "phpsab.autoDetect": false,
     "phpsab.executablePathCS": "${workspaceFolder}/vendor/bin/phpcs",
     "phpsab.executablePathCBF": "${workspaceFolder}/vendor/bin/phpcbf",
@@ -7,24 +6,18 @@
     "phpsab.snifferEnable": true,
     "phpsab.fixerEnable": true,
     "phpsab.fixerEnableOnSave": true,
-
-    // Prettier (JS/JSON)
     "prettier.requireConfig": true,
-
-    // ESLint (JavaScript)
     "eslint.validate": ["javascript", "javascriptreact"],
-    "eslint.format.enable": true,  // 追加: ESLintの自動修正を有効化
+    "eslint.format.enable": true,
     "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "explicit",  // 明示的な修正を有効化
+        "source.fixAll.eslint": "explicit",
         "source.fixAll.phpsab": "explicit"
     },
-
-    // File type specific settings
     "[javascript]": {
-        "editor.defaultFormatter": "dbaeumer.vscode-eslint",  // Prettier → ESLintに変更
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
-            "source.fixAll.eslint": true  // JavaScriptファイル保存時にESLintを自動実行
+            "source.fixAll.eslint": true
         }
     },
     "[json]": {

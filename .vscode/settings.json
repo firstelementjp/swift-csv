@@ -1,27 +1,34 @@
 {
-	"php.suggest.basic": false,
-	"phpcs.executablePath": "${workspaceFolder}/vendor/bin/phpcs",
-	"phpcbf.executablePath": "${workspaceFolder}/vendor/bin/phpcbf",
-	"phpcs.autoConfigSearch": true,
-	"phpcs.showWarnings": true,
-	"phpcs.showSources": true,
-	"phpcs.showNotices": true,
-	"phpcs.composerJsonPath": "${workspaceFolder}/composer.json",
-	"phpSniffer.run": "onSave",
-	"phpSniffer.standard": "phpcs.xml.dist",
-	"phpSniffer.executablesFolder": "${workspaceFolder}/vendor/bin",
-	"editor.defaultFormatter": "esbenp.prettier-vscode",
-	"editor.formatOnSave": true,
-	"prettier.requireConfig": true,
-	"[javascript]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
-		"editor.formatOnSave": true
-	},
-	"[json]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	},
-	"eslint.validate": ["javascript", "javascriptreact"],
-	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": "explicit"
-	}
+    // PHP Sniffer & Beautifier (PHPCS/PHPCBF)
+    "phpsab.autoDetect": false,
+    "phpsab.executablePathCS": "${workspaceFolder}/vendor/bin/phpcs",
+    "phpsab.executablePathCBF": "${workspaceFolder}/vendor/bin/phpcbf",
+    "phpsab.standard": "${workspaceFolder}/phpcs.xml.dist",
+    "phpsab.snifferEnable": true,
+    "phpsab.fixerEnable": true,
+    "phpsab.fixerEnableOnSave": true,
+
+    // Prettier (JS/JSON)
+    "prettier.requireConfig": true,
+
+    // ESLint (JavaScript)
+    "eslint.validate": ["javascript", "javascriptreact"],
+    "eslint.format.enable": true,  // 追加: ESLintの自動修正を有効化
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",  // 明示的な修正を有効化
+        "source.fixAll.phpsab": "explicit"
+    },
+
+    // File type specific settings
+    "[javascript]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint",  // Prettier → ESLintに変更
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.eslint": true  // JavaScriptファイル保存時にESLintを自動実行
+        }
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    }
 }

@@ -1,0 +1,28 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+*.min.js
+*.min.css
+/dist/
+/build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# WordPress
+wp-config.php
+.htaccess

@@ -1,23 +1,15 @@
 {
-	"name": "default-new-plugin",
-	"version": "1.0.0",
-	"description": "(Some functionality for WordPress)",
-	"main": "index.js",
-	"scripts": {
-		"lint": "eslint . --ext .js",
-		"lint:fix": "eslint . --ext .js --fix"
-	},
-	"keywords": [
-		"wordpress"
-	],
-	"author": "Daijiro Miyazawa",
-	"license": "GPL-2.0-or-later",
-	"devDependencies": {
-		"@wordpress/eslint-plugin": "^16.0.0",
-		"@wordpress/scripts": "^27.0.0",
-		"eslint": "^8.0.0",
-		"eslint-config-prettier": "^10.1.8",
-		"eslint-plugin-prettier": "^5.5.4",
-		"prettier": "^3.6.2"
-	}
+  "name": "wordpress-plugin-template",
+  "version": "1.0.0",
+  "description": "WordPress Plugin Template with ESLint & PHPCS",
+  "scripts": {
+    "lint:js": "eslint . --ext .js",
+    "lint:js:fix": "eslint . --ext .js --fix"
+  },
+  "devDependencies": {
+    "@wordpress/eslint-plugin": "^14.0.0",
+    "@wordpress/scripts": "^26.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-wordpress": "^6.0.0"
+  }
 }

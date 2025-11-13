@@ -1,29 +1,30 @@
 # WordPress Plugin Template
 
-A modern WordPress plugin development template with pre-configured code quality tools.
+A modern WordPress plugin development template with pre-configured code quality tools and development environment automation.
 
 ## ✨ 特徴
 
-- ✅ **PHPCS/PHPCBF**: WordPressコーディング規約準拠（短縮配列構文対応）
-- ✅ **Prettier**: JavaScript/JSONの自動フォーマット
-- ✅ **ESLint**: WordPressルールに基づくJavaScriptリンティング
-- ✅ **VSCode設定**: すぐに開発を始められる設定ファイル付き
-- 🚀 **ワンコマンドセットアップ**: 初期化スクリプトで簡単設定
+- ✅ **PHPCS/PHPCBF** — WordPress コーディング規約準拠（短縮配列構文対応）
+- ✅ **Prettier** — JavaScript/JSON の自動フォーマット
+- ✅ **ESLint** — WordPress ルールに基づく JavaScript リンティング
+- ✅ **VSCode 設定** — すぐに開発を始められる設定ファイル付き
+- ✅ **direnv 統合** — プロジェクト固有の環境変数とエイリアス管理
+- 🚀 **ワンコマンドセットアップ** — 初期化スクリプトで簡単設定
 
-### 🚀 クイックスタート
+## 🚀 クイックスタート
 
-#### 1. テンプレートから作成
+### 1. テンプレートから作成
 
-#### GitHubの「Use this template」ボタンをクリックするか、以下のコマンドを実行:
+GitHub の「Use this template」ボタンをクリックするか、以下を実行します。
 
 ```bash
-git clone [https://github.com/YOUR-USERNAME/wordpress-plugin-template.git](https://github.com/YOUR-USERNAME/wordpress-plugin-template.git) my-plugin
+git clone https://github.com/YOUR-USERNAME/wordpress-plugin-template.git my-plugin
 cd my-plugin
 ```
 
 ### 2. プラグインを初期化
 
-初期化スクリプトを実行:
+初期化スクリプトを実行します。
 
 ```bash
 ./init.sh your-plugin-slug "Your Plugin Name"
@@ -32,42 +33,73 @@ cd my-plugin
 ### 3. 依存関係をインストール
 
 ```bash
-# PHP依存関係
+# PHP 依存関係
 composer install
 
-# JavaScript依存関係
+# JavaScript 依存関係
 npm install
 ```
 
-### 🛠 開発環境セットアップ
+### 4. direnv のセットアップ
 
-#### 必要なもの:
+```bash
+# direnv がインストールされていない場合
+brew install direnv
+
+# direnv をシェルに統合
+echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc # zsh の場合
+# または
+echo 'eval "$(direnv hook bash)"' >> ~/.bashrc # bash の場合
+
+# シェルを再読み込み
+exec $SHELL
+
+# .envrc を有効化
+direnv allow
+```
+
+## 🛠 開発環境セットアップ
+
+### 必要なもの
 
 - PHP 7.4+
 - Node.js 16+
 - Composer
+- direnv（開発環境の自動設定用）
 - VSCode（推奨）
-- VSCode拡張機能
 
-#### 最適な開発体験のために以下の拡張機能をインストール:
+### 推奨 VSCode 拡張機能
 
 - PHP Sniffer & Beautifier
 - ESLint
 - Prettier
 
-### 🧪 利用可能なスクリプト
+## 🔄 開発ワークフロー
 
-PHP
+### 便利なエイリアス
+
+`.envrc` 内で以下のエイリアスが利用可能です。
 
 ```bash
-# PHPの構文チェック
+cdcore   # includes/core に移動
+cdi18n   # includes/i18n に移動
+cdadmin  # includes/admin に移動
+cdassets # assets に移動
+```
+
+### 利用可能なスクリプト
+
+#### PHP
+
+```bash
+# PHP の構文チェック
 composer phpcs
 
 # 自動修正
 composer phpcbf
 ```
 
-JavaScript
+#### JavaScript
 
 ```bash
 # リントチェック
@@ -77,30 +109,45 @@ npm run lint:js
 npm run lint:js:fix
 ```
 
-### 🏗 プロジェクト構成
+## 🏗 プロジェクト構成
 
+```
 .
-├── .vscode/ # VSCode設定
-├── includes/ # プラグインクラス
-├── languages/ # 翻訳ファイル
-├── src/ # JavaScriptソース
-├── vendor/ # Composer依存関係
-├── .eslintrc.json # ESLint設定
-├── .prettierrc # Prettier設定
-├── phpcs.xml.dist # PHP_CodeSniffer設定
-├── plugin.php # メインプラグインファイル
-└── README.md # このファイル
+├── .vscode/          # VSCode 設定
+├── includes/         # プラグインクラス
+├── languages/        # 翻訳ファイル
+├── src/              # JavaScript ソース
+├── vendor/           # Composer 依存関係
+├── .envrc            # direnv 設定（.gitignore に追加済み）
+├── .envrc.example    # 環境設定のテンプレート
+├── .eslintrc.json    # ESLint 設定
+├── .prettierrc       # Prettier 設定
+├── phpcs.xml.dist    # PHP_CodeSniffer 設定
+├── plugin.php        # メインプラグインファイル
+└── README.md         # このファイル
+```
 
-### 🤝 コントリビューション
+## 🤝 コントリビューション
 
-リポジトリをフォーク
-機能ブランチを作成 (git checkout -b feature/AmazingFeature)
-変更をコミット (git commit -m 'Add some AmazingFeature')
-ブランチにプッシュ (git push origin feature/AmazingFeature)
-プルリクエストを作成
+1. リポジトリをフォーク
+2. 機能ブランチを作成
+    ```bash
+    git checkout -b feature/AmazingFeature
+    ```
+3. 変更をコミット
+    ```bash
+    git commit -m 'Add some AmazingFeature'
+    ```
+4. ブランチをプッシュ
+    ```bash
+    git push origin feature/AmazingFeature
+    ```
+5. プルリクエストを作成
 
-### 📄 ライセンス
+## 📄 ライセンス
 
-このプロジェクトはMITライセンスの下で公開されています - 詳細はLICENSEファイルを参照してください。
+このプロジェクトは MIT ライセンスの下で公開されています。詳細は `LICENSE` ファイルを参照してください。
 
-## ❤️ 作成: [あなたの名前]
+## ❤️ 作成者
+
+Made with ❤️ by あなたの名前

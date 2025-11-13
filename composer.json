@@ -1,23 +1,29 @@
 {
-    "name": "vendor/wordpress-plugin",
-    "description": "WordPress plugin template",
-    "type": "wordpress-plugin",
-    "require": {
-        "php": ">=7.4"
-    },
-    "require-dev": {
-        "squizlabs/php_codesniffer": "^3.7",
-        "wp-coding-standards/wpcs": "^3.0"
-    },
-    "scripts": {
-        "phpcs": "phpcs --standard=phpcs.xml.dist",
-        "phpcbf": "phpcbf --standard=phpcs.xml.dist",
-        "phpcs:file": "phpcs --standard=phpcs.xml.dist",
-        "phpcbf:file": "phpcbf --standard=phpcs.xml.dist"
-    },
-    "config": {
-        "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
-        }
-    }
+	"name": "vendor/wordpress-plugin",
+	"description": "WordPress plugin template",
+	"type": "wordpress-plugin",
+	"require": {
+		"php": ">=7.4"
+	},
+	"require-dev": {
+		"squizlabs/php_codesniffer": "^3.10",
+		"phpcsstandards/phpcsutils": "^1.2",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"phpcompatibility/php-compatibility": "^9.3",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"wp-coding-standards/wpcs": "^3.2",
+		"phpcsstandards/phpcsextra": "^1.4",
+		"direnv/direnv": "^2.0"
+	},
+	"scripts": {
+		"phpcs": "phpcs --standard=phpcs.xml.dist",
+		"phpcbf": "phpcbf --standard=phpcs.xml.dist",
+		"phpcs:file": "phpcs --standard=phpcs.xml.dist",
+		"phpcbf:file": "phpcbf --standard=phpcs.xml.dist"
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	}
 }

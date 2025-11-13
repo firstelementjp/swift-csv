@@ -18,7 +18,7 @@ A modern WordPress plugin development template with pre-configured code quality 
 GitHub の「Use this template」ボタンをクリックするか、以下を実行します。
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/wordpress-plugin-template.git my-plugin
+git clone https://github.com/firstelementjp/__project-template.git my-plugin
 cd my-plugin
 ```
 
@@ -66,7 +66,7 @@ direnv allow
 - Node.js 16+
 - Composer
 - direnv（開発環境の自動設定用）
-- VSCode（推奨）
+- VSCode互換エディタ（推奨）
 
 ### 推奨 VSCode 拡張機能
 
@@ -146,7 +146,7 @@ npm run lint:js:fix
 
 ## 📄 ライセンス
 
-このプロジェクトは MIT ライセンスの下で公開されています。詳細は `LICENSE` ファイルを参照してください。
+このプロジェクトは GPL ライセンスの下で公開されています。詳細は `LICENSE` ファイルを参照してください。
 
 ## ❤️ 作成者
 

@@ -32,6 +32,8 @@ cd my-plugin
 
 ### 3. 依存関係をインストール
 
+init.shが自動で実行します。手動で実行する場合：
+
 ```bash
 # PHP 依存関係
 composer install
@@ -41,6 +43,8 @@ npm install
 ```
 
 ### 4. direnv のセットアップ
+
+init.shが.envrcを自動で更新します。direnvを有効化する場合：
 
 ```bash
 # direnv がインストールされていない場合
@@ -114,15 +118,21 @@ npm run lint:js:fix
 ```
 .
 ├── .vscode/          # VSCode 設定
+├── assets/           # JavaScript/CSS/画像ファイル
 ├── includes/         # プラグインクラス
+│   ├── core/         # コア機能
+│   ├── admin/        # 管理画面機能
+│   └── i18n/         # 国際化機能
 ├── languages/        # 翻訳ファイル
-├── src/              # JavaScript ソース
 ├── vendor/           # Composer 依存関係
 ├── .envrc            # direnv 設定（.gitignore に追加済み）
 ├── .envrc.example    # 環境設定のテンプレート
 ├── .eslintrc.json    # ESLint 設定
 ├── .prettierrc       # Prettier 設定
 ├── phpcs.xml.dist    # PHP_CodeSniffer 設定
+├── composer.json     # PHP 依存関係管理
+├── package.json      # JavaScript 依存関係管理
+├── init.sh           # 初期化スクリプト
 ├── plugin.php        # メインプラグインファイル
 └── README.md         # このファイル
 ```
@@ -146,8 +156,8 @@ npm run lint:js:fix
 
 ## 📄 ライセンス
 
-このプロジェクトは GPL ライセンスの下で公開されています。詳細は `LICENSE` ファイルを参照してください。
+このプロジェクトは GPLv2+ ライセンスの下で公開されています。詳細は `LICENSE` ファイルを参照してください。
 
 ## ❤️ 作成者
 
-Made with ❤️ by あなたの名前
+Made with ❤️ by Daijiro Miyazawa

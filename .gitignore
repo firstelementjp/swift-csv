@@ -3,8 +3,7 @@
 /node_modules/
 
 # IDE
-.vscode/*
-!.vscode/settings.json
+.vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace

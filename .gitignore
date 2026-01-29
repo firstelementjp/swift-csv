@@ -35,3 +35,4 @@ wp-config.php
 init.sh
 .envrc
 *.local
+README.en.md

@@ -13,6 +13,10 @@
 # OS
 .DS_Store
 Thumbs.db
+.DS_Store?
+*/.DS_Store?
+.DS_Store.*
+*/._*
 
 # Build
 *.min.js
@@ -27,3 +31,8 @@ npm-debug.log*
 # WordPress
 wp-config.php
 .htaccess
+
+# Project specific
+init.sh
+.envrc
+*.local

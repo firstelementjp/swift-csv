@@ -55,14 +55,14 @@ class Swift_CSV_Admin {
 				<h3><?php esc_html_e( 'Swift CSV Update', 'swift-csv' ); ?></h3>
 				<p>
 					<?php echo esc_html( $status['message'] ); ?>
-					<a href="<?php echo esc_url( admin_url( 'update-core.php' ) ); ?>" class="button button-primary" style="margin-left: 10px;">
+					<a href="<?php echo esc_url( admin_url( 'update-core.php' ) ); ?>" class="button button-primary swift-csv-update-button">
 						<?php esc_html_e( 'Update Now', 'swift-csv' ); ?>
 					</a>
 				</p>
 				<?php if ( ! empty( $status['release_notes'] ) ) : ?>
-					<details style="margin-top: 10px;">
-						<summary style="cursor: pointer; font-weight: bold;"><?php esc_html_e( 'Show Release Notes', 'swift-csv' ); ?></summary>
-						<div style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-left: 4px solid #ffb900;">
+					<details class="swift-csv-update-notice">
+						<summary><?php esc_html_e( 'Show Release Notes', 'swift-csv' ); ?></summary>
+						<div class="swift-csv-release-notes">
 							<?php echo wp_kses_post( nl2br( esc_html( $status['release_notes'] ) ) ); ?>
 						</div>
 					</details>
@@ -256,7 +256,7 @@ class Swift_CSV_Admin {
 			<h2><?php esc_html_e( 'CSV Import Progress', 'swift-csv' ); ?></h2>
 			<div id="batch-progress">
 				<div class="progress-bar">
-					<div class="progress-bar-fill" style="width: 0%"></div>
+					<div class="progress-bar-fill"></div>
 				</div>
 				<div class="progress-stats">
 					<span class="processed-rows">0</span> / <span class="total-rows">0</span> <?php esc_html_e( 'rows processed', 'swift-csv' ); ?> (<span class="percentage">0</span>%)
@@ -268,7 +268,7 @@ class Swift_CSV_Admin {
 				</div>
 			</div>
 			
-			<div id="batch-errors" style="display: none;">
+			<div id="batch-errors" class="swift-csv-batch-errors">
 				<h3><?php esc_html_e( 'Error Details', 'swift-csv' ); ?></h3>
 				<ul class="error-list"></ul>
 			</div>

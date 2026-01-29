@@ -1,0 +1,71 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: dom, xml
+          coverage: none
+          
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction
+
+      - name: Generate simple documentation
+        run: |
+          mkdir -p docs/api
+          echo '<!DOCTYPE html>' > docs/api/index.html
+          echo '<html><head>' >> docs/api/index.html
+          echo '<title>Swift CSV API Documentation</title>' >> docs/api/index.html
+          echo '<meta charset="UTF-8">' >> docs/api/index.html
+          echo '<style>' >> docs/api/index.html
+          echo 'body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }' >> docs/api/index.html
+          echo 'h1 { color: #2c3e50; }' >> docs/api/index.html
+          echo 'h2 { color: #34495e; }' >> docs/api/index.html
+          echo 'code { background: #f8f9fa; padding: 2px 6px; border-radius: 3px; }' >> docs/api/index.html
+          echo '</style></head><body>' >> docs/api/index.html
+          echo '<h1>🚀 Swift CSV API Documentation</h1>' >> docs/api/index.html
+          echo '<p>Generated on: '"$(date)"'</p>' >> docs/api/index.html
+          echo '<h2>🏗️ Classes</h2>' >> docs/api/index.html
+          
+          for file in includes/*.php; do
+            if [ -f "$file" ]; then
+              classname=$(basename "$file" .php)
+              echo "<h3>$classname</h3>" >> docs/api/index.html
+              echo "<h4>Methods:</h4>" >> docs/api/index.html
+              grep "public function" "$file" | while read line; do
+                method=$(echo "$line" | sed 's/.*public function //' | sed 's/(.*$//')
+                echo "<div><code>$method()</code></div>" >> docs/api/index.html
+              done
+            fi
+          done
+          
+          echo '</body></html>' >> docs/api/index.html
+
+      - name: Generate README documentation
+        run: |
+          echo "## 📋 Recent Changes" > docs/changelog.md
+          git log --oneline --since="1 month ago" >> docs/changelog.md
+          
+          echo "## 🏗️ Class Structure" >> docs/overview.md
+          find includes/ -name "*.php" -exec basename {} .php \; | sort | sed 's/^/- /' >> docs/overview.md
+          
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs

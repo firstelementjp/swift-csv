@@ -27,12 +27,7 @@ jobs:
             - name: Generate API documentation
               run: |
                   composer require --dev phpdocumentor/phpdocumentor
-                  ./vendor/bin/phpdoc \
-                    -d includes/ \
-                    -t docs/api/ \
-                    --title="Swift CSV API Documentation" \
-                    --template="responsive" \
-                    --defaultpackagename="Swift_CSV"
+                  ./vendor/bin/phpdoc --config=phpdoc.xml
 
             - name: Generate README documentation
               run: |

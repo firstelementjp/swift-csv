@@ -1,163 +1,102 @@
 # Swift CSV
 
-Swift CSV - A WordPress plugin with pre-configured code quality tools and development environment automation.
+A lightweight and simple CSV import/export plugin for WordPress. Full support for custom post types, custom taxonomies, and custom fields.
 
-## ✨ 特徴
+## ✨ Features
 
-- ✅ **PHPCS/PHPCBF** — WordPress コーディング規約準拠（短縮配列構文対応）
-- ✅ **Prettier** — JavaScript/JSON の自動フォーマット
-- ✅ **ESLint** — WordPress ルールに基づく JavaScript リンティング
-- ✅ **VSCode 設定** — すぐに開発を始められる設定ファイル付き
-- ✅ **direnv 統合** — プロジェクト固有の環境変数とエイリアス管理
-- 🚀 **ワンコマンドセットアップ** — 初期化スクリプトで簡単設定
+- 🌐 **Internationalization** - Multi-language support including Japanese
+- 📊 **Hierarchical Taxonomy Support** - Export/import parent-child relationships
+- 🎨 **Block Editor Compatible** - Preserves Gutenberg block structure completely
+- 📝 **Batch Processing** - Handle large CSV files without timeouts
+- 🔄 **Auto Updates** - One-click updates from WordPress admin
+- 📱 **Responsive UI** - Mobile-friendly admin interface
 
-## 🚀 クイックスタート
+## 🚀 Installation
 
-### 1. テンプレートから作成
+### Install from WordPress.org (Recommended)
 
-GitHub の「Use this template」ボタンをクリックするか、以下を実行します。
+1. Go to **Admin Dashboard → Plugins → Add New**
+2. Search for "Swift CSV"
+3. Click **Install Now**
 
-```bash
-git clone https://github.com/firstelementjp/__project-template.git my-plugin
-cd my-plugin
-```
+### Manual Installation
 
-### 2. プラグインを初期化
+1. [Download the latest version](https://github.com/firstelementjp/swift-csv/releases/latest)
+2. Extract the ZIP file
+3. Upload to `/wp-content/plugins/` directory
+4. Activate the plugin from admin dashboard
 
-初期化スクリプトを実行します。
+## 📖 Usage
 
-```bash
-./init.sh your-plugin-slug "Your Plugin Name"
-```
+### CSV Export
 
-### 3. 依存関係をインストール
+1. Go to **Admin Dashboard → Swift CSV → Export**
+2. Select post type
+3. Set number of posts (max 10,000)
+4. Click **Export CSV**
 
-init.shが自動で実行します。手動で実行する場合：
+### CSV Import
 
-```bash
-# PHP 依存関係
-composer install
+1. Go to **Admin Dashboard → Swift CSV → Import**
+2. Select target post type
+3. Choose UTF-8 encoded CSV file
+4. Configure import options
+5. Click **Import CSV**
 
-# JavaScript 依存関係
-npm install
-```
+## 📋 CSV Format
 
-### 4. direnv のセットアップ
+### Basic Structure
 
-init.shが.envrcを自動で更新します。direnvを有効化する場合：
+| Column       | Required | Description                        |
+| ------------ | -------- | ---------------------------------- |
+| post_title   | ✅       | Post title                         |
+| post_content | ❌       | Post content (HTML supported)      |
+| post_excerpt | ❌       | Post excerpt                       |
+| post_status  | ❌       | Post status (publish, draft, etc.) |
+| post_name    | ❌       | Post slug                          |
 
-```bash
-# direnv がインストールされていない場合
-brew install direnv
-
-# direnv をシェルに統合
-echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc # zsh の場合
-# または
-echo 'eval "$(direnv hook bash)"' >> ~/.bashrc # bash の場合
-
-# シェルを再読み込み
-exec $SHELL
-
-# .envrc を有効化
-direnv allow
-```
-
-## 🛠 開発環境セットアップ
-
-### 必要なもの
-
-- PHP 7.4+
-- Node.js 16+
-- Composer
-- direnv（開発環境の自動設定用）
-- VSCode互換エディタ（推奨）
-
-### 推奨 VSCode 拡張機能
-
-- PHP Sniffer & Beautifier
-- ESLint
-- Prettier
-
-## 🔄 開発ワークフロー
-
-### 便利なエイリアス
-
-`.envrc` 内で以下のエイリアスが利用可能です。
-
-```bash
-cdcore   # includes/core に移動
-cdi18n   # includes/i18n に移動
-cdadmin  # includes/admin に移動
-cdassets # assets に移動
-```
-
-### 利用可能なスクリプト
-
-#### PHP
-
-```bash
-# PHP の構文チェック
-composer phpcs
-
-# 自動修正
-composer phpcbf
-```
-
-#### JavaScript
-
-```bash
-# リントチェック
-npm run lint:js
-
-# 自動修正
-npm run lint:js:fix
-```
-
-## 🏗 プロジェクト構成
+### Hierarchical Taxonomies
 
 ```
-.
-├── .vscode/          # VSCode 設定
-├── assets/           # JavaScript/CSS/画像ファイル
-├── includes/         # プラグインクラス
-│   ├── core/         # コア機能
-│   ├── admin/        # 管理画面機能
-│   └── i18n/         # 国際化機能
-├── languages/        # 翻訳ファイル
-├── vendor/           # Composer 依存関係
-├── .envrc            # direnv 設定（.gitignore に追加済み）
-├── .envrc.example    # 環境設定のテンプレート
-├── .eslintrc.json    # ESLint 設定
-├── .prettierrc       # Prettier 設定
-├── phpcs.xml.dist    # PHP_CodeSniffer 設定
-├── composer.json     # PHP 依存関係管理
-├── package.json      # JavaScript 依存関係管理
-├── init.sh           # 初期化スクリプト
-├── plugin.php        # メインプラグインファイル
-└── README.md         # このファイル
+Category A > Subcategory A > Grandchild
+Technology > WordPress > Plugin Development
 ```
 
-## 🤝 コントリビューション
+### Custom Fields
 
-1. リポジトリをフォーク
-2. 機能ブランチを作成
-    ```bash
-    git checkout -b feature/AmazingFeature
-    ```
-3. 変更をコミット
-    ```bash
-    git commit -m 'Add some AmazingFeature'
-    ```
-4. ブランチをプッシュ
-    ```bash
-    git push origin feature/AmazingFeature
-    ```
-5. プルリクエストを作成
+Use `cf_` prefix for custom fields:
 
-## 📄 ライセンス
+```
+cf_price, cf_color, cf_size
+```
 
-このプロジェクトは GPLv2+ ライセンスの下で公開されています。詳細は `LICENSE` ファイルを参照してください。
+## 🔧 Requirements
 
-## ❤️ 作成者
+- **WordPress**: 5.0 or higher
+- **PHP**: 7.4 or higher
+- **Memory**: 128MB+ (for large CSV processing)
 
-Made with ❤️ by Daijiro Miyazawa
+## 🌍 Internationalization
+
+Currently supported languages:
+
+- 🇯🇵 Japanese
+- 🇺🇸 English (default)
+
+Interested in helping with translations? Contact us on [GitHub](https://github.com/firstelementjp/swift-csv).
+
+## 🤝 Contributing
+
+Bug reports and feature requests are welcome through [GitHub Issues](https://github.com/firstelementjp/swift-csv/issues).
+
+## 📄 License
+
+GPLv2+ - See [LICENSE](LICENSE) file for details
+
+## 👨‍💻 Developer
+
+[FirstElement,Inc.](https://www.firstelement.co.jp/)
+
+---
+
+⭐ Please consider leaving a review if you find this plugin helpful!

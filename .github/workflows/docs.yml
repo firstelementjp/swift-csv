@@ -31,7 +31,8 @@ jobs:
                     -d includes/ \
                     -t docs/api/ \
                     --title="Swift CSV API Documentation" \
-                    --template="responsive"
+                    --template="responsive" \
+                    --defaultpackagename="Swift_CSV"
 
             - name: Generate README documentation
               run: |

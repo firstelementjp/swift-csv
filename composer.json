@@ -3,6 +3,7 @@
 	"description": "Swift CSV - Simple CSV Management Without the Complexity.",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0+",
+	"homepage": "https://github.com/firstelementjp/swift-csv",
 	"require": {
 		"php": ">=7.4"
 	},

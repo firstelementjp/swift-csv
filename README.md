@@ -95,7 +95,7 @@ GPLv2+ - See [LICENSE](LICENSE) file for details
 
 ## 👨‍💻 Developer
 
-[FirstElement,Inc.](https://www.firstelement.co.jp/)
+[FirstElement,Inc.](https://www.firstelement.co.jp/), [Daijiro Miyazawa](https://x.com/dxd5001)
 
 ---
 

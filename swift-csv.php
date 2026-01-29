@@ -79,6 +79,9 @@ register_activation_hook( __FILE__, 'swift_csv_activate' );
  * @return void
  */
 function swift_csv_activate() {
+	// Clean up any orphaned cron jobs from previous installations.
+	wp_clear_scheduled_hook( 'swift_csv_process_batch' );
+
 	// Create upload directory if needed.
 	$upload_dir = wp_upload_dir();
 	$csv_dir    = $upload_dir['basedir'] . '/swift-csv';
@@ -101,6 +104,9 @@ register_deactivation_hook( __FILE__, 'swift_csv_deactivate' );
  * @return void
  */
 function swift_csv_deactivate() {
+	// Clean up all scheduled cron jobs.
+	wp_clear_scheduled_hook( 'swift_csv_process_batch' );
+
 	// Flush rewrite rules.
 	flush_rewrite_rules();
 }

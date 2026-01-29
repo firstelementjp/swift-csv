@@ -30,7 +30,7 @@ define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );
  *
  * Loads the plugin text domain for internationalization.
  *
- * @since 1.0.0
+ * @since 0.9.0
  * @return void
  */
 function swift_csv_load_textdomain() {
@@ -55,7 +55,7 @@ require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-updater.php';
  * Creates instances of all main plugin classes and sets up hooks.
  * This function is called on 'plugins_loaded' action.
  *
- * @since 1.0.0
+ * @since 0.9.0
  * @return void
  */
 function swift_csv_init() {
@@ -75,7 +75,7 @@ register_activation_hook( __FILE__, 'swift_csv_activate' );
  * Creates necessary directories and sets up initial plugin state.
  * This function runs only when the plugin is activated.
  *
- * @since 1.0.0
+ * @since 0.9.0
  * @return void
  */
 function swift_csv_activate() {
@@ -97,7 +97,7 @@ register_deactivation_hook( __FILE__, 'swift_csv_deactivate' );
  *
  * Cleans up when the plugin is deactivated.
  *
- * @since 1.0.0
+ * @since 0.9.0
  * @return void
  */
 function swift_csv_deactivate() {

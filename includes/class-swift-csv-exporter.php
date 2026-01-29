@@ -7,7 +7,7 @@
  * including data retrieval, CSV formatting, and file download.
  *
  * @package Swift_CSV
- * @since   1.0.0
+ * @since   0.9.0
  */
 
 if (! defined('ABSPATH')) {
@@ -21,7 +21,7 @@ class Swift_CSV_Exporter
      *
      * Sets up WordPress hooks for export functionality.
      *
-     * @since  1.0.0
+     * @since  0.9.0
      * @return void
      */
     public function __construct()
@@ -34,7 +34,7 @@ class Swift_CSV_Exporter
      *
      * Validates user permissions, nonce, and parameters before processing export.
      *
-     * @since  1.0.0
+     * @since  0.9.0
      * @return void
      */
     public function handle_export()
@@ -73,7 +73,7 @@ class Swift_CSV_Exporter
      *
      * Retrieves posts, generates CSV headers and content, and sends file to browser.
      *
-     * @since  1.0.0
+     * @since  0.9.0
      * @param  string $post_type      The post type to export.
      * @param  int    $posts_per_page Number of posts to export.
      * @return void
@@ -168,7 +168,7 @@ class Swift_CSV_Exporter
      *
      * Logs debug messages only when WP_DEBUG is enabled.
      *
-     * @since  1.0.0
+     * @since  0.9.0
      * @param  string $message Message to log.
      * @return void
      */
@@ -184,7 +184,7 @@ class Swift_CSV_Exporter
      *
      * Creates CSV data including headers, post data, taxonomies, and custom fields.
      *
-     * @since  1.0.0
+     * @since  0.9.0
      * @param  array $posts         Array of WP_Post objects.
      * @param  array $headers       CSV header columns.
      * @param  array $taxonomies    Taxonomy objects for the post type.

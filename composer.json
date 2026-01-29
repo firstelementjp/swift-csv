@@ -1,6 +1,6 @@
 {
 	"name": "firstelementjp/swift-csv",
-	"description": "Swift CSV - 軽量でシンプルなCSVインポート/エクスポートプラグイン",
+	"description": "Swift CSV - Simple CSV Management Without the Complexity.",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0+",
 	"require": {

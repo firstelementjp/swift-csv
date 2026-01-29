@@ -6,7 +6,7 @@
  * including file validation, data processing, and post creation.
  *
  * @package Swift_CSV
- * @since   1.0.0
+ * @since   0.9.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,7 +19,7 @@ class Swift_CSV_Importer {
      *
      * Sets up WordPress hooks for import functionality.
      * 
-     * @since  1.0.0
+     * @since  0.9.0
      * @return void
      */
     public function __construct()
@@ -33,7 +33,7 @@ class Swift_CSV_Importer {
      * 
      * Validates user permissions, nonce, file upload, and parameters before processing import.
      * 
-     * @since  1.0.0
+     * @since  0.9.0
      * @return void
      */
     public function handle_import()
@@ -128,7 +128,7 @@ class Swift_CSV_Importer {
      *
      * Logs debug messages only when WP_DEBUG is enabled.
      *
-     * @since  1.0.0
+     * @since  0.9.0
      * @param  string $message Message to log.
      * @return void
      */
@@ -144,7 +144,7 @@ class Swift_CSV_Importer {
      * 
      * Reads CSV data, creates mapping, and processes each row for import/update.
      * 
-     * @since  1.0.0
+     * @since  0.9.0
      * @param  string $file_path       Path to the uploaded CSV file.
      * @param  string $post_type       Target post type for import.
      * @param  bool   $update_existing Whether to update existing posts.

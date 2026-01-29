@@ -7,7 +7,7 @@
  * import/export interface.
  *
  * @package Swift_CSV
- * @since   1.0.0
+ * @since   0.9.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,7 +21,7 @@ class Swift_CSV_Admin {
 	 *
 	 * Sets up WordPress hooks for admin menu and styles.
 	 *
-	 * @since  1.0.0
+	 * @since  0.9.0
 	 * @return void
 	 */
 	public function __construct() {
@@ -77,7 +77,7 @@ class Swift_CSV_Admin {
 	 *
 	 * Creates the main Swift CSV menu in WordPress admin.
 	 *
-	 * @since  1.0.0
+	 * @since  0.9.0
 	 * @return void
 	 */
 	public function add_admin_menu() {
@@ -97,7 +97,7 @@ class Swift_CSV_Admin {
 	 *
 	 * Loads CSS styles only on the plugin's admin pages.
 	 *
-	 * @since  1.0.0
+	 * @since  0.9.0
 	 * @param  string $hook Current admin page hook.
 	 * @return void
 	 */
@@ -202,7 +202,7 @@ class Swift_CSV_Admin {
 	 *
 	 * Displays the main interface with export/import tabs.
 	 *
-	 * @since  1.0.0
+	 * @since  0.9.0
 	 * @return void
 	 */
 	public function render_main_page() {
@@ -384,7 +384,7 @@ class Swift_CSV_Admin {
 	 *
 	 * Displays the export form with post type selection and options.
 	 *
-	 * @since  1.0.0
+	 * @since  0.9.0
 	 * @return void
 	 */
 	private function render_export_tab() {
@@ -437,7 +437,7 @@ class Swift_CSV_Admin {
 	 *
 	 * Displays the import form with file upload and options.
 	 *
-	 * @since  1.0.0
+	 * @since  0.9.0
 	 * @return void
 	 */
 	private function render_import_tab() {

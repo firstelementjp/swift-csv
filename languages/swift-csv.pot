@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-01-29T10:46:18+00:00\n"
+"POT-Creation-Date: 2026-01-29T12:17:05+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: swift-csv\n"
@@ -92,17 +92,17 @@ msgid "rows processed"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:265
-#: includes/class-swift-csv-importer.php:532
+#: includes/class-swift-csv-importer.php:582
 msgid "Created:"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:266
-#: includes/class-swift-csv-importer.php:533
+#: includes/class-swift-csv-importer.php:583
 msgid "Updated:"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:267
-#: includes/class-swift-csv-importer.php:539
+#: includes/class-swift-csv-importer.php:589
 msgid "Errors:"
 msgstr ""
 
@@ -222,24 +222,24 @@ msgstr ""
 msgid "Database error:"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:527
+#: includes/class-swift-csv-importer.php:577
 msgid "Import Results"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:531
+#: includes/class-swift-csv-importer.php:581
 msgid "Import completed!"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:532
-#: includes/class-swift-csv-importer.php:533
+#: includes/class-swift-csv-importer.php:582
+#: includes/class-swift-csv-importer.php:583
 msgid "posts"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:549
+#: includes/class-swift-csv-importer.php:599
 msgid "Continue Import"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:550
+#: includes/class-swift-csv-importer.php:600
 msgid "Back to Admin"
 msgstr ""
 
@@ -247,10 +247,11 @@ msgstr ""
 msgid "Failed to get update information."
 msgstr ""
 
-#: includes/class-swift-csv-updater.php:316
+#. translators: %s: version number
+#: includes/class-swift-csv-updater.php:318
 msgid "New version %s is available."
 msgstr ""
 
-#: includes/class-swift-csv-updater.php:326
+#: includes/class-swift-csv-updater.php:330
 msgid "Plugin is up to date."
 msgstr ""

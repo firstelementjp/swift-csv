@@ -313,7 +313,11 @@ class Swift_CSV_Updater {
 				'status'        => 'available',
 				'current'       => $current_version,
 				'latest'        => $latest_version,
-				'message'       => sprintf( esc_html__( 'New version %s is available.', 'swift-csv' ), $latest_version ),
+				'message'       => sprintf(
+					/* translators: %s: version number */
+					esc_html__( 'New version %s is available.', 'swift-csv' ),
+					$latest_version
+				),
 				'release_notes' => $latest_release->body,
 				'download_url'  => $latest_release->html_url,
 			];

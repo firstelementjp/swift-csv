@@ -26,7 +26,7 @@ msgstr ""
 
 #. Description of the plugin
 #: swift-csv.php
-msgid "軽量でシンプルなCSVインポート/エクスポートプラグイン。カスタム投稿タイプ、カスタムタクソノミー、カスタムフィールドに対応。"
+msgid "Lightweight and simple CSV import/export plugin. Supports custom post types, custom taxonomies, and custom fields."
 msgstr ""
 
 #. Author of the plugin

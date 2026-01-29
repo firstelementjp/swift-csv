@@ -404,9 +404,33 @@ class Swift_CSV_Importer {
         
         $post_id = $result;
         
-        // Set taxonomies
+        // Set taxonomies with hierarchical support
         foreach ($taxonomies as $taxonomy => $terms) {
-            wp_set_post_terms($post_id, $terms, $taxonomy);
+            $processed_terms = array();
+            
+            foreach ($terms as $term) {
+                // Handle hierarchical terms (e.g., "Parent > Child")
+                if (strpos($term, '>') !== false) {
+                    $hierarchy = array_map('trim', explode('>', $term));
+                    $parent_term = array_shift($hierarchy);
+                    
+                    // Ensure parent exists
+                    $parent_id = $this->ensure_term_exists($parent_term, $taxonomy, 0);
+                    
+                    // Process child terms
+                    $current_parent = $parent_id;
+                    foreach ($hierarchy as $child_term) {
+                        $current_parent = $this->ensure_term_exists($child_term, $taxonomy, $current_parent);
+                    }
+                    $processed_terms[] = $current_parent;
+                } else {
+                    // Simple term
+                    $term_id = $this->ensure_term_exists($term, $taxonomy, 0);
+                    $processed_terms[] = $term_id;
+                }
+            }
+            
+            wp_set_post_terms($post_id, $processed_terms, $taxonomy);
         }
         
         // Set meta fields
@@ -415,6 +439,38 @@ class Swift_CSV_Importer {
         }
         
         return ['updated' => $is_update, 'post_id' => $post_id];
+    }
+    
+    /**
+     * Ensure term exists and return its ID
+     *
+     * Creates term if it doesn't exist, handles hierarchical relationships.
+     *
+     * @since  0.9.0
+     * @param  string $term_name     Term name to create/find.
+     * @param  string $taxonomy      Taxonomy name.
+     * @param  int    $parent_id     Parent term ID (0 for top-level).
+     * @return int    Term ID.
+     */
+    private function ensure_term_exists($term_name, $taxonomy, $parent_id = 0)
+    {
+        // Check if term already exists with this parent
+        $existing_term = get_term_by('name', $term_name, $taxonomy);
+        if ($existing_term && $existing_term->parent == $parent_id) {
+            return $existing_term->term_id;
+        }
+        
+        // Create new term
+        $result = wp_insert_term($term_name, $taxonomy, [
+            'parent' => $parent_id,
+        ]);
+        
+        if (is_wp_error($result)) {
+            $this->_debugLog("Failed to create term: {$term_name} in {$taxonomy}");
+            return 0;
+        }
+        
+        return $result['term_id'];
     }
     
     /**
@@ -430,8 +486,10 @@ class Swift_CSV_Importer {
         // Remove Excel/Google Sheets styling and formatting
         $value = $this->remove_excel_formatting($value);
         
-        // Remove HTML tags
-        $value = strip_tags($value);
+        // Only remove HTML tags from non-content fields to preserve block editor
+        if (!in_array($field, ['post_content', 'post_excerpt'])) {
+            $value = strip_tags($value);
+        }
         
         // Remove excessive whitespace
         $value = preg_replace('/\s+/', ' ', $value);

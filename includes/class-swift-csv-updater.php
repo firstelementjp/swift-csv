@@ -302,7 +302,7 @@ class Swift_CSV_Updater {
 				'status'  => 'unknown',
 				'current' => $current_version,
 				'latest'  => null,
-				'message' => 'アップデート情報の取得に失敗しました。',
+				'message' => esc_html__( 'Failed to get update information.', 'swift-csv' ),
 			];
 		}
 
@@ -313,7 +313,7 @@ class Swift_CSV_Updater {
 				'status'        => 'available',
 				'current'       => $current_version,
 				'latest'        => $latest_version,
-				'message'       => "新しいバージョン {$latest_version} が利用可能です。",
+				'message'       => sprintf( esc_html__( 'New version %s is available.', 'swift-csv' ), $latest_version ),
 				'release_notes' => $latest_release->body,
 				'download_url'  => $latest_release->html_url,
 			];
@@ -323,7 +323,7 @@ class Swift_CSV_Updater {
 			'status'  => 'current',
 			'current' => $current_version,
 			'latest'  => $latest_version,
-			'message' => 'プラグインは最新バージョンです。',
+			'message' => esc_html__( 'Plugin is up to date.', 'swift-csv' ),
 		];
 	}
 }

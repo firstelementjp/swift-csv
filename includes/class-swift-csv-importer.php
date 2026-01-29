@@ -43,22 +43,22 @@ class Swift_CSV_Importer {
             || !isset($_POST['csv_import_nonce'])
             || !wp_verify_nonce($_POST['csv_import_nonce'], 'swift_csv_import')
         ) {
-            wp_die('セキュリティチェックに失敗しました。');
+            wp_die( esc_html__( 'Security check failed.', 'swift-csv' ) );
         }
 
         // Validate required parameters
         if (!isset($_POST['import_post_type'])) {
-            wp_die('リクエストが不正です。');
+            wp_die( esc_html__( 'Invalid request.', 'swift-csv' ) );
         }
         
         // Validate file upload
         if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
-            wp_die('ファイルのアップロードに失敗しました。');
+            wp_die( esc_html__( 'File upload failed.', 'swift-csv' ) );
         }
         
         // Additional security: verify uploaded file
         if (!is_uploaded_file($_FILES['csv_file']['tmp_name'])) {
-            wp_die('不正なアップロードです。');
+            wp_die( esc_html__( 'Invalid upload.', 'swift-csv' ) );
         }
 
         // Validate file type and extension using WordPress function
@@ -68,19 +68,19 @@ class Swift_CSV_Importer {
             ['csv' => 'text/csv']
         );
         if (empty($file_check['ext']) || $file_check['ext'] !== 'csv') {
-            wp_die('CSVファイルのみアップロード可能です。');
+            wp_die( esc_html__( 'Only CSV files can be uploaded.', 'swift-csv' ) );
         }
         
         // File size limit (50MB) for batch processing
         if ($_FILES['csv_file']['size'] > 50 * 1024 * 1024) {
-            wp_die('ファイルサイズが大きすぎます。50MB以下のファイルを選択してください。');
+            wp_die( esc_html__( 'File size is too large. Please select a file under 50MB.', 'swift-csv' ) );
         }
         
         // Sanitize and validate post type
         $post_type = sanitize_text_field($_POST['import_post_type']);
         
         if (!post_type_exists($post_type)) {
-            wp_die('無効な投稿タイプです。');
+            wp_die( esc_html__( 'Invalid post type.', 'swift-csv' ) );
         }
         
         // Check if existing posts should be updated
@@ -157,7 +157,7 @@ class Swift_CSV_Importer {
         
         // Validate CSV data
         if (empty($csv_data) || count($csv_data) < 2) {
-            wp_die('CSVファイルが空または無効です。');
+            wp_die( esc_html__( 'CSV file is empty or invalid.', 'swift-csv' ) );
         }
         
         // Extract headers and create field mapping
@@ -399,7 +399,7 @@ class Swift_CSV_Importer {
             if ($error_data) {
                 $this->_debugLog("Import Error - Error Data: " . print_r($error_data, true));
             }
-            throw new Exception("データベースエラー: " . $error_message);
+            throw new Exception( esc_html__( 'Database error:', 'swift-csv' ) . ' ' . $error_message );
         }
         
         $post_id = $result;
@@ -524,19 +524,19 @@ class Swift_CSV_Importer {
     {
         ?>
         <div class="wrap">
-            <h1>インポート結果</h1>
+            <h1><?php esc_html_e( 'Import Results', 'swift-csv' ); ?></h1>
             
             <div class="notice notice-success is-dismissible">
                 <p>
-                    <strong>インポート完了！</strong><br>
-                    新規作成: <?php echo $imported; ?> 件<br>
-                    更新: <?php echo $updated; ?> 件
+                    <strong><?php esc_html_e( 'Import completed!', 'swift-csv' ); ?></strong><br>
+                    <?php esc_html_e( 'Created:', 'swift-csv' ); ?> <?php echo $imported; ?> <?php esc_html_e( 'posts', 'swift-csv' ); ?><br>
+                    <?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <?php echo $updated; ?> <?php esc_html_e( 'posts', 'swift-csv' ); ?>
                 </p>
             </div>
             
             <?php if (!empty($errors)) : ?>
                 <div class="notice notice-error">
-                    <h3>エラー:</h3>
+                    <h3><?php esc_html_e( 'Errors:', 'swift-csv' ); ?></h3>
                     <ul>
                         <?php foreach ($errors as $error): ?>
                             <li><?php echo esc_html($error); ?></li>
@@ -546,8 +546,8 @@ class Swift_CSV_Importer {
             <?php endif; ?>
             
             <p>
-                <a href="?page=simple-csv-ie&tab=import" class="button">続けてインポート</a>
-                <a href="<?php echo admin_url('admin.php?page=simple-csv-ie'); ?>" class="button">管理画面に戻る</a>
+                <a href="?page=simple-csv-ie&tab=import" class="button"><?php esc_html_e( 'Continue Import', 'swift-csv' ); ?></a>
+                <a href="<?php echo admin_url('admin.php?page=simple-csv-ie'); ?>" class="button"><?php esc_html_e( 'Back to Admin', 'swift-csv' ); ?></a>
             </p>
         </div>
         <?php

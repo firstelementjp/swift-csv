@@ -52,16 +52,16 @@ class Swift_CSV_Admin {
 		if ( 'available' === $status['status'] ) {
 			?>
 			<div class="notice notice-warning is-dismissible">
-				<h3>Swift CSV アップデート</h3>
+				<h3><?php esc_html_e( 'Swift CSV Update', 'swift-csv' ); ?></h3>
 				<p>
 					<?php echo esc_html( $status['message'] ); ?>
 					<a href="<?php echo esc_url( admin_url( 'update-core.php' ) ); ?>" class="button button-primary" style="margin-left: 10px;">
-						今すぐ更新
+						<?php esc_html_e( 'Update Now', 'swift-csv' ); ?>
 					</a>
 				</p>
 				<?php if ( ! empty( $status['release_notes'] ) ) : ?>
 					<details style="margin-top: 10px;">
-						<summary style="cursor: pointer; font-weight: bold;">リリースノートを表示</summary>
+						<summary style="cursor: pointer; font-weight: bold;"><?php esc_html_e( 'Show Release Notes', 'swift-csv' ); ?></summary>
 						<div style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-left: 4px solid #ffb900;">
 							<?php echo wp_kses_post( nl2br( esc_html( $status['release_notes'] ) ) ); ?>
 						</div>
@@ -219,10 +219,10 @@ class Swift_CSV_Admin {
 			
 			<nav class="nav-tab-wrapper">
 				<a href="?page=swift-csv&tab=export" class="nav-tab <?php echo 'export' === $tab ? 'nav-tab-active' : ''; ?>">
-					エクスポート
+				<?php esc_html_e( 'Export', 'swift-csv' ); ?>
 				</a>
 				<a href="?page=swift-csv&tab=import" class="nav-tab <?php echo 'import' === $tab ? 'nav-tab-active' : ''; ?>">
-					インポート
+				<?php esc_html_e( 'Import', 'swift-csv' ); ?>
 				</a>
 			</nav>
 			
@@ -253,23 +253,23 @@ class Swift_CSV_Admin {
 	private function render_batch_progress( $batch_id ) {
 		?>
 		<div class="card">
-			<h2>CSVインポート進捗</h2>
+			<h2><?php esc_html_e( 'CSV Import Progress', 'swift-csv' ); ?></h2>
 			<div id="batch-progress">
 				<div class="progress-bar">
 					<div class="progress-bar-fill" style="width: 0%"></div>
 				</div>
 				<div class="progress-stats">
-					<span class="processed-rows">0</span> / <span class="total-rows">0</span> 行処理済み (<span class="percentage">0</span>%)
+					<span class="processed-rows">0</span> / <span class="total-rows">0</span> <?php esc_html_e( 'rows processed', 'swift-csv' ); ?> (<span class="percentage">0</span>%)
 				</div>
 				<div class="progress-details">
-					<div class="created">新規作成: <span class="created-count">0</span></div>
-					<div class="updated">更新: <span class="updated-count">0</span></div>
-					<div class="errors">エラー: <span class="error-count">0</span></div>
+					<div class="created"><?php esc_html_e( 'Created:', 'swift-csv' ); ?> <span class="created-count">0</span></div>
+					<div class="updated"><?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <span class="updated-count">0</span></div>
+					<div class="errors"><?php esc_html_e( 'Errors:', 'swift-csv' ); ?> <span class="error-count">0</span></div>
 				</div>
 			</div>
 			
 			<div id="batch-errors" style="display: none;">
-				<h3>エラー詳細</h3>
+				<h3><?php esc_html_e( 'Error Details', 'swift-csv' ); ?></h3>
 				<ul class="error-list"></ul>
 			</div>
 		</div>
@@ -315,13 +315,13 @@ class Swift_CSV_Admin {
 							if (data.status === 'completed') {
 								clearInterval(progressInterval);
 								$('.progress-bar').addClass('completed');
-								alert('CSVインポートが完了しました！');
+								alert('<?php esc_html_e( 'CSV import completed!', 'swift-csv' ); ?>');
 							}
 						}
 					},
 					error: function() {
 						clearInterval(progressInterval);
-						alert('進捗の取得に失敗しました。');
+						alert('<?php esc_html_e( 'Failed to get progress.', 'swift-csv' ); ?>');
 					}
 				});
 			}
@@ -393,14 +393,14 @@ class Swift_CSV_Admin {
 
 		?>
 		<div class="card">
-			<h2>投稿データをエクスポート</h2>
+			<h2><?php esc_html_e( 'Export Post Data', 'swift-csv' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<?php wp_nonce_field( 'swift_csv_export', 'csv_export_nonce' ); ?>
 				
 				<table class="form-table">
 					<tr>
 						<th scope="row">
-							<label for="post_type">投稿タイプ</label>
+							<label for="post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
 						</th>
 						<td>
 							<select name="post_type" id="post_type" required>
@@ -414,18 +414,18 @@ class Swift_CSV_Admin {
 					</tr>
 					<tr>
 						<th scope="row">
-							<label for="posts_per_page">取得件数</label>
+							<label for="posts_per_page"><?php esc_html_e( 'Number of Posts', 'swift-csv' ); ?></label>
 						</th>
 						<td>
 							<input type="number" name="posts_per_page" id="posts_per_page" value="100" min="1" max="10000">
-							<p class="description">一度にエクスポートする投稿数（最大10000件）</p>
+							<p class="description"><?php esc_html_e( 'Number of posts to export at once (max 10000)', 'swift-csv' ); ?></p>
 						</td>
 					</tr>
 				</table>
 				
 				<p class="submit">
 					<input type="hidden" name="action" value="swift_csv_export">
-					<input type="submit" name="export_csv" class="button button-primary" value="CSVをエクスポート">
+					<input type="submit" name="export_csv" class="button button-primary" value="<?php esc_html_e( 'Export CSV', 'swift-csv' ); ?>">
 				</p>
 			</form>
 		</div>
@@ -446,14 +446,14 @@ class Swift_CSV_Admin {
 
 		?>
 		<div class="card">
-			<h2>CSVファイルをインポート</h2>
+			<h2><?php esc_html_e( 'Import CSV File', 'swift-csv' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 				<?php wp_nonce_field( 'swift_csv_import', 'csv_import_nonce' ); ?>
 				
 				<table class="form-table">
 					<tr>
 						<th scope="row">
-							<label for="import_post_type">投稿タイプ</label>
+							<label for="import_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
 						</th>
 						<td>
 							<select name="import_post_type" id="import_post_type" required>
@@ -463,19 +463,19 @@ class Swift_CSV_Admin {
 									</option>
 								<?php endforeach; ?>
 							</select>
-							<p class="description">インポート先の投稿タイプを選択してください</p>
+							<p class="description"><?php esc_html_e( 'Select the target post type for import.', 'swift-csv' ); ?></p>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">
-							<label for="csv_file">CSVファイル</label>
+							<label for="csv_file"><?php esc_html_e( 'CSV File', 'swift-csv' ); ?></label>
 						</th>
 						<td>
 							<input type="file" name="csv_file" id="csv_file" accept=".csv" required>
 							<p class="description">
-								UTF-8形式のCSVファイルを選択してください。<br>
-								1行目がヘッダー行として自動マッピングに使用されます。<br>
-								カスタムフィールドは「cf_」プレフィックスで指定してください（例：cf_price）。
+								<?php esc_html_e( 'Please select a UTF-8 encoded CSV file.', 'swift-csv' ); ?><br>
+								<?php esc_html_e( 'The first row will be used as header for automatic mapping.', 'swift-csv' ); ?><br>
+								<?php esc_html_e( 'Custom fields should be prefixed with "cf_" (example: cf_price).', 'swift-csv' ); ?>
 							</p>
 						</td>
 					</tr>
@@ -483,13 +483,13 @@ class Swift_CSV_Admin {
 						<th scope="row">
 							<label>
 								<input type="checkbox" name="update_existing" value="1">
-								既存投稿を更新
+								<?php esc_html_e( 'Update existing posts', 'swift-csv' ); ?>
 							</label>
 						</th>
 						<td>
 							<p class="description">
-								IDまたはslugが一致する場合、既存投稿を更新します。<br>
-								チェックしない場合、新規投稿として作成します。
+								<?php esc_html_e( 'Updates existing posts when ID or slug matches.', 'swift-csv' ); ?><br>
+								<?php esc_html_e( 'If unchecked, creates new posts.', 'swift-csv' ); ?>
 							</p>
 						</td>
 					</tr>
@@ -497,7 +497,7 @@ class Swift_CSV_Admin {
 				
 				<p class="submit">
 					<input type="hidden" name="action" value="swift_csv_import">
-					<input type="submit" name="import_csv" class="button button-primary" value="CSVをインポート">
+					<input type="submit" name="import_csv" class="button button-primary" value="<?php esc_html_e( 'Import CSV', 'swift-csv' ); ?>">
 				</p>
 			</form>
 		</div>

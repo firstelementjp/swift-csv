@@ -45,12 +45,12 @@ class Swift_CSV_Exporter
             || !isset($_POST['csv_export_nonce'])
             || !wp_verify_nonce($_POST['csv_export_nonce'], 'swift_csv_export')
         ) {
-            wp_die('セキュリティチェックに失敗しました。');
+            wp_die( esc_html__( 'Security check failed.', 'swift-csv' ) );
         }
 
         // Validate required parameters
         if (!isset($_POST['post_type']) || !isset($_POST['posts_per_page'])) {
-            wp_die('リクエストが不正です。');
+            wp_die( esc_html__( 'Invalid request.', 'swift-csv' ) );
         }
 
         // Sanitize and validate inputs
@@ -59,7 +59,7 @@ class Swift_CSV_Exporter
 
         // Validate post type exists
         if (!post_type_exists($post_type)) {
-            wp_die('無効な投稿タイプです。');
+            wp_die( esc_html__( 'Invalid post type.', 'swift-csv' ) );
         }
 
         // Limit posts per page to prevent memory issues (max 1000)
@@ -100,7 +100,7 @@ class Swift_CSV_Exporter
 
         // Check if posts exist
         if (empty($posts)) {
-            wp_die('エクスポートする投稿が見つかりません。');
+            wp_die( esc_html__( 'No posts found to export.', 'swift-csv' ) );
         }
 
         // Prepare CSV headers with standard post fields

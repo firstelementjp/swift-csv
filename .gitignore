@@ -8,6 +8,7 @@
 .idea/
 *.sublime-project
 *.sublime-workspace
+*.code-workspace
 
 # OS
 .DS_Store

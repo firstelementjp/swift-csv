@@ -1,6 +1,6 @@
-# WordPress Plugin Template
+# Swift CSV
 
-A modern WordPress plugin development template with pre-configured code quality tools and development environment automation.
+Swift CSV - A WordPress plugin with pre-configured code quality tools and development environment automation.
 
 ## ✨ 特徴
 

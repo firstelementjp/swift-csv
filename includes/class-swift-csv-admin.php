@@ -1,0 +1,506 @@
+<?php
+/**
+ * Admin class for managing plugin interface
+ *
+ * This file contains the admin functionality for the Swift CSV plugin,
+ * including menu creation, style enqueueing, and rendering of the
+ * import/export interface.
+ *
+ * @package Swift_CSV
+ * @since   1.0.0
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+class Swift_CSV_Admin {
+
+	/**
+	 * Constructor
+	 *
+	 * Sets up WordPress hooks for admin menu and styles.
+	 *
+	 * @since  1.0.0
+	 * @return void
+	 */
+	public function __construct() {
+		add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_styles' ] );
+		add_action( 'admin_notices', [ $this, 'show_update_notice' ] );
+	}
+
+	/**
+	 * Show update notice
+	 *
+	 * Displays admin notice when update is available.
+	 *
+	 * @since  0.9.0
+	 * @return void
+	 */
+	public function show_update_notice() {
+		$screen = get_current_screen();
+
+		// Only show on plugin pages and dashboard
+		if ( ! $screen || ! in_array( $screen->base, [ 'dashboard', 'plugins', 'toplevel_page_swift-csv' ], true ) ) {
+			return;
+		}
+
+		$updater = new Swift_CSV_Updater( SWIFT_CSV_PLUGIN_DIR . 'swift-csv.php' );
+		$status  = $updater->get_update_status();
+
+		if ( 'available' === $status['status'] ) {
+			?>
+			<div class="notice notice-warning is-dismissible">
+				<h3>Swift CSV アップデート</h3>
+				<p>
+					<?php echo esc_html( $status['message'] ); ?>
+					<a href="<?php echo esc_url( admin_url( 'update-core.php' ) ); ?>" class="button button-primary" style="margin-left: 10px;">
+						今すぐ更新
+					</a>
+				</p>
+				<?php if ( ! empty( $status['release_notes'] ) ) : ?>
+					<details style="margin-top: 10px;">
+						<summary style="cursor: pointer; font-weight: bold;">リリースノートを表示</summary>
+						<div style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-left: 4px solid #ffb900;">
+							<?php echo wp_kses_post( nl2br( esc_html( $status['release_notes'] ) ) ); ?>
+						</div>
+					</details>
+				<?php endif; ?>
+			</div>
+			<?php
+		}
+	}
+
+	/**
+	 * Add admin menu items
+	 *
+	 * Creates the main Swift CSV menu in WordPress admin.
+	 *
+	 * @since  1.0.0
+	 * @return void
+	 */
+	public function add_admin_menu() {
+		add_menu_page(
+			'Swift CSV',
+			'Swift CSV',
+			'manage_options',
+			'swift-csv',
+			[ $this, 'render_main_page' ],
+			'dashicons-migrate',
+			30
+		);
+	}
+
+	/**
+	 * Enqueue admin styles
+	 *
+	 * Loads CSS styles only on the plugin's admin pages.
+	 *
+	 * @since  1.0.0
+	 * @param  string $hook Current admin page hook.
+	 * @return void
+	 */
+	public function enqueue_styles( $hook ) {
+		if ( 'toplevel_page_swift-csv' === $hook ) {
+			wp_enqueue_style(
+				'swift-csv-admin',
+				SWIFT_CSV_PLUGIN_URL . 'assets/css/style.css',
+				[],
+				SWIFT_CSV_VERSION
+			);
+		}
+	}
+
+	/**
+	 * Render plugin header
+	 *
+	 * Displays professional header with version info and support links.
+	 *
+	 * @since  0.9.0
+	 * @return void
+	 */
+	private function render_plugin_header() {
+		$locale = get_user_locale();
+
+		$docs_url = 'https://github.com/firstelementjp/swift-csv/wiki';
+		if ( 'ja' === $locale || 'ja_JP' === $locale ) {
+			$docs_url = 'https://github.com/firstelementjp/swift-csv/wiki';
+		}
+
+		$forum_url = 'https://github.com/firstelementjp/swift-csv/issues';
+		if ( 'ja' === $locale || 'ja_JP' === $locale ) {
+			$forum_url = 'https://github.com/firstelementjp/swift-csv/issues';
+		}
+		?>
+		<div id="plugin_header">
+			<div id="plugin_header_upper">
+				<div id="plugin_header_title">Swift <span>CSV</span></div>
+				<a href="https://www.firstelement.co.jp/" id="plugin_logo" target="_blank" title="Go to the developer's website">
+					<img src="<?php echo esc_url( SWIFT_CSV_PLUGIN_URL . 'assets/images/logo-feas-white-shadow-s@2x-min.png' ); ?>" width="106" height="27" alt="FirstElement">
+				</a>
+			</div>
+			<div id="plugin_version">
+				version <?php echo esc_html( SWIFT_CSV_VERSION ); ?>
+			</div>
+			<div id="plugin_support">
+				<a href="<?php echo esc_url( $docs_url ); ?>"
+					target="_blank"
+					title="<?php esc_attr_e( 'Go to the instruction manual', 'swift-csv' ); ?>">
+					<?php esc_html_e( 'Documentation', 'swift-csv' ); ?>
+				</a>
+				<a href="https://github.com/firstelementjp/swift-csv"
+					target="_blank"
+					title="<?php esc_attr_e( 'Go to GitHub repository', 'swift-csv' ); ?>"
+					class="icon icon_gh">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 20 20"
+						width="16"
+						height="16"
+					>
+						<g transform="translate(-140 -7559)" fill="currentColor" fill-rule="evenodd">
+							<g transform="translate(56 160)">
+								<path d="M94,7399 C99.523,7399 104,7403.59 104,7409.253 C104,7413.782 101.138,7417.624 97.167,7418.981 C96.66,7419.082 96.48,7418.762 96.48,7418.489 C96.48,7418.151 96.492,7417.047 96.492,7415.675 C96.492,7414.719 96.172,7414.095 95.813,7413.777 C98.04,7413.523 100.38,7412.656 100.38,7408.718 C100.38,7407.598 99.992,7406.684 99.35,7405.966 C99.454,7405.707 99.797,7404.664 99.252,7403.252 C99.252,7403.252 98.414,7402.977 96.505,7404.303 C95.706,7404.076 94.85,7403.962 94,7403.958 C93.15,7403.962 92.295,7404.076 91.497,7404.303 C89.586,7402.977 88.746,7403.252 88.746,7403.252 C88.203,7404.664 88.546,7405.707 88.649,7405.966 C88.01,7406.684 87.619,7407.598 87.619,7408.718 C87.619,7412.646 89.954,7413.526 92.175,7413.785 C91.889,7414.041 91.63,7414.493 91.54,7415.156 C90.97,7415.418 89.522,7415.871 88.63,7414.304 C88.63,7414.304 88.101,7413.319 87.097,7413.247 C87.097,7413.247 86.122,7413.234 87.029,7413.87 C87.029,7413.87 87.684,7414.185 88.139,7415.37 C88.139,7415.37 88.726,7417.2 91.508,7416.58 C91.513,7417.437 91.522,7418.245 91.522,7418.489 C91.522,7418.76 91.338,7419.077 90.839,7418.982 C86.865,7417.627 84,7413.783 84,7409.253 C84,7403.59 88.478,7399 94,7399" />
+							</g>
+						</g>
+					</svg>
+				</a>
+				<a href="https://x.com/firstelement"
+					target="_blank"
+					title="<?php esc_attr_e( 'Go to X', 'swift-csv' ); ?>"
+					class="icon icon_tw">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 1226.37 1226.37"
+						width="20"
+						height="20"
+					>
+						<path
+							fill="currentColor"
+							d="m727.348 519.284 446.727-519.284h-105.86l-387.893 450.887-309.809-450.887h-357.328l468.492 681.821-468.492 544.549h105.866l409.625-476.152 327.181 476.152h357.328l-485.863-707.086zm-144.998 168.544-47.468-67.894-377.686-540.24h162.604l304.797 435.991 47.468 67.894 396.2 566.721h-162.604l-323.311-462.446z"
+						/>
+					</svg>
+				</a>
+				<a href="https://www.facebook.com/firstelementjp"
+					target="_blank"
+					title="<?php esc_attr_e( 'Go to Facebook page', 'swift-csv' ); ?>"
+					class="icon icon_fb">
+				</a>
+				<a href="https://www.firstelement.co.jp/contact"
+					target="_blank"
+					title="<?php esc_attr_e( 'Go to contact form', 'swift-csv' ); ?>"
+					class="icon icon_mail">
+				</a>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render main admin page
+	 *
+	 * Displays the main interface with export/import tabs.
+	 *
+	 * @since  1.0.0
+	 * @return void
+	 */
+	public function render_main_page() {
+		// Sanitize and validate tab parameter.
+		$tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'export';
+		$tab = in_array( $tab, [ 'export', 'import' ], true ) ? $tab : 'export';
+
+		// Check for batch processing
+		$batch_id = isset( $_GET['batch'] ) ? sanitize_text_field( $_GET['batch'] ) : '';
+
+		?>
+		<div class="wrap swift-csv">
+			<?php $this->render_plugin_header(); ?>
+			
+			<nav class="nav-tab-wrapper">
+				<a href="?page=swift-csv&tab=export" class="nav-tab <?php echo 'export' === $tab ? 'nav-tab-active' : ''; ?>">
+					エクスポート
+				</a>
+				<a href="?page=swift-csv&tab=import" class="nav-tab <?php echo 'import' === $tab ? 'nav-tab-active' : ''; ?>">
+					インポート
+				</a>
+			</nav>
+			
+			<div class="tab-content">
+				<?php
+				if ( 'export' === $tab ) {
+					$this->render_export_tab();
+				} elseif ( $batch_id ) {
+					$this->render_batch_progress( $batch_id );
+				} else {
+					$this->render_import_tab();
+				}
+				?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render batch progress page
+	 *
+	 * Displays real-time progress of batch import processing.
+	 *
+	 * @since  0.9.0
+	 * @param  string $batch_id Batch ID to track.
+	 * @return void
+	 */
+	private function render_batch_progress( $batch_id ) {
+		?>
+		<div class="card">
+			<h2>CSVインポート進捗</h2>
+			<div id="batch-progress">
+				<div class="progress-bar">
+					<div class="progress-bar-fill" style="width: 0%"></div>
+				</div>
+				<div class="progress-stats">
+					<span class="processed-rows">0</span> / <span class="total-rows">0</span> 行処理済み (<span class="percentage">0</span>%)
+				</div>
+				<div class="progress-details">
+					<div class="created">新規作成: <span class="created-count">0</span></div>
+					<div class="updated">更新: <span class="updated-count">0</span></div>
+					<div class="errors">エラー: <span class="error-count">0</span></div>
+				</div>
+			</div>
+			
+			<div id="batch-errors" style="display: none;">
+				<h3>エラー詳細</h3>
+				<ul class="error-list"></ul>
+			</div>
+		</div>
+
+		<script>
+		jQuery(document).ready(function($) {
+			var batchId = '<?php echo esc_js( $batch_id ); ?>';
+			var progressInterval;
+
+			function updateProgress() {
+				$.ajax({
+					url: ajaxurl,
+					type: 'POST',
+					data: {
+						action: 'swift_csv_batch_progress',
+						nonce: '<?php echo wp_create_nonce( 'swift_csv_batch_nonce' ); ?>',
+						batch_id: batchId
+					},
+					success: function(response) {
+						if (response.success) {
+							var data = response.data;
+							
+							// Update progress bar
+							$('.progress-bar-fill').css('width', data.percentage + '%');
+							$('.processed-rows').text(data.processed_rows);
+							$('.total-rows').text(data.total_rows);
+							$('.percentage').text(data.percentage);
+							$('.created-count').text(data.created_rows);
+							$('.updated-count').text(data.updated_rows);
+							$('.error-count').text(data.error_rows);
+
+							// Show errors if any
+							if (data.errors && data.errors.length > 0) {
+								$('#batch-errors').show();
+								var errorList = $('.error-list');
+								errorList.empty();
+								$.each(data.errors, function(index, error) {
+									errorList.append('<li>' + error + '</li>');
+								});
+							}
+
+							// Stop polling if completed
+							if (data.status === 'completed') {
+								clearInterval(progressInterval);
+								$('.progress-bar').addClass('completed');
+								alert('CSVインポートが完了しました！');
+							}
+						}
+					},
+					error: function() {
+						clearInterval(progressInterval);
+						alert('進捗の取得に失敗しました。');
+					}
+				});
+			}
+
+			// Start progress monitoring
+			progressInterval = setInterval(updateProgress, 2000);
+			updateProgress(); // Initial call
+		});
+		</script>
+
+		<style>
+		.progress-bar {
+			width: 100%;
+			height: 20px;
+			background-color: #f0f0f0;
+			border-radius: 10px;
+			overflow: hidden;
+			margin-bottom: 10px;
+		}
+		.progress-bar-fill {
+			height: 100%;
+			background-color: #0073aa;
+			transition: width 0.3s ease;
+		}
+		.progress-bar.completed .progress-bar-fill {
+			background-color: #46b450;
+		}
+		.progress-stats {
+			font-weight: bold;
+			margin-bottom: 15px;
+		}
+		.progress-details {
+			display: flex;
+			gap: 20px;
+			margin-bottom: 15px;
+		}
+		.progress-details div {
+			padding: 5px 10px;
+			background-color: #f9f9f9;
+			border-radius: 3px;
+		}
+		.error-list {
+			max-height: 200px;
+			overflow-y: auto;
+			background-color: #fef7f7;
+			border: 1px solid #dc3232;
+			padding: 10px;
+			border-radius: 3px;
+		}
+		.error-list li {
+			color: #dc3232;
+			margin-bottom: 5px;
+		}
+		</style>
+		<?php
+	}
+
+	/**
+	 * Render export tab
+	 *
+	 * Displays the export form with post type selection and options.
+	 *
+	 * @since  1.0.0
+	 * @return void
+	 */
+	private function render_export_tab() {
+		// Get all public post types for selection.
+		$post_types = get_post_types( [ 'public' => true ], 'objects' );
+
+		?>
+		<div class="card">
+			<h2>投稿データをエクスポート</h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<?php wp_nonce_field( 'swift_csv_export', 'csv_export_nonce' ); ?>
+				
+				<table class="form-table">
+					<tr>
+						<th scope="row">
+							<label for="post_type">投稿タイプ</label>
+						</th>
+						<td>
+							<select name="post_type" id="post_type" required>
+								<?php foreach ( $post_types as $post_type ) : ?>
+									<option value="<?php echo esc_attr( $post_type->name ); ?>">
+										<?php echo esc_html( $post_type->labels->name ); ?>
+									</option>
+								<?php endforeach; ?>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="posts_per_page">取得件数</label>
+						</th>
+						<td>
+							<input type="number" name="posts_per_page" id="posts_per_page" value="100" min="1" max="10000">
+							<p class="description">一度にエクスポートする投稿数（最大10000件）</p>
+						</td>
+					</tr>
+				</table>
+				
+				<p class="submit">
+					<input type="hidden" name="action" value="swift_csv_export">
+					<input type="submit" name="export_csv" class="button button-primary" value="CSVをエクスポート">
+				</p>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render import tab
+	 *
+	 * Displays the import form with file upload and options.
+	 *
+	 * @since  1.0.0
+	 * @return void
+	 */
+	private function render_import_tab() {
+		// Get all public post types for selection.
+		$post_types = get_post_types( [ 'public' => true ], 'objects' );
+
+		?>
+		<div class="card">
+			<h2>CSVファイルをインポート</h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
+				<?php wp_nonce_field( 'swift_csv_import', 'csv_import_nonce' ); ?>
+				
+				<table class="form-table">
+					<tr>
+						<th scope="row">
+							<label for="import_post_type">投稿タイプ</label>
+						</th>
+						<td>
+							<select name="import_post_type" id="import_post_type" required>
+								<?php foreach ( $post_types as $post_type ) : ?>
+									<option value="<?php echo esc_attr( $post_type->name ); ?>">
+										<?php echo esc_html( $post_type->labels->name ); ?>
+									</option>
+								<?php endforeach; ?>
+							</select>
+							<p class="description">インポート先の投稿タイプを選択してください</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="csv_file">CSVファイル</label>
+						</th>
+						<td>
+							<input type="file" name="csv_file" id="csv_file" accept=".csv" required>
+							<p class="description">
+								UTF-8形式のCSVファイルを選択してください。<br>
+								1行目がヘッダー行として自動マッピングに使用されます。<br>
+								カスタムフィールドは「cf_」プレフィックスで指定してください（例：cf_price）。
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label>
+								<input type="checkbox" name="update_existing" value="1">
+								既存投稿を更新
+							</label>
+						</th>
+						<td>
+							<p class="description">
+								IDまたはslugが一致する場合、既存投稿を更新します。<br>
+								チェックしない場合、新規投稿として作成します。
+							</p>
+						</td>
+					</tr>
+				</table>
+				
+				<p class="submit">
+					<input type="hidden" name="action" value="swift_csv_import">
+					<input type="submit" name="import_csv" class="button button-primary" value="CSVをインポート">
+				</p>
+			</form>
+		</div>
+		<?php
+	}
+}

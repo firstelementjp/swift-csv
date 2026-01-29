@@ -2,9 +2,9 @@
 /**
  * Plugin Name:       Swift CSV
  * Plugin URI:        https://github.com/firstelementjp/swift-csv
- * Description:       軽量でシンプルなCSVインポート/エクスポートプラグイン。カスタム投稿タイプ、カスタムタクソノミー、カスタムフィールドに対応。
+ * Description:       Lightweight and simple CSV import/export plugin. Supports custom post types, custom taxonomies, and custom fields.
  * Version:           0.9.0
- * Author:            FirstElement,Inc.
+ * Author:            FirstElement, Inc.
  * Author URI:        https://www.firstelement.co.jp/
  * License:           GPL-2.0+
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.txt

@@ -7,7 +7,7 @@
  * import/export interface.
  *
  * @package Swift_CSV
- * @since   0.9.0
+ * @since   0.9.1
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -13,9 +13,7 @@
             <source dsn="includes/">
                 <path>includes</path>
             </source>
-            <output>
-                <extension>html</extension>
-            </output>
+            <output>html</output>
         </api>
     </version>
     <template name="responsive"/>

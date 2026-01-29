@@ -2,6 +2,7 @@
 	"name": "firstelementjp/swift-csv",
 	"description": "Swift CSV - 軽量でシンプルなCSVインポート/エクスポートプラグイン",
 	"type": "wordpress-plugin",
+	"license": "GPL-2.0+",
 	"require": {
 		"php": ">=7.4"
 	},

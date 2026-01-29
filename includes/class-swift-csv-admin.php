@@ -27,49 +27,6 @@ class Swift_CSV_Admin {
 	public function __construct() {
 		add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_styles' ] );
-		add_action( 'admin_notices', [ $this, 'show_update_notice' ] );
-	}
-
-	/**
-	 * Show update notice
-	 *
-	 * Displays admin notice when update is available.
-	 *
-	 * @since  0.9.0
-	 * @return void
-	 */
-	public function show_update_notice() {
-		$screen = get_current_screen();
-
-		// Only show on plugin pages and dashboard
-		if ( ! $screen || ! in_array( $screen->base, [ 'dashboard', 'plugins', 'toplevel_page_swift-csv' ], true ) ) {
-			return;
-		}
-
-		$updater = new Swift_CSV_Updater( SWIFT_CSV_PLUGIN_DIR . 'swift-csv.php' );
-		$status  = $updater->get_update_status();
-
-		if ( 'available' === $status['status'] ) {
-			?>
-			<div class="notice notice-warning is-dismissible">
-				<h3><?php esc_html_e( 'Swift CSV Update', 'swift-csv' ); ?></h3>
-				<p>
-					<?php echo esc_html( $status['message'] ); ?>
-					<a href="<?php echo esc_url( admin_url( 'update-core.php' ) ); ?>" class="button button-primary swift-csv-update-button">
-						<?php esc_html_e( 'Update Now', 'swift-csv' ); ?>
-					</a>
-				</p>
-				<?php if ( ! empty( $status['release_notes'] ) ) : ?>
-					<details class="swift-csv-update-notice">
-						<summary><?php esc_html_e( 'Show Release Notes', 'swift-csv' ); ?></summary>
-						<div class="swift-csv-release-notes">
-							<?php echo wp_kses_post( nl2br( esc_html( $status['release_notes'] ) ) ); ?>
-						</div>
-					</details>
-				<?php endif; ?>
-			</div>
-			<?php
-		}
 	}
 
 	/**

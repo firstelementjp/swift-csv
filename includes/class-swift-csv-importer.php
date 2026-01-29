@@ -551,16 +551,11 @@ class Swift_CSV_Importer {
             '/data-sheets-userformat="[^"]*"/i',
             '/<span[^>]*data-sheets[^>]*>/i',
             '/<\/span>/i',
-            '/<!--\s*wp:[^>]*\s*-->/i',
-            '/<!--\s*\/wp:[^>]*\s*-->/i',
         ];
         
         foreach ($patterns as $pattern) {
             $value = preg_replace($pattern, '', $value);
         }
-        
-        // Remove HTML comments
-        $value = preg_replace('/<!--.*?-->/s', '', $value);
         
         // Clean up JSON-like data from Google Sheets
         if (preg_match('/\{[^}]*"([^"]+)"[^}]*\}/', $value, $matches)) {
@@ -568,9 +563,6 @@ class Swift_CSV_Importer {
                 $value = $matches[1];
             }
         }
-        
-        // Remove remaining HTML tags that might contain styling
-        $value = preg_replace('/<[^>]*>/i', '', $value);
         
         return $value;
     }

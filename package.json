@@ -1,0 +1,15 @@
+{
+  "name": "wordpress-plugin-template",
+  "version": "1.0.0",
+  "description": "WordPress Plugin Template with ESLint & PHPCS",
+  "scripts": {
+    "lint:js": "eslint . --ext .js",
+    "lint:js:fix": "eslint . --ext .js --fix"
+  },
+  "devDependencies": {
+    "@wordpress/eslint-plugin": "^14.0.0",
+    "@wordpress/scripts": "^26.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-wordpress": "^6.0.0"
+  }
+}

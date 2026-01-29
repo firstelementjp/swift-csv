@@ -220,7 +220,7 @@ class Swift_CSV_Updater {
 				'description' => $plugin_data['Description'],
 				'changelog'   => $this->format_changelog( $latest_release->body ),
 			],
-			'download_link'     => $latest_release->zipball_url,
+			'download_link'     => 'https://github.com/firstelementjp/swift-csv/releases/download/' . $latest_release->tag_name . '/swift-csv-' . ltrim( $latest_release->tag_name, 'v' ) . '.zip',
 		];
 
 		return $res;

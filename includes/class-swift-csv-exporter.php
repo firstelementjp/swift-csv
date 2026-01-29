@@ -6,8 +6,7 @@
  * This file contains the export functionality for the Swift CSV plugin,
  * including data retrieval, CSV formatting, and file download.
  *
- * @package Swift_CSV
- * @since   0.9.0
+ * @since  0.9.0
  */
 
 if (! defined('ABSPATH')) {

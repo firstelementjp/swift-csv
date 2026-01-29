@@ -10,8 +10,6 @@
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       swift-csv
  * Domain Path:       /languages
- *
- * @package           Swift_CSV
  */
 
 // If this file is called directly, abort.

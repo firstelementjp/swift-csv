@@ -4,8 +4,7 @@
  *
  * Handles automatic updates from GitHub releases.
  *
- * @package Swift_CSV
- * @since   0.9.0
+ * @since  0.9.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -6,7 +6,6 @@
  * including menu creation, style enqueueing, and rendering of the
  * import/export interface.
  *
- * @package Swift_CSV
  * @since   0.9.1
  */
 

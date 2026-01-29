@@ -5,8 +5,7 @@
  * This file contains the import functionality for the Swift CSV plugin,
  * including file validation, data processing, and post creation.
  *
- * @package Swift_CSV
- * @since   0.9.0
+ * @since  0.9.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

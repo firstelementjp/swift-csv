@@ -5,8 +5,7 @@
  * This file contains the batch processing functionality for the Swift CSV plugin,
  * including WP-Cron integration, database table management, and progress tracking.
  *
- * @package Swift_CSV
- * @since   0.9.0
+ * @since  0.9.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -41,7 +40,7 @@ class Swift_CSV_Batch {
 	public function create_batch_table() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'swift_csv_batches';
+		$table_name      = $wpdb->prefix . 'swift_csv_batches';
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE IF NOT EXISTS $table_name (
@@ -85,7 +84,7 @@ class Swift_CSV_Batch {
 		$batch_id = wp_generate_uuid4();
 
 		// Read CSV and count rows
-		$csv_data = $this->read_csv_file( $file_path );
+		$csv_data   = $this->read_csv_file( $file_path );
 		$total_rows = count( $csv_data ) - 1; // Exclude header
 
 		// Save CSV data to temporary file
@@ -98,11 +97,11 @@ class Swift_CSV_Batch {
 		$wpdb->insert(
 			$table_name,
 			[
-				'batch_id'       => $batch_id,
-				'post_type'      => $post_type,
-				'total_rows'     => $total_rows,
-				'status'         => 'pending',
-				'file_path'      => $temp_file,
+				'batch_id'        => $batch_id,
+				'post_type'       => $post_type,
+				'total_rows'      => $total_rows,
+				'status'          => 'pending',
+				'file_path'       => $temp_file,
 				'update_existing' => $update_existing ? 1 : 0,
 			],
 			[ '%s', '%s', '%d', '%s', '%s', '%d' ]
@@ -127,10 +126,12 @@ class Swift_CSV_Batch {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'swift_csv_batches';
-		$batch = $wpdb->get_row( $wpdb->prepare(
-			"SELECT * FROM $table_name WHERE batch_id = %s",
-			$batch_id
-		));
+		$batch      = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM $table_name WHERE batch_id = %s",
+				$batch_id
+			)
+		);
 
 		if ( ! $batch || 'completed' === $batch->status ) {
 			return;
@@ -147,26 +148,26 @@ class Swift_CSV_Batch {
 
 		// Process 100 rows at a time
 		$batch_size = 100;
-		$start_row = $batch->processed_rows + 1; // +1 to skip header
-		$end_row = min( $start_row + $batch_size - 1, $batch->total_rows );
+		$start_row  = $batch->processed_rows + 1; // +1 to skip header
+		$end_row    = min( $start_row + $batch_size - 1, $batch->total_rows );
 
 		// Read specific rows from CSV
 		$csv_data = $this->read_csv_rows( $batch->file_path, $start_row, $end_row );
-		$headers = $this->read_csv_rows( $batch->file_path, 0, 0 )[0];
+		$headers  = $this->read_csv_rows( $batch->file_path, 0, 0 )[0];
 
 		// Create field mapping
 		$importer = new Swift_CSV_Importer();
-		$mapping = $importer->create_mapping( $headers );
+		$mapping  = $importer->create_mapping( $headers );
 
 		// Process rows
 		$created = 0;
 		$updated = 0;
-		$errors = [];
+		$errors  = [];
 
 		foreach ( $csv_data as $row_index => $row ) {
 			try {
 				$actual_row_index = $start_row + $row_index;
-				$result = $importer->process_row(
+				$result           = $importer->process_row(
 					$row,
 					$mapping,
 					$batch->post_type,
@@ -174,9 +175,9 @@ class Swift_CSV_Batch {
 				);
 
 				if ( $result['created'] ) {
-					$created++;
+					++$created;
 				} elseif ( $result['updated'] ) {
-					$updated++;
+					++$updated;
 				}
 			} catch ( Exception $e ) {
 				$errors[] = '行 ' . ( $actual_row_index + 1 ) . ': ' . $e->getMessage();
@@ -185,9 +186,9 @@ class Swift_CSV_Batch {
 
 		// Update batch progress
 		$new_processed = $batch->processed_rows + count( $csv_data );
-		$new_created = $batch->created_rows + $created;
-		$new_updated = $batch->updated_rows + $updated;
-		$new_errors = $batch->error_rows + count( $errors );
+		$new_created   = $batch->created_rows + $created;
+		$new_updated   = $batch->updated_rows + $updated;
+		$new_errors    = $batch->error_rows + count( $errors );
 
 		$status = ( $new_processed >= $batch->total_rows ) ? 'completed' : 'processing';
 
@@ -225,16 +226,18 @@ class Swift_CSV_Batch {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'swift_csv_batches';
-		$batch = $wpdb->get_row( $wpdb->prepare(
-			"SELECT * FROM $table_name WHERE batch_id = %s",
-			$batch_id
-		));
+		$batch      = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM $table_name WHERE batch_id = %s",
+				$batch_id
+			)
+		);
 
 		if ( ! $batch ) {
 			return null;
 		}
 
-		$percentage = $batch->total_rows > 0 
+		$percentage = $batch->total_rows > 0
 			? round( ( $batch->processed_rows / $batch->total_rows ) * 100, 2 )
 			: 0;
 
@@ -285,8 +288,8 @@ class Swift_CSV_Batch {
 			wp_send_json_error( 'Permission denied' );
 		}
 
-		$file_path = sanitize_text_field( $_POST['file_path'] );
-		$post_type = sanitize_text_field( $_POST['post_type'] );
+		$file_path       = sanitize_text_field( $_POST['file_path'] );
+		$post_type       = sanitize_text_field( $_POST['post_type'] );
 		$update_existing = isset( $_POST['update_existing'] );
 
 		$batch_id = $this->start_batch( $file_path, $post_type, $update_existing );
@@ -313,7 +316,7 @@ class Swift_CSV_Batch {
 		$content = mb_convert_encoding( $content, 'UTF-8', 'UTF-8, SJIS, EUC-JP, JIS' );
 
 		// Parse CSV
-		$lines = explode( "\n", $content );
+		$lines    = explode( "\n", $content );
 		$csv_data = [];
 
 		foreach ( $lines as $line ) {
@@ -349,7 +352,7 @@ class Swift_CSV_Batch {
 		$content = mb_convert_encoding( $content, 'UTF-8', 'UTF-8, SJIS, EUC-JP, JIS' );
 
 		// Parse CSV
-		$lines = explode( "\n", $content );
+		$lines    = explode( "\n", $content );
 		$csv_data = [];
 
 		for ( $i = $start; $i <= $end && $i < count( $lines ); $i++ ) {

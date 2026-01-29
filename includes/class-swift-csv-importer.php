@@ -546,8 +546,8 @@ class Swift_CSV_Importer {
             <?php endif; ?>
             
             <p>
-                <a href="?page=simple-csv-ie&tab=import" class="button"><?php esc_html_e( 'Continue Import', 'swift-csv' ); ?></a>
-                <a href="<?php echo admin_url('admin.php?page=simple-csv-ie'); ?>" class="button"><?php esc_html_e( 'Back to Admin', 'swift-csv' ); ?></a>
+                <a href="?page=swift-csv&tab=import" class="button"><?php esc_html_e( 'Continue Import', 'swift-csv' ); ?></a>
+                <a href="<?php echo admin_url('admin.php?page=swift-csv'); ?>" class="button"><?php esc_html_e( 'Back to Admin', 'swift-csv' ); ?></a>
             </p>
         </div>
         <?php

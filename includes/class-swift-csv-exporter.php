@@ -216,8 +216,8 @@ class Swift_CSV_Exporter
                 if ($taxonomy->public) {
                     $terms = wp_get_post_terms($post->ID, $taxonomy->name);
                     $term_names = array_map(
-                        function ($term) {
-                            return $term->name;
+                        function ($term) use ($taxonomy) {
+                            return $this->get_term_hierarchy_path($term, $taxonomy->name);
                         },
                         $terms
                     );
@@ -245,5 +245,37 @@ class Swift_CSV_Exporter
         fclose($output);
 
         return $content;
+    }
+
+    /**
+     * Get term hierarchy path
+     *
+     * Returns the full hierarchy path for a term (e.g., "Parent > Child > Grandchild").
+     *
+     * @since  0.9.0
+     * @param  WP_Term $term     The term to get path for.
+     * @param  string  $taxonomy Taxonomy name.
+     * @return string  The hierarchy path.
+     */
+    private function get_term_hierarchy_path($term, $taxonomy)
+    {
+        $path = [];
+        $current_term = $term;
+        
+        // Build path from root to current term
+        while ($current_term && $current_term->parent != 0) {
+            array_unshift($path, $current_term->name);
+            $current_term = get_term($current_term->parent, $taxonomy);
+            if (is_wp_error($current_term)) {
+                break;
+            }
+        }
+        
+        // Add the root term
+        if ($current_term) {
+            array_unshift($path, $current_term->name);
+        }
+        
+        return implode(' > ', $path);
     }
 }

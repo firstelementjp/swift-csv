@@ -582,7 +582,7 @@ class Swift_CSV_Importer {
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Import Results', 'swift-csv' ); ?></h1>
-			
+
 			<div class="notice notice-success is-dismissible">
 				<p>
 					<strong><?php esc_html_e( 'Import completed!', 'swift-csv' ); ?></strong><br>
@@ -590,7 +590,7 @@ class Swift_CSV_Importer {
 					<?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <?php echo $updated; ?> <?php esc_html_e( 'posts', 'swift-csv' ); ?>
 				</p>
 			</div>
-			
+
 			<?php if ( ! empty( $errors ) ) : ?>
 				<div class="notice notice-error">
 					<h3><?php esc_html_e( 'Errors:', 'swift-csv' ); ?></h3>
@@ -601,7 +601,7 @@ class Swift_CSV_Importer {
 					</ul>
 				</div>
 			<?php endif; ?>
-			
+
 			<p>
 				<a href="?page=swift-csv&tab=import" class="button"><?php esc_html_e( 'Continue Import', 'swift-csv' ); ?></a>
 				<a href="<?php echo admin_url( 'admin.php?page=swift-csv' ); ?>" class="button"><?php esc_html_e( 'Back to Admin', 'swift-csv' ); ?></a>

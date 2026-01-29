@@ -257,8 +257,7 @@ class Swift_CSV_Exporter
      * @param  string  $taxonomy Taxonomy name.
      * @return string  The hierarchy path.
      */
-    private function get_term_hierarchy_path($term, $taxonomy)
-    {
+    private function get_term_hierarchy_path( $term, $taxonomy) {
         $path = [];
         $current_term = $term;
         

@@ -33,10 +33,12 @@ A lightweight and simple CSV import/export plugin for WordPress. Full support fo
 
 ### Manual Installation
 
-1. [Download the latest version](https://github.com/firstelementjp/swift-csv/releases/latest)
-2. Extract the ZIP file
+1. [Download swift-csv-0.9.1.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.1/swift-csv-0.9.1.zip) ⭐ **Recommended**
+2. Extract the ZIP file to get `swift-csv/` folder
 3. Upload to `/wp-content/plugins/` directory
 4. Activate the plugin from admin dashboard
+
+⚠️ **Important**: Use the manual ZIP file above, not "Source code (zip)" for proper installation.
 
 ## 📖 Usage
 

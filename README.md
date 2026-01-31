@@ -98,6 +98,12 @@ Use `cf_` prefix for custom fields:
 cf_price, cf_color, cf_size
 ```
 
+**Multi-value support**: Use `|` (pipe) to separate multiple values:
+
+```
+cf_tags: "wordpress|php|developer"
+```
+
 ## 🔧 Requirements
 
 - **WordPress**: 5.0 or higher

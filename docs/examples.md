@@ -36,12 +36,15 @@ post_title,post_content,post_excerpt,post_status
 ### Custom Fields Example
 
 ```csv
-post_title,post_content,cf_Name,cf_Email,cf_Phone
-"John Doe","Content about John","John","john@example.com","555-1234"
-"Jane Smith","Content about Jane","Jane","jane@example.com","555-5678"
+post_title,post_content,cf_Name,cf_Email,cf_Phone,cf_Tags
+"John Doe","Content about John","John","john@example.com","555-1234","developer|wordpress|php"
+"Jane Smith","Content about Jane","Jane","jane@example.com","555-5678","designer|ui|ux"
 ```
 
-**Note**: Custom fields must use `cf_` prefix in the CSV header (e.g., `cf_Name`, `cf_Email`, `cf_Phone`).
+**Note**:
+
+- Custom fields must use `cf_` prefix in the CSV header (e.g., `cf_Name`, `cf_Email`, `cf_Phone`).
+- **Multi-value support**: Use `|` (pipe) to separate multiple values (e.g., `cf_Tags` with `developer|wordpress|php`).
 
 ### Hierarchical Taxonomies Example
 

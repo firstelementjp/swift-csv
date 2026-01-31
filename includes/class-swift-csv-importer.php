@@ -437,9 +437,24 @@ class Swift_CSV_Importer {
 			wp_set_post_terms( $post_id, $processed_terms, $taxonomy );
 		}
 
-		// Set meta fields
+		// Set meta fields with multi-value support
 		foreach ( $meta_fields as $key => $value ) {
-			update_post_meta( $post_id, $key, $value );
+			// Handle multi-value custom fields (pipe-separated)
+			if ( strpos( $value, '|' ) !== false ) {
+				// Remove existing meta values
+				delete_post_meta( $post_id, $key );
+
+				// Add each value separately
+				$values = array_map( 'trim', explode( '|', $value ) );
+				foreach ( $values as $single_value ) {
+					if ( $single_value !== '' ) {
+						add_post_meta( $post_id, $key, $single_value );
+					}
+				}
+			} else {
+				// Single value (existing behavior)
+				update_post_meta( $post_id, $key, $value );
+			}
 		}
 
 		return array(

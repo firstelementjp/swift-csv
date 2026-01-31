@@ -209,7 +209,7 @@ class Swift_CSV_Admin {
 	private function render_batch_progress( $batch_id ) {
 		?>
 		<div class="card">
-			<h2><?php esc_html_e( 'CSV Import Progress', 'swift-csv' ); ?></h2>
+			<h3><?php esc_html_e( 'CSV Import Progress', 'swift-csv' ); ?></h3>
 			<div id="batch-progress">
 				<div class="progress-bar">
 					<div class="progress-bar-fill"></div>
@@ -349,7 +349,7 @@ class Swift_CSV_Admin {
 
 		?>
 		<div class="card">
-			<h2><?php esc_html_e( 'Export Post Data', 'swift-csv' ); ?></h2>
+			<h3><?php esc_html_e( 'Export Post Data', 'swift-csv' ); ?></h3>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<?php wp_nonce_field( 'swift_csv_export', 'csv_export_nonce' ); ?>
 
@@ -373,8 +373,8 @@ class Swift_CSV_Admin {
 							<label for="posts_per_page"><?php esc_html_e( 'Number of Posts', 'swift-csv' ); ?></label>
 						</th>
 						<td>
-							<input type="number" name="posts_per_page" id="posts_per_page" value="100" min="1" max="10000">
-							<p class="description"><?php esc_html_e( 'Number of posts to export at once (max 10000)', 'swift-csv' ); ?></p>
+							<input type="number" name="posts_per_page" id="posts_per_page" value="100" min="1" max="1000">
+							<p class="description"><?php esc_html_e( 'Number of posts to export at once (max 1000)', 'swift-csv' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -402,7 +402,7 @@ class Swift_CSV_Admin {
 
 		?>
 		<div class="card">
-			<h2><?php esc_html_e( 'Import CSV File', 'swift-csv' ); ?></h2>
+			<h3><?php esc_html_e( 'Import CSV File', 'swift-csv' ); ?></h3>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 				<?php wp_nonce_field( 'swift_csv_import', 'csv_import_nonce' ); ?>
 

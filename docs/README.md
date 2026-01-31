@@ -5,7 +5,7 @@
 > Simple CSV import/export tool for WordPress plugins
 
 [![License](https://img.shields.io/badge/license-GPL--2.0%2B-blue.svg)](LICENSE.md)
-[![Version](https://img.shields.io/badge/version-0.9.1-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
+[![Version](https://img.shields.io/badge/version-0.9.2-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 
 Swift CSV is a lightweight plugin for easily importing and exporting CSV files on WordPress sites. You can start using it right away without complex configurations.

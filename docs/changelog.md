@@ -1,5 +1,19 @@
 # 📋 Changelog
 
+## [0.9.2] - 2024-01-31
+
+### New Features
+
+- **Multi-value custom fields support** - Import/export multiple values using pipe separator (e.g., "value1|value2|value3")
+- **WordPress coding standards compliance** - Applied WPCS to exporter class
+
+### Improvements
+
+- Backward compatible with single-value custom fields
+- Automatic empty value filtering in multi-value processing
+- Updated documentation with usage examples
+- Enhanced code quality and maintainability
+
 ## [0.9.1] - 2024-01-31
 
 ### New Features

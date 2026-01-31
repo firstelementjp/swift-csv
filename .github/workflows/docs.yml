@@ -68,6 +68,40 @@ jobs:
           echo "## 🏗️ Class Structure" >> docs/overview.md
           find includes/ -name "*.php" -exec basename {} .php \; | sort | sed 's/^/- /' >> docs/overview.md
           
+      - name: Generate root index page
+        run: |
+          echo '<!DOCTYPE html>' > docs/index.html
+          echo '<html><head>' >> docs/index.html
+          echo '<title>Swift CSV - WordPress Plugin</title>' >> docs/index.html
+          echo '<meta charset="UTF-8">' >> docs/index.html
+          echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' >> docs/index.html
+          echo '<style>' >> docs/index.html
+          echo 'body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; line-height: 1.6; }' >> docs/index.html
+          echo 'h1 { color: #2c3e50; text-align: center; }' >> docs/index.html
+          echo 'h2 { color: #34495e; }' >> docs/index.html
+          echo '.card { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #3498db; }' >> docs/index.html
+          echo '.btn { display: inline-block; background: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 10px 5px; }' >> docs/index.html
+          echo '.btn:hover { background: #2980b9; }' >> docs/index.html
+          echo '.center { text-align: center; margin: 30px 0; }' >> docs/index.html
+          echo '</style></head><body>' >> docs/index.html
+          echo '<h1>🚀 Swift CSV</h1>' >> docs/index.html
+          echo '<div class="center">' >> docs/index.html
+          echo '<p><strong>WordPress CSV Import/Export Plugin</strong></p>' >> docs/index.html
+          echo '<p>Generated on: '"$(date)"'</p>' >> docs/index.html
+          echo '</div>' >> docs/index.html
+          echo '<div class="card">' >> docs/index.html
+          echo '<h2>📚 Documentation</h2>' >> docs/index.html
+          echo '<p><a href="/swift-csv/api/" class="btn">📖 API Documentation</a></p>' >> docs/index.html
+          echo '<p><a href="/swift-csv/overview.md" class="btn">🏗️ Class Structure</a></p>' >> docs/index.html
+          echo '<p><a href="/swift-csv/changelog.md" class="btn">📋 Recent Changes</a></p>' >> docs/index.html
+          echo '</div>' >> docs/index.html
+          echo '<div class="card">' >> docs/index.html
+          echo '<h2>⬇️ Download</h2>' >> docs/index.html
+          echo '<p><a href="https://github.com/firstelementjp/swift-csv/releases/latest" class="btn">📦 Latest Release</a></p>' >> docs/index.html
+          echo '<p><a href="https://github.com/firstelementjp/swift-csv" class="btn">🔧 View Source Code</a></p>' >> docs/index.html
+          echo '</div>' >> docs/index.html
+          echo '</body></html>' >> docs/index.html
+          
       - name: Setup Pages
         uses: actions/configure-pages@v4
         

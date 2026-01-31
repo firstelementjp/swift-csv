@@ -172,7 +172,7 @@ class Swift_CSV_Admin {
 		?>
 		<div class="wrap swift-csv">
 			<?php $this->render_plugin_header(); ?>
-			
+
 			<nav class="nav-tab-wrapper">
 				<a href="?page=swift-csv&tab=export" class="nav-tab <?php echo 'export' === $tab ? 'nav-tab-active' : ''; ?>">
 				<?php esc_html_e( 'Export', 'swift-csv' ); ?>
@@ -181,7 +181,7 @@ class Swift_CSV_Admin {
 				<?php esc_html_e( 'Import', 'swift-csv' ); ?>
 				</a>
 			</nav>
-			
+
 			<div class="tab-content">
 				<?php
 				if ( 'export' === $tab ) {
@@ -223,7 +223,7 @@ class Swift_CSV_Admin {
 					<div class="errors"><?php esc_html_e( 'Errors:', 'swift-csv' ); ?> <span class="error-count">0</span></div>
 				</div>
 			</div>
-			
+
 			<div id="batch-errors" class="swift-csv-batch-errors">
 				<h3><?php esc_html_e( 'Error Details', 'swift-csv' ); ?></h3>
 				<ul class="error-list"></ul>
@@ -247,7 +247,7 @@ class Swift_CSV_Admin {
 					success: function(response) {
 						if (response.success) {
 							var data = response.data;
-							
+
 							// Update progress bar
 							$('.progress-bar-fill').css('width', data.percentage + '%');
 							$('.processed-rows').text(data.processed_rows);
@@ -352,7 +352,7 @@ class Swift_CSV_Admin {
 			<h2><?php esc_html_e( 'Export Post Data', 'swift-csv' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<?php wp_nonce_field( 'swift_csv_export', 'csv_export_nonce' ); ?>
-				
+
 				<table class="form-table">
 					<tr>
 						<th scope="row">
@@ -378,7 +378,7 @@ class Swift_CSV_Admin {
 						</td>
 					</tr>
 				</table>
-				
+
 				<p class="submit">
 					<input type="hidden" name="action" value="swift_csv_export">
 					<input type="submit" name="export_csv" class="button button-primary" value="<?php esc_html_e( 'Export CSV', 'swift-csv' ); ?>">
@@ -405,7 +405,7 @@ class Swift_CSV_Admin {
 			<h2><?php esc_html_e( 'Import CSV File', 'swift-csv' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 				<?php wp_nonce_field( 'swift_csv_import', 'csv_import_nonce' ); ?>
-				
+
 				<table class="form-table">
 					<tr>
 						<th scope="row">
@@ -450,7 +450,7 @@ class Swift_CSV_Admin {
 						</td>
 					</tr>
 				</table>
-				
+
 				<p class="submit">
 					<input type="hidden" name="action" value="swift_csv_import">
 					<input type="submit" name="import_csv" class="button button-primary" value="<?php esc_html_e( 'Import CSV', 'swift-csv' ); ?>">

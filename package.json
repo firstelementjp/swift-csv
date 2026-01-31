@@ -3,6 +3,9 @@
 	"version": "0.9.1",
 	"description": "Swift CSV - Simple CSV Management Without the Complexity.",
 	"license": "GPL-2.0+",
+	"engines": {
+        "node": ">=18.0.0"
+    },
 	"scripts": {
 		"lint:js": "eslint . --ext .js",
 		"lint:js:fix": "eslint . --ext .js --fix",
@@ -14,6 +17,6 @@
 		"@wordpress/scripts": "^26.0.0",
 		"eslint": "^8.0.0",
 		"eslint-config-wordpress": "^2.0.0",
-		"prettier": "^3.0.0"
+		"prettier": "^3.4.2"
 	}
 }

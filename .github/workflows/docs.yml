@@ -14,18 +14,18 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
           extensions: dom, xml
           coverage: none
-          
+
       - name: Install dependencies
         run: composer install --no-progress --no-interaction
 
@@ -56,53 +56,53 @@ jobs:
           echo '.toc li { margin: 5px 0; }' >> docs/api/index.html
           echo '.toc a { text-decoration: none; color: #2980b9; }' >> docs/api/index.html
           echo '.toc a:hover { text-decoration: underline; }' >> docs/api/index.html
-          echo '</meta></head><body>' >> docs/api/index.html
+          echo '</style></head><body>' >> docs/api/index.html
           echo '<h1>🚀 Swift CSV API Documentation</h1>' >> docs/api/index.html
           echo '<p><strong>Version:</strong> 0.9.1 | <strong>Generated on:</strong> '"$(date)"'</p>' >> docs/api/index.html
-          
+
           # Table of Contents
           echo '<div class="toc">' >> docs/api/index.html
           echo '<h2>📋 Table of Contents</h2>' >> docs/api/index.html
           echo '<ul>' >> docs/api/index.html
-          
+
           for file in includes/*.php; do
             if [ -f "$file" ]; then
               classname=$(basename "$file" .php)
               echo '<li><a href="#'"$classname"'">'"$classname"'</a></li>' >> docs/api/index.html
             fi
           done
-          
+
           echo '</ul></div>' >> docs/api/index.html
-          
+
           for file in includes/*.php; do
             if [ -f "$file" ]; then
               classname=$(basename "$file" .php)
               echo '<h2 id="'"$classname"'">🏗️ '"$classname"'</h2>' >> docs/api/index.html
-              
+
               # Extract class description
               class_desc=$(grep -A 5 "class $classname" "$file" | grep -E "/\*\*|/\*" | head -1 | sed 's/\/\*\*//' | sed 's/\/\*//' | sed 's/\*//' | xargs)
               if [ ! -z "$class_desc" ]; then
                 echo '<div class="description">'"$class_desc"'</div>' >> docs/api/index.html
               fi
-              
+
               # Extract methods with details
               grep -n "public function" "$file" | while read line; do
                 linenum=$(echo "$line" | cut -d: -f1)
                 method_line=$(echo "$line" | cut -d: -f2-)
                 method=$(echo "$method_line" | sed 's/.*public function //' | sed 's/(.*$//')
-                
+
                 echo '<div class="method">' >> docs/api/index.html
                 echo '<div class="method-name">'"$method"'</div>' >> docs/api/index.html
-                
+
                 # Get method signature
                 signature=$(sed -n "${linenum}p" "$file" | sed 's/^[[:space:]]*//')
                 echo '<div class="signature">'"$signature"'</div>' >> docs/api/index.html
-                
+
                 # Extract PHPDoc comments (5 lines before method)
                 start_line=$((linenum - 5))
                 if [ $start_line -lt 1 ]; then start_line=1; fi
                 end_line=$((linenum - 1))
-                
+
                 phpdoc=$(sed -n "${start_line},${end_line}p" "$file" | grep -E "@param|@return|@throws|@brief|@desc" | head -10)
                 if [ ! -z "$phpdoc" ]; then
                   echo '<div class="params">' >> docs/api/index.html
@@ -120,12 +120,12 @@ jobs:
                   done
                   echo '</div>' >> docs/api/index.html
                 fi
-                
+
                 echo '</div>' >> docs/api/index.html
               done
             fi
           done
-          
+
           echo '<div style="margin-top: 50px; text-align: center; color: #7f8c8d;">' >> docs/api/index.html
           echo '<p>📖 For more details, visit the <a href="https://github.com/firstelementjp/swift-csv">GitHub repository</a></p>' >> docs/api/index.html
           echo '</div>' >> docs/api/index.html
@@ -135,10 +135,10 @@ jobs:
         run: |
           echo "## 📋 Recent Changes" > docs/changelog.md
           git log --oneline --since="1 month ago" >> docs/changelog.md
-          
+
           echo "## 🏗️ Class Structure" >> docs/overview.md
           find includes/ -name "*.php" -exec basename {} .php \; | sort | sed 's/^/- /' >> docs/overview.md
-          
+
       - name: Generate root index page
         run: |
           echo '<!DOCTYPE html>' > docs/index.html
@@ -172,10 +172,10 @@ jobs:
           echo '<p><a href="https://github.com/firstelementjp/swift-csv" class="btn">🔧 View Source Code</a></p>' >> docs/index.html
           echo '</div>' >> docs/index.html
           echo '</body></html>' >> docs/index.html
-          
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-        
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -188,7 +188,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

@@ -221,6 +221,14 @@ class Swift_CSV_Updater {
 				'changelog'   => $this->format_changelog( $latest_release->body ),
 			],
 			'download_link'     => 'https://github.com/firstelementjp/swift-csv/releases/download/' . $latest_release->tag_name . '/swift-csv-' . ltrim( $latest_release->tag_name, 'v' ) . '.zip',
+			'banners'           => [
+				'high' => SWIFT_CSV_PLUGIN_URL . 'assets/banner-772x250.png',
+				'low'  => SWIFT_CSV_PLUGIN_URL . 'assets/banner-772x250.png',
+			],
+			'icons'             => [
+				'1x'  => SWIFT_CSV_PLUGIN_URL . 'assets/icon-128x128.png',
+				'2x'  => SWIFT_CSV_PLUGIN_URL . 'assets/icon-256x256.png',
+			],
 		];
 
 		return $res;

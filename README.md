@@ -33,7 +33,7 @@ A lightweight and simple CSV import/export plugin for WordPress. Full support fo
 
 ### Manual Installation
 
-1. [Download swift-csv-0.9.1.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.1/swift-csv-0.9.1.zip) ⭐ **Recommended**
+1. [Download swift-csv-0.9.2.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.2/swift-csv-0.9.2.zip) ⭐ **Recommended**
 2. Extract the ZIP file to get `swift-csv/` folder
 3. Upload to `/wp-content/plugins/` directory
 4. Activate the plugin from admin dashboard
@@ -46,7 +46,7 @@ A lightweight and simple CSV import/export plugin for WordPress. Full support fo
 
 1. Go to **Admin Dashboard → Swift CSV → Export**
 2. Select post type
-3. Set number of posts (max 10,000)
+3. Set number of posts (max 1000)
 4. Click **Export CSV**
 
 ### CSV Import

@@ -1,0 +1,44 @@
+# Distribution files for git archive (release ZIP)
+# Include only necessary files for plugin distribution
+
+# Exclude development and build files
+composer.json export-ignore
+composer.lock export-ignore
+vendor/ export-ignore
+node_modules/ export-ignore
+package.json export-ignore
+package-lock.json export-ignore
+
+# Exclude development configuration
+phpcs.xml export-ignore
+.phpcs.xml.cache export-ignore
+.phpunit.result.cache export-ignore
+.phpunit.cache export-ignore
+
+# Exclude Git and CI files
+.gitignore export-ignore
+.github/ export-ignore
+
+# Exclude documentation (keep README.md and LICENSE)
+docs/ export-ignore
+phpdoc/ export-ignore
+
+# Exclude temporary and cache files
+*.log export-ignore
+debug.log export-ignore
+.DS_Store export-ignore
+Thumbs.db export-ignore
+
+# Exclude IDE files
+.vscode/ export-ignore
+.idea/ export-ignore
+*.swp export-ignore
+*.swo export-ignore
+
+# Exclude test files
+tests/ export-ignore
+phpunit.xml export-ignore
+
+# Exclude build artifacts
+*.tar.gz export-ignore
+*.zip export-ignore

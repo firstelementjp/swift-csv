@@ -394,3 +394,75 @@
 .swift-csv .progress-bar.completed .progress-bar-fill {
 	background: #46b450;
 }
+
+/* Export Progress Container */
+#swift-csv-export-progress {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 20px;
+	margin: 20px 0;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+#swift-csv-export-progress h3 {
+	margin: 0 0 15px 0;
+	color: #1d2327;
+	font-size: 1.2em;
+}
+
+.progress-bar-container {
+	margin: 20px 0;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.progress-text {
+	font-weight: 600;
+	color: #50575e;
+	min-width: 40px;
+	text-align: right;
+}
+
+.progress-status {
+	margin: 10px 0;
+	color: #50575e;
+	font-style: italic;
+}
+
+/* Download Link */
+#export-download-link {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid #dcdcde;
+}
+
+#export-download-link a {
+	text-decoration: none;
+}
+
+/* Form adjustments during export */
+.swift-csv-exporting .submit {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+.swift-csv-exporting input[type='number'],
+.swift-csv-exporting select {
+	opacity: 0.7;
+	pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.progress-bar-container {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 5px;
+	}
+
+	.progress-text {
+		text-align: center;
+	}
+}

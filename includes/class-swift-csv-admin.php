@@ -26,6 +26,7 @@ class Swift_CSV_Admin {
 	public function __construct() {
 		add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_styles' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
 	/**
@@ -64,6 +65,42 @@ class Swift_CSV_Admin {
 				SWIFT_CSV_PLUGIN_URL . 'assets/css/style.css',
 				[],
 				SWIFT_CSV_VERSION
+			);
+		}
+	}
+
+	/**
+	 * Enqueue admin scripts
+	 *
+	 * Loads JavaScript for batch export functionality.
+	 *
+	 * @since  0.9.3
+	 * @param  string $hook Current admin page.
+	 * @return void
+	 */
+	public function enqueue_scripts( $hook ) {
+		if ( 'toplevel_page_swift-csv' === $hook ) {
+			wp_enqueue_script(
+				'swift-csv-admin',
+				SWIFT_CSV_PLUGIN_URL . 'assets/js/admin.js',
+				[ 'jquery' ],
+				SWIFT_CSV_VERSION,
+				true
+			);
+
+			wp_localize_script(
+				'swift-csv-admin',
+				'swiftCSV',
+				[
+					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
+					'nonce'    => wp_create_nonce( 'swift_csv_nonce' ),
+					'messages' => [
+						'preparing'  => __( 'Preparing export...', 'swift-csv' ),
+						'processing' => __( 'Processing posts...', 'swift-csv' ),
+						'completed'  => __( 'Export completed!', 'swift-csv' ),
+						'error'      => __( 'Export failed. Please try again.', 'swift-csv' ),
+					],
+				]
 			);
 		}
 	}
@@ -379,9 +416,26 @@ class Swift_CSV_Admin {
 					</tr>
 				</table>
 
+				<!-- Batch Export Progress -->
+				<div id="swift-csv-export-progress" style="display: none;">
+					<h3><?php esc_html_e( 'Export Progress', 'swift-csv' ); ?></h3>
+					<div class="progress-bar-container">
+						<div class="progress-bar">
+							<div class="progress-fill" style="width: 0%"></div>
+						</div>
+						<span class="progress-text">0%</span>
+					</div>
+					<p class="progress-status"><?php esc_html_e( 'Preparing export...', 'swift-csv' ); ?></p>
+					<div id="export-download-link" style="display: none;">
+						<a href="#" class="button button-primary" download>
+							<?php esc_html_e( 'Download CSV', 'swift-csv' ); ?>
+						</a>
+					</div>
+				</div>
+
 				<p class="submit">
 					<input type="hidden" name="action" value="swift_csv_export">
-					<input type="submit" name="export_csv" class="button button-primary" value="<?php esc_html_e( 'Export CSV', 'swift-csv' ); ?>">
+					<input type="submit" name="export_csv" class="button button-primary" id="export-csv-btn" value="<?php esc_html_e( 'Export CSV', 'swift-csv' ); ?>">
 				</p>
 			</form>
 		</div>

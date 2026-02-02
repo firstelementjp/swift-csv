@@ -152,7 +152,7 @@ msgid "CSV File"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:476
-msgid "Please select a UTF-8 encoded CSV file."
+msgid "CSVファイルを選択してください（UTF-8、Shift_JIS、EUC-JP、JIS対応）。"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:477

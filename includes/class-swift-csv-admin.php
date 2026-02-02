@@ -614,7 +614,7 @@ class Swift_CSV_Admin {
 						<td>
 							<input type="file" name="csv_file" id="csv_file" accept=".csv" required>
 							<p class="description">
-								<?php esc_html_e( 'Please select a UTF-8 encoded CSV file.', 'swift-csv' ); ?><br>
+								<?php esc_html_e( 'CSVファイルを選択してください（UTF-8、Shift_JIS、EUC-JP、JIS対応）。', 'swift-csv' ); ?><br>
 								<?php esc_html_e( 'The first row will be used as header for automatic mapping.', 'swift-csv' ); ?><br>
 								<?php esc_html_e( 'Custom fields should be prefixed with "cf_" (example: cf_price).', 'swift-csv' ); ?>
 							</p>

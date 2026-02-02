@@ -155,8 +155,8 @@ msgid "CSV File"
 msgstr "CSVファイル"
 
 #: includes/class-swift-csv-admin.php:476
-msgid "Please select a UTF-8 encoded CSV file."
-msgstr "UTF-8形式のCSVファイルを選択してください。"
+msgid "CSVファイルを選択してください（UTF-8、Shift_JIS、EUC-JP、JIS対応）。"
+msgstr "CSVファイルを選択してください（UTF-8、Shift_JIS、EUC-JP、JIS対応）。"
 
 #: includes/class-swift-csv-admin.php:477
 msgid "The first row will be used as header for automatic mapping."

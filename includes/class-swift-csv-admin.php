@@ -438,7 +438,7 @@ class Swift_CSV_Admin {
 						</th>
 						<td>
 							<input type="number" name="posts_per_page" id="posts_per_page" value="1000" min="1" max="5000">
-							<p class="description"><?php esc_html_e( 'エクスポートする投稿数（推奨：ほとんどのサーバーで1000-3000件）', 'swift-csv' ); ?></p>
+							<p class="description"><?php esc_html_e( 'エクスポートする投稿数（バッチ処理で自動分割されます）', 'swift-csv' ); ?></p>
 						</td>
 					</tr>
 				</table>

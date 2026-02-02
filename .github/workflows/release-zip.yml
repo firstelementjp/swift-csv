@@ -9,31 +9,15 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
             - name: Create ZIP
               run: |
-                  zip -r swift-csv-${{ github.ref_name }}.zip swift-csv/ \
-                    -x "swift-csv/.git/*" \
-                    -x "swift-csv/.DS_Store" \
-                    -x "swift-csv/node_modules/*" \
-                    -x "swift-csv/vendor/*" \
-                    -x "swift-csv/.envrc*" \
-                    -x "swift-csv/composer.*" \
-                    -x "swift-csv/package*.json" \
-                    -x "swift-csv/.vscode/*" \
-                    -x "swift-csv/.prettierrc" \
-                    -x "swift-csv/.eslintrc.json" \
-                    -x "swift-csv/phpcs.xml.dist" \
-                    -x "swift-csv/swift-csv.code-workspace" \
-                    -x "swift-csv/.gitignore"
+                  git archive --format=zip --prefix=swift-csv/ --worktree-attributes ${{ github.ref_name }} > swift-csv-${{ github.ref_name }}.zip
 
             - name: Upload Release Asset
-              uses: actions/upload-release-asset@v1
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              uses: softprops/action-gh-release@v1
               with:
-                  upload_url: ${{ github.event.release.upload_url }}
-                  asset_path: swift-csv-${{ github.ref_name }}.zip
-                  asset_name: swift-csv-${{ github.ref_name }}.zip
-                  asset_content_type: application/zip
+                  files: swift-csv-${{ github.ref_name }}.zip

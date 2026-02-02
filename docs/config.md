@@ -15,9 +15,8 @@ Detailed configuration settings for Swift CSV.
 - **Output Format**: CSV (fixed)
 - **Character Code**: UTF-8 (fixed)
 - **BOM**: Not supported
-- **Number of posts**: Set the number of posts to export (default: 1000, max: 5000)
+- **Number of posts**: Set the number of posts to export (default: 1000)
     - Large datasets are automatically processed in batches to prevent timeouts
-    - No practical limit on dataset size with batch processing
 
 ## Advanced Settings
 

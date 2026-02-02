@@ -160,6 +160,34 @@ class Swift_CSV_Exporter {
 	}
 
 	/**
+	 * Clean CSV field
+	 *
+	 * Cleans and prepares field data for CSV output.
+	 * Handles newlines, quotes, and special characters properly.
+	 *
+	 * @since  0.9.3
+	 * @param  string $field Field value to clean.
+	 * @return string Cleaned field value.
+	 */
+	private function clean_csv_field( $field ) {
+		if ( empty( $field ) ) {
+			return '';
+		}
+
+		// Convert all newlines to spaces (prevents CSV structure breaking)
+		$field = preg_replace( '/\r\n|\r|\n/', ' ', $field );
+
+		// Normalize multiple spaces to single space
+		$field = preg_replace( '/\s+/', ' ', $field );
+
+		// Trim whitespace
+		$field = trim( $field );
+
+		// Let fputcsv handle the escaping - it will properly quote fields with commas, quotes, etc.
+		return $field;
+	}
+
+	/**
 	 * Debug logger
 	 *
 	 * Logs debug messages only when WP_DEBUG is enabled.
@@ -198,9 +226,9 @@ class Swift_CSV_Exporter {
 
 			// Basic post data
 			$row[] = $post->ID;
-			$row[] = $post->post_title;
-			$row[] = $post->post_content;
-			$row[] = $post->post_excerpt;
+			$row[] = $this->clean_csv_field( $post->post_title );
+			$row[] = $this->clean_csv_field( $post->post_content );
+			$row[] = $this->clean_csv_field( $post->post_excerpt );
 			$row[] = $post->post_status;
 			$row[] = $post->post_name;
 			$row[] = $post->post_date;
@@ -224,11 +252,12 @@ class Swift_CSV_Exporter {
 			foreach ( $custom_fields as $field ) {
 				$values = get_post_meta( $post->ID, $field, false ); // Get all values
 				if ( is_array( $values ) && count( $values ) > 1 ) {
-					// Multiple values - join with pipe separator
-					$row[] = implode( '|', $values );
+					// Multiple values - clean each and join with pipe separator
+					$cleaned_values = array_map( [ $this, 'clean_csv_field' ], $values );
+					$row[] = implode( '|', $cleaned_values );
 				} elseif ( is_array( $values ) && count( $values ) === 1 ) {
-					// Single value
-					$row[] = $values[0];
+					// Single value - clean it
+					$row[] = $this->clean_csv_field( $values[0] );
 				} else {
 					// No values
 					$row[] = '';

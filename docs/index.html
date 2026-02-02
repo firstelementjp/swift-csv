@@ -1,183 +1,190 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>Swift CSV Documentation</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/dark.css">
-    <style>
-        :root {
-            --theme-color: #45aaee;
-            --sidebar-width: 300px;
-        }
+	<head>
+		<meta charset="UTF-8" />
+		<title>Swift CSV Documentation</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" />
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/dark.css" />
+		<style>
+			:root {
+				--theme-color: #45aaee;
+				--sidebar-width: 300px;
+			}
 
-        body {
-            background: white;
-            color: #2a2a2a;
-        }
+			body {
+				background: white;
+				color: #2a2a2a;
+			}
 
-        .sidebar {
-            background-color: #d8dddb;
-            color: #2a2a2a;
-            border-right: none;
-        }
+			.sidebar {
+				background-color: #d8dddb;
+				color: #2a2a2a;
+				border-right: none;
+			}
 
-        .sidebar ul li a {
-            color: #2a2a2a;
-        }
+			.sidebar ul li a {
+				color: #2a2a2a;
+			}
 
-        .sidebar li a:hover {
-            color: #3498db;
-        }
+			.sidebar li a:hover {
+				color: #3498db;
+			}
 
-        .sidebar-toggle {
-            width: 300px;
-            background:#c3c6c5;
-        }
+			.sidebar-toggle {
+				width: 300px;
+				background: #c3c6c5;
+			}
 
-        .sidebar-toggle span {
-            background-color: white;
-        }
+			.sidebar-toggle span {
+				background-color: white;
+			}
 
-        .sidebar-toggle span:last-child {
-            margin: 0;
-        }
+			.sidebar-toggle span:last-child {
+				margin: 0;
+			}
 
-        .content {
-            padding-top: 60px;
-        }
+			.content {
+				padding-top: 60px;
+			}
 
-        .markdown-section h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
+			.markdown-section h1 {
+				color: #2c3e50;
+				border-bottom: 2px solid #3498db;
+				padding-bottom: 10px;
+			}
 
-        .markdown-section h2 {
-            color: #34495e;
-            border-bottom: 1px solid #ecf0f1;
-            padding-bottom: 5px;
-        }
+			.markdown-section h2 {
+				color: #34495e;
+				border-bottom: 1px solid #ecf0f1;
+				padding-bottom: 5px;
+			}
 
-        .markdown-section h3 {
-            color: #2980b9;
-        }
+			.markdown-section h3 {
+				color: #2980b9;
+			}
 
-        .markdown-section code {
-            background-color: #f8f9fa;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-        }
+			.markdown-section code {
+				background-color: #f8f9fa;
+				padding: 2px 6px;
+				border-radius: 3px;
+				font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+			}
 
-        .markdown-section pre {
-            background-color: #2c3e50;
-            color: #ecf0f1;
-            padding: 20px;
-            border-radius: 8px;
-            overflow-x: auto;
-        }
+			.markdown-section pre {
+				background-color: #2c3e50;
+				color: #ecf0f1;
+				padding: 20px;
+				border-radius: 8px;
+				overflow-x: auto;
+			}
 
-        .markdown-section pre code {
-            background-color: transparent;
-            padding: 0;
-        }
+			.markdown-section pre code {
+				background-color: transparent;
+				padding: 0;
+			}
 
-        .app-name-link {
-            font-size: 24px;
-            font-weight: bold;
-            color: #3498db !important;
-        }
+			.app-name-link {
+				font-size: 24px;
+				font-weight: bold;
+				color: #3498db !important;
+			}
 
-        .badge {
-            background-color: #e74c3c;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            margin-left: 8px;
-        }
+			.badge {
+				background-color: #e74c3c;
+				color: white;
+				padding: 2px 8px;
+				border-radius: 12px;
+				font-size: 12px;
+				margin-left: 8px;
+			}
 
-        .anchor span {
-            color: #2a2a2a;
-        }
+			.anchor span {
+				color: #2a2a2a;
+			}
 
-        .search {
-            border-bottom: none !important;
-        }
+			.search {
+				border-bottom: none !important;
+			}
 
-        .search input {
-            background: #bdc2bf;
-            color: #2b2b2b;
-            border-radius: 99px;
-        }
+			.search input {
+				background: #bdc2bf;
+				color: #2b2b2b;
+				border-radius: 99px;
+			}
 
-        .search input::placeholder {
-            color: white;
-            opacity: 0.7;
-        }
+			.search input::placeholder {
+				color: white;
+				opacity: 0.7;
+			}
 
-        .github-corner svg {
-            fill: #3498db;
-            color: #ffffff;
-        }
+			.github-corner svg {
+				fill: #3498db;
+				color: #ffffff;
+			}
 
-        .markdown-section pre>code {
-            color: silver;
-        }
-    </style>
-</head>
-<body>
-    <div id="app"></div>
-    <script>
-        window.$docsify = {
-            name: 'Swift CSV',
-            repo: 'firstelementjp/swift-csv',
-            loadSidebar: true,
-            loadNavbar: false,
-            maxLevel: 4,
-            subMaxLevel: 2,
-            search: {
-                maxAge: 86400000,
-                paths: 'auto',
-                placeholder: 'Search...',
-                noData: 'No results found',
-                depth: 6
-            },
-            pagination: {
-                previousText: 'Previous',
-                nextText: 'Next',
-                crossChapter: true,
-                crossChapterText: true,
-            },
-            copyCode: {
-                buttonText: 'Copy',
-                errorText: 'Copy failed',
-                successText: 'Copied'
-            },
-            plugins: [
-                function(hook, vm) {
-                    hook.beforeEach(function(content) {
-                        var version = '0.9.1';
-                        var updated = new Date().toLocaleDateString('en-US');
+			.markdown-section pre > code {
+				color: silver;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app"></div>
+		<script>
+			window.$docsify = {
+				name: 'Swift CSV',
+				repo: 'firstelementjp/swift-csv',
+				loadSidebar: true,
+				loadNavbar: false,
+				maxLevel: 4,
+				subMaxLevel: 2,
+				search: {
+					maxAge: 86400000,
+					paths: 'auto',
+					placeholder: 'Search...',
+					noData: 'No results found',
+					depth: 6,
+				},
+				pagination: {
+					previousText: 'Previous',
+					nextText: 'Next',
+					crossChapter: true,
+					crossChapterText: true,
+				},
+				copyCode: {
+					buttonText: 'Copy',
+					errorText: 'Copy failed',
+					successText: 'Copied',
+				},
+				plugins: [
+					function (hook, vm) {
+						hook.beforeEach(function (content) {
+							var version = '0.9.1';
+							var updated = new Date().toLocaleDateString('en-US');
 
-                        return content + '\n\n---\n\n' +
-                            '<div style="text-align: center; color: #7f8c8d; font-size: 14px;">\n' +
-                            '<p>📖 <a href="https://github.com/firstelementjp/swift-csv" target="_blank">Swift CSV</a> | ' +
-                            'Version: ' + version + ' | ' +
-                            'Updated: ' + updated + '</p>\n' +
-                            '</div>';
-                    });
-                }
-            ]
-        }
-    </script>
-    <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
-    <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/emoji.min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
-    <script src="//cdn.jsdelivr.net/npm/docsify-pagination@2/dist/docsify-pagination.min.js"></script>
-</body>
+							return (
+								content +
+								'\n\n---\n\n' +
+								'<div style="text-align: center; color: #7f8c8d; font-size: 14px;">\n' +
+								'<p>📖 <a href="https://github.com/firstelementjp/swift-csv" target="_blank">Swift CSV</a> | ' +
+								'Version: ' +
+								version +
+								' | ' +
+								'Updated: ' +
+								updated +
+								'</p>\n' +
+								'</div>'
+							);
+						});
+					},
+				],
+			};
+		</script>
+		<script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/emoji.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
+	<script src="https://cdn.jsdelivr.net/npm/docsify-pagination@2/dist/docsify-pagination.min.js"></script>
+	</body>
 </html>

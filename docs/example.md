@@ -50,11 +50,11 @@ post_title,post_content,cf_Name,cf_Email,cf_Phone,cf_Tags
 
 ```csv
 post_title,post_content,category,post_tag
-"Tech Post","About technology","Technology > WordPress > Plugins","tech,wordpress"
-"Design Post","About design","Design > UI > Web","design,ui,web"
+"Tech Post","About technology","Technology > WordPress > Plugins","tech|wordpress|php"
+"Design Post","About design","Design > UI > Web","design|ui|ux"
 ```
 
-**Note**: Use `>` to separate hierarchy levels in taxonomies (e.g., `Technology > WordPress > Plugins` creates a three-level hierarchy). Multiple taxonomy terms can be comma-separated.
+**Note**: Use `>` to separate hierarchy levels in taxonomies (e.g., `Technology > WordPress > Plugins` creates a three-level hierarchy). Multiple taxonomy terms are pipe-separated for consistency with custom fields.
 
 **Auto-creation**: Missing terms are automatically created with unique IDs and URL-friendly slugs (e.g., "Technology" → slug: "technology").
 

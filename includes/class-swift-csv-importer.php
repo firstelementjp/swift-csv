@@ -453,7 +453,7 @@ class Swift_CSV_Importer {
 
 				case 'taxonomy':
 					if ( ! empty( $value ) ) {
-						$terms                          = array_map( 'trim', explode( ',', $value ) );
+						$terms                          = array_map( 'trim', explode( '|', $value ) );
 						$taxonomies[ $map['taxonomy'] ] = $terms;
 					}
 					break;

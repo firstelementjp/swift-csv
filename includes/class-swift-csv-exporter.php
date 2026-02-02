@@ -13,6 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Include batch class (used for async export start).
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-batch.php';
+
 class Swift_CSV_Exporter {
 
 	/**
@@ -59,10 +62,25 @@ class Swift_CSV_Exporter {
 			wp_die( esc_html__( 'Invalid post type.', 'swift-csv' ) );
 		}
 
-		// Limit posts per page to prevent memory issues (max 1000)
-		$posts_per_page = max( 1, min( $posts_per_page, 1000 ) );
+		$posts_per_page = max( 1, $posts_per_page );
 
-		$this->export_csv( $post_type, $posts_per_page );
+		$batch = new Swift_CSV_Batch();
+		$batch_id = $batch->start_export_batch( $post_type, [ 'posts_per_page' => $posts_per_page ] );
+		if ( ! $batch_id ) {
+			wp_die( esc_html__( 'Failed to create export batch.', 'swift-csv' ) );
+		}
+
+		wp_safe_redirect(
+			add_query_arg(
+				[
+					'page'  => 'swift-csv',
+					'tab'   => 'export',
+					'batch' => $batch_id,
+				],
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
 	}
 
 	/**
@@ -166,12 +184,26 @@ class Swift_CSV_Exporter {
 	 * Handles newlines, quotes, and special characters properly.
 	 *
 	 * @since  0.9.3
-	 * @param  string $field Field value to clean.
+	 * @param  mixed $field Field value to clean.
 	 * @return string Cleaned field value.
 	 */
 	private function clean_csv_field( $field ) {
-		if ( empty( $field ) ) {
+		if ( null === $field || '' === $field ) {
 			return '';
+		}
+
+		if ( is_array( $field ) ) {
+			$field = implode( '|', array_map( 'strval', $field ) );
+		} elseif ( is_bool( $field ) ) {
+			$field = $field ? '1' : '0';
+		} elseif ( is_object( $field ) ) {
+			if ( method_exists( $field, '__toString' ) ) {
+				$field = (string) $field;
+			} else {
+				$field = wp_json_encode( $field );
+			}
+		} else {
+			$field = (string) $field;
 		}
 
 		// Convert all newlines to spaces (prevents CSV structure breaking)

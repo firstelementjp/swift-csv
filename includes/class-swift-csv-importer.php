@@ -84,16 +84,16 @@ class Swift_CSV_Importer {
 		// Check if existing posts should be updated
 		$update_existing = isset( $_POST['update_existing'] );
 
-		// Check file size to determine processing method
+		// Check file size and row count to determine processing method
 		$file_size = $_FILES['csv_file']['size'];
 		$csv_data  = $this->read_csv_file( $_FILES['csv_file']['tmp_name'] );
 		$row_count = count( $csv_data ) - 1; // Exclude header
 
-		// Use batch processing for large files
-		if ( $row_count > 1000 || $file_size > 10 * 1024 * 1024 ) {
+		// Use batch processing for large files or many rows
+		if ( $file_size > 10 * 1024 * 1024 || $row_count > 1000 ) {
 			$this->handle_batch_import( $_FILES['csv_file']['tmp_name'], $post_type, $update_existing );
 		} else {
-			$this->import_csv( $_FILES['csv_file']['tmp_name'], $post_type, $update_existing );
+			$this->handle_sync_import( $_FILES['csv_file']['tmp_name'], $post_type, $update_existing );
 		}
 	}
 
@@ -136,7 +136,74 @@ class Swift_CSV_Importer {
 	}
 
 	/**
-	 * Import CSV file
+	 * Handle synchronous CSV import request
+	 *
+	 * Processes small CSV files synchronously with immediate results.
+	 *
+	 * @since  0.9.0
+	 * @param  string $file_path       Path to the uploaded CSV file.
+	 * @param  string $post_type       Target post type for import.
+	 * @param  bool   $update_existing Whether to update existing posts.
+	 * @return void
+	 */
+	private function handle_sync_import( $file_path, $post_type, $update_existing ) {
+		// Read and parse CSV file
+		$csv_data = $this->read_csv_file( $file_path );
+
+		// Validate CSV data
+		if ( empty( $csv_data ) || count( $csv_data ) < 2 ) {
+			wp_die( esc_html__( 'CSV file is empty or invalid.', 'swift-csv' ) );
+		}
+
+		// Extract headers and create field mapping
+		$headers = array_shift( $csv_data ); // First row as headers
+		$mapping = $this->create_mapping( $headers );
+
+		// Initialize counters
+		$imported = 0;
+		$updated  = 0;
+		$errors   = array();
+
+		// Process each data row
+		foreach ( $csv_data as $row_index => $row ) {
+			try {
+				// Log first few rows for debugging
+				if ( $row_index < 3 ) {
+					$this->_debugLog( 'Processing row ' . ( $row_index + 2 ) . ': ' . print_r( $row, true ) );
+				}
+
+				$result = $this->process_row( $row, $mapping, $post_type, $update_existing );
+
+				if ( $result['created'] ) {
+					++$imported;
+				} elseif ( $result['updated'] ) {
+					++$updated;
+				}
+			} catch ( Exception $e ) {
+				$errors[] = '行 ' . ( $row_index + 2 ) . ': ' . $e->getMessage();
+				$this->_debugLog( 'Error processing row ' . ( $row_index + 2 ) . ': ' . $e->getMessage() );
+			}
+		}
+
+		// Redirect back to import page with results
+		$query_args = [
+			'page' => 'swift-csv',
+			'tab' => 'import',
+			'imported' => $imported,
+			'updated' => $updated,
+			'errors' => count( $errors ),
+		];
+		
+		if ( ! empty( $errors ) ) {
+			$query_args['error_details'] = urlencode( implode( '|', $errors ) );
+		}
+		
+		wp_redirect( add_query_arg( $query_args, admin_url( 'admin.php' ) ) );
+		exit;
+	}
+
+	/**
+	 * Import CSV data
 	 *
 	 * Reads CSV data, creates mapping, and processes each row for import/update.
 	 *
@@ -185,8 +252,21 @@ class Swift_CSV_Importer {
 			}
 		}
 
-		// Display import results
-		$this->show_import_results( $imported, $updated, $errors );
+		// Redirect back to import page with results
+		$query_args = [
+			'page' => 'swift-csv',
+			'tab' => 'import',
+			'imported' => $imported,
+			'updated' => $updated,
+			'errors' => count( $errors ),
+		];
+		
+		if ( ! empty( $errors ) ) {
+			$query_args['error_details'] = urlencode( implode( '|', $errors ) );
+		}
+		
+		wp_redirect( add_query_arg( $query_args, admin_url( 'admin.php' ) ) );
+		exit;
 	}
 
 	/**

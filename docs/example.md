@@ -10,7 +10,7 @@
 
 1. Navigate to **Admin Dashboard → Swift CSV → Export**
 2. Select post type from dropdown
-3. Set number of posts (max 1000 due to current limitations)
+3. Set number of posts (large datasets will be processed in batches)
 4. Click **Export CSV** to download file
 
 ### CSV Import via Admin Interface

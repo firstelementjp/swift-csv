@@ -24,7 +24,7 @@ Memory settings for large file processing:
 
 **Current Implementation**:
 
-- **Export**: Maximum 1000 posts per export
+- **Export**: Supports large datasets with batch processing
 - **Import**: Batch processing for files over 1000 rows or 10MB
 
 These limits are hardcoded to prevent memory issues and timeouts.
@@ -46,4 +46,4 @@ Field mapping is handled automatically during import:
 - **Import**: Only comma-delimited CSV with double quote enclosure
 - **Export**: Fixed UTF-8 CSV format
 - **Configuration**: No user-configurable options yet
-- **Memory**: Limited to 1000 posts per export to prevent timeouts
+- **Memory**: Batch processing prevents timeouts for large datasets

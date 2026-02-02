@@ -46,7 +46,7 @@ A lightweight and simple CSV import/export plugin for WordPress. Full support fo
 
 1. Go to **Admin Dashboard → Swift CSV → Export**
 2. Select post type
-3. Set number of posts (max 1000)
+3. Set number of posts (large datasets will be processed in batches)
 4. Click **Export CSV**
 
 ### CSV Import

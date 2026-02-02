@@ -171,8 +171,17 @@ msgid "Update existing posts"
 msgstr "既存投稿を更新"
 
 #: includes/class-swift-csv-admin.php:491
-msgid "Updates existing posts when ID matches."
-msgstr "IDが一致する場合、既存投稿を更新します。"
+msgid "Preparing export..."
+msgstr "エクスポートを準備しています..."
+
+msgid "Processing posts..."
+msgstr "投稿を処理しています..."
+
+msgid "Export completed!"
+msgstr "エクスポートが完了しました！"
+
+msgid "Export failed. Please try again."
+msgstr "エクスポートに失敗しました。もう一度お試しください。"
 
 #: includes/class-swift-csv-admin.php:492
 msgid "If unchecked, creates new posts."

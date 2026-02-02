@@ -79,31 +79,29 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	public function enqueue_scripts( $hook ) {
-		// JavaScript disabled - using simple form submission
-		// if ( 'toplevel_page_swift-csv' === $hook ) {
-		// wp_enqueue_script(
-		// 'swift-csv-admin',
-		// SWIFT_CSV_PLUGIN_URL . 'assets/js/admin.js',
-		// [ 'jquery' ],
-		// SWIFT_CSV_VERSION,
-		// true
-		// );
-		//
-		// wp_localize_script(
-		// 'swift-csv-admin',
-		// 'swiftCSV',
-		// [
-		// 'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
-		// 'nonce'    => wp_create_nonce( 'swift_csv_nonce' ),
-		// 'messages' => [
-		// 'preparing'  => __( 'エクスポートを準備しています...', 'swift-csv' ),
-		// 'processing' => __( '投稿を処理しています...', 'swift-csv' ),
-		// 'completed'  => __( 'エクスポートが完了しました！', 'swift-csv' ),
-		// 'error'      => __( 'エクスポートに失敗しました。もう一度お試しください。', 'swift-csv' ),
-		// ],
-		// ]
-		// );
-		// }
+		if ( 'toplevel_page_swift-csv' === $hook ) {
+			wp_enqueue_script(
+				'swift-csv-admin',
+				SWIFT_CSV_PLUGIN_URL . 'assets/js/admin.js',
+				[],
+				SWIFT_CSV_VERSION,
+				true
+			);
+			wp_localize_script(
+				'swift-csv-admin',
+				'swiftCSV',
+				[
+					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
+					'nonce'    => wp_create_nonce( 'swift_csv_nonce' ),
+					'messages' => [
+						'preparing'  => __( 'Preparing export...', 'swift-csv' ),
+						'processing' => __( 'Processing posts...', 'swift-csv' ),
+						'completed'  => __( 'Export completed!', 'swift-csv' ),
+						'error'      => __( 'Export failed. Please try again.', 'swift-csv' ),
+					],
+				]
+			);
+		}
 	}
 
 	/**

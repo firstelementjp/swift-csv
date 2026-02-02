@@ -193,11 +193,11 @@ class Swift_CSV_Importer {
 			'updated' => $updated,
 			'errors' => count( $errors ),
 		];
-		
+
 		if ( ! empty( $errors ) ) {
 			$query_args['error_details'] = urlencode( implode( '|', $errors ) );
 		}
-		
+
 		wp_redirect( add_query_arg( $query_args, admin_url( 'admin.php' ) ) );
 		exit;
 	}
@@ -260,11 +260,11 @@ class Swift_CSV_Importer {
 			'updated' => $updated,
 			'errors' => count( $errors ),
 		];
-		
+
 		if ( ! empty( $errors ) ) {
 			$query_args['error_details'] = urlencode( implode( '|', $errors ) );
 		}
-		
+
 		wp_redirect( add_query_arg( $query_args, admin_url( 'admin.php' ) ) );
 		exit;
 	}

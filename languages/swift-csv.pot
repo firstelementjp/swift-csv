@@ -168,7 +168,16 @@ msgid "Update existing posts"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:491
-msgid "Updates existing posts when ID matches."
+msgid "Preparing export..."
+msgstr ""
+
+msgid "Processing posts..."
+msgstr ""
+
+msgid "Export completed!"
+msgstr ""
+
+msgid "Export failed. Please try again."
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:492

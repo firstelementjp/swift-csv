@@ -115,17 +115,8 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	private function render_plugin_header() {
-		$locale = get_user_locale();
-
-		$docs_url = 'https://github.com/firstelementjp/swift-csv/wiki';
-		if ( 'ja' === $locale || 'ja_JP' === $locale ) {
-			$docs_url = 'https://github.com/firstelementjp/swift-csv/wiki';
-		}
-
+		$docs_url  = 'https://firstelementjp.github.io/swift-csv/#/';
 		$forum_url = 'https://github.com/firstelementjp/swift-csv/issues';
-		if ( 'ja' === $locale || 'ja_JP' === $locale ) {
-			$forum_url = 'https://github.com/firstelementjp/swift-csv/issues';
-		}
 		?>
 		<div id="plugin_header">
 			<div id="plugin_header_upper">
@@ -308,7 +299,7 @@ class Swift_CSV_Admin {
 							$('.created-count').text(data.created_rows);
 							$('.updated-count').text(data.updated_rows);
 							$('.error-count').text(data.error_rows);
-							
+
 							// Add ribbon classes if values exist
 							if (data.created_rows > 0) {
 								$('.created').addClass('has-count');

@@ -1,4 +1,4 @@
-- [Getting Started](getting-started.md)
+- 🚀 [Getting Started](getting-started.md)
 - 📦 [Installation](installation.md)
 - 💡 [Examples](examples.md)
 - 🔧 [Configuration](configuration.md)
@@ -7,3 +7,4 @@
 - 🤝 [Contributing](contributing.md)
 - 📄 [License](license.md)
 - 🧪 [Test Deployment](test-deployment.md)
+- 🏠 [Home](Home.md)

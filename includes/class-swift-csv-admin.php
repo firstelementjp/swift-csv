@@ -629,7 +629,7 @@ class Swift_CSV_Admin {
 						</th>
 						<td>
 							<p class="description">
-								<?php esc_html_e( 'Updates existing posts when ID or slug matches.', 'swift-csv' ); ?><br>
+								<?php esc_html_e( 'Updates existing posts when ID matches.', 'swift-csv' ); ?><br>
 								<?php esc_html_e( 'If unchecked, creates new posts.', 'swift-csv' ); ?>
 							</p>
 						</td>

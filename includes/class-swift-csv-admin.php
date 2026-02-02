@@ -72,37 +72,38 @@ class Swift_CSV_Admin {
 	/**
 	 * Enqueue admin scripts
 	 *
-	 * Loads JavaScript for batch export functionality.
+	 * JavaScript loading disabled for simple operation.
 	 *
 	 * @since  0.9.3
 	 * @param  string $hook Current admin page.
 	 * @return void
 	 */
 	public function enqueue_scripts( $hook ) {
-		if ( 'toplevel_page_swift-csv' === $hook ) {
-			wp_enqueue_script(
-				'swift-csv-admin',
-				SWIFT_CSV_PLUGIN_URL . 'assets/js/admin.js',
-				[ 'jquery' ],
-				SWIFT_CSV_VERSION,
-				true
-			);
-
-			wp_localize_script(
-				'swift-csv-admin',
-				'swiftCSV',
-				[
-					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
-					'nonce'    => wp_create_nonce( 'swift_csv_nonce' ),
-					'messages' => [
-						'preparing'  => __( 'エクスポートを準備しています...', 'swift-csv' ),
-						'processing' => __( '投稿を処理しています...', 'swift-csv' ),
-						'completed'  => __( 'エクスポートが完了しました！', 'swift-csv' ),
-						'error'      => __( 'エクスポートに失敗しました。もう一度お試しください。', 'swift-csv' ),
-					],
-				]
-			);
-		}
+		// JavaScript disabled - using simple form submission
+		// if ( 'toplevel_page_swift-csv' === $hook ) {
+		// wp_enqueue_script(
+		// 'swift-csv-admin',
+		// SWIFT_CSV_PLUGIN_URL . 'assets/js/admin.js',
+		// [ 'jquery' ],
+		// SWIFT_CSV_VERSION,
+		// true
+		// );
+		//
+		// wp_localize_script(
+		// 'swift-csv-admin',
+		// 'swiftCSV',
+		// [
+		// 'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
+		// 'nonce'    => wp_create_nonce( 'swift_csv_nonce' ),
+		// 'messages' => [
+		// 'preparing'  => __( 'エクスポートを準備しています...', 'swift-csv' ),
+		// 'processing' => __( '投稿を処理しています...', 'swift-csv' ),
+		// 'completed'  => __( 'エクスポートが完了しました！', 'swift-csv' ),
+		// 'error'      => __( 'エクスポートに失敗しました。もう一度お試しください。', 'swift-csv' ),
+		// ],
+		// ]
+		// );
+		// }
 	}
 
 	/**
@@ -206,6 +207,20 @@ class Swift_CSV_Admin {
 		// Check for batch processing
 		$batch_id = isset( $_GET['batch'] ) ? sanitize_text_field( $_GET['batch'] ) : '';
 
+		// Check for import results
+		$import_results = [];
+		if ( isset( $_GET['imported'] ) ) {
+			$import_results = [
+				'imported' => intval( $_GET['imported'] ),
+				'updated'  => intval( $_GET['updated'] ),
+				'errors'   => intval( $_GET['errors'] ),
+			];
+
+			if ( isset( $_GET['error_details'] ) ) {
+				$import_results['error_details'] = explode( '|', urldecode( $_GET['error_details'] ) );
+			}
+		}
+
 		?>
 		<div class="wrap swift-csv">
 			<?php $this->render_plugin_header(); ?>
@@ -226,7 +241,7 @@ class Swift_CSV_Admin {
 				} elseif ( $batch_id ) {
 					$this->render_batch_progress( $batch_id );
 				} else {
-					$this->render_import_tab();
+					$this->render_import_tab( $import_results );
 				}
 				?>
 			</div>
@@ -256,7 +271,7 @@ class Swift_CSV_Admin {
 				</div>
 				<div class="progress-details">
 					<div class="created"><?php esc_html_e( 'Created:', 'swift-csv' ); ?> <span class="created-count">0</span></div>
-					<div class="updated"><?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <span class="updated-count">0</span></div>
+					<div class="modified"><?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <span class="updated-count">0</span></div>
 					<div class="errors"><?php esc_html_e( 'Errors:', 'swift-csv' ); ?> <span class="error-count">0</span></div>
 				</div>
 			</div>
@@ -293,6 +308,17 @@ class Swift_CSV_Admin {
 							$('.created-count').text(data.created_rows);
 							$('.updated-count').text(data.updated_rows);
 							$('.error-count').text(data.error_rows);
+							
+							// Add ribbon classes if values exist
+							if (data.created_rows > 0) {
+								$('.created').addClass('has-count');
+							}
+							if (data.updated_rows > 0) {
+								$('.modified').addClass('has-count');
+							}
+							if (data.error_rows > 0) {
+								$('.errors').addClass('has-count');
+							}
 
 							// Show errors if any
 							if (data.errors && data.errors.length > 0) {
@@ -308,7 +334,8 @@ class Swift_CSV_Admin {
 							if (data.status === 'completed') {
 								clearInterval(progressInterval);
 								$('.progress-bar').addClass('completed');
-								alert('<?php esc_html_e( 'CSV import completed!', 'swift-csv' ); ?>');
+								// For UI testing: don't redirect, just show completion
+								console.log('Batch processing completed - staying on page for UI testing');
 							}
 						}
 					},
@@ -438,21 +465,134 @@ class Swift_CSV_Admin {
 					<input type="submit" name="export_csv" class="button button-primary" id="export-csv-btn" value="<?php esc_html_e( 'Export CSV', 'swift-csv' ); ?>">
 				</p>
 			</form>
+			<?php
+			$batch_id = isset( $_GET['batch'] ) ? sanitize_text_field( $_GET['batch'] ) : '';
+			if ( ! empty( $batch_id ) ) :
+				$ajax_url = admin_url( 'admin-ajax.php' );
+				$nonce    = wp_create_nonce( 'swift_csv_nonce' );
+				?>
+				<script>
+					(function () {
+						var batchId = <?php echo wp_json_encode( $batch_id ); ?>;
+						var ajaxUrl = <?php echo wp_json_encode( $ajax_url ); ?>;
+						var nonce = <?php echo wp_json_encode( $nonce ); ?>;
+						var progressEl = document.getElementById('swift-csv-export-progress');
+						var fillEl = progressEl ? progressEl.querySelector('.progress-fill') : null;
+						var textEl = progressEl ? progressEl.querySelector('.progress-text') : null;
+						var statusEl = progressEl ? progressEl.querySelector('.progress-status') : null;
+						var linkWrapEl = document.getElementById('export-download-link');
+						var linkEl = linkWrapEl ? linkWrapEl.querySelector('a') : null;
+
+						if (progressEl) {
+							progressEl.style.display = 'block';
+						}
+
+						function poll() {
+							var body = new URLSearchParams();
+							body.append('action', 'swift_csv_export_progress');
+							body.append('nonce', nonce);
+							body.append('batch_id', batchId);
+
+							fetch(ajaxUrl, {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+								},
+								body: body.toString(),
+								credentials: 'same-origin'
+							})
+							.then(function (r) { return r.json(); })
+							.then(function (json) {
+								if (!json || json.success !== true) {
+									return;
+								}
+
+								var total = parseInt(json.total_rows || 0, 10);
+								var done = parseInt(json.processed_rows || 0, 10);
+								var percent = total > 0 ? Math.floor((done / total) * 100) : 0;
+
+								if (fillEl) {
+									fillEl.style.width = percent + '%';
+								}
+								if (textEl) {
+									textEl.textContent = percent + '%';
+								}
+								if (statusEl) {
+									statusEl.textContent = done + '/' + total;
+								}
+
+								if (json.completed && json.download_url) {
+									if (linkWrapEl && linkEl) {
+										linkEl.href = json.download_url;
+										linkWrapEl.style.display = 'block';
+									}
+									window.location.href = json.download_url;
+									return;
+								}
+
+								setTimeout(poll, 500);
+							})
+							.catch(function () {
+								setTimeout(poll, 3000);
+							});
+						}
+
+						setTimeout(poll, 300);
+					})();
+				</script>
+			<?php endif; ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Render import results
+	 *
+	 * @since  0.9.3
+	 * @param  array $results Import results.
+	 * @return void
+	 */
+	private function render_import_results( $results ) {
+		?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'Import completed!', 'swift-csv' ); ?></strong><br>
+				<?php esc_html_e( 'Created:', 'swift-csv' ); ?> <?php echo $results['imported']; ?> <?php esc_html_e( 'posts', 'swift-csv' ); ?><br>
+				<?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <?php echo $results['updated']; ?> <?php esc_html_e( 'posts', 'swift-csv' ); ?>
+				<?php if ( $results['errors'] > 0 ) : ?>
+					<br><?php esc_html_e( 'Errors:', 'swift-csv' ); ?> <?php echo $results['errors']; ?>
+				<?php endif; ?>
+			</p>
+		</div>
+
+		<?php if ( ! empty( $results['error_details'] ) ) : ?>
+			<div class="notice notice-error">
+				<h3><?php esc_html_e( 'Errors:', 'swift-csv' ); ?></h3>
+				<ul>
+					<?php foreach ( $results['error_details'] as $error ) : ?>
+						<li><?php echo esc_html( $error ); ?></li>
+					<?php endforeach; ?>
+				</ul>
+			</div>
+		<?php endif; ?>
 		<?php
 	}
 
 	/**
 	 * Render import tab
 	 *
-	 * Displays the import form with file upload and options.
-	 *
 	 * @since  0.9.0
+	 * @param  array $import_results Import results from URL parameters.
 	 * @return void
 	 */
-	private function render_import_tab() {
+	private function render_import_tab( $import_results = [] ) {
 		// Get all public post types for selection.
 		$post_types = get_post_types( [ 'public' => true ], 'objects' );
+
+		// Display import results if available
+		if ( ! empty( $import_results ) ) {
+			$this->render_import_results( $import_results );
+		}
 
 		?>
 		<div class="card">

@@ -33,7 +33,7 @@ A lightweight and simple CSV import/export plugin for WordPress. Full support fo
 
 ### Manual Installation
 
-1. [Download swift-csv-0.9.2.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.2/swift-csv-0.9.2.zip) ⭐ **Recommended**
+1. [Download swift-csv-0.9.3.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.3/swift-csv-0.9.3.zip) ⭐ **Recommended**
 2. Extract the ZIP file to get `swift-csv/` folder
 3. Upload to `/wp-content/plugins/` directory
 4. Activate the plugin from admin dashboard
@@ -125,7 +125,28 @@ Interested in helping with translations? Contact us on [GitHub](https://github.c
 
 ## 🤝 Contributing
 
-Bug reports and feature requests are welcome through [GitHub Issues](https://github.com/firstelementjp/swift-csv/issues).
+We welcome contributions! Please follow our development workflow:
+
+### Development Workflow
+
+1. **Fork** the repository
+2. **Create feature branch**: `git checkout -b feature/batch-export-ui`
+3. **Make changes** and test thoroughly
+4. **Push to develop**: `git push origin develop`
+5. **Create Pull Request** to develop branch
+6. **Review and merge** to develop
+7. **Release**: Merge develop to main with version tag
+
+### Branch Strategy
+
+- **main**: Stable releases (v0.9.3, v0.9.4, etc.)
+- **develop**: Development branch with latest features
+- **feature/\***: Individual feature development
+
+### Current Development
+
+- **Batch Export UI**: Progress bar and AJAX integration (in develop branch)
+- **Future**: Enhanced error handling and user experiences are welcome through [GitHub Issues](https://github.com/firstelementjp/swift-csv/issues).
 
 ## 📄 License
 

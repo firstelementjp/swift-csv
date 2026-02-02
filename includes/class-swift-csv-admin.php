@@ -373,8 +373,8 @@ class Swift_CSV_Admin {
 							<label for="posts_per_page"><?php esc_html_e( 'Number of Posts', 'swift-csv' ); ?></label>
 						</th>
 						<td>
-							<input type="number" name="posts_per_page" id="posts_per_page" value="100" min="1" max="50000">
-							<p class="description"><?php esc_html_e( 'Number of posts to export (large datasets will be processed in batches)', 'swift-csv' ); ?></p>
+							<input type="number" name="posts_per_page" id="posts_per_page" value="1000" min="1" max="5000">
+							<p class="description"><?php esc_html_e( 'Number of posts to export (recommended: 1000-3000 for most servers)', 'swift-csv' ); ?></p>
 						</td>
 					</tr>
 				</table>

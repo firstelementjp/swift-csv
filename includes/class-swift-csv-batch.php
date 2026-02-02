@@ -27,6 +27,11 @@ class Swift_CSV_Batch {
 		add_action( 'wp_ajax_swift_csv_batch_progress', [ $this, 'ajax_batch_progress' ] );
 		add_action( 'wp_ajax_swift_csv_start_batch', [ $this, 'ajax_start_batch' ] );
 		add_action( 'swift_csv_process_batch', [ $this, 'process_batch' ] );
+
+		// Export batch processing
+		add_action( 'wp_ajax_swift_csv_export_progress', [ $this, 'ajax_export_progress' ] );
+		add_action( 'wp_ajax_swift_csv_start_export', [ $this, 'ajax_start_export' ] );
+		add_action( 'swift_csv_process_export_batch', [ $this, 'process_export_batch' ] );
 	}
 
 	/**
@@ -363,5 +368,200 @@ class Swift_CSV_Batch {
 		}
 
 		return $csv_data;
+	}
+
+	/**
+	 * Start batch export
+	 *
+	 * Initiates batch processing for CSV export.
+	 *
+	 * @since  0.9.3
+	 * @param  string $post_type Target post type.
+	 * @param  array  $args      Export arguments.
+	 * @return string Batch ID for tracking.
+	 */
+	public function start_export_batch( $post_type, $args = [] ) {
+		global $wpdb;
+
+		// Generate unique batch ID
+		$batch_id = wp_generate_uuid4();
+
+		// Count total posts
+		$total_posts = count(
+			get_posts(
+				[
+					'post_type'      => $post_type,
+					'post_status'    => 'publish',
+					'posts_per_page' => -1,
+				]
+			)
+		);
+
+		// Create temporary file
+		$upload_dir = wp_upload_dir();
+		$temp_dir   = $upload_dir['basedir'] . '/swift-csv/exports';
+		wp_mkdir_p( $temp_dir );
+		$file_path = $temp_dir . "/{$batch_id}.csv";
+
+		// Insert batch record
+		$table_name = $wpdb->prefix . 'swift_csv_batches';
+		$wpdb->insert(
+			$table_name,
+			[
+				'batch_id'   => $batch_id,
+				'post_type'  => $post_type,
+				'total_rows' => $total_posts,
+				'status'     => 'pending',
+				'file_path'  => $file_path,
+			],
+			[ '%s', '%s', '%d', '%s', '%s' ]
+		);
+
+		// Schedule first batch processing
+		wp_schedule_single_event( time(), 'swift_csv_process_export_batch', [ $batch_id ] );
+
+		return $batch_id;
+	}
+
+	/**
+	 * Process export batch
+	 *
+	 * Processes a batch of posts for CSV export.
+	 *
+	 * @since  0.9.3
+	 * @param  string $batch_id Batch ID to process.
+	 * @return void
+	 */
+	public function process_export_batch( $batch_id ) {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'swift_csv_batches';
+		$batch      = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM $table_name WHERE batch_id = %s",
+				$batch_id
+			)
+		);
+
+		if ( ! $batch || 'completed' === $batch->status ) {
+			return;
+		}
+
+		// Update status to processing
+		$wpdb->update(
+			$table_name,
+			[ 'status' => 'processing' ],
+			[ 'batch_id' => $batch_id ],
+			[ '%s' ],
+			[ '%s' ]
+		);
+
+		// Process 100 posts at a time
+		$batch_size = 100;
+		$offset     = $batch->processed_rows;
+		$posts      = get_posts(
+			[
+				'post_type'      => $batch->post_type,
+				'post_status'    => 'publish',
+				'posts_per_page' => $batch_size,
+				'offset'         => $offset,
+			]
+		);
+
+		// Export posts to CSV
+		$this->export_posts_to_csv( $posts, $batch->file_path, $offset === 0 );
+
+		// Update batch progress
+		$new_processed = $batch->processed_rows + count( $posts );
+		$status        = ( $new_processed >= $batch->total_rows ) ? 'completed' : 'processing';
+
+		$wpdb->update(
+			$table_name,
+			[
+				'processed_rows' => $new_processed,
+				'status'         => $status,
+			],
+			[ 'batch_id' => $batch_id ],
+			[ '%d', '%s' ],
+			[ '%s' ]
+		);
+
+		// Schedule next batch if not completed
+		if ( 'processing' === $status ) {
+			wp_schedule_single_event( time() + 2, 'swift_csv_process_export_batch', [ $batch_id ] );
+		}
+	}
+
+	/**
+	 * Export posts to CSV
+	 *
+	 * Exports posts to CSV file.
+	 *
+	 * @since  0.9.3
+	 * @param  array  $posts     Posts to export.
+	 * @param  string $file_path File path.
+	 * @param  bool   $with_header Whether to include header.
+	 * @return void
+	 */
+	private function export_posts_to_csv( $posts, $file_path, $with_header = true ) {
+		if ( empty( $posts ) ) {
+			return;
+		}
+
+		$exporter    = new Swift_CSV_Exporter();
+		$csv_content = '';
+
+		// Generate headers for first batch
+		if ( $with_header ) {
+			$headers      = $exporter->generate_headers( $posts[0]->post_type );
+			$csv_content .= implode( ',', $headers ) . "\n";
+		}
+
+		// Generate CSV content
+		foreach ( $posts as $post ) {
+			$row          = $exporter->generate_row( $post );
+			$csv_content .= implode( ',', $row ) . "\n";
+		}
+
+		// Append to file
+		file_put_contents( $file_path, $csv_content, FILE_APPEND | LOCK_EX );
+	}
+
+	/**
+	 * AJAX handler for export progress
+	 *
+	 * @since  0.9.3
+	 * @return void
+	 */
+	public function ajax_export_progress() {
+		check_ajax_referer( 'swift_csv_nonce', 'nonce' );
+
+		$batch_id = isset( $_POST['batch_id'] ) ? sanitize_text_field( $_POST['batch_id'] ) : '';
+		$progress = $this->get_batch_progress( $batch_id );
+
+		wp_send_json( $progress );
+	}
+
+	/**
+	 * AJAX handler for starting export
+	 *
+	 * @since  0.9.3
+	 * @return void
+	 */
+	public function ajax_start_export() {
+		check_ajax_referer( 'swift_csv_nonce', 'nonce' );
+
+		$post_type = isset( $_POST['post_type'] ) ? sanitize_text_field( $_POST['post_type'] ) : 'post';
+		$args      = [];
+
+		$batch_id = $this->start_export_batch( $post_type, $args );
+
+		wp_send_json(
+			[
+				'success'  => true,
+				'batch_id' => $batch_id,
+				'message'  => 'Export started',
+			]
+		);
 	}
 }

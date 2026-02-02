@@ -95,10 +95,10 @@ class Swift_CSV_Admin {
 					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'swift_csv_nonce' ),
 					'messages' => [
-						'preparing'  => __( 'Preparing export...', 'swift-csv' ),
-						'processing' => __( 'Processing posts...', 'swift-csv' ),
-						'completed'  => __( 'Export completed!', 'swift-csv' ),
-						'error'      => __( 'Export failed. Please try again.', 'swift-csv' ),
+						'preparing'  => __( 'エクスポートを準備しています...', 'swift-csv' ),
+						'processing' => __( '投稿を処理しています...', 'swift-csv' ),
+						'completed'  => __( 'エクスポートが完了しました！', 'swift-csv' ),
+						'error'      => __( 'エクスポートに失敗しました。もう一度お試しください。', 'swift-csv' ),
 					],
 				]
 			);
@@ -387,7 +387,7 @@ class Swift_CSV_Admin {
 		?>
 		<div class="card">
 			<h3><?php esc_html_e( 'Export Post Data', 'swift-csv' ); ?></h3>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<form id="swift-csv-export-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<?php wp_nonce_field( 'swift_csv_export', 'csv_export_nonce' ); ?>
 
 				<table class="form-table">
@@ -411,24 +411,24 @@ class Swift_CSV_Admin {
 						</th>
 						<td>
 							<input type="number" name="posts_per_page" id="posts_per_page" value="1000" min="1" max="5000">
-							<p class="description"><?php esc_html_e( 'Number of posts to export (recommended: 1000-3000 for most servers)', 'swift-csv' ); ?></p>
+							<p class="description"><?php esc_html_e( 'エクスポートする投稿数（推奨：ほとんどのサーバーで1000-3000件）', 'swift-csv' ); ?></p>
 						</td>
 					</tr>
 				</table>
 
 				<!-- Batch Export Progress -->
 				<div id="swift-csv-export-progress" style="display: none;">
-					<h3><?php esc_html_e( 'Export Progress', 'swift-csv' ); ?></h3>
+					<h3><?php esc_html_e( 'エクスポート進捗', 'swift-csv' ); ?></h3>
 					<div class="progress-bar-container">
 						<div class="progress-bar">
 							<div class="progress-fill" style="width: 0%"></div>
 						</div>
 						<span class="progress-text">0%</span>
 					</div>
-					<p class="progress-status"><?php esc_html_e( 'Preparing export...', 'swift-csv' ); ?></p>
+					<p class="progress-status"><?php esc_html_e( 'エクスポートを準備しています...', 'swift-csv' ); ?></p>
 					<div id="export-download-link" style="display: none;">
 						<a href="#" class="button button-primary" download>
-							<?php esc_html_e( 'Download CSV', 'swift-csv' ); ?>
+							<?php esc_html_e( 'CSVをダウンロード', 'swift-csv' ); ?>
 						</a>
 					</div>
 				</div>

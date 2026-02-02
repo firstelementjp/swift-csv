@@ -1,0 +1,499 @@
+/* Swift CSV Admin Styles */
+
+/* Plugin Header - Original FE Search AI Design
+#plugin_header {
+	background: #fff;
+	padding: 0;
+	margin: -20px -20px 20px -20px;
+}
+
+#plugin_header_upper {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px 30px;
+	background-color: #f6f7f7;
+	border-bottom: 1px solid #ccd0d4;
+}
+
+#plugin_header_title {
+	font-size: 24px;
+	font-weight: 600;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	color: #23282d;
+}
+
+#plugin_header_title span {
+	color: #0073aa;
+	font-weight: 700;
+}
+
+#plugin_logo img {
+	height: 27px;
+	width: auto;
+	opacity: 0.8;
+	transition: opacity 0.3s ease;
+}
+
+#plugin_logo:hover img {
+	opacity: 1;
+}
+
+#plugin_version {
+	font-size: 13px;
+	color: #666;
+	padding: 10px 30px;
+	background-color: #fff;
+	border-bottom: 1px solid #e5e5e5;
+}
+
+#plugin_support {
+	display: flex;
+	gap: 20px;
+	align-items: center;
+	flex-wrap: wrap;
+	padding: 15px 30px;
+	background-color: #fff;
+}
+
+#plugin_support a {
+	color: #0073aa;
+	text-decoration: none;
+	font-size: 14px;
+	font-weight: 500;
+	transition: color 0.3s ease;
+	padding: 5px 0;
+}
+
+#plugin_support a:hover {
+	color: #005a87;
+	text-decoration: underline;
+}
+
+#plugin_support .icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#plugin_support .icon svg {
+	width: 16px;
+	height: 16px;
+	fill: currentColor;
+	margin-right: 5px;
+}
+
+#plugin_support .icon_gh svg,
+#plugin_support .icon_yt svg,
+#plugin_support .icon_tw svg,
+#plugin_support .icon_fb svg,
+#plugin_support .icon_mail svg {
+	width: 20px;
+	height: 20px;
+	margin-right: 0;
+} */
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	/* #plugin_header_upper {
+		flex-direction: column;
+		gap: 15px;
+		text-align: center;
+		padding: 15px 20px;
+	}
+	
+	#plugin_support {
+		justify-content: center;
+		gap: 15px;
+		padding: 15px 20px;
+		flex-wrap: wrap;
+	}
+	
+	#plugin_support a {
+		font-size: 13px;
+	}
+}
+
+@media (max-width: 480px) {
+	#plugin_header_upper {
+		padding: 10px 15px;
+	}
+	
+	#plugin_header_title {
+		font-size: 20px;
+	}
+	
+	#plugin_version {
+		padding: 8px 15px;
+		font-size: 12px;
+	}
+	
+	#plugin_support {
+		gap: 10px;
+		padding: 10px 15px;
+	}
+	
+	#plugin_support a {
+		font-size: 12px;
+	}
+	
+	#plugin_support .icon svg {
+		width: 14px;
+		height: 14px;
+	}
+	
+	#plugin_support .icon_gh svg,
+	#plugin_support .icon_yt svg,
+	#plugin_support .icon_tw svg,
+	#plugin_support .icon_fb svg,
+	#plugin_support .icon_mail svg {
+		width: 16px;
+		height: 16px;
+	} */
+}
+
+/* ==========================================================================
+	Header
+	========================================================================== */
+
+#plugin_header {
+	display: grid;
+	grid-template: 60px 2.5rem / 1fr 1fr;
+	align-items: center;
+	background-image: url(../images/bg-feas-header5@2x-min.jpg);
+	background-position: right top;
+	background-repeat: no-repeat;
+	background-size: 27%;
+	background-color: white;
+	margin-bottom: 15px;
+}
+
+#plugin_header_upper {
+	grid-column: span 2;
+	display: grid;
+	grid-template: 60px / 1fr 1fr;
+	align-items: center;
+	padding: 0 1em;
+}
+
+#plugin_header .plugin-title {
+	font-size: 23px;
+	font-weight: 400;
+}
+
+#plugin_header #plugin_version {
+	padding: 0 1em;
+	background-color: white;
+	height: 2.5rem;
+	display: grid;
+	grid-template: 100% / 1fr;
+	align-items: center;
+}
+
+#plugin_support {
+	font-size: 12px;
+	padding: 0 1em;
+	height: 2.5rem;
+	background-color: white;
+	display: grid;
+	grid-template: 100% / 8em 22px 20px 20px 17px;
+	grid-gap: 1.5em;
+	justify-content: end;
+	align-items: center;
+}
+.locale-ja #plugin_support {
+	grid-template: 100% / 8em 22px 20px 20px 17px;
+}
+#plugin_support a {
+	text-align: right;
+}
+
+#plugin_header #plugin_logo {
+	display: grid;
+	margin-left: auto;
+	justify-content: center;
+	align-items: center;
+}
+
+#plugin_header #plugin_logo img {
+	width: 106px;
+	height: 27px;
+}
+
+#plugin_header a {
+	text-decoration: none;
+}
+
+#plugin_header .icon {
+	-webkit-font-smoothing: antialiased;
+	font: normal 17px / 1 'dashicons';
+	color: #46aae6;
+	text-align: center;
+}
+
+/* Dashicons-based header icons */
+#plugin_header .icon_fb.icon:before {
+	content: '\f305';
+}
+
+#plugin_header .icon_mail.icon:before {
+	content: '\f465';
+}
+
+/* SVG-based header icons (use currentColor) */
+#plugin_header .icon svg {
+	fill: currentColor;
+}
+
+#plugin_header .icon_tw.icon {
+	content: '';
+	display: grid;
+	justify-content: center;
+}
+
+#plugin_header .icon_yt.icon svg {
+	width: 18px;
+}
+
+#plugin_header .icon_tw.icon svg {
+	width: 12px;
+}
+
+#plugin_header .icon_mail.icon svg {
+	width: 13px;
+}
+
+#plugin_header .icon_gh.icon svg {
+	width: 16px;
+}
+
+#plugin_header #plugin_header_title {
+	font-size: 21px;
+	font-weight: 500;
+	display: flex;
+	align-items: self-end;
+}
+
+#plugin_header #plugin_header_title span {
+	color: #3a9b6a;
+	margin-left: 0.3rem;
+}
+
+#plugin_header #plugin_header_title span.pro-badge {
+	background: #6d6ddb;
+	color: white;
+	border-radius: 99px;
+	padding: 0px 5px;
+	font-size: 12px;
+	margin: 0 0 0 0.3rem;
+	line-height: 1.4em;
+}
+
+.toplevel_page_fe-search-ai .fe-search-ai-notices .notice {
+	margin: 15px 0;
+}
+
+/* Existing Styles */
+.swift-csv .nav-tab-wrapper {
+	margin-bottom: 20px;
+}
+
+.swift-csv .card {
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	margin-top: 20px;
+	padding: 20px;
+}
+
+.swift-csv .form-table th {
+	width: 200px;
+}
+
+.swift-csv .description {
+	font-size: 13px;
+	color: #666;
+	margin-top: 5px;
+}
+
+.swift-csv input[type='file'] {
+	max-width: 400px;
+}
+
+.swift-csv select {
+	min-width: 200px;
+}
+
+.swift-csv .notice {
+	margin: 20px 0;
+}
+
+.swift-csv .notice ul {
+	margin: 10px 0;
+	padding-left: 20px;
+}
+
+/* Update Notice Styles */
+.swift-csv .swift-csv-update-notice {
+	margin-top: 10px;
+}
+
+.swift-csv .swift-csv-update-notice summary {
+	cursor: pointer;
+	font-weight: bold;
+}
+
+.swift-csv .swift-csv-release-notes {
+	margin-top: 10px;
+	padding: 10px;
+	background: #f9f9f9;
+	border-left: 4px solid #ffb900;
+}
+
+.swift-csv .swift-csv-update-button {
+	margin-left: 10px;
+}
+
+/* Progress Bar Styles */
+.swift-csv .swift-csv-batch-errors {
+	display: none;
+}
+
+.swift-csv .progress-bar {
+	background: #f0f0f0;
+	border-radius: 3px;
+	height: 20px;
+	overflow: hidden;
+	margin-bottom: 10px;
+}
+
+.swift-csv .progress-bar-fill {
+	background: #0073aa;
+	height: 100%;
+	transition: width 0.3s ease;
+}
+
+.swift-csv .progress-stats {
+	font-size: 14px;
+	margin-bottom: 10px;
+}
+
+.swift-csv .progress-details {
+	display: flex;
+	gap: 20px;
+	font-size: 13px;
+	color: #666;
+	flex-wrap: wrap;
+	align-items: flex-start;
+}
+
+.swift-csv .progress-details div {
+	margin: 5px 0 15px;
+	min-width: 120px;
+	flex-shrink: 0;
+}
+
+/* Ribbon styles for counts */
+.swift-csv .progress-details .has-count .created-count,
+.swift-csv .progress-details .has-count .updated-count,
+.swift-csv .progress-details .has-count .error-count {
+	background: #0073aa;
+	color: #fff;
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-weight: 600;
+	font-size: 12px;
+	display: inline-block;
+	min-width: 20px;
+	text-align: center;
+}
+
+.swift-csv .progress-details .has-count .error-count {
+	background: #d63638;
+}
+
+.swift-csv .progress-details .has-count .created-count {
+	background: #46b450;
+}
+
+.swift-csv .progress-details .has-count .updated-count {
+	background: #00a0d2;
+}
+
+.swift-csv .progress-bar.completed .progress-bar-fill {
+	background: #46b450;
+}
+
+/* Export Progress Container */
+#swift-csv-export-progress {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 20px;
+	margin: 20px 0;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+#swift-csv-export-progress h3 {
+	margin: 0 0 15px 0;
+	color: #1d2327;
+	font-size: 1.2em;
+}
+
+.progress-bar-container {
+	margin: 20px 0;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.progress-text {
+	font-weight: 600;
+	color: #50575e;
+	min-width: 40px;
+	text-align: right;
+}
+
+.progress-status {
+	margin: 10px 0;
+	color: #50575e;
+	font-style: italic;
+}
+
+/* Download Link */
+#export-download-link {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid #dcdcde;
+}
+
+#export-download-link a {
+	text-decoration: none;
+}
+
+/* Form adjustments during export */
+.swift-csv-exporting .submit {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+.swift-csv-exporting input[type='number'],
+.swift-csv-exporting select {
+	opacity: 0.7;
+	pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.progress-bar-container {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 5px;
+	}
+
+	.progress-text {
+		text-align: center;
+	}
+}

@@ -11,20 +11,12 @@ package-lock.json export-ignore
 
 # Exclude development configuration
 phpcs.xml export-ignore
-phpcs.xml.dist export-ignore
 .phpcs.xml.cache export-ignore
 .phpunit.result.cache export-ignore
 .phpunit.cache export-ignore
-phpdoc.xml export-ignore
-.prettierrc export-ignore
-.envrc export-ignore
-.envrc.example export-ignore
-.eslintrc.json export-ignore
-debug.php export-ignore
 
 # Exclude Git and CI files
 .gitignore export-ignore
-.gitattributes export-ignore
 .github/ export-ignore
 
 # Exclude documentation (keep README.md and LICENSE)

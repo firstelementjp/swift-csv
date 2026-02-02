@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdocumentor
+    configVersion="3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://www.phpdoc.org/3.0/phpdoc.xsd"
+    xsi:schemaLocation="https://www.phpdoc.org/3.0/phpdoc.xsd https://www.phpdoc.org/3.0/phpdoc.xsd"
+>
+    <paths>
+        <output>docs/api</output>
+    </paths>
+    <version number="3.0.0">
+        <api>
+            <source dsn="includes/">
+                <path>includes</path>
+            </source>
+            <output>html</output>
+        </api>
+    </version>
+    <template name="responsive"/>
+    <title>Swift CSV API Documentation</title>
+</phpdocumentor>

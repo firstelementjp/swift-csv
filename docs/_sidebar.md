@@ -1,6 +1,6 @@
 - 🚀 [Getting Started](getting-started.md)
-- 📦 [Installation](installation.md)
-- 💡 [Examples](examples.md)
+- 📦 [Installation](install.md)
+- 💡 [Examples](example.md)
 - 🔧 [Configuration](configuration.md)
 - 🐛 [Troubleshooting](troubleshooting.md)
 - 📋 [Changelog](changelog.md)

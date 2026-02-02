@@ -168,7 +168,7 @@ msgid "Update existing posts"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:491
-msgid "Updates existing posts when ID or slug matches."
+msgid "Updates existing posts when ID matches."
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:492

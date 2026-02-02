@@ -171,8 +171,8 @@ msgid "Update existing posts"
 msgstr "既存投稿を更新"
 
 #: includes/class-swift-csv-admin.php:491
-msgid "Updates existing posts when ID or slug matches."
-msgstr "IDまたはslugが一致する場合、既存投稿を更新します。"
+msgid "Updates existing posts when ID matches."
+msgstr "IDが一致する場合、既存投稿を更新します。"
 
 #: includes/class-swift-csv-admin.php:492
 msgid "If unchecked, creates new posts."

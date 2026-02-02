@@ -26,6 +26,7 @@ debug.php export-ignore
 .gitignore export-ignore
 .gitattributes export-ignore
 .github/ export-ignore
+swift-csv/ export-ignore
 
 # Exclude documentation (keep README.md and LICENSE)
 docs/ export-ignore

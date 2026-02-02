@@ -1,5 +1,4 @@
-- 📖 [Swift CSV](README.md)
-- 🚀 [Getting Started](getting-started.md)
+- [Getting Started](getting-started.md)
 - 📦 [Installation](installation.md)
 - 💡 [Examples](examples.md)
 - 🔧 [Configuration](configuration.md)
@@ -7,3 +6,4 @@
 - 📋 [Changelog](changelog.md)
 - 🤝 [Contributing](contributing.md)
 - 📄 [License](license.md)
+- 🧪 [Test Deployment](test-deployment.md)

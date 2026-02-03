@@ -9,27 +9,27 @@
 
 /* global swiftCSV */
 
-document.addEventListener( 'DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 	// Export batch handling
-	const exportBtn = document.querySelector( '#export-csv-btn' );
-	if ( exportBtn ) {
-		exportBtn.addEventListener( 'click', function( e ) {
+	const exportBtn = document.querySelector('#export-csv-btn');
+	if (exportBtn) {
+		exportBtn.addEventListener('click', function (e) {
 			e.preventDefault();
 
-			const postType = document.querySelector( '#post_type' )?.value;
-			const postsPerPage = document.querySelector( '#posts_per_page' )?.value;
+			const postType = document.querySelector('#post_type')?.value;
+			const postsPerPage = document.querySelector('#posts_per_page')?.value;
 
 			// Validate input
-			if ( ! postType || ! postsPerPage || postsPerPage < 1 ) {
-				alert( swiftCSV.messages.error );
+			if (!postType || !postsPerPage || postsPerPage < 1) {
+				alert(swiftCSV.messages.error);
 				return;
 			}
 
 			// Start batch export
-			startBatchExport( postType, postsPerPage );
-		} );
+			startBatchExport(postType, postsPerPage);
+		});
 	}
-} );
+});
 
 /**
  * Start batch export process
@@ -37,50 +37,50 @@ document.addEventListener( 'DOMContentLoaded', function() {
  * @param {string} postType - The post type to export.
  * @param {number} postsPerPage - Number of posts per batch.
  */
-function startBatchExport( postType, postsPerPage ) {
-	const exportBtn = document.querySelector( '#export-csv-btn' );
-	const progressContainer = document.querySelector( '#swift-csv-export-progress' );
+function startBatchExport(postType, postsPerPage) {
+	const exportBtn = document.querySelector('#export-csv-btn');
+	const progressContainer = document.querySelector('#swift-csv-export-progress');
 
 	// Show loading state
-	if ( exportBtn ) {
+	if (exportBtn) {
 		exportBtn.disabled = true;
 		exportBtn.textContent = 'Exporting...';
 	}
 
 	// Show progress container
-	if ( progressContainer ) {
+	if (progressContainer) {
 		progressContainer.style.display = 'block';
 	}
 
 	// Start batch export via AJAX
-	const formData = new URLSearchParams( {
+	const formData = new URLSearchParams({
 		action: 'swift_csv_start_export',
 		post_type: postType,
 		posts_per_page: postsPerPage,
-		nonce: swiftCSV.nonce
-	} );
+		nonce: swiftCSV.nonce,
+	});
 
-	fetch( swiftCSV.ajaxUrl, {
+	fetch(swiftCSV.ajaxUrl, {
 		method: 'POST',
 		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded'
+			'Content-Type': 'application/x-www-form-urlencoded',
 		},
-		body: formData
-	} )
-		.then( response => response.json() )
-		.then( data => {
-			if ( data.success ) {
+		body: formData,
+	})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
 				// Start polling for progress
-				pollExportProgress( data.data.batchId );
+				pollExportProgress(data.batch_id);
 			} else {
-				throw new Error( data.data || 'Export failed' );
+				throw new Error(data.data || 'Export failed');
 			}
-		} )
-		.catch( error => {
-			console.error( 'Export error:', error );
-			alert( swiftCSV.messages.error );
+		})
+		.catch(error => {
+			console.error('Export error:', error);
+			alert(swiftCSV.messages.error);
 			resetExportButton();
-		} );
+		});
 }
 
 /**
@@ -88,46 +88,46 @@ function startBatchExport( postType, postsPerPage ) {
  *
  * @param {string} batchId - The batch ID to track.
  */
-function pollExportProgress( batchId ) {
-	const progressInterval = setInterval( () => {
-		const formData = new URLSearchParams( {
+function pollExportProgress(batchId) {
+	const progressInterval = setInterval(() => {
+		const formData = new URLSearchParams({
 			action: 'swift_csv_check_progress',
 			batch_id: batchId,
-			nonce: swiftCSV.nonce
-		} );
+			nonce: swiftCSV.nonce,
+		});
 
-		fetch( swiftCSV.ajaxUrl, {
+		fetch(swiftCSV.ajaxUrl, {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
+				'Content-Type': 'application/x-www-form-urlencoded',
 			},
-			body: formData
-		} )
-			.then( response => response.json() )
-			.then( data => {
-				if ( data.success ) {
-					updateExportProgress( data.data );
+			body: formData,
+		})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					updateExportProgress(data);
 
 					// Stop polling if completed
-					if ( 'completed' === data.data.status ) {
-						clearInterval( progressInterval );
-						showDownloadLink( data.data.downloadUrl );
+					if ('completed' === data.status) {
+						clearInterval(progressInterval);
+						showDownloadLink(data.download_url);
 						resetExportButton();
-					} else if ( 'error' === data.data.status ) {
-						clearInterval( progressInterval );
-						alert( swiftCSV.messages.error );
+					} else if ('error' === data.status) {
+						clearInterval(progressInterval);
+						alert(swiftCSV.messages.error);
 						resetExportButton();
 					}
 				} else {
-					throw new Error( data.data || 'Progress check failed' );
+					throw new Error(data.data || 'Progress check failed');
 				}
-			} )
-			.catch( error => {
-				console.error( 'Progress check error:', error );
-				clearInterval( progressInterval );
+			})
+			.catch(error => {
+				console.error('Progress check error:', error);
+				clearInterval(progressInterval);
 				resetExportButton();
-			} );
-	}, 2000 ); // Check every 2 seconds
+			});
+	}, 2000); // Check every 2 seconds
 }
 
 /**
@@ -135,23 +135,27 @@ function pollExportProgress( batchId ) {
  *
  * @param {Object} data - Progress data.
  */
-function updateExportProgress( data ) {
-	const progressFill = document.querySelector( '#swift-csv-export-progress .progress-fill' );
-	const progressText = document.querySelector( '#swift-csv-export-progress .progress-text' );
-	const processedRows = document.querySelector( '#swift-csv-export-progress .processed-rows' );
-	const totalRows = document.querySelector( '#swift-csv-export-progress .total-rows' );
+function updateExportProgress(data) {
+	// Calculate percentage if not provided
+	const percentage = data.percentage || 
+		(data.total_rows > 0 ? Math.round((data.processed_rows / data.total_rows) * 100) : 0);
 
-	if ( progressFill ) {
-		progressFill.style.width = data.percentage + '%';
+	const progressFill = document.querySelector('#swift-csv-export-progress .progress-fill');
+	const progressText = document.querySelector('#swift-csv-export-progress .progress-text');
+	const processedRows = document.querySelector('#swift-csv-export-progress .processed-rows');
+	const totalRows = document.querySelector('#swift-csv-export-progress .total-rows');
+
+	if (progressFill) {
+		progressFill.style.width = percentage + '%';
 	}
-	if ( progressText ) {
-		progressText.textContent = data.percentage + '%';
+	if (progressText) {
+		progressText.textContent = percentage + '%';
 	}
-	if ( processedRows ) {
-		processedRows.textContent = data.processedRows;
+	if (processedRows) {
+		processedRows.textContent = data.processed_rows;
 	}
-	if ( totalRows ) {
-		totalRows.textContent = data.totalRows;
+	if (totalRows) {
+		totalRows.textContent = data.total_rows;
 	}
 }
 
@@ -160,15 +164,15 @@ function updateExportProgress( data ) {
  *
  * @param {string} downloadUrl - The download URL.
  */
-function showDownloadLink( downloadUrl ) {
-	const downloadContainer = document.querySelector( '#swift-csv-export-progress .download-link' );
-	if ( downloadContainer ) {
-		downloadContainer.innerHTML = `
-			<a href="${downloadUrl}" class="button button-primary" download>
-				Download CSV
-			</a>
-		`;
-		downloadContainer.style.display = 'block';
+function showDownloadLink(downloadUrl) {
+	const downloadContainer = document.querySelector('#export-download-link');
+	
+	if (downloadContainer) {
+		const downloadLink = downloadContainer.querySelector('a');
+		if (downloadLink) {
+			downloadLink.href = downloadUrl;
+			downloadContainer.style.display = 'block';
+		}
 	}
 }
 
@@ -176,8 +180,8 @@ function showDownloadLink( downloadUrl ) {
  * Reset export button
  */
 function resetExportButton() {
-	const exportBtn = document.querySelector( '#export-csv-btn' );
-	if ( exportBtn ) {
+	const exportBtn = document.querySelector('#export-csv-btn');
+	if (exportBtn) {
 		exportBtn.disabled = false;
 		exportBtn.textContent = 'Export CSV';
 	}

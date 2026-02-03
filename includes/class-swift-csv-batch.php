@@ -32,7 +32,7 @@ class Swift_CSV_Batch {
 		add_action( 'swift_csv_process_batch', [ $this, 'process_batch' ] );
 
 		// Export batch processing
-		add_action( 'wp_ajax_swift_csv_export_progress', [ $this, 'ajax_export_progress' ] );
+		add_action( 'wp_ajax_swift_csv_check_progress', [ $this, 'ajax_export_progress' ] );
 		add_action( 'wp_ajax_swift_csv_start_export', [ $this, 'ajax_start_export' ] );
 		add_action( 'swift_csv_process_export_batch', [ $this, 'process_export_batch' ] );
 	}

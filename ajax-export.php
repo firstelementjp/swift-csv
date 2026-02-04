@@ -1,9 +1,6 @@
 <?php
-
 /**
- * Ajax Export Handler for Swift CSV Plugin
- *
- * Handles chunked CSV export via Ajax requests with real-time progress.
+ * Simple Ajax Export Handler for Swift CSV Plugin
  *
  * @since  1.0.0
  */
@@ -13,309 +10,166 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Ajax export handler
- *
- * Processes CSV export in chunks with real-time progress reporting.
- *
- * @since  1.0.0
- * @return void
+ * Simple Ajax export handler
  */
 function swift_csv_ajax_export_handler() {
-	global $wpdb;
-	
 	// Security check
 	check_ajax_referer( 'swift_csv_nonce', 'nonce' );
 	
 	// Get parameters
-	$start_row = intval( $_POST['start_row'] ?? 0 );
-	$batch_size = 20; // Same as import for consistency
 	$post_type = sanitize_text_field( $_POST['post_type'] ?? 'post' );
-	$include_headers = isset( $_POST['include_headers'] ) && $_POST['include_headers'] === 'true';
+	$start_row = intval( $_POST['start_row'] ?? 0 );
+	$batch_size = 10; // Small batch size for testing
 	
-	error_log('[Swift CSV Ajax Export] Starting batch: start_row=' . $start_row . ', batch_size=' . $batch_size . ', post_type=' . $post_type . ', include_headers=' . ($include_headers ? 'true' : 'false'));
+	error_log('[Swift CSV Simple Ajax Export] Starting: post_type=' . $post_type . ', start_row=' . $start_row);
 	
 	// Validate post type
 	if ( ! post_type_exists( $post_type ) ) {
 		wp_send_json_error( 'Invalid post type' );
-		return;
 	}
 	
-	// Get total posts count
-	$total_posts = $wpdb->get_var( $wpdb->prepare(
-		"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish'",
-		$post_type
-	) );
+	// Get total posts count with limit
+	$total_posts = get_posts([
+		'post_type' => $post_type,
+		'post_status' => 'publish',
+		'posts_per_page' => 100, // Limit to 100 posts for testing
+		'fields' => 'ids'
+	]);
+	$total_count = count($total_posts);
 	
-	if ( ! $total_posts ) {
-		wp_send_json_error( 'No posts found' );
-		return;
+	// For testing, limit to 100 posts max
+	$max_posts = 100;
+	$posts = get_posts([
+		'post_type' => $post_type,
+		'post_status' => 'publish',
+		'posts_per_page' => min($batch_size, $max_posts - $start_row),
+		'offset' => $start_row,
+		'fields' => 'ids'
+	]);
+	
+	if ( empty( $posts ) ) {
+		wp_send_json([
+			'success' => true,
+			'processed' => $start_row,
+			'total' => $max_posts,
+			'continue' => false,
+			'progress' => 100,
+			'csv_chunk' => '',
+			'posts_processed' => 0
+		]);
 	}
 	
-	// Get posts for this chunk
-	$posts = $wpdb->get_results( $wpdb->prepare(
-		"SELECT * FROM {$wpdb->posts} 
-		 WHERE post_type = %s 
-		 AND post_status = 'publish'
-		 ORDER BY ID DESC 
-		 LIMIT %d, %d",
-		$post_type,
-		$start_row,
-		$batch_size
-	) );
-	
-	error_log('[Swift CSV Ajax Export] Found ' . count($posts) . ' posts for this chunk');
-	
-	// Generate CSV chunk
+	// Simple CSV generation with headers
 	$csv_chunk = '';
 	
-	if ( $include_headers && $start_row === 0 ) {
-		// Generate headers only for first chunk
-		$csv_chunk .= generate_export_headers( $post_type );
-		error_log('[Swift CSV Ajax Export] Generated headers');
+	// Add headers for first chunk
+	if ($start_row === 0) {
+		// Get basic headers
+		$headers = ['ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date'];
+		
+		// Add dynamic taxonomy headers (same as batch processor)
+		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->public ) {
+				$headers[] = 'tax_' . $taxonomy->name;
+			}
+		}
+		
+		// Apply filter to headers (same as main exporter)
+		$headers = apply_filters( 'swift_csv_export_headers', $headers, [ 'post_type' => $post_type ] );
+		
+		// Convert headers to CSV row
+		$csv_chunk .= implode(',', $headers) . "\n";
 	}
 	
-	// Generate data rows
-	foreach ( $posts as $post ) {
-		$csv_chunk .= generate_export_row( $post, $post_type );
+	foreach ( $posts as $post_id ) {
+		$post = get_post( $post_id );
+		
+		// Get filtered headers again for data consistency
+		$headers = ['ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date'];
+		
+		// Add dynamic taxonomy headers (same as batch processor)
+		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->public ) {
+				$headers[] = 'tax_' . $taxonomy->name;
+			}
+		}
+		
+		$headers = apply_filters( 'swift_csv_export_headers', $headers, [ 'post_type' => $post_type ] );
+		
+		// Build data row based on headers
+		$row_data = [];
+		foreach ($headers as $header) {
+			$value = '';
+			switch ($header) {
+				case 'ID':
+					$value = $post_id;
+					break;
+				case 'post_title':
+					$value = str_replace(",", ";", $post->post_title);
+					break;
+				case 'post_content':
+					$value = str_replace(["\r\n", "\n", "\r", ","], [" ", " ", " ", ";"], $post->post_content);
+					break;
+				case 'post_excerpt':
+					$value = str_replace(",", ";", $post->post_excerpt ?? '');
+					break;
+				case 'post_status':
+					$value = $post->post_status;
+					break;
+				case 'post_name':
+					$value = $post->post_name;
+					break;
+				case 'post_date':
+					$value = $post->post_date;
+					break;
+				default:
+					// Handle custom fields from filter
+					if (str_starts_with($header, 'cf_')) {
+						$field_name = substr($header, 3);
+						$value = get_post_meta($post_id, $field_name, true);
+						if (is_array($value)) {
+							$value = implode('|', $value);
+						}
+						$value = str_replace(",", ";", (string)$value);
+					}
+					// Handle taxonomy fields from filter
+					elseif (str_starts_with($header, 'tax_')) {
+						$taxonomy_name = substr($header, 4);
+						$terms = get_the_terms($post_id, $taxonomy_name);
+						if ($terms && !is_wp_error($terms)) {
+							$term_names = array_map(function($term) {
+								return $term->name;
+							}, $terms);
+							$value = implode('|', $term_names);
+						} else {
+							$value = '';
+						}
+						$value = str_replace(",", ";", $value);
+					}
+					break;
+			}
+			$row_data[] = $value;
+		}
+		
+		$csv_chunk .= implode(',', $row_data) . "\n";
 	}
 	
-	// Calculate progress
 	$next_row = $start_row + count( $posts );
+	$total_posts = $max_posts; // Use our limit
 	$continue = $next_row < $total_posts;
 	$progress = round( ($next_row / $total_posts) * 100, 2 );
 	
-	error_log('[Swift CSV Ajax Export] Batch completed: processed=' . $next_row . ', total=' . $total_posts . ', continue=' . ($continue ? 'yes' : 'no'));
-	
-	// Send response
 	wp_send_json([
+		'success' => true,
 		'processed' => $next_row,
 		'total' => $total_posts,
 		'continue' => $continue,
 		'progress' => $progress,
 		'csv_chunk' => $csv_chunk,
 		'posts_processed' => count( $posts )
-	] );
+	]);
 }
 
-/**
- * Generate export headers
- *
- * @since  1.0.0
- * @param  string $post_type Post type to export.
- * @return string CSV headers row.
- */
-function generate_export_headers( $post_type ) {
-	$headers = array( 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date' );
-	
-	// Add taxonomy columns
-	$taxonomies = get_object_taxonomies( $post_type, 'objects' );
-	foreach ( $taxonomies as $taxonomy ) {
-		if ( $taxonomy->public ) {
-			$headers[] = 'tax_' . $taxonomy->name;
-		}
-	}
-	
-	// Get ACF field mapping (same logic as batch processor)
-	global $wpdb;
-	$acf_field_keys = $wpdb->get_col(
-		"SELECT post_name FROM {$wpdb->posts} 
-		 WHERE post_type = 'acf-field'"
-	);
-	
-	$acf_field_mapping = array();
-	foreach ( $acf_field_keys as $field_key ) {
-		$field_config = $wpdb->get_var( $wpdb->prepare(
-			"SELECT post_content FROM {$wpdb->posts} 
-			 WHERE post_name = %s 
-			 AND post_type = 'acf-field'",
-			$field_key
-		));
-		if ( $field_config ) {
-			$field_data = maybe_unserialize( $field_config );
-			if ( is_array( $field_data ) && isset( $field_data['name'] ) ) {
-				$acf_field_mapping[ $field_data['name'] ] = $field_key;
-			}
-		}
-	}
-	
-	// Get sample posts to detect fields
-	$sample_posts = $wpdb->get_results( $wpdb->prepare(
-		"SELECT ID FROM {$wpdb->posts} 
-		 WHERE post_type = %s 
-		 AND post_status = 'publish'
-		 LIMIT 5",
-		$post_type
-	) );
-	
-	$custom_fields = array();
-	$acf_fields = array();
-	
-	foreach ( $sample_posts as $post ) {
-		$fields = $wpdb->get_results( $wpdb->prepare(
-			"SELECT meta_key, meta_value FROM {$wpdb->postmeta} 
-			 WHERE post_id = %d 
-			 AND meta_key NOT LIKE '\_%'",
-			$post->ID
-		) );
-		
-		foreach ( $fields as $field ) {
-			$key = $field->meta_key;
-			if ( ! in_array( $key, $custom_fields, true ) && ! in_array( $key, $acf_fields, true ) ) {
-				if ( isset( $acf_field_mapping[ $key ] ) ) {
-					$acf_fields[] = $key;
-				} else {
-					$custom_fields[] = $key;
-				}
-			}
-		}
-	}
-	
-	// Add custom field headers
-	foreach ( $custom_fields as $field ) {
-		$headers[] = 'cf_' . $field;
-	}
-	
-	// Add ACF field headers
-	foreach ( $acf_fields as $field ) {
-		$headers[] = 'acf_' . $field;
-	}
-	
-	error_log('[Swift CSV Ajax Export] Headers: ' . print_r($headers, true));
-	
-	// Convert to CSV
-	$output = fopen( 'php://temp', 'r+' );
-	fputcsv( $output, $headers );
-	rewind( $output );
-	$csv = stream_get_contents( $output );
-	fclose( $output );
-	
-	return $csv;
-}
-
-/**
- * Generate export row for a single post
- *
- * @since  1.0.0
- * @param  object $post      Post object.
- * @param  string $post_type Post type.
- * @return string CSV row.
- */
-function generate_export_row( $post, $post_type ) {
-	global $wpdb;
-	
-	$row = array();
-	
-	// Basic post data
-	$row[] = $post->ID;
-	$row[] = $post->post_title;
-	$row[] = $post->post_content;
-	$row[] = $post->post_excerpt;
-	$row[] = $post->post_status;
-	$row[] = $post->post_name;
-	$row[] = $post->post_date;
-	
-	// Taxonomy data
-	$taxonomies = get_object_taxonomies( $post_type, 'objects' );
-	foreach ( $taxonomies as $taxonomy ) {
-		if ( $taxonomy->public ) {
-			$terms = wp_get_post_terms( $post->ID, $taxonomy->name );
-			$term_names = array_map( function( $term ) {
-				return $term->name;
-			}, $terms );
-			$row[] = implode( '|', $term_names );
-		}
-	}
-	
-	// Get all meta fields for this post
-	$all_meta = $wpdb->get_results( $wpdb->prepare(
-		"SELECT meta_key, meta_value FROM {$wpdb->postmeta} 
-		 WHERE post_id = %d 
-		 AND meta_key NOT LIKE '\_%'",
-		$post->ID
-	) );
-	
-	// Convert to associative array
-	$meta_array = array();
-	foreach ( $all_meta as $meta ) {
-		if ( ! isset( $meta_array[ $meta->meta_key ] ) ) {
-			$meta_array[ $meta->meta_key ] = array();
-		}
-		$meta_array[ $meta->meta_key ][] = $meta->meta_value;
-	}
-	
-	// Get ACF field mapping
-	$acf_field_keys = $wpdb->get_col(
-		"SELECT post_name FROM {$wpdb->posts} 
-		 WHERE post_type = 'acf-field'"
-	);
-	
-	$acf_field_mapping = array();
-	foreach ( $acf_field_keys as $field_key ) {
-		$field_config = $wpdb->get_var( $wpdb->prepare(
-			"SELECT post_content FROM {$wpdb->posts} 
-			 WHERE post_name = %s 
-			 AND post_type = 'acf-field'",
-			$field_key
-		));
-		if ( $field_config ) {
-			$field_data = maybe_unserialize( $field_config );
-			if ( is_array( $field_data ) && isset( $field_data['name'] ) ) {
-				$acf_field_mapping[ $field_data['name'] ] = $field_key;
-			}
-		}
-	}
-	
-	// Process custom fields and ACF fields
-	foreach ( $meta_array as $key => $values ) {
-		if ( isset( $acf_field_mapping[ $key ] ) ) {
-			// This is an ACF field
-			$cleaned_values = array_map( 'clean_csv_field', $values );
-			$row[] = implode( '|', $cleaned_values );
-		} else {
-			// This is a regular custom field
-			$cleaned_values = array_map( 'clean_csv_field', $values );
-			$row[] = implode( '|', $cleaned_values );
-		}
-	}
-	
-	// Convert to CSV
-	$output = fopen( 'php://temp', 'r+' );
-	fputcsv( $output, $row );
-	rewind( $output );
-	$csv = stream_get_contents( $output );
-	fclose( $output );
-	
-	return $csv;
-}
-
-/**
- * Clean CSV field value
- *
- * @since  1.0.0
- * @param  mixed $field Field value.
- * @return string Cleaned value.
- */
-function clean_csv_field( $field ) {
-	if ( null === $field || '' === $field ) {
-		return '';
-	}
-	
-	if ( is_array( $field ) ) {
-		$field = implode( '|', array_map( 'strval', $field ) );
-	} elseif ( is_bool( $field ) ) {
-		$field = $field ? '1' : '0';
-	} elseif ( is_object( $field ) ) {
-		if ( method_exists( $field, '__toString' ) ) {
-			$field = (string) $field;
-		} else {
-			$field = wp_json_encode( $field );
-		}
-	} else {
-		$field = (string) $field;
-	}
-	
-	return $field;
-}
-
-// Register Ajax handler
 add_action( 'wp_ajax_swift_csv_ajax_export', 'swift_csv_ajax_export_handler' );

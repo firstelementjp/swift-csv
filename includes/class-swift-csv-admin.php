@@ -504,7 +504,7 @@ class Swift_CSV_Admin {
 			<div class="card" style="background-color: #f9f9f9; border-left: 4px solid #0073aa;">
 				<h4><?php esc_html_e( 'Ajax Export (推奨 - 高速・リアルタイム)', 'swift-csv' ); ?></h4>
 				<p><?php esc_html_e( 'リアルタイム進捗表示と高速処理を実現するAjaxエクスポートです。', 'swift-csv' ); ?></p>
-				<form id="swift-csv-ajax-export-form">
+				<form id="swift-csv-ajax-export-form" onsubmit="return false;">
 					<table class="form-table">
 						<tr>
 							<th scope="row">
@@ -579,23 +579,24 @@ class Swift_CSV_Admin {
 					<p class="submit">
 						<input type="hidden" name="action" value="swift_csv_export">
 						<input type="submit" name="export_csv" class="button" value="<?php esc_html_e( 'Legacy Export', 'swift-csv' ); ?>">
-					</p>
 				</form>
 			</div>
 		</div>
 		<?php
+		// Add Ajax export script
+		$this->add_ajax_export_script();
 	}
 
-/**
- * Add Ajax export JavaScript
- *
- * @since  1.0.0
- * @return void
- */
-private function add_ajax_export_script() {
-	$ajax_url = admin_url( 'admin-ajax.php' );
-	$nonce = wp_create_nonce( 'swift_csv_nonce' );
-	?>
+	/**
+	 * Add Ajax export JavaScript
+	 *
+	 * @since  1.0.0
+	 * @return void
+	 */
+	private function add_ajax_export_script() {
+		$ajax_url = admin_url( 'admin-ajax.php' );
+		$nonce = wp_create_nonce( 'swift_csv_nonce' );
+		?>
 	<script>
 		jQuery(document).ready(function($) {
 			// Ajax Export Handler
@@ -631,18 +632,19 @@ private function add_ajax_export_script() {
 						},
 						success: function(response) {
 							if (response.success) {
+								// Data is directly in response, not response.data
 								// Append CSV chunk
-								csvContent += response.data.csv_chunk;
+								csvContent += response.csv_chunk;
 								
 								// Update progress
-								currentRow = response.data.processed;
-								var progress = response.data.progress;
+								currentRow = response.processed;
+								var progress = response.progress;
 								
 								fillEl.css('width', progress + '%');
 								textEl.text(progress + '%');
-								statusEl.text('Processed: ' + response.data.processed + '/' + response.data.total + ' posts');
+								statusEl.text('Processed: ' + response.processed + '/' + response.total + ' posts');
 								
-								if (response.data.continue) {
+								if (response.continue) {
 									// Continue processing
 									setTimeout(processChunk, 10);
 								} else {

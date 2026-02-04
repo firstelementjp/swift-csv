@@ -46,6 +46,8 @@ require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-exporter.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-importer.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-batch.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-updater.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'ajax-import.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'ajax-export.php';
 
 /**
  * Initialize Swift CSV plugin
@@ -90,6 +92,14 @@ function swift_csv_activate() {
 	// Flush rewrite rules if needed.
 	flush_rewrite_rules();
 }
+
+// Load admin cron clearer after main admin class
+add_action( 'admin_menu', function() {
+    require_once plugin_dir_path( __FILE__ ) . 'clear-cron-admin.php';
+}, 20 );
+
+// Load Ajax import functionality
+require_once plugin_dir_path( __FILE__ ) . 'ajax-import.php';
 
 register_deactivation_hook( __FILE__, 'swift_csv_deactivate' );
 

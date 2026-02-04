@@ -94,20 +94,31 @@ class Swift_CSV_Exporter {
 	 * @return void
 	 */
 	private function export_csv( $post_type, $posts_per_page ) {
+		$args = [
+			'post_type' => $post_type,
+			'posts_per_page' => $posts_per_page
+		];
+
+		// Fire before export hook
+		do_action( 'swift_csv_before_export', $args );
+
 		$this->_debugLog( 'Export CSV started for post type: ' . $post_type );
 
 		// Query arguments for post retrieval
-		$args = array(
+		$query_args = [
 			'post_type'      => $post_type,
 			'post_status'    => 'publish',
 			'posts_per_page' => $posts_per_page,
 			'orderby'        => 'ID',
-			'order'          => 'ASC',
-		);
+			'order'          => 'DESC',
+		];
 
-		$this->_debugLog( 'Query args: ' . print_r( $args, true ) );
+		// Apply filter to query arguments
+		$query_args = apply_filters( 'swift_csv_export_query_args', $query_args, $args );
 
-		$query = new WP_Query( $args );
+		$this->_debugLog( 'Query args: ' . print_r( $query_args, true ) );
+
+		$query = new WP_Query( $query_args );
 		$posts = $query->posts;
 
 		$this->_debugLog( 'Found posts count: ' . count( $posts ) );
@@ -130,31 +141,79 @@ class Swift_CSV_Exporter {
 
 		// Add custom field columns (sample first 20 posts to detect fields)
 		$custom_fields = array();
+		$acf_fields = array();
 		$sample_posts  = array_slice( $posts, 0, 20 );
+		
+		// First, get all ACF field keys from wp_posts
+		global $wpdb;
+		$acf_field_keys = $wpdb->get_col(
+			"SELECT post_name FROM {$wpdb->posts} 
+			 WHERE post_type = 'acf-field'"
+		);
+		
+		// Get field key to field name mapping
+		$acf_field_mapping = array();
+		foreach ($acf_field_keys as $field_key) {
+			$field_config = $wpdb->get_var($wpdb->prepare(
+				"SELECT post_content FROM {$wpdb->posts} 
+				 WHERE post_name = %s 
+				 AND post_type = 'acf-field'",
+				$field_key
+			));
+			if ($field_config) {
+				$field_data = maybe_unserialize($field_config);
+				if (is_array($field_data) && isset($field_data['name'])) {
+					$acf_field_mapping[$field_data['name']] = $field_key;
+					$this->_debugLog( 'Export: Found ACF field mapping: ' . $field_data['name'] . ' -> ' . $field_key );
+				}
+			}
+		}
+		
+		$this->_debugLog( 'Export: ACF field mapping: ' . print_r( $acf_field_mapping, true ) );
+		
 		foreach ( $sample_posts as $post ) {
 			$fields = get_post_meta( $post->ID );
 			foreach ( $fields as $key => $value ) {
 				// Skip private fields (starting with _) and duplicates
-				if ( ! str_starts_with( $key, '_' ) && ! in_array( $key, $custom_fields, true ) ) {
-					$custom_fields[] = $key;
+				if ( ! str_starts_with( $key, '_' ) && ! in_array( $key, $custom_fields, true ) && ! in_array( $key, $acf_fields, true ) ) {
+					// Check if this is an ACF field by looking up in our mapping
+					if ( isset( $acf_field_mapping[$key] ) ) {
+						// This is an ACF field
+						$acf_fields[] = $key;
+						$this->_debugLog( 'Export: Detected ACF field: ' . $key . ' (key: ' . $acf_field_mapping[$key] . ')' );
+					} else {
+						// This is a regular custom field
+						$custom_fields[] = $key;
+						$this->_debugLog( 'Export: Detected custom field: ' . $key );
+					}
 				}
 			}
 		}
 
-		// Debug: Log detected custom fields
+		// Debug: Log detected fields
 		$custom_fields_dump = print_r( $custom_fields, true );
+		$acf_fields_dump = print_r( $acf_fields, true );
 		$this->_debugLog( 'Export: Detected custom fields: ' . $custom_fields_dump );
+		$this->_debugLog( 'Export: Detected ACF fields: ' . $acf_fields_dump );
 
 		// Add custom field headers with 'cf_' prefix
 		foreach ( $custom_fields as $field ) {
 			$headers[] = 'cf_' . $field;
 		}
 
-		// Generate CSV content
-		$csv_content = $this->generate_csv_content( $posts, $headers, $taxonomies, $custom_fields );
+		// Add ACF field headers with 'acf_' prefix
+		foreach ( $acf_fields as $field ) {
+			$headers[] = 'acf_' . $field;
+		}
 
-		// Generate filename with timestamp
-		$filename = 'export_' . $post_type . '_' . date( 'Y-m-d_H-i-s' ) . '.csv';
+		// Apply filter to headers
+		$headers = apply_filters( 'swift_csv_export_headers', $headers, $args );
+
+		// Generate CSV content
+		$csv_content = $this->generate_csv_content( $posts, $headers, $taxonomies, $custom_fields, $acf_fields );
+
+		// Generate filename with timestamp and plugin prefix (using local time)
+		$filename = 'swiftcsv_export_' . $post_type . '_' . date_i18n( 'Y-m-d_H-i-s' ) . '.csv';
 
 		// Clear any existing output buffer
 		if ( ob_get_level() ) {
@@ -174,16 +233,18 @@ class Swift_CSV_Exporter {
 
 		echo $full_content;
 
+		// Fire after export hook
+		do_action( 'swift_csv_after_export', $filename, $args );
+
 		exit;
 	}
 
 	/**
-	 * Clean CSV field
-	 *
 	 * Cleans and prepares field data for CSV output.
-	 * Handles newlines, quotes, and special characters properly.
+	 * Handles newlines, quotes, backslashes, and special characters properly.
+	 * Fixes over-escaping issues from data preprocessing.
 	 *
-	 * @since  0.9.3
+	 * @since  0.9.5
 	 * @param  mixed $field Field value to clean.
 	 * @return string Cleaned field value.
 	 */
@@ -206,16 +267,56 @@ class Swift_CSV_Exporter {
 			$field = (string) $field;
 		}
 
-		// Convert all newlines to spaces (prevents CSV structure breaking)
-		$field = preg_replace( '/\r\n|\r|\n/', ' ', $field );
+		// Fix over-escaping issues from data preprocessing
+		$field = $this->normalize_backslashes( $field );
+		$field = $this->normalize_quotes( $field );
 
-		// Normalize multiple spaces to single space
-		$field = preg_replace( '/\s+/', ' ', $field );
+		// Let fputcsv handle the escaping - it will properly quote fields with commas, quotes, and newlines
+		return $field;
+	}
 
-		// Trim whitespace
-		$field = trim( $field );
+	/**
+	 * Normalize backslashes in field data
+	 *
+	 * Reduces excessive backslashes while preserving intentional ones.
+	 * Handles common over-escaping patterns from data preprocessing.
+	 *
+	 * @since  0.9.5
+	 * @param  string $field Field value to normalize.
+	 * @return string Normalized field value.
+	 */
+	private function normalize_backslashes( $field ) {
+		// Reduce excessive consecutive backslashes (3+ backslashes)
+		$field = preg_replace( '/\\\\{3,}/', '\\', $field );
 
-		// Let fputcsv handle the escaping - it will properly quote fields with commas, quotes, etc.
+		// Fix double backslashes followed by quote (common over-escaping)
+		$field = preg_replace( '/\\\\\\\\"/', '"', $field );
+
+		return $field;
+	}
+
+	/**
+	 * Normalize quotes in field data
+	 *
+	 * Fixes inconsistent quote escaping while preserving proper CSV formatting.
+	 * Ensures quotes are properly balanced for CSV parsing.
+	 *
+	 * @since  0.9.5
+	 * @param  string $field Field value to normalize.
+	 * @return string Normalized field value.
+	 */
+	private function normalize_quotes( $field ) {
+		// Fix double escaped quotes that are already properly escaped
+		$field = preg_replace( '/\\\\"\\\\"/', '""', $field );
+
+		// Convert remaining escaped quotes to regular quotes
+		// fputcsv will handle proper CSV escaping
+		$field = str_replace( '\\"', '"', $field );
+
+		// Handle edge case of literal backslash before quote
+		// Preserve intentional \" patterns
+		$field = preg_replace( '/\\\\\\\\(")/', '\\\\"$1', $field );
+
 		return $field;
 	}
 
@@ -244,9 +345,10 @@ class Swift_CSV_Exporter {
 	 * @param  array $headers       CSV header columns.
 	 * @param  array $taxonomies    Taxonomy objects for the post type.
 	 * @param  array $custom_fields Custom field keys detected in posts.
+	 * @param  array $acf_fields    ACF field keys detected in posts.
 	 * @return string Generated CSV content.
 	 */
-	private function generate_csv_content( $posts, $headers, $taxonomies, $custom_fields ) {
+	private function generate_csv_content( $posts, $headers, $taxonomies, $custom_fields, $acf_fields ) {
 		$csv = array();
 
 		// Add header row
@@ -275,8 +377,8 @@ class Swift_CSV_Exporter {
 						},
 						$terms
 					);
-					// Comma-separated term names for multiple terms
-					$row[] = implode( ',', $term_names );
+					// Pipe-separated term names for multiple terms (consistent with custom fields)
+					$row[] = implode( '|', $term_names );
 				}
 			}
 
@@ -295,6 +397,25 @@ class Swift_CSV_Exporter {
 					$row[] = '';
 				}
 			}
+
+			// ACF field data with multi-value support
+			foreach ( $acf_fields as $field ) {
+				$values = get_post_meta( $post->ID, $field, false ); // Get all values
+				if ( is_array( $values ) && count( $values ) > 1 ) {
+					// Multiple values - clean each and join with pipe separator
+					$cleaned_values = array_map( [ $this, 'clean_csv_field' ], $values );
+					$row[] = implode( '|', $cleaned_values );
+				} elseif ( is_array( $values ) && count( $values ) === 1 ) {
+					// Single value - clean it
+					$row[] = $this->clean_csv_field( $values[0] );
+				} else {
+					// No values
+					$row[] = '';
+				}
+			}
+
+			// Apply filter to row data before adding to CSV
+			$row = apply_filters( 'swift_csv_export_row', $row, $post->ID, $args );
 
 			$csv[] = $row;
 		}

@@ -51,21 +51,7 @@ function swift_csv_ajax_import_handler() {
     $wpdb->query('SET SESSION innodb_lock_wait_timeout = 1');
     
     $start_row = intval($_POST['start_row'] ?? 0);
-    $batch_size = 1; // Temporary: process only 1 record for debugging
-    
-    // Debug: Force single batch processing only
-    if ($start_row > 0) {
-        wp_send_json([
-            'processed' => $start_row,
-            'total' => 0,
-            'batch_processed' => 0,
-            'batch_errors' => 0,
-            'progress' => 100,
-            'continue' => false,
-            'message' => "Debug: Stopping after first batch"
-        ]);
-        return;
-    }
+    $batch_size = 10;
     $file_path = $_POST['file_path'] ?? '';
     $post_type = $_POST['post_type'] ?? 'post';
     $update_existing = $_POST['update_existing'] ?? '0';
@@ -117,71 +103,96 @@ function swift_csv_ajax_import_handler() {
         }
     }
     
-    error_log("Detected delimiter: '$delimiter'");
-    error_log("Total lines after proper parsing: " . count($lines));
+    $debug_logging = (defined('SWIFT_CSV_DEBUG') && SWIFT_CSV_DEBUG) || (defined('WP_DEBUG') && WP_DEBUG);
+    $log = function( $message ) use ( $debug_logging ) {
+        if ( $debug_logging ) {
+            error_log( $message );
+        }
+    };
+
+    $log("Detected delimiter: '$delimiter'");
+    $log("Total lines after proper parsing: " . count($lines));
     
     $headers = str_getcsv(array_shift($lines), $delimiter);
-    error_log("Headers: " . print_r($headers, true));
-    
-    // Find important column indices based on actual CSV headers
-    $title_col = array_search('タイトル', $headers) ?: 
-                 array_search('title', $headers) ?: 
-                 array_search('Title', $headers) ?: 
-                 array_search('件名', $headers) ?: 1; // fallback to column 1
-    
-    $content_col = array_search('本文', $headers) ?: 
-                   array_search('content', $headers) ?: 
-                   array_search('Content', $headers) ?: 
-                   array_search('内容', $headers) ?: 2; // fallback to column 2
-    
-    $status_col = array_search('ステータス', $headers) ?: 
-                  array_search('status', $headers) ?: 
-                  array_search('Status', $headers) ?: 
-                  array_search('状態', $headers) ?: 4; // fallback to column 4
-    
-    error_log("Column mapping: title=$title_col, content=$content_col, status=$status_col");
+    $log("Headers: " . print_r($headers, true));
+
+    $allowed_post_fields = [
+        'post_title',
+        'post_content',
+        'post_excerpt',
+        'post_status',
+        'post_name',
+        'post_date',
+        'post_date_gmt',
+        'post_modified',
+        'post_modified_gmt',
+        'post_author',
+        'post_parent',
+        'menu_order',
+        'guid',
+        'comment_status',
+        'ping_status',
+    ];
+
+    $id_col = array_search('ID', $headers, true);
+    if ($id_col !== 0) {
+        wp_send_json(['error' => 'Invalid CSV format: ID column must be the first column']);
+        return;
+    }
     
     $total_rows = count($lines);
-    error_log("Total data rows: $total_rows");
+    $log("Total data rows: $total_rows");
     
     $processed = 0;
     $errors = 0;
     
     // Process small batch
-    error_log("Starting batch processing from row $start_row to " . min($start_row + $batch_size, $total_rows));
+    $log("Starting batch processing from row $start_row to " . min($start_row + $batch_size, $total_rows));
     
     for ($i = $start_row; $i < min($start_row + $batch_size, $total_rows); $i++) {
         if (empty(trim($lines[$i]))) {
-            error_log("Skipping empty line $i");
+            $log("Skipping empty line $i");
             continue;
         }
         
-        error_log("Processing line $i: " . $lines[$i]);
-        
         $data = str_getcsv($lines[$i], $delimiter);
-        
-        // Debug: Log parsed data
-        error_log("Parsed data for line $i: " . print_r($data, true));
         
         // First check if this looks like an ID row (first column is numeric ID)
         $first_col = $data[0] ?? '';
         if (is_numeric($first_col) && strlen($first_col) <= 6) {
-            error_log("Found ID row: $first_col - processing normally");
+            $log("Found ID row: $first_col - processing normally");
             // This is normal - most rows have ID in first column
             // Don't skip - process the actual data
         } else {
-            error_log("Unexpected first column: '$first_col' - might be header or malformed data");
+            $log("Unexpected first column: '$first_col' - might be header or malformed data");
             // Continue processing anyway
         }
         
-        // Get data using correct column indices
-        $title = $data[$title_col] ?? 'Untitled';
-        $content = $data[$content_col] ?? '';
-        $status = $data[$status_col] ?? 'publish';
-        $post_id_from_csv = $first_col; // ID列を取得
-        
-        // Debug: Log title and content
-        error_log("Title: '$title', Content: '$content', Status: '$status', CSV ID: '$post_id_from_csv'");
+        $post_id_from_csv = $first_col;
+
+        // Collect post fields from CSV (header-driven)
+        $post_fields_from_csv = [];
+        for ($j = 0; $j < count($headers); $j++) {
+            $header = trim((string) $headers[$j]);
+            if ($header === '' || $header === 'ID') {
+                continue;
+            }
+            if (!in_array($header, $allowed_post_fields, true)) {
+                continue;
+            }
+            if (!array_key_exists($j, $data)) {
+                continue;
+            }
+            $value = (string) $data[$j];
+            if ($value === '') {
+                continue;
+            }
+            if (str_starts_with($value, '"') && str_ends_with($value, '"')) {
+                $value = substr($value, 1, -1);
+                $value = str_replace('""', '"', $value);
+            }
+            $post_fields_from_csv[$header] = $value;
+        }
         
         // Check for existing post by CSV ID (only if update_existing is checked)
         $existing_post_id = null;
@@ -199,60 +210,87 @@ function swift_csv_ajax_import_handler() {
             ));
             
             if ($existing_post_id) {
-                error_log("Found existing post: $existing_post_id for CSV ID: $post_id_from_csv");
+                $log("Found existing post: $existing_post_id for CSV ID: $post_id_from_csv");
                 $post_id = $existing_post_id;
                 $is_update = true;
             } else {
-                error_log("Creating new post for CSV ID: $post_id_from_csv");
+                $log("No existing post found for CSV ID: $post_id_from_csv - skipping in update mode");
+                continue;
             }
         } else {
-            error_log("Update existing is disabled or no CSV ID - creating new post");
+            $log("Update existing is disabled or no CSV ID - creating new post");
         }
         
-        // Additional validation
-        if (empty($title) || $title === 'Untitled') {
-            error_log("Skipping row $i - no valid title found");
-            continue;
+        // Validation
+        if ($update_existing !== '1') {
+            if (empty($post_fields_from_csv['post_title'])) {
+                $log("Skipping row $i - no post_title for insert");
+                continue;
+            }
         }
         
         try {
-            // Direct SQL insert or update
-            $post_data = [
-                'post_author' => get_current_user_id() ?: 1,
-                'post_date' => current_time('mysql'),
-                'post_date_gmt' => current_time('mysql', true),
-                'post_content' => $content,
-                'post_title' => $title,
-                'post_excerpt' => '',
-                'post_status' => $status,
-                'post_name' => sanitize_title($title),
-                'post_type' => $post_type, // Use the specified post type
-                'comment_status' => 'closed',
-                'ping_status' => 'closed',
-                'post_modified' => current_time('mysql'),
-                'post_modified_gmt' => current_time('mysql', true),
-                'post_parent' => 0,
-                'menu_order' => 0,
-                'post_mime_type' => '',
-                'comment_count' => 0
-            ];
+            // Direct SQL insert or update (update only fields provided by CSV)
+            $post_data = [];
+
+            if ($is_update) {
+                // Update only provided post fields
+                foreach ($post_fields_from_csv as $key => $value) {
+                    $post_data[$key] = $value;
+                }
+                // Keep modification timestamps consistent
+                $post_data['post_modified'] = current_time('mysql');
+                $post_data['post_modified_gmt'] = current_time('mysql', true);
+            } else {
+                // Insert with defaults + provided values
+                $post_data = [
+                    'post_author' => (int) ( $post_fields_from_csv['post_author'] ?? (get_current_user_id() ?: 1) ),
+                    'post_date' => $post_fields_from_csv['post_date'] ?? current_time('mysql'),
+                    'post_date_gmt' => $post_fields_from_csv['post_date_gmt'] ?? current_time('mysql', true),
+                    'post_content' => $post_fields_from_csv['post_content'] ?? '',
+                    'post_title' => $post_fields_from_csv['post_title'] ?? '',
+                    'post_excerpt' => $post_fields_from_csv['post_excerpt'] ?? '',
+                    'post_status' => $post_fields_from_csv['post_status'] ?? 'publish',
+                    'post_name' => $post_fields_from_csv['post_name'] ?? sanitize_title( (string) ($post_fields_from_csv['post_title'] ?? '') ),
+                    'post_type' => $post_type,
+                    'comment_status' => $post_fields_from_csv['comment_status'] ?? 'closed',
+                    'ping_status' => $post_fields_from_csv['ping_status'] ?? 'closed',
+                    'post_modified' => current_time('mysql'),
+                    'post_modified_gmt' => current_time('mysql', true),
+                    'post_parent' => (int) ( $post_fields_from_csv['post_parent'] ?? 0 ),
+                    'menu_order' => (int) ( $post_fields_from_csv['menu_order'] ?? 0 ),
+                    'post_mime_type' => '',
+                    'comment_count' => 0
+                ];
+            }
             
             if ($is_update) {
-                // Update existing post
-                $result = $wpdb->update(
-                    $wpdb->posts,
-                    $post_data,
-                    ['ID' => $post_id],
-                    array_fill(0, count($post_data), '%s'),
-                    ['%d']
-                );
-                error_log("Updated post: $post_id");
+                if (empty($post_data)) {
+                    $log("No post fields to update for post ID $post_id");
+                    $result = 0;
+                } else {
+                    $post_data_formats = [];
+                    foreach (array_keys($post_data) as $key) {
+                        $post_data_formats[] = in_array($key, ['post_author', 'post_parent', 'menu_order'], true) ? '%d' : '%s';
+                    }
+                    $result = $wpdb->update(
+                        $wpdb->posts,
+                        $post_data,
+                        ['ID' => $post_id],
+                        $post_data_formats,
+                        ['%d']
+                    );
+                }
+                $log("Updated post: $post_id");
             } else {
-                // Insert new post
-                $result = $wpdb->insert($wpdb->posts, $post_data);
+                $post_data_formats = [];
+                foreach (array_keys($post_data) as $key) {
+                    $post_data_formats[] = in_array($key, ['post_author', 'post_parent', 'menu_order'], true) ? '%d' : '%s';
+                }
+                $result = $wpdb->insert($wpdb->posts, $post_data, $post_data_formats);
                 if ($result !== false) {
                     $post_id = $wpdb->insert_id;
-                    error_log("Created new post: $post_id");
+                    $log("Created new post: $post_id");
                 }
             }
             
@@ -270,45 +308,87 @@ function swift_csv_ajax_import_handler() {
                     );
                 }
                 
-                // Store CSV ID for future reference
-                if (!empty($post_id_from_csv)) {
-                    $wpdb->insert(
-                        $wpdb->postmeta,
-                        [
-                            'post_id' => $post_id,
-                            'meta_key' => 'csv_import_id',
-                            'meta_value' => $post_id_from_csv
-                        ],
-                        ['%d', '%s', '%s']
-                    );
-                }
-                
                 // Process custom fields and taxonomies like original Swift CSV
-                error_log("Processing custom fields for post ID $post_id");
+                $log("Processing custom fields for post ID $post_id");
                 $meta_fields = [];
                 $taxonomies = [];
                 $taxonomy_term_ids = []; // Store term_ids for reuse in ACF fields
+                $acf_field_keys = []; // Map: field_name => field_XXXX key (from CSV cf__field)
+                $acf_field_names = []; // Set of field names that have cf__<field> (used to prevent cf_<field> override)
+                $normalize_field_name = function( $name ) {
+                    $name = trim( (string) $name );
+                    $name = preg_replace( '/^\xEF\xBB\xBF/', '', $name );
+                    $name = preg_replace( '/[\x00-\x1F\x7F]/', '', $name );
+                    return trim( $name );
+                };
+
+                for ( $j = 0; $j < count( $headers ); $j++ ) {
+                    $header_name = $headers[ $j ] ?? '';
+                    $header_name_normalized = $normalize_field_name( $header_name );
+                    if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
+                        continue;
+                    }
+                    if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
+                        continue;
+                    }
+
+                    if ( empty( trim( $data[ $j ] ?? '' ) ) ) {
+                        continue;
+                    }
+
+                    $meta_value = $data[ $j ];
+
+                    if ( strpos( $header_name_normalized, 'cf__' ) === 0 ) {
+                        $field_name = $normalize_field_name( substr( $header_name_normalized, 4 ) );
+                        $field_key = trim( (string) $meta_value );
+                        if ( str_starts_with( $field_key, '"' ) && str_ends_with( $field_key, '"' ) ) {
+                            $field_key = substr( $field_key, 1, -1 );
+                        } elseif ( str_starts_with( $field_key, "'" ) && str_ends_with( $field_key, "'" ) ) {
+                            $field_key = substr( $field_key, 1, -1 );
+                        }
+                        $field_key = preg_replace( '/[\x00-\x1F\x7F]/', '', $field_key );
+                        $field_key = trim( $field_key );
+
+                        if ( $field_name !== '' && strpos( $field_key, 'field_' ) === 0 ) {
+                            $acf_field_keys[ $field_name ] = $field_key;
+                            $acf_field_names[ $field_name ] = true;
+                            $meta_fields[ '_' . $field_name ] = $field_key;
+                            $log( "Stored ACF field key: _{$field_name} = {$field_key}" );
+                        }
+                    }
+                }
                 
                 for ($j = 0; $j < count($headers); $j++) {
-                    if ($j == $title_col || $j == $content_col || $j == $status_col) {
-                        continue; // Skip already processed columns
+                    $header_name = $headers[ $j ] ?? '';
+                    $header_name_normalized = $normalize_field_name( $header_name );
+                    if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
+                        continue;
+                    }
+                    if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
+                        continue;
                     }
                     
-                    if (empty(trim($data[$j]))) {
+                    if (empty(trim($data[$j] ?? ''))) {
                         continue; // Skip empty fields
                     }
-                    
-                    $header_name = $headers[$j];
+
                     $meta_value = $data[$j];
+                    $log("Processing header: '$header_name' with value: '$meta_value'");
+
+                    // Do not store post fields as meta
+                    if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
+                        continue;
+                    }
                     
                     // Check if this is a taxonomy field (tax_ prefix ONLY, not cf_ fields)
-                    if (strpos($header_name, 'tax_') === 0) {
+                    if (strpos($header_name_normalized, 'tax_') === 0) {
                         // Handle taxonomy (pipe-separated) - this is for article-taxonomy relationship
                         $terms = array_map('trim', explode('|', $meta_value));
-                        $taxonomies[$header_name] = $terms;
+                        // Store by actual taxonomy name (without tax_ prefix)
+                        $taxonomy_name = substr($header_name_normalized, 4); // Remove 'tax_'
+                        $taxonomies[$taxonomy_name] = $terms;
                         
                         // Extract taxonomy name from header (remove tax_ prefix)
-                        $taxonomy_name = substr($header_name, 4); // Remove 'tax_'
                         if (taxonomy_exists($taxonomy_name)) {
                             // Get term_ids for reuse in ACF fields
                             $term_ids = [];
@@ -318,139 +398,107 @@ function swift_csv_ajax_import_handler() {
                                     $term = get_term_by('name', $term_name, $taxonomy_name);
                                     if ($term) {
                                         $term_ids[] = $term->term_id;
-                                        error_log("Found existing term '$term_name' (ID: {$term->term_id}) in taxonomy '$taxonomy_name'");
+                                        $log("Found existing term '$term_name' (ID: {$term->term_id}) in taxonomy '$taxonomy_name'");
                                     } else {
-                                        error_log("Term '$term_name' not found in taxonomy '$taxonomy_name' - skipping");
+                                        $log("Term '$term_name' not found in taxonomy '$taxonomy_name' - skipping");
                                     }
                                 }
                             }
                             if (!empty($term_ids)) {
                                 $taxonomy_term_ids[$taxonomy_name] = $term_ids;
-                                error_log("Stored term_ids for taxonomy '$taxonomy_name': [" . implode(', ', $term_ids) . "]");
+                                $log("Stored term_ids for taxonomy '$taxonomy_name': [" . implode(', ', $term_ids) . "]");
                             }
                         } else {
-                            error_log("Taxonomy '$taxonomy_name' does not exist - skipping field '$header_name'");
+                            $log("Taxonomy '$taxonomy_name' does not exist - skipping field '$header_name'");
                         }
                         
-                        error_log("Taxonomy field: '$header_name' with terms: " . implode(', ', $terms));
+                        $log("Taxonomy field: '$header_name' with terms: " . implode(', ', $terms));
                     } else {
-                        // Check if this is an ACF taxonomy field by checking ACF field metadata
-                        $is_acf_taxonomy_field = false;
-                        $taxonomy = '';
-                        
-                        // Check if this is an ACF field reference (starts with underscore)
-                        if (strpos($header_name, '_') === 0) {
-                            // This is an ACF field reference, get the actual field name
-                            $actual_field_name = substr($header_name, 1); // Remove underscore
-                            error_log("Found ACF field reference '$header_name' for actual field '$actual_field_name'");
-                            
-                            // Remove cf_ prefix if present
-                            if (strpos($actual_field_name, 'cf_') === 0) {
-                                $actual_field_name = substr($actual_field_name, 3); // Remove cf_
-                                error_log("Removed cf_ prefix, actual field name: '$actual_field_name'");
+                        // Handle ACF value columns (acf_<field>)
+                        if (strpos($header_name_normalized, 'acf_') === 0) {
+                            $field_name = $normalize_field_name( substr($header_name_normalized, 4) );
+                            $field_key = $acf_field_keys[$field_name] ?? '';
+                            if (is_string($field_key)) {
+                                $field_key = preg_replace( '/[\x00-\x1F\x7F]/', '', $field_key );
+                                $field_key = trim($field_key);
                             }
-                            
-                            error_log("Processing ACF field reference: '$header_name' -> '$actual_field_name'");
-                            
-                            // Get ACF field key from postmeta using the actual field name
-                            $acf_field_key = $wpdb->get_var($wpdb->prepare(
-                                "SELECT meta_key FROM {$wpdb->postmeta} 
-                                 WHERE meta_key LIKE 'field_%' 
-                                 AND meta_value = %s 
-                                 LIMIT 1",
-                                $actual_field_name
+                            $log("ACF value column detected: {$field_name} (field_key=" . ($field_key ?: 'missing') . ")");
+
+                            // If field_key is missing/invalid, ignore this ACF column.
+                            if ( ! $field_key || strpos( $field_key, 'field_' ) !== 0 ) {
+                                continue;
+                            }
+
+                            $field_config = $wpdb->get_var($wpdb->prepare(
+                                "SELECT post_content FROM {$wpdb->posts} 
+                                 WHERE post_name = %s 
+                                 AND post_type = 'acf-field'",
+                                $field_key
                             ));
-                            
-                            error_log("ACF field search for '$actual_field_name': " . ($acf_field_key ? "found key '$acf_field_key'" : "not found"));
-                            
-                            if (!$acf_field_key) {
-                                // Debug: show all field mappings for this field name
-                                $all_mappings = $wpdb->get_results($wpdb->prepare(
-                                    "SELECT meta_key, meta_value FROM {$wpdb->postmeta} 
-                                     WHERE meta_value LIKE %s 
-                                     AND meta_key LIKE 'field_%'",
-                                    '%' . $actual_field_name . '%'
-                                ));
-                                foreach ($all_mappings as $mapping) {
-                                    error_log("Field mapping: {$mapping->meta_key} -> {$mapping->meta_value}");
-                                }
+
+                            $field_data = $field_config ? maybe_unserialize($field_config) : null;
+                            $field_type = is_array($field_data) && isset($field_data['type']) ? $field_data['type'] : '';
+                            $taxonomy = is_array($field_data) && isset($field_data['taxonomy']) ? $field_data['taxonomy'] : '';
+
+                            if ($field_type) {
+                                $log("ACF field resolved: {$field_name} type={$field_type} taxonomy={$taxonomy}");
+                            } else {
+                                $log("ACF field definition not found for {$field_name} (field_key={$field_key})");
+                                continue;
                             }
-                            
-                            if ($acf_field_key) {
-                                error_log("Found ACF field key '$acf_field_key' for field '$actual_field_name'");
-                                
-                                // Get ACF field configuration from posts table
-                                $field_config = $wpdb->get_var($wpdb->prepare(
-                                    "SELECT post_content FROM {$wpdb->posts} 
-                                     WHERE post_name = %s 
-                                     AND post_type = 'acf-field'",
-                                    $acf_field_key
-                                ));
-                                
-                                if ($field_config) {
-                                    $field_data = maybe_unserialize($field_config);
-                                    if (is_array($field_data) && isset($field_data['type']) && $field_data['type'] === 'taxonomy') {
-                                        $is_acf_taxonomy_field = true;
-                                        $taxonomy = $field_data['taxonomy'] ?? '';
-                                        error_log("ACF taxonomy field '$actual_field_name' uses taxonomy '$taxonomy'");
-                                        
-                                        // Now get the actual data from the corresponding field without underscore
-                                        $actual_data = '';
-                                        for ($k = 0; $k < count($headers); $k++) {
-                                            if ($headers[$k] === $actual_field_name) {
-                                                $actual_data = $data[$k] ?? '';
-                                                error_log("Found actual data for '$actual_field_name': '$actual_data'");
-                                                break;
-                                            }
+
+                            switch ($field_type) {
+                                case 'taxonomy':
+                                    $term_names = array_map('trim', explode('|', (string)$meta_value));
+                                    $term_ids = [];
+                                    foreach ($term_names as $term_name) {
+                                        if ($term_name === '') {
+                                            continue;
                                         }
-                                        
-                                        if (!empty($actual_data)) {
-                                            // Process the actual data as ACF taxonomy field
-                                            $term_names = array_map('trim', explode('|', $actual_data));
-                                            $term_ids = [];
-                                            
-                                            // Check if we already have term_ids from tax_ processing
-                                            if (isset($taxonomy_term_ids[$taxonomy])) {
-                                                $term_ids = $taxonomy_term_ids[$taxonomy];
-                                                error_log("Reusing stored term_ids for taxonomy '$taxonomy': [" . implode(', ', $term_ids) . "]");
-                                            } else {
-                                                // Get term_ids by name (only find existing terms, don't create)
-                                                foreach ($term_names as $term_name) {
-                                                    if (!empty($term_name)) {
-                                                        // Find existing term by name in the specific taxonomy
-                                                        $term = get_term_by('name', $term_name, $taxonomy);
-                                                        if ($term) {
-                                                            $term_ids[] = $term->term_id;
-                                                            error_log("Found existing term '$term_name' (ID: {$term->term_id}) in taxonomy '$taxonomy'");
-                                                        } else {
-                                                            error_log("Term '$term_name' not found in taxonomy '$taxonomy' - skipping");
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            
-                                            if (!empty($term_ids)) {
-                                                // Store as serialized array of term_ids (ACF format)
-                                                $serialized_term_ids = maybe_serialize($term_ids);
-                                                $meta_fields[$header_name] = $serialized_term_ids;
-                                                error_log("ACF taxonomy field '$header_name': term_ids [" . implode(', ', $term_ids) . "] -> serialized: '$serialized_term_ids'");
-                                            }
+                                        $term = get_term_by('name', $term_name, $taxonomy);
+                                        if ($term && !is_wp_error($term)) {
+                                            $term_ids[] = (string) $term->term_id;
                                         }
                                     }
-                                }
+                                    $meta_fields[$field_name] = maybe_serialize($term_ids);
+                                    break;
+
+                                case 'checkbox':
+                                    $values = strpos((string)$meta_value, '|') !== false
+                                        ? array_map('trim', explode('|', (string)$meta_value))
+                                        : [trim((string)$meta_value)];
+                                    $values = array_values(array_filter($values, function($v) { return $v !== ''; }));
+                                    $meta_fields[$field_name] = maybe_serialize($values);
+                                    break;
+
+                                case 'radio':
+                                case 'text':
+                                case 'textarea':
+                                    $value = (string)$meta_value;
+                                    if (str_starts_with($value, '"') && str_ends_with($value, '"')) {
+                                        $value = substr($value, 1, -1);
+                                        $value = str_replace('""', '"', $value);
+                                    }
+                                    $meta_fields[$field_name] = $value;
+                                    break;
+
+                                default:
+                                    $meta_fields[$field_name] = (string)$meta_value;
+                                    break;
                             }
-                        }
-                        
-                        if (!$is_acf_taxonomy_field) {
-                            // Handle regular custom field
-                            // Remove cf_ prefix if present for field name
-                            $clean_field_name = $header_name;
-                            if (strpos($header_name, 'cf_') === 0) {
-                                $clean_field_name = substr($header_name, 3); // Remove cf_
-                                error_log("Removed cf_ prefix from field name: '$header_name' -> '$clean_field_name'");
+                        } else {
+                            // Handle regular custom field (cf_<field> => <field>)
+                            $clean_field_name = $header_name_normalized;
+                            if (strpos($header_name_normalized, 'cf_') === 0) {
+                                $clean_field_name = substr($header_name_normalized, 3); // Remove cf_
                             }
-                            $meta_fields[$clean_field_name] = $meta_value;
-                            error_log("Custom field: '$clean_field_name' = '$meta_value'");
+
+                            // Prevent overriding ACF fields (e.g. documents/jobtype/pay) with cf_ columns.
+                            if (isset($acf_field_names[$clean_field_name])) {
+                                continue;
+                            }
+                            $meta_fields[$clean_field_name] = (string)$meta_value;
+                            $log("Custom field: '$clean_field_name' = '$meta_value'");
                         }
                     }
                 }
@@ -458,47 +506,28 @@ function swift_csv_ajax_import_handler() {
                 // Process taxonomies
                 foreach ($taxonomies as $taxonomy => $terms) {
                     if (!empty($terms)) {
-                        // Remove existing term relationships
-                        $wpdb->query($wpdb->prepare(
-                            "DELETE FROM {$wpdb->term_relationships} 
-                             WHERE object_id = %d 
-                             AND term_taxonomy_id IN (
-                                 SELECT tt.term_taxonomy_id 
-                                 FROM {$wpdb->term_taxonomy} tt 
-                                 JOIN {$wpdb->terms} t ON tt.term_id = t.term_id 
-                                 WHERE tt.taxonomy = %s
-                             )",
-                            $post_id,
-                            $taxonomy
-                        ));
-                        
-                        // Add new term relationships
+                        // Use WordPress API to set term relationships (handles tt_id and counts)
+                        $term_ids = [];
                         foreach ($terms as $term_name) {
-                            if (!empty($term_name)) {
-                                // Ensure term exists
-                                $term = get_term_by('name', $term_name, $taxonomy);
-                                if (!$term) {
-                                    $term = wp_insert_term($term_name, $taxonomy);
-                                    if (is_wp_error($term)) {
-                                        error_log("Failed to create term '$term_name' in taxonomy '$taxonomy'");
-                                        continue;
-                                    }
-                                    $term_id = $term['term_id'];
-                                } else {
-                                    $term_id = $term->term_id;
+                            $term_name = trim((string) $term_name);
+                            if ($term_name === '') {
+                                continue;
+                            }
+
+                            $term = get_term_by('name', $term_name, $taxonomy);
+                            if (!$term) {
+                                $created = wp_insert_term($term_name, $taxonomy);
+                                if (is_wp_error($created)) {
+                                    error_log("Failed to create term '$term_name' in taxonomy '$taxonomy'");
+                                    continue;
                                 }
-                                
-                                // Add relationship
-                                $wpdb->insert(
-                                    $wpdb->term_relationships,
-                                    [
-                                        'object_id' => $post_id,
-                                        'term_taxonomy_id' => get_term_taxonomy_id($term_id, $taxonomy)
-                                    ],
-                                    ['%d', '%d']
-                                );
+                                $term_ids[] = (int) $created['term_id'];
+                            } else {
+                                $term_ids[] = (int) $term->term_id;
                             }
                         }
+
+                        wp_set_post_terms($post_id, $term_ids, $taxonomy, false);
                     }
                 }
                 
@@ -508,18 +537,18 @@ function swift_csv_ajax_import_handler() {
                     if ($value === '' || $value === null) {
                         continue;
                     }
+
+                    // Always replace existing meta for this key to ensure update works even if meta row doesn't exist.
+                    $wpdb->query($wpdb->prepare(
+                        "DELETE FROM {$wpdb->postmeta} 
+                         WHERE post_id = %d 
+                         AND meta_key = %s",
+                        $post_id,
+                        $key
+                    ));
                     
                     // Handle multi-value custom fields (pipe-separated)
                     if (strpos($value, '|') !== false) {
-                        // Remove existing meta values
-                        $wpdb->query($wpdb->prepare(
-                            "DELETE FROM {$wpdb->postmeta} 
-                             WHERE post_id = %d 
-                             AND meta_key = %s",
-                            $post_id,
-                            $key
-                        ));
-                        
                         // Add each value separately
                         $values = array_map('trim', explode('|', $value));
                         foreach ($values as $single_value) {
@@ -536,79 +565,31 @@ function swift_csv_ajax_import_handler() {
                             }
                         }
                     } else {
-                        // Check if serialized and preserve it
-                        if (is_serialized($value)) {
-                            $unserialized = maybe_unserialize($value);
-                            if (is_array($unserialized)) {
-                                $reserialized = maybe_serialize($unserialized);
-                                $wpdb->query($wpdb->prepare(
-                                    "UPDATE {$wpdb->postmeta} 
-                                     SET meta_value = %s 
-                                     WHERE post_id = %d 
-                                     AND meta_key = %s",
-                                    $reserialized,
-                                    $post_id,
-                                    $key
-                                ));
-                            } else {
-                                // Fallback to raw SQL
-                                $escaped_value = addslashes($value);
-                                $wpdb->query(
-                                    "UPDATE {$wpdb->postmeta} 
-                                     SET meta_value = '{$escaped_value}' 
-                                     WHERE post_id = {$post_id} 
-                                     AND meta_key = '{$key}'"
-                                );
-                            }
-                        } else {
-                            // Single value
-                            $wpdb->query($wpdb->prepare(
-                                "UPDATE {$wpdb->postmeta} 
-                                 SET meta_value = %s 
-                                 WHERE post_id = %d 
-                                 AND meta_key = %s",
-                                $value,
-                                $post_id,
-                                $key
-                            ));
-                        }
+                        // Single value (including serialized strings)
+                        $wpdb->insert(
+                            $wpdb->postmeta,
+                            [
+                                'post_id' => $post_id,
+                                'meta_key' => $key,
+                                'meta_value' => is_string($value) ? $value : maybe_serialize($value),
+                            ],
+                            ['%d', '%s', '%s']
+                        );
                     }
                 }
             } else {
                 $errors++;
             }
         } catch (Exception $e) {
-            $errors++;
-        }
-        
-        // Small delay reduced for better performance
-        usleep(10000); // 10ms instead of 50ms
-        
-        // Debug: Check post_meta immediately after processing
-        if ($post_id) {
-            error_log("=== POST-META DEBUG FOR POST ID $post_id ===");
-            $meta_values = $wpdb->get_results($wpdb->prepare(
-                "SELECT meta_key, meta_value FROM {$wpdb->postmeta} 
-                 WHERE post_id = %d 
-                 ORDER BY meta_key",
-                $post_id
-            ));
-            
-            foreach ($meta_values as $meta) {
-                $value = $meta->meta_value;
-                if (strlen($value) > 100) {
-                    $value = substr($value, 0, 100) . '...';
-                }
-                error_log("META: {$meta->meta_key} = {$value}");
-            }
-            error_log("=== END POST-META DEBUG ===");
-        }
-    }
+			$errors++;
+		}
+		
+	}
+	
+	$next_row = $start_row + $processed; // Use actual processed count instead of batch_size
+	$continue = $next_row < $total_rows;
     
-    $next_row = $start_row + $processed; // Use actual processed count instead of batch_size
-    $continue = $next_row < $total_rows;
-    
-    error_log("Batch completed: processed=$processed, errors=$errors, next_row=$next_row, total=$total_rows, continue=" . ($continue ? 'yes' : 'no'));
+    $log("Batch completed: processed=$processed, errors=$errors, next_row=$next_row, total=$total_rows, continue=" . ($continue ? 'yes' : 'no'));
     
     wp_send_json([
         'processed' => $next_row,

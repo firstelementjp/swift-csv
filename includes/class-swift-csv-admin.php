@@ -520,6 +520,32 @@ class Swift_CSV_Admin {
 								</select>
 							</td>
 						</tr>
+						<tr>
+							<th scope="row">
+								<?php esc_html_e( 'Export Scope', 'swift-csv' ); ?>
+							</th>
+							<td>
+								<label style="display:block;">
+									<input type="radio" name="export_scope" value="basic" checked>
+									<?php esc_html_e( '基本項目', 'swift-csv' ); ?>
+								</label>
+								<label style="display:block;">
+									<input type="radio" name="export_scope" value="all">
+									<?php esc_html_e( '全項目', 'swift-csv' ); ?>
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">
+								<?php esc_html_e( 'Advanced', 'swift-csv' ); ?>
+							</th>
+							<td>
+								<label>
+									<input type="checkbox" name="include_private_meta" value="1">
+									<?php esc_html_e( '_付きメタも含める（上級者向け）', 'swift-csv' ); ?>
+								</label>
+							</td>
+						</tr>
 					</table>
 					
 					<p class="submit">
@@ -543,44 +569,7 @@ class Swift_CSV_Admin {
 						</a>
 					</div>
 				</div>
-			</div>
-			
-			<!-- Legacy Export Option -->
-			<div class="card" style="background-color: #f0f0f0; border-left: 4px solid #666;">
-				<h4><?php esc_html_e( 'Legacy Export (従来のバッチ処理)', 'swift-csv' ); ?></h4>
-				<p><?php esc_html_e( '従来のバッチ処理方式です。Ajaxエクスポートが推奨です。', 'swift-csv' ); ?></p>
-				<form id="swift-csv-legacy-export-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-					<?php wp_nonce_field( 'swift_csv_export', 'csv_export_nonce' ); ?>
-					<table class="form-table">
-						<tr>
-							<th scope="row">
-								<label for="legacy_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
-							</th>
-							<td>
-								<select name="post_type" id="legacy_post_type" required>
-									<?php foreach ( $post_types as $post_type ) : ?>
-										<option value="<?php echo esc_attr( $post_type->name ); ?>">
-											<?php echo esc_html( $post_type->labels->name ); ?>
-										</option>
-									<?php endforeach; ?>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">
-								<label for="posts_per_page"><?php esc_html_e( 'Number of Posts', 'swift-csv' ); ?></label>
-							</th>
-							<td>
-								<input type="number" name="posts_per_page" id="posts_per_page" value="1000" min="1" max="5000">
-								<p class="description"><?php esc_html_e( 'エクスポートする投稿数（バッチ処理で自動分割されます）', 'swift-csv' ); ?></p>
-							</td>
-						</tr>
-					</table>
-					<p class="submit">
-						<input type="hidden" name="action" value="swift_csv_export">
-						<input type="submit" name="export_csv" class="button" value="<?php esc_html_e( 'Legacy Export', 'swift-csv' ); ?>">
-				</form>
-			</div>
+		</div>
 		</div>
 		<?php
 		// Add Ajax export script
@@ -604,6 +593,8 @@ class Swift_CSV_Admin {
 				e.preventDefault();
 				
 				var postType = $('#ajax_export_post_type').val();
+				var exportScope = $('input[name="export_scope"]:checked').val() || 'basic';
+				var includePrivateMeta = $('input[name="include_private_meta"]').is(':checked') ? '1' : '0';
 				var progressEl = $('#swift-csv-ajax-export-progress');
 				var fillEl = progressEl.find('.progress-fill');
 				var textEl = progressEl.find('.progress-text');
@@ -627,6 +618,8 @@ class Swift_CSV_Admin {
 							action: 'swift_csv_ajax_export',
 							nonce: '<?php echo $nonce; ?>',
 							post_type: postType,
+							export_scope: exportScope,
+							include_private_meta: includePrivateMeta,
 							start_row: currentRow,
 							include_headers: currentRow === 0 ? 'true' : 'false'
 						},
@@ -761,71 +754,6 @@ class Swift_CSV_Admin {
 				</form>
 			</div>
 			
-			<!-- Original Import -->
-			<hr>
-			<h4><?php esc_html_e( '通常インポート', 'swift-csv' ); ?></h4>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
-				<?php wp_nonce_field( 'swift_csv_import', 'csv_import_nonce' ); ?>
-
-				<table class="form-table">
-					<tr>
-						<th scope="row">
-							<label for="import_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
-						</th>
-						<td>
-							<select name="import_post_type" id="import_post_type" required>
-								<?php foreach ( $post_types as $post_type ) : ?>
-									<option value="<?php echo esc_attr( $post_type->name ); ?>">
-										<?php echo esc_html( $post_type->labels->name ); ?>
-									</option>
-								<?php endforeach; ?>
-							</select>
-							<p class="description"><?php esc_html_e( 'Select the target post type for import.', 'swift-csv' ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="csv_file"><?php esc_html_e( 'CSV File', 'swift-csv' ); ?></label>
-						</th>
-						<td>
-							<input type="file" name="csv_file" id="csv_file" accept=".csv" required>
-							<p class="description">
-								<?php esc_html_e( 'CSVファイルを選択してください（UTF-8、Shift_JIS、EUC-JP、JIS対応）。', 'swift-csv' ); ?><br>
-								<?php esc_html_e( 'The first row will be used as header for automatic mapping.', 'swift-csv' ); ?><br>
-								<?php esc_html_e( 'Custom fields should be prefixed with "cf_" (example: cf_price).', 'swift-csv' ); ?><br>
-								<strong><?php 
-									$upload_max = ini_get('upload_max_filesize');
-									$post_max = ini_get('post_max_size');
-									printf(
-										esc_html__('現在のアップロード制限: %s (upload_max_filesize) / %s (post_max_size)', 'swift-csv'),
-										esc_html($upload_max),
-										esc_html($post_max)
-									);
-								?></strong>
-							</p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label>
-								<input type="checkbox" name="update_existing" value="1">
-								<?php esc_html_e( 'Update existing posts', 'swift-csv' ); ?>
-							</label>
-						</th>
-						<td>
-							<p class="description">
-								<?php esc_html_e( 'Updates existing posts when ID matches.', 'swift-csv' ); ?><br>
-								<?php esc_html_e( 'If unchecked, creates new posts.', 'swift-csv' ); ?>
-							</p>
-						</td>
-					</tr>
-				</table>
-
-				<p class="submit">
-					<input type="hidden" name="action" value="swift_csv_import">
-					<input type="submit" name="import_csv" class="button button-primary" value="<?php esc_html_e( 'Import CSV', 'swift-csv' ); ?>">
-				</p>
-			</form>
 		</div>
 		
 		<!-- Ajax Import JavaScript -->

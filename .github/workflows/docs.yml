@@ -2,9 +2,9 @@ name: Generate Documentation
 
 on:
     push:
-        branches: [main]
-    pull_request:
-        branches: [main]
+        branches: [main, develop]
+    release:
+        types: [published]
 
 permissions:
     contents: read
@@ -19,24 +19,67 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v3
 
-            - name: Setup PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  php-version: '8.1'
-                  extensions: dom, xml
-                  coverage: none
-
-            - name: Install dependencies
-              run: composer install --no-progress --no-interaction
-
-            - name: Generate API documentation
-              run: ./.github/scripts/generate-api-docs.sh
-
-            - name: Generate additional documentation
-              run: ./.github/scripts/generate-docs.sh
-
             - name: Setup Pages
               uses: actions/configure-pages@v4
+
+            - name: Create simple docs
+              run: |
+                  mkdir -p docs
+                  cat > docs/index.html << 'EOF'
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                      <title>Swift CSV Documentation</title>
+                      <meta charset="utf-8">
+                      <style>
+                          body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                          .header { text-align: center; margin-bottom: 40px; }
+                          .section { margin-bottom: 30px; }
+                          .badge { background: #0073aa; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px; }
+                      </style>
+                  </head>
+                  <body>
+                      <div class="header">
+                          <h1>📊 Swift CSV</h1>
+                          <p>Lightweight and simple CSV import/export plugin for WordPress</p>
+                          <span class="badge">v0.9.5</span>
+                      </div>
+                      
+                      <div class="section">
+                          <h2>✨ Features</h2>
+                          <ul>
+                              <li>🌐 Complete Japanese Internationalization</li>
+                              <li>📊 Dynamic Progress Tracking</li>
+                              <li>🎨 Modern User Interface</li>
+                              <li>📝 Batch Processing</li>
+                              <li>🎯 Block Editor Compatible</li>
+                          </ul>
+                      </div>
+                      
+                      <div class="section">
+                          <h2>🚀 Installation</h2>
+                          <ol>
+                              <li>Download the latest release from GitHub</li>
+                              <li>Upload to <code>/wp-content/plugins/</code></li>
+                              <li>Activate in WordPress admin</li>
+                          </ol>
+                      </div>
+                      
+                      <div class="section">
+                          <h2>📖 Usage</h2>
+                          <p>Navigate to <strong>Swift CSV</strong> in your WordPress admin panel to import or export CSV files.</p>
+                      </div>
+                      
+                      <div class="section">
+                          <h2>🔗 Links</h2>
+                          <ul>
+                              <li><a href="https://github.com/firstelementjp/swift-csv">GitHub Repository</a></li>
+                              <li><a href="https://github.com/firstelementjp/swift-csv/releases">Latest Release</a></li>
+                          </ul>
+                      </div>
+                  </body>
+                  </html>
+                  EOF
 
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v3
@@ -49,7 +92,7 @@ jobs:
             url: ${{ steps.deployment.outputs.page_url }}
         runs-on: ubuntu-latest
         needs: build
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.event_name == 'release'
 
         steps:
             - name: Deploy to GitHub Pages

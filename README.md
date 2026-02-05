@@ -3,7 +3,7 @@
 ![Swift CSV Banner](https://github.com/firstelementjp/swift-csv/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
 
 [![License](https://img.shields.io/badge/license-GPL--2.0%2B-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.9.4-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
+[![Version](https://img.shields.io/badge/version-0.9.5-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 
 <!-- WordPress.org badges - Uncomment when plugin is accepted to official directory -->

@@ -182,6 +182,27 @@ function swift_csv_ajax_export_resolve_post_field_value( WP_Post $post, $header 
 }
 
 /**
+ * Normalize quotes and escape characters for CSV output
+ * 
+ * @param string $field The field value to normalize
+ * @return string The normalized field value
+ */
+function swift_csv_ajax_normalize_quotes( $field ) {
+	// Fix double escaped quotes that are already properly escaped
+	$field = preg_replace( '/\\\\"\\\\"/', '""', $field );
+
+	// Convert remaining escaped quotes to regular quotes
+	// fputcsv will handle proper CSV escaping
+	$field = str_replace( '\\"', '"', $field );
+
+	// Handle edge case of literal backslash before quote
+	// Preserve intentional \" patterns
+	$field = preg_replace( '/\\\\\\\\(")/', '\\\\"$1', $field );
+
+	return $field;
+}
+
+/**
  * Simple Ajax export handler
  */
 function swift_csv_ajax_export_handler() {
@@ -192,10 +213,9 @@ function swift_csv_ajax_export_handler() {
 	$post_type = sanitize_text_field( $_POST['post_type'] ?? 'post' );
 	$export_scope = sanitize_text_field( $_POST['export_scope'] ?? 'basic' );
 	$include_private_meta = ! empty( $_POST['include_private_meta'] ) && (string) $_POST['include_private_meta'] === '1';
+	$export_limit = ! empty( $_POST['export_limit'] ) ? intval( $_POST['export_limit'] ) : 0;
 	$start_row = intval( $_POST['start_row'] ?? 0 );
-	$batch_size = 10; // Small batch size for testing
-	
-	error_log('[Swift CSV Simple Ajax Export] Starting: post_type=' . $post_type . ', start_row=' . $start_row);
+	$batch_size = 200; // Increase batch size for better performance
 	
 	// Validate post type
 	if ( ! post_type_exists( $post_type ) ) {
@@ -206,40 +226,66 @@ function swift_csv_ajax_export_handler() {
 	$total_posts_query_args = [
 		'post_type' => $post_type,
 		'post_status' => 'publish',
-		'posts_per_page' => 100, // Limit to 100 posts for testing
+		'posts_per_page' => $export_limit > 0 ? $export_limit : -1, // Use limit or all posts
 		'fields' => 'ids',
 	];
-	$total_posts_query_args = apply_filters( 'swift_csv_export_query_args', $total_posts_query_args, [ 'post_type' => $post_type ] );
-	$total_posts_query_args['posts_per_page'] = 100;
-	$total_posts_query_args['fields'] = 'ids';
+	// Apply filter but check if it modifies our limit
+	$filtered_args = apply_filters( 'swift_csv_export_query_args', $total_posts_query_args, [ 'post_type' => $post_type ] );
+	
+	// Force our limit regardless of filter
+	$filtered_args['posts_per_page'] = $export_limit > 0 ? $export_limit : -1;
+	
+	$total_posts_query_args = $filtered_args;
 	$total_posts = get_posts( $total_posts_query_args );
 	$total_count = count($total_posts);
 	
-	// For testing, limit to 100 posts max
-	$max_posts = 100;
+	// Define max_posts_to_process
+	$max_posts_to_process = $export_limit > 0 ? $export_limit : $total_count;
+	
+	// Get posts for current batch
 	$posts_query_args = [
 		'post_type' => $post_type,
 		'post_status' => 'publish',
-		'posts_per_page' => min($batch_size, $max_posts - $start_row),
+		'posts_per_page' => min($batch_size, $total_count - $start_row),
 		'offset' => $start_row,
 		'fields' => 'ids',
 	];
 	$posts_query_args = apply_filters( 'swift_csv_export_query_args', $posts_query_args, [ 'post_type' => $post_type ] );
-	$posts_query_args['posts_per_page'] = min($batch_size, $max_posts - $start_row);
+	
+	// Force our limit regardless of filter
+	$posts_query_args['posts_per_page'] = min($batch_size, $max_posts_to_process - $start_row);
 	$posts_query_args['offset'] = $start_row;
 	$posts_query_args['fields'] = 'ids';
+	
+	// Stop if we've reached the limit
+	if ($start_row >= $max_posts_to_process) {
+		wp_send_json([
+			'success' => true,
+			'processed' => $start_row,
+			'total' => $max_posts_to_process,
+			'continue' => false,
+			'csv_chunk' => ''
+		]);
+		return;
+	}
+	
 	$posts = get_posts( $posts_query_args );
+	
+	// Additional safety check: ensure we don't exceed the limit
+	$actual_batch_size = min(count($posts), $max_posts_to_process - $start_row);
+	if ($actual_batch_size < count($posts)) {
+		$posts = array_slice($posts, 0, $actual_batch_size);
+	}
 	
 	if ( empty( $posts ) ) {
 		wp_send_json([
 			'success' => true,
 			'processed' => $start_row,
-			'total' => $max_posts,
+			'total' => $max_posts_to_process,
 			'continue' => false,
-			'progress' => 100,
-			'csv_chunk' => '',
-			'posts_processed' => 0
+			'csv_chunk' => ''
 		]);
+		return;
 	}
 	
 	// Simple CSV generation with headers
@@ -251,8 +297,14 @@ function swift_csv_ajax_export_handler() {
 		$csv_chunk .= swift_csv_ajax_export_fputcsv_row( $headers );
 	}
 	
+	// Cache ACF field objects to reduce repeated calls
+	static $acf_field_cache = [];
+	
 	foreach ( $posts as $post_id ) {
 		$post = get_post( $post_id );
+		
+		// Batch get all meta data for this post to reduce queries
+		$all_meta = get_post_meta( $post_id );
 		
 		// Build data row based on headers
 		$row_data = [];
@@ -261,17 +313,22 @@ function swift_csv_ajax_export_handler() {
 
 			$post_field_value = swift_csv_ajax_export_resolve_post_field_value( $post, $header );
 			if ( $post_field_value !== null ) {
-				$row_data[] = $post_field_value;
+				// Clean up HTML tags and normalize quotes, but keep newlines for readability
+				$clean_value = strip_tags( $post_field_value );
+				$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
+				$row_data[] = $clean_value;
 				continue;
 			}
 
 			if ( str_starts_with( $header, 'cf_' ) ) {
 				$field_name = substr( $header, 3 );
-				$meta_value = get_post_meta( $post_id, $field_name, true );
+				$meta_value = $all_meta[$field_name][0] ?? '';
 				if ( is_array( $meta_value ) ) {
 					$meta_value = implode( '|', $meta_value );
 				}
-				$value = str_replace( ',', ';', (string) $meta_value );
+				$clean_value = strip_tags( (string) $meta_value );
+				$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
+				$value = str_replace( ',', ';', $clean_value );
 			} elseif ( str_starts_with( $header, 'tax_' ) ) {
 				$taxonomy_name = substr( $header, 4 );
 				$terms         = get_the_terms( $post_id, $taxonomy_name );
@@ -284,13 +341,20 @@ function swift_csv_ajax_export_handler() {
 					);
 					$value = implode( '|', $term_names );
 				}
-				$value = str_replace( ',', ';', (string) $value );
+				$clean_value = strip_tags( (string) $value );
+				$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
+				$value = str_replace( ',', ';', $clean_value );
 			} elseif ( str_starts_with( $header, 'acf_' ) ) {
 				$field_name = substr( $header, 4 );
 				if ( function_exists( 'get_field_object' ) ) {
-					$field_object = get_field_object( $field_name, $post_id );
+					// Use cache to avoid repeated get_field_object calls
+					if ( ! isset( $acf_field_cache[$field_name] ) ) {
+						$acf_field_cache[$field_name] = get_field_object( $field_name );
+					}
+					$field_object = $acf_field_cache[$field_name];
+					
 					if ( $field_object ) {
-						$acf_value = $field_object['value'];
+						$acf_value = get_field( $field_name, $post_id );
 						if ( $field_object['type'] === 'taxonomy' ) {
 							$term_names = [];
 							if ( is_array( $acf_value ) ) {
@@ -310,14 +374,16 @@ function swift_csv_ajax_export_handler() {
 								$term_names[] = $acf_value;
 							}
 							$value = implode( '|', $term_names );
-						} elseif ( is_array( $acf_value ) ) {
-							$value = implode( '|', $acf_value );
-						} elseif ( is_object( $acf_value ) ) {
-							$value = serialize( $acf_value );
 						} else {
-							$value = (string) $acf_value;
+							if ( is_array( $acf_value ) ) {
+								$acf_value = implode( '|', $acf_value );
+							}
+							$clean_value = strip_tags( (string) $acf_value );
+							$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
+							$value = str_replace( ',', ';', $clean_value );
 						}
-						$value = str_replace( ',', ';', (string) $value );
+					} else {
+						$value = '';
 					}
 				} else {
 					$value = '';
@@ -331,14 +397,13 @@ function swift_csv_ajax_export_handler() {
 	}
 	
 	$next_row = $start_row + count( $posts );
-	$total_posts = $max_posts; // Use our limit
-	$continue = $next_row < $total_posts;
-	$progress = round( ($next_row / $total_posts) * 100, 2 );
+	$continue = $next_row < $max_posts_to_process;
+	$progress = round( ($next_row / $max_posts_to_process) * 100, 2 );
 	
 	wp_send_json([
 		'success' => true,
-		'processed' => $next_row,
-		'total' => $total_posts,
+		'processed' => $start_row + count( $posts ),
+		'total' => $max_posts_to_process,
 		'continue' => $continue,
 		'progress' => $progress,
 		'csv_chunk' => $csv_chunk,

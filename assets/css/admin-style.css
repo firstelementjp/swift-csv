@@ -1,159 +1,5 @@
 /* Swift CSV Admin Styles */
 
-/* Plugin Header - Original FE Search AI Design
-#plugin_header {
-	background: #fff;
-	padding: 0;
-	margin: -20px -20px 20px -20px;
-}
-
-#plugin_header_upper {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 20px 30px;
-	background-color: #f6f7f7;
-	border-bottom: 1px solid #ccd0d4;
-}
-
-#plugin_header_title {
-	font-size: 24px;
-	font-weight: 600;
-	margin: 0;
-	display: flex;
-	align-items: center;
-	color: #23282d;
-}
-
-#plugin_header_title span {
-	color: #0073aa;
-	font-weight: 700;
-}
-
-#plugin_logo img {
-	height: 27px;
-	width: auto;
-	opacity: 0.8;
-	transition: opacity 0.3s ease;
-}
-
-#plugin_logo:hover img {
-	opacity: 1;
-}
-
-#plugin_version {
-	font-size: 13px;
-	color: #666;
-	padding: 10px 30px;
-	background-color: #fff;
-	border-bottom: 1px solid #e5e5e5;
-}
-
-#plugin_support {
-	display: flex;
-	gap: 20px;
-	align-items: center;
-	flex-wrap: wrap;
-	padding: 15px 30px;
-	background-color: #fff;
-}
-
-#plugin_support a {
-	color: #0073aa;
-	text-decoration: none;
-	font-size: 14px;
-	font-weight: 500;
-	transition: color 0.3s ease;
-	padding: 5px 0;
-}
-
-#plugin_support a:hover {
-	color: #005a87;
-	text-decoration: underline;
-}
-
-#plugin_support .icon {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-#plugin_support .icon svg {
-	width: 16px;
-	height: 16px;
-	fill: currentColor;
-	margin-right: 5px;
-}
-
-#plugin_support .icon_gh svg,
-#plugin_support .icon_yt svg,
-#plugin_support .icon_tw svg,
-#plugin_support .icon_fb svg,
-#plugin_support .icon_mail svg {
-	width: 20px;
-	height: 20px;
-	margin-right: 0;
-} */
-
-/* Responsive Design */
-@media (max-width: 768px) {
-	/* #plugin_header_upper {
-		flex-direction: column;
-		gap: 15px;
-		text-align: center;
-		padding: 15px 20px;
-	}
-	
-	#plugin_support {
-		justify-content: center;
-		gap: 15px;
-		padding: 15px 20px;
-		flex-wrap: wrap;
-	}
-	
-	#plugin_support a {
-		font-size: 13px;
-	}
-}
-
-@media (max-width: 480px) {
-	#plugin_header_upper {
-		padding: 10px 15px;
-	}
-	
-	#plugin_header_title {
-		font-size: 20px;
-	}
-	
-	#plugin_version {
-		padding: 8px 15px;
-		font-size: 12px;
-	}
-	
-	#plugin_support {
-		gap: 10px;
-		padding: 10px 15px;
-	}
-	
-	#plugin_support a {
-		font-size: 12px;
-	}
-	
-	#plugin_support .icon svg {
-		width: 14px;
-		height: 14px;
-	}
-	
-	#plugin_support .icon_gh svg,
-	#plugin_support .icon_yt svg,
-	#plugin_support .icon_tw svg,
-	#plugin_support .icon_fb svg,
-	#plugin_support .icon_mail svg {
-		width: 16px;
-		height: 16px;
-	} */
-}
-
 /* ==========================================================================
 	Header
 	========================================================================== */
@@ -496,4 +342,137 @@
 	.progress-text {
 		text-align: center;
 	}
+}
+
+/* ==========================================================================
+	Batch Progress Styles
+	========================================================================== */
+
+.progress-bar {
+	width: 100%;
+	height: 20px;
+	background-color: #f0f0f0;
+	border-radius: 10px;
+	overflow: hidden;
+	margin-bottom: 10px;
+}
+
+.progress-bar-fill {
+	height: 100%;
+	background-color: #0073aa;
+	transition: width 0.3s ease;
+}
+
+.progress-bar.completed .progress-bar-fill {
+	background-color: #46b450;
+}
+
+.progress-stats {
+	font-weight: bold;
+	margin-bottom: 15px;
+}
+
+.progress-details {
+	display: flex;
+	gap: 20px;
+	margin-bottom: 15px;
+}
+
+.progress-details div {
+	padding: 5px 10px;
+	background-color: #f9f9f9;
+	border-radius: 3px;
+}
+
+.swift-csv-batch-errors {
+	margin-top: 20px;
+}
+
+.error-list {
+	max-height: 200px;
+	overflow-y: auto;
+	background-color: #fef7f7;
+	border: 1px solid #dc3232;
+	padding: 10px;
+	border-radius: 3px;
+}
+
+.error-list li {
+	color: #dc3232;
+	margin-bottom: 5px;
+}
+
+/* ==========================================================================
+	Ajax Export Progress Styles
+	========================================================================== */
+
+#swift-csv-ajax-export-progress {
+	margin-top: 20px;
+	padding: 20px;
+	background-color: #f9f9f9;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+}
+
+#swift-csv-ajax-export-progress .progress-info {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin: 15px 0;
+	padding: 10px;
+	background-color: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+}
+
+#swift-csv-ajax-export-progress .progress-count,
+#swift-csv-ajax-export-progress .progress-percentage {
+	flex: 1;
+	text-align: center;
+}
+
+#swift-csv-ajax-export-progress .progress-count {
+	border-right: 1px solid #e0e0e0;
+}
+
+#swift-csv-ajax-export-progress .progress-percentage {
+	border-left: 1px solid #e0e0e0;
+}
+
+#swift-csv-ajax-export-progress .progress-stats {
+	font-weight: bold;
+	margin: 10px 0;
+	text-align: center;
+}
+
+#swift-csv-ajax-export-progress .progress-status {
+	text-align: center;
+	margin: 10px 0;
+	font-weight: bold;
+	color: #0073aa;
+}
+
+#swift-csv-ajax-export-progress .progress-time {
+	text-align: center;
+	color: #666;
+	font-size: 12px;
+	margin: 5px 0;
+}
+
+#swift-csv-ajax-export-progress #ajax-export-download-link {
+	text-align: center;
+	margin-top: 15px;
+}
+
+/* Cancel button styling */
+#ajax-export-cancel-btn {
+	margin-left: 10px;
+	background-color: #dc3545;
+	color: white;
+	border-color: #dc3545;
+}
+
+#ajax-export-cancel-btn:hover {
+	background-color: #c82333;
+	border-color: #bd2130;
 }

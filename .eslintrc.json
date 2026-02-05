@@ -1,25 +1,25 @@
 {
-	"env": {
-		"browser": true,
-		"es2021": true,
-		"jquery": true
-	},
-	"extends": ["eslint:recommended", "wordpress"],
-	"parserOptions": {
-		"ecmaVersion": 13,
-		"sourceType": "module"
-	},
+	"extends": ["plugin:@wordpress/eslint-plugin/recommended", "plugin:prettier/recommended"],
 	"rules": {
-		"semi": ["error", "always"],
-		"quotes": ["error", "single"],
-		"indent": ["error", 4, { "SwitchCase": 1 }],
+		"prettier/prettier": "error",
+		"indent": "off",
+		"semi": "off",
+		"linebreak-style": ["error", "unix"],
 		"comma-dangle": ["error", "only-multiline"],
-		"no-console": "warn",
-		"no-unused-vars": "warn"
+		"object-curly-spacing": ["error", "always"],
+		"array-bracket-spacing": ["error", "never"],
+		"keyword-spacing": ["error", { "before": true, "after": true }],
+		"camelcase": "off",
+		"@wordpress/no-unused-vars-before-return": ["error", { "excludePattern": "^_" }],
+		"@wordpress/no-global-active-element": "warn",
+		"@wordpress/no-global-get-selection": "warn"
 	},
 	"globals": {
 		"jQuery": "readonly",
-		"wp": "readonly",
-		"feAiSearch": "readonly"
+		"wp": "readonly"
+	},
+	"env": {
+		"browser": true,
+		"jquery": true
 	}
 }

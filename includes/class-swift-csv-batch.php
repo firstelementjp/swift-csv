@@ -133,7 +133,7 @@ class Swift_CSV_Batch {
 
 		// Schedule first batch processing - temporarily disabled to avoid cron locks
 		// wp_schedule_single_event( time(), 'swift_csv_process_batch', [ $batch_id ] );
-		error_log( "Swift CSV: Cron scheduling disabled to avoid locks" );
+		error_log( 'Swift CSV: Cron scheduling disabled to avoid locks' );
 
 		return $batch_id;
 	}
@@ -151,7 +151,7 @@ class Swift_CSV_Batch {
 		global $wpdb;
 
 		// Debug log
-		error_log( "Processing batch: " . $batch_id );
+		error_log( 'Processing batch: ' . $batch_id );
 
 		$table_name = $wpdb->prefix . 'swift_csv_batches';
 		$batch      = $wpdb->get_row(
@@ -185,8 +185,8 @@ class Swift_CSV_Batch {
 		$csv_data = $this->read_csv_rows( $batch->file_path, $start_row, $end_row );
 		$headers  = $this->read_csv_rows( $batch->file_path, 0, 0 )[0];
 
-		error_log( "CSV data count: " . count($csv_data) );
-		error_log( "Headers count: " . count($headers) );
+		error_log( 'CSV data count: ' . count( $csv_data ) );
+		error_log( 'Headers count: ' . count( $headers ) );
 
 		// Create field mapping
 		$importer = new Swift_CSV_Importer();
@@ -234,24 +234,24 @@ class Swift_CSV_Batch {
 			} catch ( Exception $e ) {
 				$errors[] = '行 ' . ( $actual_row_index + 1 ) . ': ' . $e->getMessage();
 				error_log( 'Batch processing error: ' . $e->getMessage() );
-				
+
 				// Rollback transaction on error
 				$wpdb->query( 'ROLLBACK' );
 				wp_defer_term_counting( false );
 				wp_defer_comment_counting( false );
-				
+
 				// Update batch with error status
 				$wpdb->update(
 					$table_name,
 					[
-						'status' => 'error',
+						'status'     => 'error',
 						'error_rows' => $batch->error_rows + 1,
 					],
 					[ 'batch_id' => $batch_id ],
 					[ '%s', '%d' ],
 					[ '%s' ]
 				);
-				
+
 				return;
 			}
 		}
@@ -285,7 +285,7 @@ class Swift_CSV_Batch {
 		// Schedule next batch if not completed - temporarily disabled to avoid cron locks
 		if ( 'processing' === $status ) {
 			// wp_schedule_single_event( time() + 5, 'swift_csv_process_batch', [ $batch_id ] );
-			error_log( "Swift CSV: Next batch cron scheduling disabled to avoid locks" );
+			error_log( 'Swift CSV: Next batch cron scheduling disabled to avoid locks' );
 		} else {
 			// Restore WordPress optimization when completed
 			wp_defer_term_counting( false );
@@ -346,10 +346,10 @@ class Swift_CSV_Batch {
 		check_ajax_referer( 'swift_csv_batch_nonce', 'nonce' );
 
 		$batch_id = sanitize_text_field( $_POST['batch_id'] );
-		
+
 		// Process one batch before getting progress
 		$this->process_batch( $batch_id );
-		
+
 		$progress = $this->get_batch_progress( $batch_id );
 
 		if ( ! $progress ) {
@@ -370,7 +370,7 @@ class Swift_CSV_Batch {
 
 		$batch_id = sanitize_text_field( $_POST['batch_id'] );
 		$this->process_batch( $batch_id );
-		
+
 		wp_send_json_success( [ 'processed' => true ] );
 	}
 
@@ -440,9 +440,9 @@ class Swift_CSV_Batch {
 	 * @return array  Parsed CSV data for specified rows.
 	 */
 	private function read_csv_rows( $file_path, $start_row, $end_row ) {
-		$csv_data = [];
+		$csv_data  = [];
 		$row_count = 0;
-		
+
 		$handle = fopen( $file_path, 'r' );
 		if ( ! $handle ) {
 			return $csv_data;
@@ -451,7 +451,7 @@ class Swift_CSV_Batch {
 		// Skip to start row
 		while ( $row_count < $start_row && ! feof( $handle ) ) {
 			fgets( $handle );
-			$row_count++;
+			++$row_count;
 		}
 
 		// Read required rows
@@ -460,7 +460,7 @@ class Swift_CSV_Batch {
 			if ( $line !== false ) {
 				$csv_data[] = str_getcsv( $line );
 			}
-			$row_count++;
+			++$row_count;
 		}
 
 		fclose( $handle );
@@ -508,7 +508,7 @@ class Swift_CSV_Batch {
 		wp_mkdir_p( $temp_dir );
 
 		// Generate consistent filename: swiftcsv_export_{post_type}_{date}.csv (using local time)
-		$filename = 'swiftcsv_export_' . $post_type . '_' . date_i18n( 'Y-m-d_H-i-s' ) . '.csv';
+		$filename  = 'swiftcsv_export_' . $post_type . '_' . date_i18n( 'Y-m-d_H-i-s' ) . '.csv';
 		$file_path = $temp_dir . "/{$filename}";
 
 		// Insert batch record
@@ -583,11 +583,11 @@ class Swift_CSV_Batch {
 		$batch_size = 10;
 		$offset     = $batch->processed_rows;
 		$remaining  = max( 0, (int) $batch->total_rows - (int) $offset );
-		
+
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			error_log( '[Swift CSV] Batch details: processed_rows=' . $batch->processed_rows . ', total_rows=' . $batch->total_rows . ', offset=' . $offset );
 		}
-		
+
 		if ( $remaining <= 0 ) {
 			return;
 		}
@@ -607,14 +607,18 @@ class Swift_CSV_Batch {
 				'update_post_term_cache' => false,
 			]
 		);
-		
+
 		// Apply filter to query arguments (same as main exporter)
-		$posts = apply_filters( 'swift_csv_export_batch_query_args', $posts, [
-			'post_type' => $batch->post_type,
-			'limit' => $limit,
-			'offset' => $offset,
-			'batch_id' => $batch_id
-		] );
+		$posts = apply_filters(
+			'swift_csv_export_batch_query_args',
+			$posts,
+			[
+				'post_type' => $batch->post_type,
+				'limit'     => $limit,
+				'offset'    => $offset,
+				'batch_id'  => $batch_id,
+			]
+		);
 
 		// Load full posts
 		$full_posts = [];
@@ -623,9 +627,9 @@ class Swift_CSV_Batch {
 		}
 
 		// Export posts to CSV
-		$with_header = ($offset === 0 || $offset === '0');
-		error_log('[Swift CSV] Export batch: offset=' . $offset . ', with_header=' . ($with_header ? 'true' : 'false'));
-		error_log('[Swift CSV] Offset type: ' . gettype($offset) . ', value: "' . $offset . '"');
+		$with_header = ( $offset === 0 || $offset === '0' );
+		error_log( '[Swift CSV] Export batch: offset=' . $offset . ', with_header=' . ( $with_header ? 'true' : 'false' ) );
+		error_log( '[Swift CSV] Offset type: ' . gettype( $offset ) . ', value: "' . $offset . '"' );
 		$this->export_posts_to_csv( $full_posts, $batch->file_path, $with_header, $batch_id );
 
 		// Update batch progress
@@ -757,8 +761,8 @@ class Swift_CSV_Batch {
 		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
 
 		$transient_key = 'swift_csv_export_custom_fields_' . md5( $file_path );
-		error_log('[Swift CSV Export] Transient key: ' . $transient_key);
-		error_log('[Swift CSV Export] File path: ' . $file_path);
+		error_log( '[Swift CSV Export] Transient key: ' . $transient_key );
+		error_log( '[Swift CSV Export] File path: ' . $file_path );
 
 		// Initialize headers always to avoid undefined variable errors
 		$headers = [ 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date' ];
@@ -768,86 +772,88 @@ class Swift_CSV_Batch {
 			}
 		}
 
-		error_log('[Swift CSV Export] Starting export_posts_to_csv with_header=' . ($with_header ? 'true' : 'false'));
-		
+		error_log( '[Swift CSV Export] Starting export_posts_to_csv with_header=' . ( $with_header ? 'true' : 'false' ) );
+
 		if ( $with_header ) {
 			// Use the same ACF detection logic as the main exporter
 			$custom_fields = [];
-			$acf_fields = [];
+			$acf_fields    = [];
 			$sample_posts  = array_slice( $posts, 0, 5 );
-			
+
 			// First, get all ACF field keys from wp_posts
 			global $wpdb;
 			$acf_field_keys = $wpdb->get_col(
 				"SELECT post_name FROM {$wpdb->posts} 
 				 WHERE post_type = 'acf-field'"
 			);
-			
-			error_log('[Swift CSV Export] Found ACF field keys: ' . print_r($acf_field_keys, true));
-			
+
+			error_log( '[Swift CSV Export] Found ACF field keys: ' . print_r( $acf_field_keys, true ) );
+
 			// Get field key to field name mapping
-			$acf_field_mapping = array();
-			foreach ($acf_field_keys as $field_key) {
-				$field_config = $wpdb->get_var($wpdb->prepare(
-					"SELECT post_content FROM {$wpdb->posts} 
+			$acf_field_mapping = [];
+			foreach ( $acf_field_keys as $field_key ) {
+				$field_config = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT post_content FROM {$wpdb->posts} 
 					 WHERE post_name = %s 
 					 AND post_type = 'acf-field'",
-					$field_key
-				));
-				if ($field_config) {
-					$field_data = maybe_unserialize($field_config);
-					if (is_array($field_data) && isset($field_data['name'])) {
-						$acf_field_mapping[$field_data['name']] = $field_key;
-						error_log('[Swift CSV Export] Found ACF field mapping: ' . $field_data['name'] . ' -> ' . $field_key);
+						$field_key
+					)
+				);
+				if ( $field_config ) {
+					$field_data = maybe_unserialize( $field_config );
+					if ( is_array( $field_data ) && isset( $field_data['name'] ) ) {
+						$acf_field_mapping[ $field_data['name'] ] = $field_key;
+						error_log( '[Swift CSV Export] Found ACF field mapping: ' . $field_data['name'] . ' -> ' . $field_key );
 					}
 				}
 			}
-			
-			error_log('[Swift CSV Export] ACF field mapping: ' . print_r($acf_field_mapping, true));
-			
+
+			error_log( '[Swift CSV Export] ACF field mapping: ' . print_r( $acf_field_mapping, true ) );
+
 			foreach ( $sample_posts as $post ) {
 				$fields = get_post_meta( $post->ID );
-				error_log('[Swift CSV Export] Processing post ID ' . $post->ID . ' with ' . count($fields) . ' meta fields');
+				error_log( '[Swift CSV Export] Processing post ID ' . $post->ID . ' with ' . count( $fields ) . ' meta fields' );
 				foreach ( $fields as $key => $value ) {
 					if ( ! str_starts_with( $key, '_' ) && ! in_array( $key, $custom_fields, true ) && ! in_array( $key, $acf_fields, true ) ) {
 						// Check if this is an ACF field by looking up in our mapping
-						if ( isset( $acf_field_mapping[$key] ) ) {
+						if ( isset( $acf_field_mapping[ $key ] ) ) {
 							// This is an ACF field
 							$acf_fields[] = $key;
-							error_log('[Swift CSV Export] Detected ACF field: ' . $key);
+							error_log( '[Swift CSV Export] Detected ACF field: ' . $key );
 						} else {
 							// This is a regular custom field
 							$custom_fields[] = $key;
-							error_log('[Swift CSV Export] Detected custom field: ' . $key);
+							error_log( '[Swift CSV Export] Detected custom field: ' . $key );
 						}
 					}
 				}
 			}
 
-			error_log('[Swift CSV Export] Final custom fields: ' . print_r($custom_fields, true));
-			error_log('[Swift CSV Export] Final ACF fields: ' . print_r($acf_fields, true));
+			error_log( '[Swift CSV Export] Final custom fields: ' . print_r( $custom_fields, true ) );
+			error_log( '[Swift CSV Export] Final ACF fields: ' . print_r( $acf_fields, true ) );
 
 			// Store both custom fields and ACF fields
-			$transient_data = ['custom' => $custom_fields, 'acf' => $acf_fields];
-			$set_result = set_transient( $transient_key, $transient_data, DAY_IN_SECONDS );
-			error_log('[Swift CSV Export] Stored transient data. Result: ' . ($set_result ? 'success' : 'failed'));
-			error_log('[Swift CSV Export] Transient data stored: ' . print_r($transient_data, true));
+			$transient_data = [ 'custom' => $custom_fields, 'acf' => $acf_fields ];
+			$set_result     = set_transient( $transient_key, $transient_data, DAY_IN_SECONDS );
+			error_log( '[Swift CSV Export] Stored transient data. Result: ' . ( $set_result ? 'success' : 'failed' ) );
+			error_log( '[Swift CSV Export] Transient data stored: ' . print_r( $transient_data, true ) );
 		} else {
-			error_log('[Swift CSV Export] Loading field data from transient');
+			error_log( '[Swift CSV Export] Loading field data from transient' );
 			$field_data = get_transient( $transient_key );
-			error_log('[Swift CSV Export] Transient data: ' . print_r($field_data, true));
+			error_log( '[Swift CSV Export] Transient data: ' . print_r( $field_data, true ) );
 			if ( is_array( $field_data ) ) {
 				$custom_fields = $field_data['custom'] ?? [];
-				$acf_fields = $field_data['acf'] ?? [];
+				$acf_fields    = $field_data['acf'] ?? [];
 			} else {
-				error_log('[Swift CSV Export] No transient data found, using empty arrays');
+				error_log( '[Swift CSV Export] No transient data found, using empty arrays' );
 				$custom_fields = [];
-				$acf_fields = [];
+				$acf_fields    = [];
 			}
 		}
 
-		error_log('[Swift CSV Export] Custom fields count: ' . count($custom_fields));
-		error_log('[Swift CSV Export] ACF fields count: ' . count($acf_fields));
+		error_log( '[Swift CSV Export] Custom fields count: ' . count( $custom_fields ) );
+		error_log( '[Swift CSV Export] ACF fields count: ' . count( $acf_fields ) );
 
 		// Add custom field headers with 'cf_' prefix
 		foreach ( $custom_fields as $field ) {
@@ -858,15 +864,15 @@ class Swift_CSV_Batch {
 		foreach ( $acf_fields as $field ) {
 			$headers[] = 'acf_' . $field;
 		}
-		
-		error_log('[Swift CSV Export] Generated headers: ' . print_r($headers, true));
-		
+
+		error_log( '[Swift CSV Export] Generated headers: ' . print_r( $headers, true ) );
+
 		// Apply filter to headers (same as main exporter)
 		$headers = apply_filters( 'swift_csv_export_headers', $headers, [ 'post_type' => $post_type ] );
-		
+
 		// Extract custom field names from headers (including those added by hooks)
 		$all_custom_fields = [];
-		$all_acf_fields = [];
+		$all_acf_fields    = [];
 		foreach ( $headers as $header ) {
 			if ( str_starts_with( $header, 'cf_' ) ) {
 				$all_custom_fields[] = substr( $header, 3 ); // Remove 'cf_' prefix

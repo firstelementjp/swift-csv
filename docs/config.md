@@ -15,10 +15,8 @@ Detailed configuration settings for Swift CSV.
 - **Output Format**: CSV (fixed)
 - **Character Code**: UTF-8 (fixed)
 - **BOM**: Not supported
-- **Number of posts**: Set the number of posts to export (default: 1000, max: 5000)
-    - Recommended range: 1000-3000 posts for most servers
-    - Larger datasets may timeout due to PHP execution limits
-    - For very large datasets, consider batch processing or server optimization
+- **Number of posts**: Set the number of posts to export (default: 1000)
+    - Large datasets are automatically processed in batches to prevent timeouts
 
 ## Advanced Settings
 
@@ -28,7 +26,7 @@ Memory settings for large file processing:
 
 **Current Implementation**:
 
-- **Export**: Supports up to 5000 posts (recommended: 1000-3000)
+- **Export**: Batch processing supports unlimited posts (processed in chunks)
 - **Import**: Batch processing prevents timeouts for large files over 1000 rows or 10MB
 
 These limits are hardcoded to prevent memory issues and timeouts.

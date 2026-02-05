@@ -226,8 +226,8 @@ class Swift_CSV_Updater {
 				'low'  => SWIFT_CSV_PLUGIN_URL . 'assets/images/banner-772x250.png',
 			],
 			'icons'             => [
-				'1x'  => SWIFT_CSV_PLUGIN_URL . 'assets/images/icon-128x128.png',
-				'2x'  => SWIFT_CSV_PLUGIN_URL . 'assets/images/icon-256x256.png',
+				'1x' => SWIFT_CSV_PLUGIN_URL . 'assets/images/icon-128x128.png',
+				'2x' => SWIFT_CSV_PLUGIN_URL . 'assets/images/icon-256x256.png',
 			],
 		];
 

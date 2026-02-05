@@ -48,7 +48,7 @@ msgstr "Swift CSV アップデート"
 
 #: includes/class-swift-csv-admin.php:59
 msgid "Update Now"
-msgstr "今すぐ更新"
+msgstr "今すぐアップデート"
 
 #: includes/class-swift-csv-admin.php:64
 msgid "Show Release Notes"
@@ -155,8 +155,8 @@ msgid "CSV File"
 msgstr "CSVファイル"
 
 #: includes/class-swift-csv-admin.php:476
-msgid "Please select a UTF-8 encoded CSV file."
-msgstr "UTF-8形式のCSVファイルを選択してください。"
+msgid "CSVファイルを選択してください（UTF-8、Shift_JIS、EUC-JP、JIS対応）。"
+msgstr "CSVファイルを選択してください（UTF-8、Shift_JIS、EUC-JP、JIS対応）。"
 
 #: includes/class-swift-csv-admin.php:477
 msgid "The first row will be used as header for automatic mapping."
@@ -171,8 +171,17 @@ msgid "Update existing posts"
 msgstr "既存投稿を更新"
 
 #: includes/class-swift-csv-admin.php:491
-msgid "Updates existing posts when ID or slug matches."
-msgstr "IDまたはslugが一致する場合、既存投稿を更新します。"
+msgid "Preparing export..."
+msgstr "エクスポートを準備しています..."
+
+msgid "Processing posts..."
+msgstr "投稿を処理しています..."
+
+msgid "Export completed!"
+msgstr "エクスポートが完了しました！"
+
+msgid "Export failed. Please try again."
+msgstr "エクスポートに失敗しました。もう一度お試しください。"
 
 #: includes/class-swift-csv-admin.php:492
 msgid "If unchecked, creates new posts."
@@ -257,3 +266,96 @@ msgstr "新しいバージョン %s が利用可能です。"
 #: includes/class-swift-csv-updater.php:326
 msgid "Plugin is up to date."
 msgstr "プラグインは最新バージョンです。"
+
+#: includes/class-swift-csv-admin.php:381
+msgid "Export Progress"
+msgstr "エクスポート進捗"
+
+#: includes/class-swift-csv-admin.php:410
+msgid "Download CSV"
+msgstr "CSVをダウンロード"
+
+#: includes/class-swift-csv-admin.php:485
+msgid "Import Progress"
+msgstr "インポート進捗"
+
+#: includes/class-swift-csv-admin.php:494
+msgid "Start Import"
+msgstr "インポート開始"
+
+#: includes/class-swift-csv-admin.php:339
+msgid "Export Scope"
+msgstr "エクスポート範囲"
+
+#: includes/class-swift-csv-admin.php:354
+msgid "Advanced"
+msgstr "詳細設定"
+
+#: includes/class-swift-csv-admin.php:365
+msgid "Export Limit"
+msgstr "エクスポート制限"
+
+#: includes/class-swift-csv-admin.php:369
+msgid "Maximum number of posts to export. Enter 0 for no limit."
+msgstr "エクスポートする最大投稿数。0を指定すると制限なし。"
+
+#: includes/class-swift-csv-admin.php:375
+msgid "Start Export"
+msgstr "エクスポート開始"
+
+#: includes/class-swift-csv-admin.php:474
+msgid "Update Existing Posts"
+msgstr "既存投稿を更新"
+
+#: includes/class-swift-csv-admin.php:478
+msgid "Check to update existing posts based on ID."
+msgstr "IDを基準に既存投稿を更新する場合にチェック。"
+
+#: includes/class-swift-csv-admin.php:368
+msgid "No limit (0 = all)"
+msgstr "制限なし（0 = 全件）"
+
+#: includes/class-swift-csv-admin.php:344
+msgid "Basic Fields"
+msgstr "基本項目"
+
+#: includes/class-swift-csv-admin.php:348
+msgid "All Fields"
+msgstr "全項目"
+
+#: includes/class-swift-csv-admin.php:359
+msgid "Include fields starting with \"_\""
+msgstr "\"_\"から始まるフィールドを含める"
+
+msgid "Processed:"
+msgstr "処理済み:"
+
+msgid "Elapsed: {elapsed}min | Est. remaining: {remaining}min"
+msgstr "経過時間: {elapsed}分 | 残り時間: {remaining}分"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Exporting..."
+msgstr "エクスポート中..."
+
+msgid "Processing..."
+msgstr "処理中..."
+
+msgid "Export completed successfully!"
+msgstr "エクスポートが正常に完了しました！"
+
+msgid "Export cancelled"
+msgstr "エクスポートがキャンセルされました"
+
+msgid "Export failed"
+msgstr "エクスポートに失敗しました"
+
+msgid "Elapsed:"
+msgstr "経過時間:"
+
+msgid "min"
+msgstr "分"
+
+msgid "Est. remaining:"
+msgstr "残り時間:"

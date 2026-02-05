@@ -62,7 +62,7 @@ class Swift_CSV_Admin {
 		if ( 'toplevel_page_swift-csv' === $hook ) {
 			wp_enqueue_style(
 				'swift-csv-admin',
-				SWIFT_CSV_PLUGIN_URL . 'assets/css/style.css',
+				SWIFT_CSV_PLUGIN_URL . 'assets/css/admin-style.min.css',
 				[],
 				SWIFT_CSV_VERSION
 			);
@@ -79,31 +79,37 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	public function enqueue_scripts( $hook ) {
-		// JavaScript disabled - using simple form submission
-		// if ( 'toplevel_page_swift-csv' === $hook ) {
-		// wp_enqueue_script(
-		// 'swift-csv-admin',
-		// SWIFT_CSV_PLUGIN_URL . 'assets/js/admin.js',
-		// [ 'jquery' ],
-		// SWIFT_CSV_VERSION,
-		// true
-		// );
-		//
-		// wp_localize_script(
-		// 'swift-csv-admin',
-		// 'swiftCSV',
-		// [
-		// 'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
-		// 'nonce'    => wp_create_nonce( 'swift_csv_nonce' ),
-		// 'messages' => [
-		// 'preparing'  => __( 'エクスポートを準備しています...', 'swift-csv' ),
-		// 'processing' => __( '投稿を処理しています...', 'swift-csv' ),
-		// 'completed'  => __( 'エクスポートが完了しました！', 'swift-csv' ),
-		// 'error'      => __( 'エクスポートに失敗しました。もう一度お試しください。', 'swift-csv' ),
-		// ],
-		// ]
-		// );
-		// }
+		if ( 'toplevel_page_swift-csv' === $hook ) {
+			wp_register_script(
+				'swift-csv-admin',
+				plugin_dir_url( __FILE__ ) . '../assets/js/admin-scripts.min.js',
+				[ 'wp-i18n' ],
+				SWIFT_CSV_VERSION,
+				true
+			);
+
+			wp_set_script_translations( 'swift-csv-admin', 'swift-csv', plugin_dir_path( __FILE__ ) . 'languages' );
+
+			wp_enqueue_script( 'swift-csv-admin' );
+
+			wp_localize_script(
+				'swift-csv-admin',
+				'swiftCSV',
+				[
+					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
+					'nonce'    => wp_create_nonce( 'swift_csv_nonce' ),
+					'messages' => [
+						'error'      => __( 'An error occurred. Please try again.', 'swift-csv' ),
+						'exporting'  => __( 'Exporting...', 'swift-csv' ),
+						'exportCsv'  => __( 'Export CSV', 'swift-csv' ),
+						'processing' => __( 'Processing...', 'swift-csv' ),
+						'completed'  => __( 'Export completed successfully!', 'swift-csv' ),
+						'cancelled'  => __( 'Export cancelled', 'swift-csv' ),
+						'failed'     => __( 'Export failed', 'swift-csv' ),
+					],
+				]
+			);
+		}
 	}
 
 	/**
@@ -115,17 +121,8 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	private function render_plugin_header() {
-		$locale = get_user_locale();
-
-		$docs_url = 'https://github.com/firstelementjp/swift-csv/wiki';
-		if ( 'ja' === $locale || 'ja_JP' === $locale ) {
-			$docs_url = 'https://github.com/firstelementjp/swift-csv/wiki';
-		}
-
+		$docs_url  = 'https://firstelementjp.github.io/swift-csv/#/';
 		$forum_url = 'https://github.com/firstelementjp/swift-csv/issues';
-		if ( 'ja' === $locale || 'ja_JP' === $locale ) {
-			$forum_url = 'https://github.com/firstelementjp/swift-csv/issues';
-		}
 		?>
 		<div id="plugin_header">
 			<div id="plugin_header_upper">
@@ -237,7 +234,11 @@ class Swift_CSV_Admin {
 			<div class="tab-content">
 				<?php
 				if ( 'export' === $tab ) {
-					$this->render_export_tab();
+					if ( $batch_id ) {
+						$this->render_export_batch_progress( $batch_id );
+					} else {
+						$this->render_export_tab();
+					}
 				} elseif ( $batch_id ) {
 					$this->render_batch_progress( $batch_id );
 				} else {
@@ -250,11 +251,32 @@ class Swift_CSV_Admin {
 	}
 
 	/**
-	 * Render batch progress page
+	 * Render export batch progress
 	 *
-	 * Displays real-time progress of batch import processing.
+	 * @since  1.0.0
+	 * @param  string $batch_id Batch ID to track.
+	 * @return void
+	 */
+	private function render_export_batch_progress( $batch_id ) {
+		?>
+		<div class="card">
+			<h3><?php esc_html_e( 'CSV Export Progress', 'swift-csv' ); ?></h3>
+			<div id="export-batch-progress">
+				<div class="progress-bar">
+					<div class="progress-bar-fill"></div>
+				</div>
+				<div class="progress-stats">
+					<span class="processed-rows">0</span> / <span class="total-rows">0</span> <?php esc_html_e( 'rows processed', 'swift-csv' ); ?> (<span class="percentage">0</span>%)
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render import batch progress
 	 *
-	 * @since  0.9.0
+	 * @since  0.9.3
 	 * @param  string $batch_id Batch ID to track.
 	 * @return void
 	 */
@@ -281,121 +303,6 @@ class Swift_CSV_Admin {
 				<ul class="error-list"></ul>
 			</div>
 		</div>
-
-		<script>
-		jQuery(document).ready(function($) {
-			var batchId = '<?php echo esc_js( $batch_id ); ?>';
-			var progressInterval;
-
-			function updateProgress() {
-				$.ajax({
-					url: ajaxurl,
-					type: 'POST',
-					data: {
-						action: 'swift_csv_batch_progress',
-						nonce: '<?php echo wp_create_nonce( 'swift_csv_batch_nonce' ); ?>',
-						batch_id: batchId
-					},
-					success: function(response) {
-						if (response.success) {
-							var data = response.data;
-
-							// Update progress bar
-							$('.progress-bar-fill').css('width', data.percentage + '%');
-							$('.processed-rows').text(data.processed_rows);
-							$('.total-rows').text(data.total_rows);
-							$('.percentage').text(data.percentage);
-							$('.created-count').text(data.created_rows);
-							$('.updated-count').text(data.updated_rows);
-							$('.error-count').text(data.error_rows);
-							
-							// Add ribbon classes if values exist
-							if (data.created_rows > 0) {
-								$('.created').addClass('has-count');
-							}
-							if (data.updated_rows > 0) {
-								$('.modified').addClass('has-count');
-							}
-							if (data.error_rows > 0) {
-								$('.errors').addClass('has-count');
-							}
-
-							// Show errors if any
-							if (data.errors && data.errors.length > 0) {
-								$('#batch-errors').show();
-								var errorList = $('.error-list');
-								errorList.empty();
-								$.each(data.errors, function(index, error) {
-									errorList.append('<li>' + error + '</li>');
-								});
-							}
-
-							// Stop polling if completed
-							if (data.status === 'completed') {
-								clearInterval(progressInterval);
-								$('.progress-bar').addClass('completed');
-								// For UI testing: don't redirect, just show completion
-								console.log('Batch processing completed - staying on page for UI testing');
-							}
-						}
-					},
-					error: function() {
-						clearInterval(progressInterval);
-						alert('<?php esc_html_e( 'Failed to get progress.', 'swift-csv' ); ?>');
-					}
-				});
-			}
-
-			// Start progress monitoring
-			progressInterval = setInterval(updateProgress, 2000);
-			updateProgress(); // Initial call
-		});
-		</script>
-
-		<style>
-		.progress-bar {
-			width: 100%;
-			height: 20px;
-			background-color: #f0f0f0;
-			border-radius: 10px;
-			overflow: hidden;
-			margin-bottom: 10px;
-		}
-		.progress-bar-fill {
-			height: 100%;
-			background-color: #0073aa;
-			transition: width 0.3s ease;
-		}
-		.progress-bar.completed .progress-bar-fill {
-			background-color: #46b450;
-		}
-		.progress-stats {
-			font-weight: bold;
-			margin-bottom: 15px;
-		}
-		.progress-details {
-			display: flex;
-			gap: 20px;
-			margin-bottom: 15px;
-		}
-		.progress-details div {
-			padding: 5px 10px;
-			background-color: #f9f9f9;
-			border-radius: 3px;
-		}
-		.error-list {
-			max-height: 200px;
-			overflow-y: auto;
-			background-color: #fef7f7;
-			border: 1px solid #dc3232;
-			padding: 10px;
-			border-radius: 3px;
-		}
-		.error-list li {
-			color: #dc3232;
-			margin-bottom: 5px;
-		}
-		</style>
 		<?php
 	}
 
@@ -414,134 +321,187 @@ class Swift_CSV_Admin {
 		?>
 		<div class="card">
 			<h3><?php esc_html_e( 'Export Post Data', 'swift-csv' ); ?></h3>
-			<form id="swift-csv-export-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-				<?php wp_nonce_field( 'swift_csv_export', 'csv_export_nonce' ); ?>
 
-				<table class="form-table">
-					<tr>
-						<th scope="row">
-							<label for="post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
-						</th>
-						<td>
-							<select name="post_type" id="post_type" required>
-								<?php foreach ( $post_types as $post_type ) : ?>
-									<option value="<?php echo esc_attr( $post_type->name ); ?>">
-										<?php echo esc_html( $post_type->labels->name ); ?>
-									</option>
-								<?php endforeach; ?>
-							</select>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="posts_per_page"><?php esc_html_e( 'Number of Posts', 'swift-csv' ); ?></label>
-						</th>
-						<td>
-							<input type="number" name="posts_per_page" id="posts_per_page" value="1000" min="1" max="5000">
-							<p class="description"><?php esc_html_e( 'エクスポートする投稿数（推奨：ほとんどのサーバーで1000-3000件）', 'swift-csv' ); ?></p>
-						</td>
-					</tr>
-				</table>
+			<!-- Ajax Export Option -->
+			<div class="card" style="background-color: #f9f9f9; border-left: 4px solid #0073aa;">
+				<form id="swift-csv-ajax-export-form" onsubmit="return false;">
+					<table class="form-table">
+						<tr>
+							<th scope="row">
+								<label for="ajax_export_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
+							</th>
+							<td>
+								<select name="post_type" id="ajax_export_post_type" required>
+									<?php foreach ( $post_types as $post_type ) : ?>
+										<option value="<?php echo esc_attr( $post_type->name ); ?>">
+											<?php echo esc_html( $post_type->labels->name ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">
+								<?php esc_html_e( 'Export Scope', 'swift-csv' ); ?>
+							</th>
+							<td>
+								<label style="display:block;">
+									<input type="radio" name="export_scope" value="basic" checked>
+									<?php esc_html_e( 'Basic Fields', 'swift-csv' ); ?>
+								</label>
+								<label style="display:block;">
+									<input type="radio" name="export_scope" value="all">
+									<?php esc_html_e( 'All Fields', 'swift-csv' ); ?>
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">
+								<?php esc_html_e( 'Advanced', 'swift-csv' ); ?>
+							</th>
+							<td>
+								<label>
+									<input type="checkbox" name="include_private_meta" value="1">
+									<?php esc_html_e( 'Include fields starting with "_"', 'swift-csv' ); ?>
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">
+								<label for="export_limit"><?php esc_html_e( 'Export Limit', 'swift-csv' ); ?></label>
+							</th>
+							<td>
+								<input type="number" name="export_limit" id="export_limit" min="0" value="1000" placeholder="<?php esc_attr_e( 'No limit (0 = all)', 'swift-csv' ); ?>" class="small-text">
+								<p class="description"><?php esc_html_e( 'Maximum number of posts to export. Enter 0 for no limit.', 'swift-csv' ); ?></p>
+							</td>
+						</tr>
+					</table>
 
-				<!-- Batch Export Progress -->
-				<div id="swift-csv-export-progress" style="display: none;">
-					<h3><?php esc_html_e( 'エクスポート進捗', 'swift-csv' ); ?></h3>
+					<p class="submit">
+						<input type="submit" name="ajax_export_csv" class="button button-primary" id="ajax-export-csv-btn" value="<?php esc_html_e( 'Start Export', 'swift-csv' ); ?>">
+						<button type="button" class="button" id="ajax-export-cancel-btn" style="display: none;">
+							<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
+						</button>
+					</p>
+				</form>
+
+				<!-- Ajax Export Progress -->
+				<div id="swift-csv-ajax-export-progress" style="display: none;">
+					<h3><?php esc_html_e( 'Export Progress', 'swift-csv' ); ?></h3>
+					
+					<!-- Progress Bar -->
 					<div class="progress-bar-container">
 						<div class="progress-bar">
-							<div class="progress-fill" style="width: 0%"></div>
+							<div class="progress-bar-fill" style="width: 0%"></div>
 						</div>
 						<span class="progress-text">0%</span>
 					</div>
-					<p class="progress-status"><?php esc_html_e( 'エクスポートを準備しています...', 'swift-csv' ); ?></p>
-					<div id="export-download-link" style="display: none;">
+					
+					<!-- Progress Details -->
+					<div class="progress-info">
+						<div class="progress-count">
+							<strong><?php esc_html_e( 'Processed:', 'swift-csv' ); ?></strong> 
+							<span class="progress-processed">0</span> / <span class="progress-total">0</span> <?php esc_html_e( 'posts', 'swift-csv' ); ?>
+						</div>
+					</div>
+					
+					<!-- Status and Time -->
+					<p class="progress-status"><?php esc_html_e( 'Preparing export...', 'swift-csv' ); ?></p>
+					<div class="progress-time">
+						<?php esc_html_e( 'Elapsed:', 'swift-csv' ); ?> <span class="progress-elapsed">0</span><?php esc_html_e( 'min', 'swift-csv' ); ?> | <?php esc_html_e( 'Est. remaining:', 'swift-csv' ); ?> <span class="progress-remaining">0</span><?php esc_html_e( 'min', 'swift-csv' ); ?>
+					</div>
+					
+					<!-- Download Link -->
+					<div id="ajax-export-download-link" style="display: none;">
 						<a href="#" class="button button-primary" download>
-							<?php esc_html_e( 'CSVをダウンロード', 'swift-csv' ); ?>
+							<?php esc_html_e( 'Download CSV', 'swift-csv' ); ?>
 						</a>
 					</div>
 				</div>
-
-				<p class="submit">
-					<input type="hidden" name="action" value="swift_csv_export">
-					<input type="submit" name="export_csv" class="button button-primary" id="export-csv-btn" value="<?php esc_html_e( 'Export CSV', 'swift-csv' ); ?>">
-				</p>
-			</form>
-			<?php
-			$batch_id = isset( $_GET['batch'] ) ? sanitize_text_field( $_GET['batch'] ) : '';
-			if ( ! empty( $batch_id ) ) :
-				$ajax_url = admin_url( 'admin-ajax.php' );
-				$nonce    = wp_create_nonce( 'swift_csv_nonce' );
-				?>
-				<script>
-					(function () {
-						var batchId = <?php echo wp_json_encode( $batch_id ); ?>;
-						var ajaxUrl = <?php echo wp_json_encode( $ajax_url ); ?>;
-						var nonce = <?php echo wp_json_encode( $nonce ); ?>;
-						var progressEl = document.getElementById('swift-csv-export-progress');
-						var fillEl = progressEl ? progressEl.querySelector('.progress-fill') : null;
-						var textEl = progressEl ? progressEl.querySelector('.progress-text') : null;
-						var statusEl = progressEl ? progressEl.querySelector('.progress-status') : null;
-						var linkWrapEl = document.getElementById('export-download-link');
-						var linkEl = linkWrapEl ? linkWrapEl.querySelector('a') : null;
-
-						if (progressEl) {
-							progressEl.style.display = 'block';
-						}
-
-						function poll() {
-							var body = new URLSearchParams();
-							body.append('action', 'swift_csv_export_progress');
-							body.append('nonce', nonce);
-							body.append('batch_id', batchId);
-
-							fetch(ajaxUrl, {
-								method: 'POST',
-								headers: {
-									'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-								},
-								body: body.toString(),
-								credentials: 'same-origin'
-							})
-							.then(function (r) { return r.json(); })
-							.then(function (json) {
-								if (!json || json.success !== true) {
-									return;
-								}
-
-								var total = parseInt(json.total_rows || 0, 10);
-								var done = parseInt(json.processed_rows || 0, 10);
-								var percent = total > 0 ? Math.floor((done / total) * 100) : 0;
-
-								if (fillEl) {
-									fillEl.style.width = percent + '%';
-								}
-								if (textEl) {
-									textEl.textContent = percent + '%';
-								}
-								if (statusEl) {
-									statusEl.textContent = done + '/' + total;
-								}
-
-								if (json.completed && json.download_url) {
-									if (linkWrapEl && linkEl) {
-										linkEl.href = json.download_url;
-										linkWrapEl.style.display = 'block';
-									}
-									window.location.href = json.download_url;
-									return;
-								}
-
-								setTimeout(poll, 500);
-							})
-							.catch(function () {
-								setTimeout(poll, 3000);
-							});
-						}
-
-						setTimeout(poll, 300);
-					})();
-				</script>
-			<?php endif; ?>
+			</div>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Render import tab
+	 *
+	 * @since  0.9.0
+	 * @param  array $import_results Import results from URL parameters.
+	 * @return void
+	 */
+	private function render_import_tab( $import_results = [] ) {
+		// Get all public post types for selection.
+		$post_types = get_post_types( [ 'public' => true ], 'objects' );
+
+		// Display import results if available
+		if ( ! empty( $import_results ) ) {
+			$this->render_import_results( $import_results );
+		}
+
+		?>
+		<div class="card">
+			<h3><?php esc_html_e( 'Import CSV File', 'swift-csv' ); ?></h3>
+
+			<!-- Ajax Import Option -->
+			<div class="card" style="background-color: #f9f9f9; border-left: 4px solid #0073aa;">
+				<form id="swift-csv-ajax-import-form" enctype="multipart/form-data">
+					<table class="form-table">
+						<tr>
+							<th scope="row">
+								<label for="ajax_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
+							</th>
+							<td>
+								<select name="post_type" id="ajax_post_type" required>
+									<?php
+									$post_types = get_post_types( [ 'public' => true ], 'objects' );
+									foreach ( $post_types as $post_type ) :
+										?>
+										<option value="<?php echo esc_attr( $post_type->name ); ?>">
+											<?php echo esc_html( $post_type->labels->name ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p class="description"><?php esc_html_e( 'Select the target post type for import.', 'swift-csv' ); ?></p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">
+								<label for="ajax_csv_file"><?php esc_html_e( 'CSV File', 'swift-csv' ); ?></label>
+							</th>
+							<td>
+								<input type="file" name="csv_file" id="ajax_csv_file" accept=".csv" required>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row">
+								<label for="ajax_update_existing"><?php esc_html_e( 'Update Existing Posts', 'swift-csv' ); ?></label>
+							</th>
+							<td>
+								<input type="checkbox" name="update_existing" id="ajax_update_existing" value="1">
+								<p class="description"><?php esc_html_e( 'Check to update existing posts based on ID.', 'swift-csv' ); ?></p>
+							</td>
+						</tr>
+					</table>
+
+					<!-- Ajax Progress -->
+					<div id="ajax-import-progress" style="display: none;">
+						<h4><?php esc_html_e( 'Import Progress', 'swift-csv' ); ?></h4>
+						<div style="width: 100%; height: 20px; background-color: #f0f0f0; border-radius: 10px;">
+							<div id="ajax-import-bar" style="width: 0%; height: 100%; background-color: #0073aa; border-radius: 10px; transition: width 0.3s;"></div>
+						</div>
+						<p id="ajax-import-status">0%</p>
+					</div>
+
+					<p class="submit">
+						<button type="submit" class="button button-primary">
+							<?php esc_html_e( 'Start Import', 'swift-csv' ); ?>
+						</button>
+					</p>
+				</form>
+			</div>
+		</div>
+
 		<?php
 	}
 
@@ -575,82 +535,6 @@ class Swift_CSV_Admin {
 				</ul>
 			</div>
 		<?php endif; ?>
-		<?php
-	}
-
-	/**
-	 * Render import tab
-	 *
-	 * @since  0.9.0
-	 * @param  array $import_results Import results from URL parameters.
-	 * @return void
-	 */
-	private function render_import_tab( $import_results = [] ) {
-		// Get all public post types for selection.
-		$post_types = get_post_types( [ 'public' => true ], 'objects' );
-
-		// Display import results if available
-		if ( ! empty( $import_results ) ) {
-			$this->render_import_results( $import_results );
-		}
-
-		?>
-		<div class="card">
-			<h3><?php esc_html_e( 'Import CSV File', 'swift-csv' ); ?></h3>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
-				<?php wp_nonce_field( 'swift_csv_import', 'csv_import_nonce' ); ?>
-
-				<table class="form-table">
-					<tr>
-						<th scope="row">
-							<label for="import_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
-						</th>
-						<td>
-							<select name="import_post_type" id="import_post_type" required>
-								<?php foreach ( $post_types as $post_type ) : ?>
-									<option value="<?php echo esc_attr( $post_type->name ); ?>">
-										<?php echo esc_html( $post_type->labels->name ); ?>
-									</option>
-								<?php endforeach; ?>
-							</select>
-							<p class="description"><?php esc_html_e( 'Select the target post type for import.', 'swift-csv' ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="csv_file"><?php esc_html_e( 'CSV File', 'swift-csv' ); ?></label>
-						</th>
-						<td>
-							<input type="file" name="csv_file" id="csv_file" accept=".csv" required>
-							<p class="description">
-								<?php esc_html_e( 'Please select a UTF-8 encoded CSV file.', 'swift-csv' ); ?><br>
-								<?php esc_html_e( 'The first row will be used as header for automatic mapping.', 'swift-csv' ); ?><br>
-								<?php esc_html_e( 'Custom fields should be prefixed with "cf_" (example: cf_price).', 'swift-csv' ); ?>
-							</p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label>
-								<input type="checkbox" name="update_existing" value="1">
-								<?php esc_html_e( 'Update existing posts', 'swift-csv' ); ?>
-							</label>
-						</th>
-						<td>
-							<p class="description">
-								<?php esc_html_e( 'Updates existing posts when ID or slug matches.', 'swift-csv' ); ?><br>
-								<?php esc_html_e( 'If unchecked, creates new posts.', 'swift-csv' ); ?>
-							</p>
-						</td>
-					</tr>
-				</table>
-
-				<p class="submit">
-					<input type="hidden" name="action" value="swift_csv_import">
-					<input type="submit" name="import_csv" class="button button-primary" value="<?php esc_html_e( 'Import CSV', 'swift-csv' ); ?>">
-				</p>
-			</form>
-		</div>
 		<?php
 	}
 }

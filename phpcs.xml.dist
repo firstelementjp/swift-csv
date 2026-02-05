@@ -28,6 +28,16 @@
         <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
     </rule>
 
+    <!-- Enforce spacing in function calls -->
+    <rule ref="PEAR.Functions.FunctionCallSignature">
+        <properties>
+            <property name="requiredSpacesAfterOpen" value="1"/>
+            <property name="requiredSpacesBeforeClose" value="1"/>
+        </properties>
+    </rule>
+
+    <rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie"/>
+
     <!-- Enforce short array syntax (disallow long array() syntax) -->
     <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
 

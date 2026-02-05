@@ -3,7 +3,7 @@
  * Plugin Name:       Swift CSV
  * Plugin URI:        https://github.com/firstelementjp/swift-csv
  * Description:       Lightweight and simple CSV import/export plugin. Supports custom post types, custom taxonomies, and custom fields.
- * Version:           0.9.4
+ * Version:           0.9.5
  * Author:            FirstElement, Inc.
  * Author URI:        https://www.firstelement.co.jp/
  * License:           GPL-2.0+
@@ -32,11 +32,18 @@ define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );
  * @return void
  */
 function swift_csv_load_textdomain() {
-	load_plugin_textdomain(
+	$loaded = load_plugin_textdomain(
 		'swift-csv',
 		false,
 		dirname( SWIFT_CSV_BASENAME ) . '/languages'
 	);
+
+	// Debug: Check if textdomain is loaded
+	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		error_log( 'Swift CSV textdomain loaded: ' . ( $loaded ? 'yes' : 'no' ) );
+		error_log( 'Current locale: ' . get_locale() );
+		error_log( 'Textdomain path: ' . dirname( SWIFT_CSV_BASENAME ) . '/languages' );
+	}
 }
 add_action( 'plugins_loaded', 'swift_csv_load_textdomain' );
 
@@ -46,6 +53,8 @@ require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-exporter.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-importer.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-batch.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-updater.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-import.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';
 
 /**
  * Initialize Swift CSV plugin
@@ -59,7 +68,7 @@ require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-updater.php';
 function swift_csv_init() {
 	new Swift_CSV_Admin();
 	new Swift_CSV_Exporter();
-	new Swift_CSV_Importer();
+	// new Swift_CSV_Importer(); // Currently unused - using ajax-import.php instead
 	new Swift_CSV_Batch();
 	new Swift_CSV_Updater( __FILE__ );
 }

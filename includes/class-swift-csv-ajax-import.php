@@ -104,17 +104,15 @@ function swift_csv_ajax_import_handler() {
     }
     
     $debug_logging = (defined('SWIFT_CSV_DEBUG') && SWIFT_CSV_DEBUG) || (defined('WP_DEBUG') && WP_DEBUG);
-    $log = function( $message ) use ( $debug_logging ) {
-        if ( $debug_logging ) {
-            error_log( $message );
-        }
-    };
-
-    $log("Detected delimiter: '$delimiter'");
-    $log("Total lines after proper parsing: " . count($lines));
     
     $headers = str_getcsv(array_shift($lines), $delimiter);
-    $log("Headers: " . print_r($headers, true));
+    // Normalize headers - remove BOM and control characters
+    $headers = array_map(function($header) {
+        // Remove BOM (UTF-8 BOM is \xEF\xBB\xBF)
+        $header = preg_replace('/^\xEF\xBB\xBF/', '', $header);
+        // Remove other control characters
+        return preg_replace('/[\x00-\x1F\x7F]/u', '', trim($header ?? ''));
+    }, $headers);
 
     $allowed_post_fields = [
         'post_title',
@@ -135,23 +133,21 @@ function swift_csv_ajax_import_handler() {
     ];
 
     $id_col = array_search('ID', $headers, true);
-    if ($id_col !== 0) {
-        wp_send_json(['error' => 'Invalid CSV format: ID column must be the first column']);
+    if ($id_col === false) {
+        wp_send_json(['error' => 'Invalid CSV format: ID column is required']);
         return;
     }
     
     $total_rows = count($lines);
-    $log("Total data rows: $total_rows");
     
     $processed = 0;
     $errors = 0;
     
     // Process small batch
-    $log("Starting batch processing from row $start_row to " . min($start_row + $batch_size, $total_rows));
     
     for ($i = $start_row; $i < min($start_row + $batch_size, $total_rows); $i++) {
         if (empty(trim($lines[$i]))) {
-            $log("Skipping empty line $i");
+            $processed++; // Count empty lines as processed to avoid infinite loop
             continue;
         }
         
@@ -160,11 +156,9 @@ function swift_csv_ajax_import_handler() {
         // First check if this looks like an ID row (first column is numeric ID)
         $first_col = $data[0] ?? '';
         if (is_numeric($first_col) && strlen($first_col) <= 6) {
-            $log("Found ID row: $first_col - processing normally");
             // This is normal - most rows have ID in first column
             // Don't skip - process the actual data
         } else {
-            $log("Unexpected first column: '$first_col' - might be header or malformed data");
             // Continue processing anyway
         }
         
@@ -210,21 +204,17 @@ function swift_csv_ajax_import_handler() {
             ));
             
             if ($existing_post_id) {
-                $log("Found existing post: $existing_post_id for CSV ID: $post_id_from_csv");
                 $post_id = $existing_post_id;
                 $is_update = true;
             } else {
-                $log("No existing post found for CSV ID: $post_id_from_csv - skipping in update mode");
                 continue;
             }
         } else {
-            $log("Update existing is disabled or no CSV ID - creating new post");
         }
         
         // Validation
         if ($update_existing !== '1') {
             if (empty($post_fields_from_csv['post_title'])) {
-                $log("Skipping row $i - no post_title for insert");
                 continue;
             }
         }
@@ -266,7 +256,6 @@ function swift_csv_ajax_import_handler() {
             
             if ($is_update) {
                 if (empty($post_data)) {
-                    $log("No post fields to update for post ID $post_id");
                     $result = 0;
                 } else {
                     $post_data_formats = [];
@@ -281,7 +270,6 @@ function swift_csv_ajax_import_handler() {
                         ['%d']
                     );
                 }
-                $log("Updated post: $post_id");
             } else {
                 $post_data_formats = [];
                 foreach (array_keys($post_data) as $key) {
@@ -290,7 +278,6 @@ function swift_csv_ajax_import_handler() {
                 $result = $wpdb->insert($wpdb->posts, $post_data, $post_data_formats);
                 if ($result !== false) {
                     $post_id = $wpdb->insert_id;
-                    $log("Created new post: $post_id");
                 }
             }
             
@@ -309,7 +296,6 @@ function swift_csv_ajax_import_handler() {
                 }
                 
                 // Process custom fields and taxonomies like original Swift CSV
-                $log("Processing custom fields for post ID $post_id");
                 $meta_fields = [];
                 $taxonomies = [];
                 $taxonomy_term_ids = []; // Store term_ids for reuse in ACF fields
@@ -353,7 +339,6 @@ function swift_csv_ajax_import_handler() {
                             $acf_field_keys[ $field_name ] = $field_key;
                             $acf_field_names[ $field_name ] = true;
                             $meta_fields[ '_' . $field_name ] = $field_key;
-                            $log( "Stored ACF field key: _{$field_name} = {$field_key}" );
                         }
                     }
                 }
@@ -373,7 +358,6 @@ function swift_csv_ajax_import_handler() {
                     }
 
                     $meta_value = $data[$j];
-                    $log("Processing header: '$header_name' with value: '$meta_value'");
 
                     // Do not store post fields as meta
                     if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
@@ -398,21 +382,16 @@ function swift_csv_ajax_import_handler() {
                                     $term = get_term_by('name', $term_name, $taxonomy_name);
                                     if ($term) {
                                         $term_ids[] = $term->term_id;
-                                        $log("Found existing term '$term_name' (ID: {$term->term_id}) in taxonomy '$taxonomy_name'");
                                     } else {
-                                        $log("Term '$term_name' not found in taxonomy '$taxonomy_name' - skipping");
                                     }
                                 }
                             }
                             if (!empty($term_ids)) {
                                 $taxonomy_term_ids[$taxonomy_name] = $term_ids;
-                                $log("Stored term_ids for taxonomy '$taxonomy_name': [" . implode(', ', $term_ids) . "]");
                             }
                         } else {
-                            $log("Taxonomy '$taxonomy_name' does not exist - skipping field '$header_name'");
                         }
                         
-                        $log("Taxonomy field: '$header_name' with terms: " . implode(', ', $terms));
                     } else {
                         // Handle ACF value columns (acf_<field>)
                         if (strpos($header_name_normalized, 'acf_') === 0) {
@@ -422,7 +401,6 @@ function swift_csv_ajax_import_handler() {
                                 $field_key = preg_replace( '/[\x00-\x1F\x7F]/', '', $field_key );
                                 $field_key = trim($field_key);
                             }
-                            $log("ACF value column detected: {$field_name} (field_key=" . ($field_key ?: 'missing') . ")");
 
                             // If field_key is missing/invalid, ignore this ACF column.
                             if ( ! $field_key || strpos( $field_key, 'field_' ) !== 0 ) {
@@ -441,9 +419,7 @@ function swift_csv_ajax_import_handler() {
                             $taxonomy = is_array($field_data) && isset($field_data['taxonomy']) ? $field_data['taxonomy'] : '';
 
                             if ($field_type) {
-                                $log("ACF field resolved: {$field_name} type={$field_type} taxonomy={$taxonomy}");
                             } else {
-                                $log("ACF field definition not found for {$field_name} (field_key={$field_key})");
                                 continue;
                             }
 
@@ -498,7 +474,6 @@ function swift_csv_ajax_import_handler() {
                                 continue;
                             }
                             $meta_fields[$clean_field_name] = (string)$meta_value;
-                            $log("Custom field: '$clean_field_name' = '$meta_value'");
                         }
                     }
                 }
@@ -589,7 +564,6 @@ function swift_csv_ajax_import_handler() {
 	$next_row = $start_row + $processed; // Use actual processed count instead of batch_size
 	$continue = $next_row < $total_rows;
     
-    $log("Batch completed: processed=$processed, errors=$errors, next_row=$next_row, total=$total_rows, continue=" . ($continue ? 'yes' : 'no'));
     
     wp_send_json([
         'processed' => $next_row,

@@ -569,7 +569,81 @@ class Swift_CSV_Importer {
 
 				case 'meta_field':
 					if ( ! empty( $value ) ) {
-						$meta_fields[ $map['meta_key'] ] = $value;
+						// Handle ACF fields with special processing
+						if ( str_starts_with( $map['meta_key'], 'acf_' ) ) {
+							$field_name = substr( $map['meta_key'], 4 );
+							$this->_debugLog( '[ACF Import] Processing ACF field: ' . $field_name . ' with value: ' . $value );
+							
+							// Check if this is an ACF taxonomy field
+							if ( function_exists( 'get_field_object' ) ) {
+								$field_object = get_field_object( $field_name );
+								$this->_debugLog( '[ACF Import] Field object: ' . print_r( $field_object, true ) );
+								
+								if ( $field_object && $field_object['type'] === 'taxonomy' ) {
+									$this->_debugLog( '[ACF Import] Processing taxonomy field' );
+									// ACF taxonomy field - convert term names back to term IDs
+									$term_names = array_map( 'trim', explode( '|', $value ) );
+									$term_ids = array();
+									
+									foreach ( $term_names as $term_name ) {
+										if ( ! empty( $term_name ) ) {
+											$term = get_term_by( 'name', $term_name, $field_object['taxonomy'] );
+											if ( $term ) {
+												$term_ids[] = $term->term_id;
+												$this->_debugLog( '[ACF Import] Found term: ' . $term_name . ' -> ID: ' . $term->term_id );
+											} else {
+												$this->_debugLog( '[ACF Import] Term not found: ' . $term_name );
+											}
+										}
+									}
+									
+									// Save as ACF taxonomy field (term IDs)
+									if ( ! empty( $term_ids ) ) {
+										$this->_debugLog( '[ACF Import] Saving taxonomy field with term IDs: ' . implode( ',', $term_ids ) );
+										update_field( $field_name, $term_ids, $post_id );
+									} else {
+										$this->_debugLog( '[ACF Import] No valid term IDs found' );
+									}
+								} elseif ( $field_object && in_array( $field_object['type'], ['checkbox', 'select', 'relationship', 'post_object', 'user', 'google_map', 'date_picker', 'date_time_picker', 'time_picker', 'color_picker', 'file', 'image', 'gallery', 'oembed', 'wysiwyg', 'textarea', 'text', 'number', 'email', 'url', 'password'] ) ) {
+									$this->_debugLog( '[ACF Import] Processing field type: ' . $field_object['type'] );
+									// Handle other ACF field types that might have array values
+									$processed_value = $value;
+									
+									// For fields that should be arrays
+									if ( in_array( $field_object['type'], ['checkbox', 'select', 'relationship', 'post_object', 'user', 'gallery'] ) ) {
+										if ( strpos( $value, '|' ) !== false ) {
+											$processed_value = array_map( 'trim', explode( '|', $value ) );
+											$this->_debugLog( '[ACF Import] Converted to array: ' . print_r( $processed_value, true ) );
+										}
+									}
+									
+									// For text fields with quotes, remove quotes
+									if ( in_array( $field_object['type'], ['text', 'textarea', 'wysiwyg'] ) ) {
+										if ( str_starts_with( $value, '"' ) && str_ends_with( $value, '"' ) ) {
+											$processed_value = substr( $value, 1, -1 );
+											// Unescape double quotes
+											$processed_value = str_replace( '""', '"', $processed_value );
+											$this->_debugLog( '[ACF Import] Removed quotes: ' . $processed_value );
+										}
+									}
+									
+									$this->_debugLog( '[ACF Import] Saving field with value: ' . print_r( $processed_value, true ) );
+									update_field( $field_name, $processed_value, $post_id );
+								} else {
+									$this->_debugLog( '[ACF Import] Regular ACF field, saving as-is' );
+									// Regular ACF field - save normally
+									update_field( $field_name, $value, $post_id );
+								}
+							} else {
+								$this->_debugLog( '[ACF Import] ACF not available' );
+								// ACF not available, save as regular meta
+								$meta_fields[ $map['meta_key'] ] = $value;
+							}
+						} else {
+							$this->_debugLog( '[ACF Import] Regular meta field: ' . $map['meta_key'] );
+							// Regular meta field
+							$meta_fields[ $map['meta_key'] ] = $value;
+						}
 					}
 					break;
 			}
@@ -633,6 +707,8 @@ class Swift_CSV_Importer {
 			if ( $value === '' || $value === null ) {
 				continue;
 			}
+			
+			$this->_debugLog( '[Meta Import] Processing meta field: ' . $key . ' with value: ' . $value );
 
 			// Handle multi-value custom fields (pipe-separated)
 			if ( strpos( $value, '|' ) !== false ) {
@@ -643,11 +719,13 @@ class Swift_CSV_Importer {
 				$values = array_map( 'trim', explode( '|', $value ) );
 				foreach ( $values as $single_value ) {
 					if ( $single_value !== '' ) {
+						$this->_debugLog( '[Meta Import] Adding meta value: ' . $single_value );
 						add_post_meta( $post_id, $key, $single_value );
 					}
 				}
 			} else {
 				// Single value (existing behavior)
+				$this->_debugLog( '[Meta Import] Updating meta value: ' . $value );
 				update_post_meta( $post_id, $key, $value );
 			}
 		}

@@ -36,6 +36,7 @@ jobs:
                           .header { text-align: center; margin-bottom: 40px; }
                           .section { margin-bottom: 30px; }
                           .badge { background: #0073aa; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px; }
+                          .download-btn { display: inline-block; background: #0073aa; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
                       </style>
                   </head>
                   <body>
@@ -43,6 +44,11 @@ jobs:
                           <h1>📊 Swift CSV</h1>
                           <p>Lightweight and simple CSV import/export plugin for WordPress</p>
                           <span class="badge">v0.9.5</span>
+                      </div>
+                      
+                      <div class="section">
+                          <h2>🚀 Download</h2>
+                          <a href="https://github.com/firstelementjp/swift-csv/releases/latest" class="download-btn">Download Latest Release</a>
                       </div>
                       
                       <div class="section">

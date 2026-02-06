@@ -834,7 +834,10 @@ class Swift_CSV_Batch {
 			error_log( '[Swift CSV Export] Final ACF fields: ' . print_r( $acf_fields, true ) );
 
 			// Store both custom fields and ACF fields
-			$transient_data = [ 'custom' => $custom_fields, 'acf' => $acf_fields ];
+			$transient_data = [
+				'custom' => $custom_fields,
+				'acf'    => $acf_fields,
+			];
 			$set_result     = set_transient( $transient_key, $transient_data, DAY_IN_SECONDS );
 			error_log( '[Swift CSV Export] Stored transient data. Result: ' . ( $set_result ? 'success' : 'failed' ) );
 			error_log( '[Swift CSV Export] Transient data stored: ' . print_r( $transient_data, true ) );

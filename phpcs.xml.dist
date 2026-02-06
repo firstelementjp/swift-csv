@@ -1,52 +1,41 @@
 <?xml version="1.0"?>
 <ruleset name="Swift CSV">
-    <description>WordPress plugin coding standards ruleset</description>
+    <description>WordPress plugin coding standards</description>
 
-    <!-- Target directory -->
-    <file>.</file>
+    <config name="installed_paths" value="vendor/wp-coding-standards/wpcs,vendor/phpcsstandards/phpcsextra,vendor/phpcsstandards/phpcsutils"/>
 
     <!-- Exclude patterns -->
     <exclude-pattern>*/vendor/*</exclude-pattern>
     <exclude-pattern>*/node_modules/*</exclude-pattern>
-    <exclude-pattern>*/tests/*</exclude-pattern>
-    <exclude-pattern>*.min.js</exclude-pattern>
-    <exclude-pattern>*.min.css</exclude-pattern>
-    <exclude-pattern>*/languages/*</exclude-pattern>
-    <exclude-pattern>*.pot</exclude-pattern>
-    <exclude-pattern>*.po</exclude-pattern>
-    <exclude-pattern>*.mo</exclude-pattern>
 
-    <!-- Execution options -->
-    <arg value="p"/>
+    <!-- Output options -->
+    <arg value="ps"/>
     <arg name="basepath" value="./"/>
+    <arg name="extensions" value="php"/>
 
-    <!-- WordPress coding standards -->
+    <!-- WordPress coding standards (includes WordPress-Core, WordPress-Extra, WordPress-Docs) -->
     <rule ref="WordPress">
-        <!-- Disable array declaration spacing check -->
-        <exclude name="WordPress.Arrays.ArrayDeclarationSpacing"/>
         <!-- Allow short array syntax [] instead of array() -->
         <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
     </rule>
 
-    <!-- Enforce spacing in function calls -->
-    <rule ref="PEAR.Functions.FunctionCallSignature">
-        <properties>
-            <property name="requiredSpacesAfterOpen" value="1"/>
-            <property name="requiredSpacesBeforeClose" value="1"/>
-        </properties>
-    </rule>
-
-    <rule ref="Generic.Functions.OpeningFunctionBraceKernighanRitchie"/>
-
-    <!-- Enforce short array syntax (disallow long array() syntax) -->
+    <!-- Enforce short array syntax -->
     <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
 
-    <!-- I18n: Specify text domain -->
+    <!-- Text domain -->
     <rule ref="WordPress.WP.I18n">
         <properties>
             <property name="text_domain" type="array">
                 <element key="0" value="swift-csv"/>
             </property>
+        </properties>
+    </rule>
+
+    <!-- Minimum supported versions -->
+    <config name="minimum_wp_version" value="6.0"/>
+    <rule ref="WordPress.WP.DeprecatedFunctions">
+        <properties>
+            <property name="minimum_wp_version" value="6.0"/>
         </properties>
     </rule>
 </ruleset>

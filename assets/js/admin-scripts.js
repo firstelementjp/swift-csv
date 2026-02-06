@@ -8,6 +8,9 @@
 const { __ } = window.wp.i18n || { __: text => text };
 
 document.addEventListener('DOMContentLoaded', function () {
+	// Initialize logging system
+	initLoggingSystem();
+
 	// Batch export functionality
 	const exportBtn = document.querySelector('#export-csv-btn');
 	if (exportBtn) {
@@ -17,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			const postsPerPage = document.querySelector('#posts_per_page')?.value;
 
 			if (!postType || !postsPerPage || postsPerPage < 1) {
-				alert(__('An error occurred. Please try again.', 'swift-csv'));
+				addLogEntry(__('An error occurred. Please try again.', 'swift-csv'), 'error');
 				return;
 			}
 
@@ -30,10 +33,173 @@ document.addEventListener('DOMContentLoaded', function () {
 	if (ajaxExportForm) {
 		ajaxExportForm.addEventListener('submit', handleAjaxExport);
 	}
+
+	// Ajax import functionality
+	const ajaxImportForm = document.querySelector('#swift-csv-ajax-import-form');
+	if (ajaxImportForm) {
+		ajaxImportForm.addEventListener('submit', handleAjaxImport);
+	}
+
+	// File upload functionality
+	initFileUpload();
 });
+
+/**
+ * Initialize logging system
+ */
+function initLoggingSystem() {
+	// Clear logs on page load
+	const exportLogContent = document.querySelector('#export-log-content');
+	const importLogContent = document.querySelector('#import-log-content');
+
+	if (exportLogContent) {
+		exportLogContent.innerHTML =
+			'<div class="log-entry log-info">' +
+			__('Ready to start export...', 'swift-csv') +
+			'</div>';
+	}
+
+	if (importLogContent) {
+		importLogContent.innerHTML =
+			'<div class="log-entry log-info">' +
+			__('Ready to start import...', 'swift-csv') +
+			'</div>';
+	}
+}
+
+/**
+ * Add log entry to the log area
+ *
+ * @param {string} message Log message
+ * @param {string} level Log level (info, success, warning, error, debug)
+ * @param {string} context Log context (export, import)
+ */
+function addLogEntry(message, level = 'info', context = 'export') {
+	const logContent = document.querySelector(`#${context}-log-content`);
+	if (!logContent) return;
+
+	const logEntry = document.createElement('div');
+	logEntry.className = `log-entry log-${level}`;
+
+	const timestamp = new Date().toLocaleTimeString();
+	logEntry.textContent = `[${timestamp}] ${message}`;
+
+	logContent.appendChild(logEntry);
+
+	// Auto-scroll to bottom
+	logContent.scrollTop = logContent.scrollHeight;
+
+	// Limit log entries to prevent memory issues
+	const maxEntries = 100;
+	const entries = logContent.querySelectorAll('.log-entry');
+	if (entries.length > maxEntries) {
+		entries[0].remove();
+	}
+}
+
+/**
+ * Clear log entries
+ *
+ * @param {string} context Log context (export, import)
+ */
+function clearLog(context = 'export') {
+	const logContent = document.querySelector(`#${context}-log-content`);
+	if (logContent) {
+		logContent.innerHTML = '';
+	}
+}
+
+/**
+ * Initialize file upload functionality
+ */
+function initFileUpload() {
+	const uploadArea = document.querySelector('#csv-file-upload');
+	const fileInput = document.querySelector('#ajax_csv_file');
+	const fileInfo = document.querySelector('#csv-file-info');
+	const removeBtn = document.querySelector('#remove-file-btn');
+
+	if (!uploadArea || !fileInput) return;
+
+	// Click to upload
+	uploadArea.addEventListener('click', () => {
+		fileInput.click();
+	});
+
+	// Drag and drop
+	uploadArea.addEventListener('dragover', e => {
+		e.preventDefault();
+		uploadArea.classList.add('dragover');
+	});
+
+	uploadArea.addEventListener('dragleave', () => {
+		uploadArea.classList.remove('dragover');
+	});
+
+	uploadArea.addEventListener('drop', e => {
+		e.preventDefault();
+		uploadArea.classList.remove('dragover');
+
+		const files = e.dataTransfer.files;
+		if (files.length > 0) {
+			handleFileSelect(files[0]);
+		}
+	});
+
+	// File selection
+	fileInput.addEventListener('change', e => {
+		if (e.target.files.length > 0) {
+			handleFileSelect(e.target.files[0]);
+		}
+	});
+
+	// Remove file
+	if (removeBtn) {
+		removeBtn.addEventListener('click', () => {
+			fileInput.value = '';
+			uploadArea.style.display = 'block';
+			fileInfo.style.display = 'none';
+			addLogEntry(__('File removed', 'swift-csv'), 'info', 'import');
+		});
+	}
+
+	/**
+	 * Handle file selection
+	 *
+	 * @param {File} file Selected file
+	 */
+	function handleFileSelect(file) {
+		// Validate file type
+		if (!file.name.toLowerCase().endsWith('.csv')) {
+			addLogEntry(__('Please select a CSV file', 'swift-csv'), 'error', 'import');
+			return;
+		}
+
+		// Validate file size (10MB limit)
+		const maxSize = 10 * 1024 * 1024; // 10MB
+		if (file.size > maxSize) {
+			addLogEntry(__('File size exceeds 10MB limit', 'swift-csv'), 'error', 'import');
+			return;
+		}
+
+		// Update UI
+		const fileName = fileInfo.querySelector('.file-name');
+		if (fileName) {
+			fileName.textContent = file.name;
+		}
+
+		uploadArea.style.display = 'none';
+		fileInfo.style.display = 'flex';
+
+		addLogEntry(__('File selected:', 'swift-csv') + ' ' + file.name, 'success', 'import');
+	}
+}
 
 function handleAjaxExport(e) {
 	e.preventDefault();
+
+	// Clear export log
+	clearLog('export');
+	addLogEntry(__('Starting export process...', 'swift-csv'), 'info', 'export');
 
 	const postType = document.querySelector('#ajax_export_post_type')?.value;
 	const exportScope =
@@ -42,29 +208,35 @@ function handleAjaxExport(e) {
 		? '1'
 		: '0';
 	const exportLimit = document.querySelector('#export_limit')?.value || '';
-	const progressContainer = document.querySelector('#swift-csv-ajax-export-progress');
 
-	if (!progressContainer) {
-		console.error('Progress element not found!');
-		return;
-	}
+	// Log export settings
+	addLogEntry(__('Post Type:', 'swift-csv') + ' ' + postType, 'debug', 'export');
+	addLogEntry(__('Export Scope:', 'swift-csv') + ' ' + exportScope, 'debug', 'export');
+	addLogEntry(
+		__('Include Private Meta:', 'swift-csv') +
+			' ' +
+			(includePrivateMeta === '1' ? __('Yes', 'swift-csv') : __('No', 'swift-csv')),
+		'debug',
+		'export'
+	);
+	addLogEntry(
+		__('Export Limit:', 'swift-csv') + ' ' + (exportLimit || __('No limit', 'swift-csv')),
+		'debug',
+		'export'
+	);
 
 	const exportBtn = document.querySelector('#ajax-export-csv-btn');
 	const cancelBtn = document.querySelector('#ajax-export-cancel-btn');
 	const startTime = Date.now();
 	let isCancelled = false;
 
-	// Show progress
-	progressContainer.style.display = 'block';
+	// Update button states
 	if (exportBtn) {
 		exportBtn.disabled = true;
 		exportBtn.value = __('Exporting...', 'swift-csv');
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'inline-block';
-		console.log('Cancel button found and shown:', cancelBtn);
-	} else {
-		console.log('Cancel button not found!');
 	}
 
 	let csvContent = '';
@@ -73,6 +245,8 @@ function handleAjaxExport(e) {
 	if (cancelBtn) {
 		cancelBtn.addEventListener('click', function () {
 			isCancelled = true;
+			addLogEntry(__('Export cancelled by user', 'swift-csv'), 'warning', 'export');
+
 			if (exportBtn) {
 				exportBtn.disabled = false;
 				exportBtn.value = swiftCSV.messages.exportCsv;
@@ -80,15 +254,17 @@ function handleAjaxExport(e) {
 			if (cancelBtn) {
 				cancelBtn.style.display = 'none';
 			}
-			const statusEl = progressContainer.querySelector('.progress-status');
-			if (statusEl) {
-				statusEl.textContent = swiftCSV.messages.cancelled;
-			}
 		});
 	}
 
 	function processChunk(startRow = 0) {
 		if (isCancelled) return;
+
+		addLogEntry(
+			__('Processing chunk starting from row', 'swift-csv') + ' ' + startRow,
+			'debug',
+			'export'
+		);
 
 		const formData = new URLSearchParams({
 			action: 'swift_csv_ajax_export',
@@ -119,30 +295,46 @@ function handleAjaxExport(e) {
 				}
 
 				// Update progress
-				updateAjaxProgress(progressContainer, data, startTime);
+				updateAjaxProgress(data, startTime);
+
+				// Log progress
+				if (data.processed && data.total) {
+					const percentage = Math.round((data.processed / data.total) * 100);
+					addLogEntry(
+						__('Processed', 'swift-csv') +
+							' ' +
+							data.processed +
+							'/' +
+							data.total +
+							' (' +
+							percentage +
+							'%)',
+						'info',
+						'export'
+					);
+				}
 
 				// Continue processing or complete
 				if (data.continue && !isCancelled) {
 					setTimeout(() => processChunk(data.processed), 100);
 				} else {
-					completeAjaxExport(
-						progressContainer,
-						csvContent,
-						exportBtn,
-						cancelBtn,
-						postType
-					);
+					completeAjaxExport(csvContent, exportBtn, cancelBtn, postType);
 				}
 			})
 			.catch(error => {
 				console.error('Export error:', error);
-				const statusEl = progressContainer.querySelector('.progress-status');
-				if (statusEl) {
-					statusEl.textContent = swiftCSV.messages.failed + ': ' + error.message;
-				}
+				addLogEntry(
+					__('Export error:', 'swift-csv') + ' ' + error.message,
+					'error',
+					'export'
+				);
+
 				if (exportBtn) {
 					exportBtn.disabled = false;
 					exportBtn.value = swiftCSV.messages.exportCsv;
+				}
+				if (cancelBtn) {
+					cancelBtn.style.display = 'none';
 				}
 			});
 	}
@@ -151,243 +343,366 @@ function handleAjaxExport(e) {
 	processChunk();
 }
 
-function updateAjaxProgress(container, data, startTime) {
-	const progressFill = container.querySelector('.progress-bar-fill');
-	const progressText = container.querySelector('.progress-text');
-	const processedEl = container.querySelector('.progress-processed');
-	const totalEl = container.querySelector('.progress-total');
-	const statusEl = container.querySelector('.progress-status');
-	const timeEl = container.querySelector('.progress-time');
+function handleAjaxImport(e) {
+	e.preventDefault();
 
-	// Update progress bar
-	if (progressFill) {
-		progressFill.style.width = data.progress + '%';
+	// Clear import log
+	clearLog('import');
+	addLogEntry(__('Starting import process...', 'swift-csv'), 'info', 'import');
+
+	const fileInput = document.querySelector('#ajax_csv_file');
+	const postType = document.querySelector('#ajax_post_type')?.value;
+	const updateExisting = document.querySelector('#ajax_update_existing')?.checked;
+
+	// Validate file
+	if (!fileInput || !fileInput.files.length) {
+		addLogEntry(__('Please select a CSV file', 'swift-csv'), 'error', 'import');
+		return;
 	}
 
-	// Update progress text on the bar
-	if (progressText) {
-		progressText.textContent = data.progress + '%';
+	const file = fileInput.files[0];
+
+	// Log import settings
+	addLogEntry(__('File:', 'swift-csv') + ' ' + file.name, 'debug', 'import');
+	addLogEntry(__('File Size:', 'swift-csv') + ' ' + formatFileSize(file.size), 'debug', 'import');
+	addLogEntry(__('Post Type:', 'swift-csv') + ' ' + postType, 'debug', 'import');
+	addLogEntry(
+		__('Update Existing:', 'swift-csv') +
+			' ' +
+			(updateExisting ? __('Yes', 'swift-csv') : __('No', 'swift-csv')),
+		'debug',
+		'import'
+	);
+
+	const formData = new FormData();
+	formData.append('action', 'swift_csv_ajax_import');
+	formData.append('nonce', swiftCSV.nonce);
+	formData.append('csv_file', file);
+	formData.append('post_type', postType);
+	formData.append('update_existing', updateExisting ? '1' : '0');
+
+	const importBtn = e.target.querySelector('button[type="submit"]');
+	const cancelBtn = document.querySelector('#ajax-import-cancel-btn');
+	const startTime = Date.now();
+	let isCancelled = false;
+
+	// Update button states
+	if (importBtn) {
+		importBtn.disabled = true;
+		importBtn.textContent = __('Importing...', 'swift-csv');
 	}
-
-	// Update processed count
-	if (processedEl) {
-		processedEl.textContent = data.processed;
-	}
-
-	// Update total count
-	if (totalEl) {
-		totalEl.textContent = data.total;
-	}
-
-	// Update status
-	if (statusEl && data.status) {
-		if (data.status === 'completed') {
-			statusEl.textContent = swiftCSV.messages.completed;
-		} else {
-			statusEl.textContent = swiftCSV.messages.processing;
-		}
-	}
-
-	// Update time display - update only numbers with improved calculation
-	if (timeEl && data.processed > 0) {
-		const elapsed = Date.now() - startTime;
-
-		// Use average rate for better accuracy (ignore first few batches)
-		const minBatchesForAverage = 3;
-		let rate;
-
-		if (data.processed >= minBatchesForAverage * 50) {
-			// Assuming 50 items per batch
-			rate = data.processed / elapsed;
-		} else {
-			// For early batches, use a more conservative estimate
-			rate = Math.min(data.processed / elapsed, 0.002); // Cap at reasonable rate
-		}
-
-		const remaining = (data.total - data.processed) / rate;
-		const elapsedMinutes = Math.floor(elapsed / 60000);
-		const remainingMinutes = Math.max(0, Math.floor(remaining / 60000));
-
-		console.log('Time calculation debug:');
-		console.log('- Processed:', data.processed);
-		console.log('- Total:', data.total);
-		console.log('- Elapsed (ms):', elapsed);
-		console.log('- Rate:', rate);
-		console.log('- Remaining (ms):', remaining);
-		console.log('- Elapsed minutes:', elapsedMinutes);
-		console.log('- Remaining minutes:', remainingMinutes);
-
-		// Update only the number spans
-		const elapsedEl = container.querySelector('.progress-elapsed');
-		const remainingEl = container.querySelector('.progress-remaining');
-
-		if (elapsedEl) {
-			elapsedEl.textContent = elapsedMinutes;
-		}
-		if (remainingEl) {
-			remainingEl.textContent = remainingMinutes;
-		}
-
-		console.log('Updated elapsed:', elapsedMinutes, 'remaining:', remainingMinutes);
-	}
-}
-
-function completeAjaxExport(container, csvContent, exportBtn, cancelBtn, postType) {
-	const statusEl = container.querySelector('.progress-status');
-	const downloadLink = document.querySelector('#ajax-export-download-link');
-
-	if (statusEl) {
-		statusEl.textContent = swiftCSV.messages.completed;
-	}
-
-	if (exportBtn) {
-		exportBtn.disabled = false;
-		exportBtn.value = swiftCSV.messages.exportCsv;
-	}
-
 	if (cancelBtn) {
-		cancelBtn.style.display = 'none';
+		cancelBtn.style.display = 'inline-block';
 	}
 
-	if (csvContent && downloadLink) {
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-		const url = URL.createObjectURL(blob);
-		const link = downloadLink.querySelector('a');
+	// Cancel functionality
+	if (cancelBtn) {
+		cancelBtn.addEventListener('click', function () {
+			isCancelled = true;
+			addLogEntry(__('Import cancelled by user', 'swift-csv'), 'warning', 'import');
 
-		if (link) {
-			link.href = url;
-			const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
-			link.download = `swiftcsv_export_${postType}_${timestamp}.csv`;
-		}
-
-		downloadLink.style.display = 'block';
-	}
-}
-
-function startBatchExport(postType, postsPerPage) {
-	const exportBtn = document.querySelector('#export-csv-btn');
-	const progressContainer = document.querySelector('#swift-csv-export-progress');
-
-	if (exportBtn) {
-		exportBtn.disabled = true;
-		exportBtn.textContent = swiftCSV.messages.exporting;
-	}
-
-	if (progressContainer) {
-		progressContainer.style.display = 'block';
-	}
-
-	const formData = new URLSearchParams({
-		action: 'swift_csv_start_export',
-		post_type: postType,
-		posts_per_page: postsPerPage,
-		nonce: swiftCSV.nonce,
-	});
-
-	fetch(swiftCSV.ajaxUrl, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded',
-		},
-		body: formData,
-	})
-		.then(response => response.json())
-		.then(data => {
-			if (data.success) {
-				pollExportProgress(data.batch_id);
-			} else {
-				throw new Error(data.data || 'Export failed');
+			if (importBtn) {
+				importBtn.disabled = false;
+				importBtn.textContent = __('Start Import', 'swift-csv');
 			}
-		})
-		.catch(error => {
-			console.error('Export error:', error);
-			alert(swiftCSV.messages.error);
-			resetExportButton();
+			if (cancelBtn) {
+				cancelBtn.style.display = 'none';
+			}
 		});
-}
+	}
 
-function pollExportProgress(batchId) {
-	const interval = setInterval(() => {
-		const formData = new URLSearchParams({
-			action: 'swift_csv_check_progress',
-			batch_id: batchId,
-			nonce: swiftCSV.nonce,
-		});
+	function processImportChunk(startRow = 0) {
+		if (isCancelled) return;
+
+		addLogEntry(
+			__('Processing chunk starting from row', 'swift-csv') + ' ' + startRow,
+			'debug',
+			'import'
+		);
+
+		formData.set('start_row', startRow);
 
 		fetch(swiftCSV.ajaxUrl, {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
-			},
 			body: formData,
 		})
 			.then(response => response.json())
 			.then(data => {
-				if (data.success) {
-					updateExportProgress(data);
+				if (!data.success) {
+					throw new Error(data.data || 'Import failed');
+				}
 
-					if (data.status === 'completed') {
-						clearInterval(interval);
-						showDownloadLink(data.download_url);
-						resetExportButton();
-					} else if (data.status === 'error') {
-						clearInterval(interval);
-						alert(swiftCSV.messages.error);
-						resetExportButton();
-					}
+				// Update progress
+				updateImportProgress(data, startTime);
+
+				// Log progress
+				if (data.processed && data.total) {
+					const percentage = Math.round((data.processed / data.total) * 100);
+					addLogEntry(
+						__('Processed', 'swift-csv') +
+							' ' +
+							data.processed +
+							'/' +
+							data.total +
+							' (' +
+							percentage +
+							'%)',
+						'info',
+						'import'
+					);
+				}
+
+				// Log details
+				if (data.created !== undefined) {
+					addLogEntry(
+						__('Created:', 'swift-csv') + ' ' + data.created,
+						'success',
+						'import'
+					);
+				}
+				if (data.updated !== undefined) {
+					addLogEntry(
+						__('Updated:', 'swift-csv') + ' ' + data.updated,
+						'success',
+						'import'
+					);
+				}
+				if (data.errors > 0) {
+					addLogEntry(
+						__('Errors:', 'swift-csv') + ' ' + data.errors,
+						'warning',
+						'import'
+					);
+				}
+
+				// Continue processing or complete
+				if (data.continue && !isCancelled) {
+					setTimeout(() => processImportChunk(data.processed), 100);
 				} else {
-					throw new Error(data.data || 'Progress check failed');
+					completeAjaxImport(data, importBtn, cancelBtn);
 				}
 			})
 			.catch(error => {
-				console.error('Progress check error:', error);
-				clearInterval(interval);
-				resetExportButton();
+				console.error('Import error:', error);
+				addLogEntry(
+					__('Import error:', 'swift-csv') + ' ' + error.message,
+					'error',
+					'import'
+				);
+
+				if (importBtn) {
+					importBtn.disabled = false;
+					importBtn.textContent = __('Start Import', 'swift-csv');
+				}
+				if (cancelBtn) {
+					cancelBtn.style.display = 'none';
+				}
 			});
-	}, 2000);
+	}
+
+	// Start processing
+	processImportChunk();
 }
 
-function updateExportProgress(data) {
-	const percentage =
-		data.percentage ||
-		(data.total_rows > 0 ? Math.round((data.processed_rows / data.total_rows) * 100) : 0);
-	const progressFill = document.querySelector('#swift-csv-export-progress .progress-bar-fill');
-	const progressText = document.querySelector('#swift-csv-export-progress .progress-text');
-	const processedRows = document.querySelector('#swift-csv-export-progress .processed-rows');
-	const totalRows = document.querySelector('#swift-csv-export-progress .total-rows');
+/**
+ * Format file size in human readable format
+ *
+ * @param {number} bytes File size in bytes
+ * @return {string} Formatted file size
+ */
+function formatFileSize(bytes) {
+	if (bytes === 0) return '0 Bytes';
 
-	if (progressFill) {
-		progressFill.style.width = percentage + '%';
+	const k = 1024;
+	const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+	const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+/**
+ * Update AJAX progress for export
+ *
+ * @param {Object} data Progress data
+ * @param {number} startTime Start time
+ */
+function updateAjaxProgress(data, startTime) {
+	// Find progress elements in the new UI structure
+	const progressContainer = document.querySelector('.swift-csv-progress');
+	if (!progressContainer) {
+		console.warn('Progress container not found');
+		return;
 	}
 
-	if (progressText) {
-		progressText.textContent = percentage + '%';
+	const progressFill = progressContainer.querySelector('.progress-bar-fill');
+	const processedEl = progressContainer.querySelector('.processed-rows');
+	const totalEl = progressContainer.querySelector('.total-rows');
+	const percentageEl = progressContainer.querySelector('.percentage');
+
+	// Update progress bar
+	if (progressFill && data.progress !== undefined) {
+		progressFill.style.width = data.progress + '%';
 	}
 
-	if (processedRows) {
-		processedRows.textContent = data.processed_rows;
+	// Update stats
+	if (processedEl && data.processed !== undefined) {
+		processedEl.textContent = data.processed;
 	}
-
-	if (totalRows) {
-		totalRows.textContent = data.total_rows;
+	if (totalEl && data.total !== undefined) {
+		totalEl.textContent = data.total;
+	}
+	if (percentageEl && data.progress !== undefined) {
+		percentageEl.textContent = data.progress;
 	}
 }
 
-function showDownloadLink(downloadUrl) {
-	const downloadLink = document.querySelector('#export-download-link');
+/**
+ * Update AJAX progress for import
+ *
+ * @param {Object} data Progress data
+ * @param {number} startTime Start time
+ */
+function updateImportProgress(data, startTime) {
+	// Find progress elements in the new UI structure
+	const progressContainer = document.querySelector('.swift-csv-progress');
+	if (!progressContainer) {
+		console.warn('Progress container not found');
+		return;
+	}
+
+	const progressFill = progressContainer.querySelector('.progress-bar-fill');
+	const processedEl = progressContainer.querySelector('.processed-rows');
+	const totalEl = progressContainer.querySelector('.total-rows');
+	const percentageEl = progressContainer.querySelector('.percentage');
+	const createdEl = progressContainer.querySelector('.created-count');
+	const updatedEl = progressContainer.querySelector('.updated-count');
+	const errorEl = progressContainer.querySelector('.error-count');
+
+	// Update progress bar
+	if (progressFill && data.progress !== undefined) {
+		progressFill.style.width = data.progress + '%';
+	}
+
+	// Update stats
+	if (processedEl && data.processed !== undefined) {
+		processedEl.textContent = data.processed;
+	}
+	if (totalEl && data.total !== undefined) {
+		totalEl.textContent = data.total;
+	}
+	if (percentageEl && data.progress !== undefined) {
+		percentageEl.textContent = data.progress;
+	}
+
+	// Update details
+	if (createdEl && data.created !== undefined) {
+		createdEl.textContent = data.created;
+	}
+	if (updatedEl && data.updated !== undefined) {
+		updatedEl.textContent = data.updated;
+	}
+	if (errorEl && data.errors !== undefined) {
+		errorEl.textContent = data.errors;
+	}
+}
+
+/**
+ * Complete AJAX export
+ *
+ * @param {string} csvContent CSV content
+ * @param {HTMLElement} exportBtn Export button
+ * @param {HTMLElement} cancelBtn Cancel button
+ * @param {string} postType Post type
+ */
+function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
+	addLogEntry(__('Export completed successfully!', 'swift-csv'), 'success', 'export');
+
+	// Create download link
+	const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+	const url = URL.createObjectURL(blob);
+
+	// Format: swiftcsv_export_postType_YYYY-MM-DD_HH-mm-ss.csv
+	const now = new Date();
+	const dateStr =
+		now.getFullYear() +
+		'-' +
+		String(now.getMonth() + 1).padStart(2, '0') +
+		'-' +
+		String(now.getDate()).padStart(2, '0') +
+		'_' +
+		String(now.getHours()).padStart(2, '0') +
+		'-' +
+		String(now.getMinutes()).padStart(2, '0') +
+		'-' +
+		String(now.getSeconds()).padStart(2, '0');
+
+	const filename = `swiftcsv_export_${postType}_${dateStr}.csv`;
+
+	const downloadLink = document.querySelector('#ajax-export-download-link a');
 	if (downloadLink) {
-		const link = downloadLink.querySelector('a');
-		if (link) {
-			link.href = downloadUrl;
-		}
-		downloadLink.style.display = 'block';
+		downloadLink.href = url;
+		downloadLink.download = filename;
+		downloadLink.parentElement.style.display = 'block';
 	}
-}
 
-function resetExportButton() {
-	const exportBtn = document.querySelector('#export-csv-btn');
+	// Reset buttons
 	if (exportBtn) {
 		exportBtn.disabled = false;
-		exportBtn.textContent = swiftCSV.messages.exportCsv;
+		exportBtn.value = swiftCSV.messages.exportCsv;
 	}
+	if (cancelBtn) {
+		cancelBtn.style.display = 'none';
+	}
+
+	addLogEntry(__('Download ready:', 'swift-csv') + ' ' + filename, 'info', 'export');
+}
+
+/**
+ * Complete AJAX import
+ *
+ * @param {Object} data Import results
+ * @param {HTMLElement} importBtn Import button
+ * @param {HTMLElement} cancelBtn Cancel button
+ */
+function completeAjaxImport(data, importBtn, cancelBtn) {
+	addLogEntry(__('Import completed!', 'swift-csv'), 'success', 'import');
+
+	// Log final results
+	if (data.imported !== undefined) {
+		addLogEntry(__('Total imported:', 'swift-csv') + ' ' + data.imported, 'success', 'import');
+	}
+	if (data.updated !== undefined) {
+		addLogEntry(__('Total updated:', 'swift-csv') + ' ' + data.updated, 'success', 'import');
+	}
+	if (data.errors !== undefined) {
+		addLogEntry(
+			__('Total errors:', 'swift-csv') + ' ' + data.errors,
+			data.errors > 0 ? 'warning' : 'success',
+			'import'
+		);
+	}
+
+	// Reset buttons
+	if (importBtn) {
+		importBtn.disabled = false;
+		importBtn.textContent = __('Start Import', 'swift-csv');
+	}
+	if (cancelBtn) {
+		cancelBtn.style.display = 'none';
+	}
+
+	// Reset file input
+	const fileInput = document.querySelector('#ajax_csv_file');
+	const uploadArea = document.querySelector('#csv-file-upload');
+	const fileInfo = document.querySelector('#csv-file-info');
+
+	if (fileInput) fileInput.value = '';
+	if (uploadArea) uploadArea.style.display = 'block';
+	if (fileInfo) fileInfo.style.display = 'none';
+}
+
+// Legacy functions for compatibility
+function startBatchExport(postType, postsPerPage) {
+	addLogEntry(__('Batch export started', 'swift-csv'), 'info', 'export');
+	// Implementation would go here
 }

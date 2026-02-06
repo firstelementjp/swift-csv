@@ -6,4 +6,4 @@
 - 📋 [Changelog](changes.md)
 - 🤝 [Contributing](contribute.md)
 - 📄 [License](legal.md)
-- 🏠 [Home](Home.md)
+- 🏠 [Home](README.md)

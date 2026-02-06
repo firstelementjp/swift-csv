@@ -57,26 +57,26 @@ class Swift_CSV_Exporter {
 		$post_type      = sanitize_text_field( $_POST['post_type'] );
 		$posts_per_page = intval( $_POST['posts_per_page'] );
 
-        // Validate post type exists
+		// Validate post type exists
 		if ( ! post_type_exists( $post_type ) ) {
 			wp_die( esc_html__( 'Invalid post type.', 'swift-csv' ) );
 		}
 
 		$posts_per_page = max( 1, $posts_per_page );
 
-		$batch = new Swift_CSV_Batch();
-		$batch_id = $batch->start_export_batch( $post_type, [ 'posts_per_page' => $posts_per_page ] );
+		$batch    = new Swift_CSV_Batch();
+		$batch_id = $batch->start_export_batch( $post_type, array( 'posts_per_page' => $posts_per_page ) );
 		if ( ! $batch_id ) {
 			wp_die( esc_html__( 'Failed to create export batch.', 'swift-csv' ) );
 		}
 
 		wp_safe_redirect(
 			add_query_arg(
-				[
+				array(
 					'page'  => 'swift-csv',
 					'tab'   => 'export',
 					'batch' => $batch_id,
-				],
+				),
 				admin_url( 'admin.php' )
 			)
 		);
@@ -94,10 +94,10 @@ class Swift_CSV_Exporter {
 	 * @return void
 	 */
 	private function export_csv( $post_type, $posts_per_page ) {
-		$args = [
-			'post_type' => $post_type,
-			'posts_per_page' => $posts_per_page
-		];
+		$args = array(
+			'post_type'      => $post_type,
+			'posts_per_page' => $posts_per_page,
+		);
 
 		// Fire before export hook
 		do_action( 'swift_csv_before_export', $args );
@@ -105,13 +105,13 @@ class Swift_CSV_Exporter {
 		$this->_debugLog( 'Export CSV started for post type: ' . $post_type );
 
 		// Query arguments for post retrieval
-		$query_args = [
+		$query_args = array(
 			'post_type'      => $post_type,
 			'post_status'    => 'publish',
 			'posts_per_page' => $posts_per_page,
 			'orderby'        => 'ID',
 			'order'          => 'DESC',
-		];
+		);
 
 		// Apply filter to query arguments
 		$query_args = apply_filters( 'swift_csv_export_query_args', $query_args, $args );
@@ -131,7 +131,7 @@ class Swift_CSV_Exporter {
 		// Prepare CSV headers with standard post fields
 		$headers = array( 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date' );
 
-        // Add taxonomy columns
+		// Add taxonomy columns
 		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
 		foreach ( $taxonomies as $taxonomy ) {
 			if ( $taxonomy->public ) {
@@ -141,46 +141,48 @@ class Swift_CSV_Exporter {
 
 		// Add custom field columns (sample first 20 posts to detect fields)
 		$custom_fields = array();
-		$acf_fields = array();
+		$acf_fields    = array();
 		$sample_posts  = array_slice( $posts, 0, 20 );
-		
+
 		// First, get all ACF field keys from wp_posts
 		global $wpdb;
 		$acf_field_keys = $wpdb->get_col(
 			"SELECT post_name FROM {$wpdb->posts} 
 			 WHERE post_type = 'acf-field'"
 		);
-		
+
 		// Get field key to field name mapping
 		$acf_field_mapping = array();
-		foreach ($acf_field_keys as $field_key) {
-			$field_config = $wpdb->get_var($wpdb->prepare(
-				"SELECT post_content FROM {$wpdb->posts} 
+		foreach ( $acf_field_keys as $field_key ) {
+			$field_config = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT post_content FROM {$wpdb->posts} 
 				 WHERE post_name = %s 
 				 AND post_type = 'acf-field'",
-				$field_key
-			));
-			if ($field_config) {
-				$field_data = maybe_unserialize($field_config);
-				if (is_array($field_data) && isset($field_data['name'])) {
-					$acf_field_mapping[$field_data['name']] = $field_key;
+					$field_key
+				)
+			);
+			if ( $field_config ) {
+				$field_data = maybe_unserialize( $field_config );
+				if ( is_array( $field_data ) && isset( $field_data['name'] ) ) {
+					$acf_field_mapping[ $field_data['name'] ] = $field_key;
 					$this->_debugLog( 'Export: Found ACF field mapping: ' . $field_data['name'] . ' -> ' . $field_key );
 				}
 			}
 		}
-		
+
 		$this->_debugLog( 'Export: ACF field mapping: ' . print_r( $acf_field_mapping, true ) );
-		
+
 		foreach ( $sample_posts as $post ) {
 			$fields = get_post_meta( $post->ID );
 			foreach ( $fields as $key => $value ) {
 				// Skip private fields (starting with _) and duplicates
 				if ( ! str_starts_with( $key, '_' ) && ! in_array( $key, $custom_fields, true ) && ! in_array( $key, $acf_fields, true ) ) {
 					// Check if this is an ACF field by looking up in our mapping
-					if ( isset( $acf_field_mapping[$key] ) ) {
+					if ( isset( $acf_field_mapping[ $key ] ) ) {
 						// This is an ACF field
 						$acf_fields[] = $key;
-						$this->_debugLog( 'Export: Detected ACF field: ' . $key . ' (key: ' . $acf_field_mapping[$key] . ')' );
+						$this->_debugLog( 'Export: Detected ACF field: ' . $key . ' (key: ' . $acf_field_mapping[ $key ] . ')' );
 					} else {
 						// This is a regular custom field
 						$custom_fields[] = $key;
@@ -192,7 +194,7 @@ class Swift_CSV_Exporter {
 
 		// Debug: Log detected fields
 		$custom_fields_dump = print_r( $custom_fields, true );
-		$acf_fields_dump = print_r( $acf_fields, true );
+		$acf_fields_dump    = print_r( $acf_fields, true );
 		$this->_debugLog( 'Export: Detected custom fields: ' . $custom_fields_dump );
 		$this->_debugLog( 'Export: Detected ACF fields: ' . $acf_fields_dump );
 
@@ -221,7 +223,7 @@ class Swift_CSV_Exporter {
 		}
 
 		// Add BOM for Excel compatibility with Japanese characters
-		$bom         = "\xEF\xBB\xBF";
+		$bom          = "\xEF\xBB\xBF";
 		$full_content = $bom . $csv_content;
 
 		// Set HTTP headers for CSV download
@@ -335,7 +337,7 @@ class Swift_CSV_Exporter {
 		}
 	}
 
-    /**
+	/**
 	 * Generate CSV content from posts
 	 *
 	 * Creates CSV data including headers, post data, taxonomies, and custom fields.
@@ -387,8 +389,8 @@ class Swift_CSV_Exporter {
 				$values = get_post_meta( $post->ID, $field, false ); // Get all values
 				if ( is_array( $values ) && count( $values ) > 1 ) {
 					// Multiple values - clean each and join with pipe separator
-					$cleaned_values = array_map( [ $this, 'clean_csv_field' ], $values );
-					$row[] = implode( '|', $cleaned_values );
+					$cleaned_values = array_map( array( $this, 'clean_csv_field' ), $values );
+					$row[]          = implode( '|', $cleaned_values );
 				} elseif ( is_array( $values ) && count( $values ) === 1 ) {
 					// Single value - clean it
 					$row[] = $this->clean_csv_field( $values[0] );
@@ -403,8 +405,8 @@ class Swift_CSV_Exporter {
 				$values = get_post_meta( $post->ID, $field, false ); // Get all values
 				if ( is_array( $values ) && count( $values ) > 1 ) {
 					// Multiple values - clean each and join with pipe separator
-					$cleaned_values = array_map( [ $this, 'clean_csv_field' ], $values );
-					$row[] = implode( '|', $cleaned_values );
+					$cleaned_values = array_map( array( $this, 'clean_csv_field' ), $values );
+					$row[]          = implode( '|', $cleaned_values );
 				} elseif ( is_array( $values ) && count( $values ) === 1 ) {
 					// Single value - clean it
 					$row[] = $this->clean_csv_field( $values[0] );
@@ -432,7 +434,7 @@ class Swift_CSV_Exporter {
 		return $content;
 	}
 
-    /**
+	/**
 	 * Get term hierarchy path
 	 *
 	 * Returns the full hierarchy path for a term (e.g., "Parent > Child > Grandchild").

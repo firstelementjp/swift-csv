@@ -17,8 +17,8 @@
 		"phpcsstandards/phpcsextra": "^1.5"
 	},
 	"scripts": {
-		"phpcs": "phpcs --standard=phpcs.xml.dist",
-		"phpcbf": "phpcbf --standard=phpcs.xml.dist"
+		"phpcs": "phpcs",
+		"phpcbf": "phpcbf"
 	},
 	"config": {
 		"allow-plugins": {

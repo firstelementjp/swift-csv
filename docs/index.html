@@ -1,30 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Swift CSV Documentation</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-    <style>
-        :root {
-            --theme-color: #45aaee;
-        }
-    </style>
-</head>
-<body>
-    <div id="app"></div>
-    <script>
-        window.$docsify = {
-            name: 'Swift CSV',
-            repo: 'firstelementjp/swift-csv',
-            loadSidebar: '_nav.md',
-            maxLevel: 4,
-            subMaxLevel: 2,
-            search: 'auto',
-            plugins: []
-        }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
-</body>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Swift CSV Documentation</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link
+			rel="icon"
+			type="image/png"
+			href="https://github.com/firstelementjp/swift-csv/blob/main/assets/images/favicon.png?raw=true"
+		/>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" />
+		<style>
+			:root {
+				--theme-color: #0073aa;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app"></div>
+		<script>
+			window.$docsify = {
+				name: '📊 Swift CSV',
+				repo: 'firstelementjp/swift-csv',
+				loadSidebar: '_nav.md',
+				maxLevel: 4,
+				subMaxLevel: 2,
+				search: 'auto',
+				copyCode: {
+					buttonText: 'Copy to clipboard',
+					errorText: 'Failed to copy',
+					successText: 'Copied',
+				},
+				pagination: {
+					previousText: 'Previous',
+					nextText: 'Next',
+				},
+				plugins: [],
+			};
+		</script>
+		<script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+		<script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/clipboard.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/pagination.min.js"></script>
+	</body>
 </html>

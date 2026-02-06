@@ -1,6 +1,14 @@
 # Distribution files for git archive (release ZIP)
 # Include only necessary files for plugin distribution
 
+# Include minified assets
+assets/css/admin-style.min.css
+assets/js/admin-scripts.min.js
+
+# Exclude development files but keep minified assets
+assets/css/admin-style.css export-ignore
+assets/js/admin-scripts.js export-ignore
+
 # Exclude development and build files
 composer.json export-ignore
 composer.lock export-ignore
@@ -11,17 +19,32 @@ package-lock.json export-ignore
 
 # Exclude development configuration
 phpcs.xml export-ignore
+phpcs.xml.dist export-ignore
 .phpcs.xml.cache export-ignore
 .phpunit.result.cache export-ignore
 .phpunit.cache export-ignore
+phpdoc.xml export-ignore
+.prettierrc export-ignore
+.envrc export-ignore
+.envrc.example export-ignore
+.eslintrc.json export-ignore
+debug.php export-ignore
 
 # Exclude Git and CI files
 .gitignore export-ignore
+.gitattributes export-ignore
 .github/ export-ignore
+swift-csv/ export-ignore
 
 # Exclude documentation (keep README.md and LICENSE)
 docs/ export-ignore
 phpdoc/ export-ignore
+
+# Exclude large banner images (not needed for plugin functionality)
+assets/images/swift-csv-banner.jpeg export-ignore
+assets/images/banner-772x250.png export-ignore
+assets/images/icon-256x256.png export-ignore
+assets/images/icon-128x128.png export-ignore
 
 # Exclude temporary and cache files
 *.log export-ignore

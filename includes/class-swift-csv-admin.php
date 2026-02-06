@@ -319,103 +319,104 @@ class Swift_CSV_Admin {
 		$post_types = get_post_types( [ 'public' => true ], 'objects' );
 
 		?>
-		<div class="card">
-			<h3><?php esc_html_e( 'Export Post Data', 'swift-csv' ); ?></h3>
+		<div class="swift-csv-layout">
+			<!-- Left Column: Settings -->
+			<div class="swift-csv-settings">
+				<div class="card">
+					<h3><?php esc_html_e( 'Export Settings', 'swift-csv' ); ?></h3>
 
-			<!-- Ajax Export Option -->
-			<div class="card" style="background-color: #f9f9f9; border-left: 4px solid #0073aa;">
-				<form id="swift-csv-ajax-export-form" onsubmit="return false;">
-					<table class="form-table">
-						<tr>
-							<th scope="row">
-								<label for="ajax_export_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
-							</th>
-							<td>
-								<select name="post_type" id="ajax_export_post_type" required>
-									<?php foreach ( $post_types as $post_type ) : ?>
-										<option value="<?php echo esc_attr( $post_type->name ); ?>">
-											<?php echo esc_html( $post_type->labels->name ); ?>
-										</option>
-									<?php endforeach; ?>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">
-								<?php esc_html_e( 'Export Scope', 'swift-csv' ); ?>
-							</th>
-							<td>
-								<label style="display:block;">
-									<input type="radio" name="export_scope" value="basic" checked>
-									<?php esc_html_e( 'Basic Fields', 'swift-csv' ); ?>
-								</label>
-								<label style="display:block;">
-									<input type="radio" name="export_scope" value="all">
-									<?php esc_html_e( 'All Fields', 'swift-csv' ); ?>
-								</label>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">
-								<?php esc_html_e( 'Advanced', 'swift-csv' ); ?>
-							</th>
-							<td>
-								<label>
-									<input type="checkbox" name="include_private_meta" value="1">
-									<?php esc_html_e( 'Include fields starting with "_"', 'swift-csv' ); ?>
-								</label>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">
-								<label for="export_limit"><?php esc_html_e( 'Export Limit', 'swift-csv' ); ?></label>
-							</th>
-							<td>
-								<input type="number" name="export_limit" id="export_limit" min="0" value="1000" placeholder="<?php esc_attr_e( 'No limit (0 = all)', 'swift-csv' ); ?>" class="small-text">
-								<p class="description"><?php esc_html_e( 'Maximum number of posts to export. Enter 0 for no limit.', 'swift-csv' ); ?></p>
-							</td>
-						</tr>
-					</table>
+					<form id="swift-csv-ajax-export-form" onsubmit="return false;">
+						<table class="form-table">
+							<tr>
+								<th scope="row">
+									<label for="ajax_export_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
+								</th>
+								<td>
+									<select name="post_type" id="ajax_export_post_type" required>
+										<?php foreach ( $post_types as $post_type ) : ?>
+											<option value="<?php echo esc_attr( $post_type->name ); ?>">
+												<?php echo esc_html( $post_type->labels->name ); ?>
+											</option>
+										<?php endforeach; ?>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<?php esc_html_e( 'Export Scope', 'swift-csv' ); ?>
+								</th>
+								<td>
+									<label style="display:block;">
+										<input type="radio" name="export_scope" value="basic" checked>
+										<?php esc_html_e( 'Basic Fields', 'swift-csv' ); ?>
+									</label>
+									<label style="display:block;">
+										<input type="radio" name="export_scope" value="all">
+										<?php esc_html_e( 'All Fields', 'swift-csv' ); ?>
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<?php esc_html_e( 'Advanced', 'swift-csv' ); ?>
+								</th>
+								<td>
+									<label>
+										<input type="checkbox" name="include_private_meta" value="1">
+										<?php esc_html_e( 'Include fields starting with "_"', 'swift-csv' ); ?>
+									</label>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<label for="export_limit"><?php esc_html_e( 'Export Limit', 'swift-csv' ); ?></label>
+								</th>
+								<td>
+									<input type="number" name="export_limit" id="export_limit" min="0" value="1000" placeholder="<?php esc_attr_e( 'No limit (0 = all)', 'swift-csv' ); ?>" class="small-text">
+									<p class="description"><?php esc_html_e( 'Maximum number of posts to export. Enter 0 for no limit.', 'swift-csv' ); ?></p>
+								</td>
+							</tr>
+						</table>
 
-					<p class="submit">
-						<input type="submit" name="ajax_export_csv" class="button button-primary" id="ajax-export-csv-btn" value="<?php esc_html_e( 'Start Export', 'swift-csv' ); ?>">
-						<button type="button" class="button" id="ajax-export-cancel-btn" style="display: none;">
-							<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
-						</button>
-					</p>
-				</form>
+						<p class="submit">
+							<input type="submit" name="ajax_export_csv" class="button button-primary" id="ajax-export-csv-btn" value="<?php esc_html_e( 'Start Export', 'swift-csv' ); ?>">
+							<button type="button" class="button" id="ajax-export-cancel-btn" style="display: none;">
+								<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
+							</button>
+						</p>
+					</form>
+				</div>
+			</div>
 
-				<!-- Ajax Export Progress -->
-				<div id="swift-csv-ajax-export-progress" style="display: none;">
-					<h3><?php esc_html_e( 'Export Progress', 'swift-csv' ); ?></h3>
-					
+			<!-- Right Column: Log + Progress -->
+			<div class="swift-csv-log">
+				<div class="card">
+					<h3><?php esc_html_e( 'Export Log', 'swift-csv' ); ?></h3>
+
 					<!-- Progress Bar -->
-					<div class="progress-bar-container">
+					<div class="swift-csv-progress">
 						<div class="progress-bar">
-							<div class="progress-bar-fill" style="width: 0%"></div>
+							<div class="progress-bar-fill"></div>
 						</div>
-						<span class="progress-text">0%</span>
-					</div>
-					
-					<!-- Progress Details -->
-					<div class="progress-info">
-						<div class="progress-count">
-							<strong><?php esc_html_e( 'Processed:', 'swift-csv' ); ?></strong> 
-							<span class="progress-processed">0</span> / <span class="progress-total">0</span> <?php esc_html_e( 'posts', 'swift-csv' ); ?>
+						<div class="progress-stats">
+							<span class="processed-rows">0</span> / <span class="total-rows">0</span> <?php esc_html_e( 'rows processed', 'swift-csv' ); ?> (<span class="percentage">0</span>%)
 						</div>
 					</div>
-					
-					<!-- Status and Time -->
-					<p class="progress-status"><?php esc_html_e( 'Preparing export...', 'swift-csv' ); ?></p>
-					<div class="progress-time">
-						<?php esc_html_e( 'Elapsed:', 'swift-csv' ); ?> <span class="progress-elapsed">0</span><?php esc_html_e( 'min', 'swift-csv' ); ?> | <?php esc_html_e( 'Est. remaining:', 'swift-csv' ); ?> <span class="progress-remaining">0</span><?php esc_html_e( 'min', 'swift-csv' ); ?>
+
+					<!-- Log Area -->
+					<div class="swift-csv-log-area">
+						<div class="log-content" id="export-log-content">
+							<div class="log-entry log-info"><?php esc_html_e( 'Ready to start export...', 'swift-csv' ); ?></div>
+						</div>
 					</div>
-					
-					<!-- Download Link -->
-					<div id="ajax-export-download-link" style="display: none;">
-						<a href="#" class="button button-primary" download>
-							<?php esc_html_e( 'Download CSV', 'swift-csv' ); ?>
-						</a>
+
+					<!-- Download Button -->
+					<div class="swift-csv-actions">
+						<div id="ajax-export-download-link" style="display: none;">
+							<a href="#" class="button button-primary" download>
+								<?php esc_html_e( 'Download CSV', 'swift-csv' ); ?>
+							</a>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -440,65 +441,102 @@ class Swift_CSV_Admin {
 		}
 
 		?>
-		<div class="card">
-			<h3><?php esc_html_e( 'Import CSV File', 'swift-csv' ); ?></h3>
+		<div class="swift-csv-layout">
+			<!-- Left Column: Settings -->
+			<div class="swift-csv-settings">
+				<div class="card">
+					<h3><?php esc_html_e( 'Import Settings', 'swift-csv' ); ?></h3>
 
-			<!-- Ajax Import Option -->
-			<div class="card" style="background-color: #f9f9f9; border-left: 4px solid #0073aa;">
-				<form id="swift-csv-ajax-import-form" enctype="multipart/form-data">
-					<table class="form-table">
-						<tr>
-							<th scope="row">
-								<label for="ajax_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
-							</th>
-							<td>
-								<select name="post_type" id="ajax_post_type" required>
-									<?php
-									$post_types = get_post_types( [ 'public' => true ], 'objects' );
-									foreach ( $post_types as $post_type ) :
-										?>
-										<option value="<?php echo esc_attr( $post_type->name ); ?>">
-											<?php echo esc_html( $post_type->labels->name ); ?>
-										</option>
-									<?php endforeach; ?>
-								</select>
-								<p class="description"><?php esc_html_e( 'Select the target post type for import.', 'swift-csv' ); ?></p>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">
-								<label for="ajax_csv_file"><?php esc_html_e( 'CSV File', 'swift-csv' ); ?></label>
-							</th>
-							<td>
-								<input type="file" name="csv_file" id="ajax_csv_file" accept=".csv" required>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">
-								<label for="ajax_update_existing"><?php esc_html_e( 'Update Existing Posts', 'swift-csv' ); ?></label>
-							</th>
-							<td>
-								<input type="checkbox" name="update_existing" id="ajax_update_existing" value="1">
-								<p class="description"><?php esc_html_e( 'Check to update existing posts based on ID.', 'swift-csv' ); ?></p>
-							</td>
-						</tr>
-					</table>
+					<form id="swift-csv-ajax-import-form" enctype="multipart/form-data">
+						<table class="form-table">
+							<tr>
+								<th scope="row">
+									<label for="ajax_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
+								</th>
+								<td>
+									<select name="post_type" id="ajax_post_type" required>
+										<?php
+										$post_types = get_post_types( [ 'public' => true ], 'objects' );
+										foreach ( $post_types as $post_type ) :
+											?>
+											<option value="<?php echo esc_attr( $post_type->name ); ?>">
+												<?php echo esc_html( $post_type->labels->name ); ?>
+											</option>
+										<?php endforeach; ?>
+									</select>
+									<p class="description"><?php esc_html_e( 'Select the target post type for import.', 'swift-csv' ); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<label for="ajax_update_existing"><?php esc_html_e( 'Update Existing Posts', 'swift-csv' ); ?></label>
+								</th>
+								<td>
+									<input type="checkbox" name="update_existing" id="ajax_update_existing" value="1">
+									<p class="description"><?php esc_html_e( 'Check to update existing posts based on ID.', 'swift-csv' ); ?></p>
+								</td>
+							</tr>
+						</table>
 
-					<!-- Ajax Progress -->
-					<div id="ajax-import-progress" style="display: none;">
-						<h4><?php esc_html_e( 'Import Progress', 'swift-csv' ); ?></h4>
-						<div style="width: 100%; height: 20px; background-color: #f0f0f0; border-radius: 10px;">
-							<div id="ajax-import-bar" style="width: 0%; height: 100%; background-color: #0073aa; border-radius: 10px; transition: width 0.3s;"></div>
+						<p class="submit">
+							<button type="submit" class="button button-primary">
+								<?php esc_html_e( 'Start Import', 'swift-csv' ); ?>
+							</button>
+							<button type="button" class="button" id="ajax-import-cancel-btn" style="display: none;">
+								<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
+							</button>
+						</p>
+					</form>
+				</div>
+			</div>
+
+			<!-- Right Column: Log + Progress -->
+			<div class="swift-csv-log">
+				<div class="card">
+					<h3><?php esc_html_e( 'Import Log', 'swift-csv' ); ?></h3>
+
+					<!-- Progress Bar -->
+					<div class="swift-csv-progress">
+						<div class="progress-bar">
+							<div class="progress-bar-fill"></div>
 						</div>
-						<p id="ajax-import-status">0%</p>
+						<div class="progress-stats">
+							<span class="processed-rows">0</span> / <span class="total-rows">0</span> <?php esc_html_e( 'rows processed', 'swift-csv' ); ?> (<span class="percentage">0</span>%)
+						</div>
+						<div class="progress-details">
+							<div class="created"><?php esc_html_e( 'Created:', 'swift-csv' ); ?> <span class="created-count">0</span></div>
+							<div class="modified"><?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <span class="updated-count">0</span></div>
+							<div class="errors"><?php esc_html_e( 'Errors:', 'swift-csv' ); ?> <span class="error-count">0</span></div>
+						</div>
 					</div>
 
-					<p class="submit">
-						<button type="submit" class="button button-primary">
-							<?php esc_html_e( 'Start Import', 'swift-csv' ); ?>
-						</button>
-					</p>
-				</form>
+					<!-- Log Area -->
+					<div class="swift-csv-log-area">
+						<div class="log-content" id="import-log-content">
+							<div class="log-entry log-info"><?php esc_html_e( 'Ready to start import...', 'swift-csv' ); ?></div>
+						</div>
+					</div>
+
+					<!-- File Upload Area -->
+					<div class="swift-csv-actions">
+						<div class="file-upload-area" id="csv-file-upload">
+							<div class="file-upload-content">
+								<svg class="file-upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+									<polyline points="7,10 12,15 17,10"></polyline>
+									<line x1="12" y1="15" x2="12" y2="3"></line>
+								</svg>
+								<p class="file-upload-text"><?php esc_html_e( 'Drop CSV file here or click to browse', 'swift-csv' ); ?></p>
+								<p class="file-upload-hint"><?php esc_html_e( 'Maximum file size: 10MB', 'swift-csv' ); ?></p>
+								<input type="file" name="csv_file" id="ajax_csv_file" accept=".csv" style="display: none;">
+							</div>
+						</div>
+						<div class="file-info" id="csv-file-info" style="display: none;">
+							<span class="file-name"></span>
+							<button type="button" class="button button-secondary" id="remove-file-btn"><?php esc_html_e( 'Remove', 'swift-csv' ); ?></button>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 

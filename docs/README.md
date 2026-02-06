@@ -12,13 +12,13 @@ Swift CSV is a lightweight plugin for easily importing and exporting CSV files o
 
 ## ✨ Features
 
-- � **Complete Internationalization** - Full Japanese translation support with WordPress i18n API
+- 🌐 **Complete Internationalization** - Full Japanese translation support with WordPress i18n API
 - 📊 **Dynamic Progress Tracking** - Real-time progress bar with time estimation
 - 🎨 **Modern User Interface** - Professional admin interface with responsive design
 - 📝 **Batch Processing** - Handle large CSV files without timeouts
 - 🎯 **Block Editor Compatible** - Preserves Gutenberg block structure completely
 - 🛑 **Cancel Operations** - Safe operation interruption with cancel button
-- �🎯 **Simple and Intuitive** - No complex setup required
+- 🎯 **Simple and Intuitive** - No complex setup required
 - ⚡ **High-Speed Processing** - Supports large CSV files
 - 🔧 **Flexible Configuration** - Custom field support
 - 📱 **Responsive Design** - Mobile compatible

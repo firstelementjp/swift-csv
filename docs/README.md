@@ -2,7 +2,7 @@
 
 ![Banner](https://github.com/firstelementjp/swift-csv/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
 
-> Simple CSV import/export tool for WordPress plugins
+> Simple yet powerful CSV import/export plugin for WordPress
 
 [![License](https://img.shields.io/badge/license-GPL--2.0%2B-blue.svg)](LICENSE.md)
 [![Version](https://img.shields.io/badge/version-0.9.5-green.svg)](https://github.com/firstelementjp/swift-csv/releases)

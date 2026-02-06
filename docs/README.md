@@ -27,11 +27,11 @@ Swift CSV is a lightweight plugin for easily importing and exporting CSV files o
 
 ## 🚀 Download
 
-[Download swift-csv-0.9.5.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.5/swift-csv-0.9.5.zip){: .download-btn }
+[Download swift-csv-v0.9.5.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.5/swift-csv-v0.9.5.zip){: .download-btn }
 
 ## 🚀 Quick Start
 
-1. [Download swift-csv-0.9.5.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.5/swift-csv-0.9.5.zip)
+1. [Download swift-csv-v0.9.5.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.5/swift-csv-v0.9.5.zip)
 2. Extract to get \`swift-csv/\` folder
 3. Upload to \`/wp-content/plugins/\`
 4. Activate from admin dashboard

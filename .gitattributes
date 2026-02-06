@@ -1,6 +1,14 @@
 # Distribution files for git archive (release ZIP)
 # Include only necessary files for plugin distribution
 
+# Include minified assets
+assets/css/admin-style.min.css
+assets/js/admin-scripts.min.js
+
+# Exclude development files but keep minified assets
+assets/css/admin-style.css export-ignore
+assets/js/admin-scripts.js export-ignore
+
 # Exclude development and build files
 composer.json export-ignore
 composer.lock export-ignore

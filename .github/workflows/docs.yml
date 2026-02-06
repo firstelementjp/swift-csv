@@ -25,68 +25,10 @@ jobs:
             - name: Create Docsify documentation
               run: |
                 mkdir -p docs
-                cat > docs/index.html << 'HTML'
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Swift CSV Documentation</title>
-                    <meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-                    <style>
-                        :root {
-                            --theme-color: #0073aa;
-                        }
-                        .sidebar {
-                            background: linear-gradient(135deg, #0073aa 0%, #005a87 100%);
-                            color: white;
-                        }
-                        .sidebar h1 {
-                            color: white;
-                        }
-                        .sidebar p {
-                            color: rgba(255, 255, 255, 0.8);
-                        }
-                        .badge {
-                            background: #0073aa;
-                            color: white;
-                            padding: 4px 8px;
-                            border-radius: 3px;
-                            font-size: 12px;
-                            margin-left: 10px;
-                        }
-                        .download-btn {
-                            display: inline-block;
-                            background: #0073aa;
-                            color: white;
-                            padding: 12px 24px;
-                            text-decoration: none;
-                            border-radius: 6px;
-                            margin: 15px 0;
-                            font-weight: bold;
-                        }
-                        .download-btn:hover {
-                            background: #005a87;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div id="app"></div>
-                    <script>
-                        window.$docsify = {
-                            name: '📊 Swift CSV',
-                            repo: 'https://github.com/firstelementjp/swift-csv',
-                            loadSidebar: false,
-                            loadNavbar: false,
-                            maxLevel: 4,
-                            subMaxLevel: 2,
-                            search: 'auto'
-                        }
-                    </script>
-                    <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
-                    <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
-                    <script>
-                        const content = `# 📊 Swift CSV
+                
+                # Create main README.md
+                cat > docs/README.md << 'README'
+# 📊 Swift CSV
 
 Lightweight and simple CSV import/export plugin for WordPress.
 
@@ -161,12 +103,987 @@ Licensed under [GPLv2+](https://www.gnu.org/licenses/gpl-2.0.html).
 ---
 
 **Made with ❤️ by [FirstElement, Inc.](https://www.firstelement.co.jp/)**
-                        `;
-                        document.getElementById('app').innerHTML = content;
-                    </script>
-                </body>
-                </html>
-                HTML
+README
+
+                # Create sidebar navigation
+                cat > docs/_sidebar.md << 'SIDEBAR'
+- 📊 Swift CSV
+  - [Home](/)
+  - [Installation](/installation)
+  - [Usage Guide](/usage)
+  - [Features](/features)
+  - [API Reference](/api)
+  - [Contributing](/contributing)
+
+---
+
+## 🔗 External Links
+
+- [GitHub Repository](https://github.com/firstelementjp/swift-csv)
+- [Latest Release](https://github.com/firstelementjp/swift-csv/releases/latest)
+- [Report Issues](https://github.com/firstelementjp/swift-csv/issues)
+SIDEBAR
+
+                # Create installation guide
+                cat > docs/installation.md << 'INSTALLATION'
+# 🚀 Installation
+
+## Method 1: WordPress Admin (Recommended)
+
+1. Go to **Admin Dashboard → Plugins → Add New**
+2. Search for "Swift CSV"
+3. Click **Install Now**
+4. Click **Activate**
+
+## Method 2: Manual Installation
+
+### Step 1: Download
+
+1. [Download swift-csv-0.9.5.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.5/swift-csv-0.9.5.zip)
+2. Save the ZIP file to your computer
+
+### Step 2: Upload
+
+1. Extract the ZIP file to get the \`swift-csv/\` folder
+2. Using FTP or your hosting file manager, upload the \`swift-csv/\` folder to \`/wp-content/plugins/\` directory
+
+### Step 3: Activate
+
+1. Log in to your WordPress admin dashboard
+2. Go to **Plugins**
+3. Find "Swift CSV" in the list
+4. Click **Activate**
+
+## 🔧 Requirements
+
+- **WordPress**: 5.0 or higher
+- **PHP**: 7.4 or higher
+- **Memory**: 64MB+ recommended for large files
+- **Permissions**: Ability to upload plugins
+
+## ⚠️ Important Notes
+
+- Use the manual ZIP file from releases, not "Source code (zip)"
+- Ensure the \`swift-csv/\` folder is directly in \`/wp-content/plugins/\`
+- Check PHP memory limits if processing large CSV files
+
+## 🆘 Troubleshooting
+
+### Plugin not showing up
+- Verify the folder structure: \`/wp-content/plugins/swift-csv/\`
+- Check file permissions
+- Ensure PHP version meets requirements
+
+### Memory issues
+- Increase \`memory_limit\` in \`php.ini\`
+- Use smaller CSV files for testing
+- Contact your hosting provider if needed
+INSTALLATION
+
+                # Create usage guide
+                cat > docs/usage.md << 'USAGE'
+# 📖 Usage Guide
+
+## CSV Export
+
+### Basic Export
+
+1. Navigate to **Swift CSV** in your WordPress admin panel
+2. Select the **Export** tab
+3. Choose your **Post Type** (posts, pages, or custom post types)
+4. Select **Export Scope**:
+   - **Basic**: Post title, content, excerpt, status
+   - **Advanced**: Includes custom fields and taxonomies
+5. Set **Export Limit** (optional)
+6. Click **Export CSV**
+
+### Advanced Export Options
+
+#### Custom Fields
+- Select which custom fields to include
+- Use field slugs exactly as they appear in WordPress
+- Multiple fields can be selected
+
+#### Taxonomies
+- Choose categories, tags, or custom taxonomies
+- Export hierarchical relationships
+- Include term descriptions
+
+## CSV Import
+
+### Preparing Your CSV
+
+Your CSV file should include these columns:
+- \`post_title\` (required)
+- \`post_content\` (optional)
+- \`post_excerpt\` (optional)
+- \`post_status\` (optional: publish, draft, pending)
+- Custom field columns (optional)
+
+### Import Process
+
+1. Navigate to **Swift CSV** → **Import** tab
+2. Click **Choose File** and select your CSV
+3. Configure **Field Mapping**:
+   - Map CSV columns to WordPress fields
+   - Set default values for missing data
+4. Choose **Import Options**:
+   - **Update existing posts**: Update posts with same title
+   - **Create new posts**: Create posts for new entries
+5. Click **Import CSV**
+
+### Progress Tracking
+
+During import/export, you'll see:
+- **Progress bar** with percentage
+- **Time estimation** (elapsed and remaining)
+- **Processed items count**
+- **Cancel button** to stop operation
+
+## 🎯 Best Practices
+
+### For Large Files
+- Start with smaller test files
+- Monitor memory usage
+- Use batch processing for very large datasets
+- Consider increasing PHP memory limits
+
+### Data Quality
+- Ensure CSV files use UTF-8 encoding
+- Validate data before import
+- Backup your database before bulk operations
+- Test with sample data first
+
+### Performance
+- Use appropriate export limits
+- Select only necessary custom fields
+- Avoid processing during peak traffic times
+USAGE
+
+                # Create features page
+                cat > docs/features.md << 'FEATURES'
+# ✨ Features
+
+## 🌐 Complete Internationalization
+
+Swift CSV supports multiple languages with WordPress i18n API:
+
+- **English**: Default language with full support
+- **Japanese**: Complete translation including UI elements
+- **Framework**: Ready for additional language translations
+
+### Translation Features
+- Dynamic time display with proper localization
+- Progress tracking in user's language
+- Admin interface fully translated
+- Error messages and notifications
+
+## 📊 Dynamic Progress Tracking
+
+Real-time progress monitoring for long operations:
+
+### Progress Bar
+- **Visual indicator**: Color-coded progress bar
+- **Percentage display**: Exact completion percentage
+- **Smooth animations**: Professional visual feedback
+
+### Time Estimation
+- **Elapsed time**: Shows how long operation has been running
+- **Remaining time**: Estimates completion time
+- **Auto-updating**: Real-time time calculations
+- **Smart algorithms**: Adapts to processing speed
+
+### Status Updates
+- **Current operation**: Shows what's being processed
+- **Item count**: Number of items processed/total
+- **Error handling**: Clear error messages and recovery options
+
+## 🎨 Modern User Interface
+
+Professional admin interface design:
+
+### Responsive Design
+- **Mobile friendly**: Works on all screen sizes
+- **Touch optimized**: Easy interaction on tablets
+- **Accessibility**: WCAG compliant design patterns
+
+### Visual Feedback
+- **Loading states**: Clear indication of processing
+- **Success messages**: Confirmation of completed actions
+- **Error alerts**: Helpful error information
+- **Hover effects**: Interactive element feedback
+
+### User Experience
+- **Intuitive layout**: Logical organization of controls
+- **Clear labeling**: Descriptive text and icons
+- **Consistent styling**: WordPress admin theme integration
+- **Fast response**: Optimized JavaScript performance
+
+## 📝 Batch Processing
+
+Efficient handling of large datasets:
+
+### Memory Management
+- **Chunked processing**: Processes data in manageable batches
+- **Memory optimization**: Minimal memory footprint
+- **Timeout prevention**: Avoids PHP execution limits
+- **Scalable architecture**: Handles unlimited file sizes
+
+### Performance Features
+- **Background processing**: Non-blocking operations
+- **Resume capability**: Continue interrupted operations
+- **Progress persistence**: Maintains state across requests
+- **Error recovery**: Handles network issues gracefully
+
+## 🎯 Block Editor Compatibility
+
+Full Gutenberg block structure preservation:
+
+### Content Integrity
+- **Block preservation**: Maintains all block types and attributes
+- **Nested blocks**: Handles complex block structures
+- **Custom blocks**: Supports third-party block types
+- **Block metadata**: Preserves block settings and configurations
+
+### Editor Integration
+- **Seamless import**: Blocks appear correctly in editor
+- **Format maintenance**: Keeps spacing and styling
+- **Media handling**: Preserves image and media references
+- **Reusable blocks**: Maintains block relationships
+
+## 🛑 Cancel Operations
+
+Safe operation interruption:
+
+### Cancel Functionality
+- **Cancel button**: Visible during long operations
+- **Safe cleanup**: Properly terminates processes
+- **State restoration**: Returns to stable state
+- **Data integrity**: Prevents corruption during cancellation
+
+### User Control
+- **Operation control**: Users decide when to stop
+- **Progress monitoring**: Real-time status updates
+- **Confirmation dialogs**: Prevent accidental cancellation
+- **Resume options**: Continue from where stopped
+
+## 🔧 Technical Features
+
+### WordPress Integration
+- **Standard APIs**: Uses WordPress best practices
+- **Hook system**: Extensible with WordPress hooks
+- **Security**: Follows WordPress security standards
+- **Compatibility**: Works with popular themes and plugins
+
+### Performance Optimization
+- **Caching**: Smart data caching for faster operations
+- **Database queries**: Optimized database interactions
+- **Asset loading**: Efficient JavaScript and CSS loading
+- **Minimal dependencies**: Lightweight footprint
+
+### Data Handling
+- **UTF-8 support**: Proper character encoding
+- **CSV validation**: Input sanitization and validation
+- **Error logging**: Comprehensive error tracking
+- **Backup friendly**: Safe data manipulation
+FEATURES
+
+                # Create API reference
+                cat > docs/api.md << 'API'
+# 🔧 API Reference
+
+## Hooks and Filters
+
+Swift CSV provides several WordPress hooks for customization:
+
+### Actions
+
+#### swift_csv_before_import
+Fires before CSV import process begins.
+
+\`\`\`php
+do_action( 'swift_csv_before_import', $file_path, $options );
+\`\`\`
+
+#### swift_csv_after_import
+Fires after CSV import process completes.
+
+\`\`\`php
+do_action( 'swift_csv_after_import', $imported_count, $results );
+\`\`\`
+
+#### swift_csv_before_export
+Fires before CSV export process begins.
+
+\`\`\`php
+do_action( 'swift_csv_before_export', $post_type, $options );
+\`\`\`
+
+#### swift_csv_after_export
+Fires after CSV export process completes.
+
+\`\`\`php
+do_action( 'swift_csv_after_export', $export_data, $file_path );
+\`\`\`
+
+### Filters
+
+#### swift_csv_export_columns
+Filter the columns included in CSV export.
+
+\`\`\`php
+$columns = apply_filters( 'swift_csv_export_columns', $default_columns, $post_type );
+\`\`\`
+
+#### swift_csv_import_data
+Filter imported data before saving to database.
+
+\`\`\`php
+$import_data = apply_filters( 'swift_csv_import_data', $data, $options );
+\`\`\`
+
+#### swift_csv_batch_size
+Filter the batch size for processing.
+
+\`\`\`php
+$batch_size = apply_filters( 'swift_csv_batch_size', 100, $context );
+\`\`\`
+
+## Classes and Methods
+
+### Swift_CSV_Batch
+
+Main class for batch processing operations.
+
+#### Methods
+
+##### import_csv( $file_path, $options = array() )
+Import CSV file in batches.
+
+**Parameters:**
+- \`$file_path\` (string): Path to CSV file
+- \`$options\` (array): Import options
+
+**Returns:**
+- array: Import results with success status and data
+
+\`\`\`php
+$batch = new Swift_CSV_Batch();
+$result = $batch->import_csv( '/path/to/file.csv', $options );
+\`\`\`
+
+##### export_posts( $args = array() )
+Export posts to CSV format.
+
+**Parameters:**
+- \`$args\` (array): WP_Query arguments
+
+**Returns:**
+- string: CSV data
+
+\`\`\`php
+$batch = new Swift_CSV_Batch();
+$csv_data = $batch->export_posts( array(
+    'post_type' => 'post',
+    'posts_per_page' => -1
+) );
+\`\`\`
+
+### Swift_CSV_Admin
+
+Admin interface class.
+
+#### Methods
+
+##### render_plugin_page()
+Render the main plugin admin page.
+
+\`\`\`php
+$admin = new Swift_CSV_Admin();
+$admin->render_plugin_page();
+\`\`\`
+
+##### enqueue_scripts()
+Load admin scripts and styles.
+
+\`\`\`php
+$admin = new Swift_CSV_Admin();
+$admin->enqueue_scripts();
+\`\`\`
+
+## JavaScript API
+
+### Global Objects
+
+#### swiftCSV
+Global JavaScript object for admin interface.
+
+**Properties:**
+- \`ajaxUrl\` (string): AJAX endpoint URL
+- \`nonce\` (string): Security nonce
+- \`messages\` (object): Translated messages
+
+**Example:**
+\`\`\`javascript
+console.log( swiftCSV.ajaxUrl );
+console.log( swiftCSV.messages.exporting );
+\`\`\`
+
+### Functions
+
+#### startBatchExport( postType, postsPerPage )
+Start batch export process.
+
+**Parameters:**
+- \`postType\` (string): Post type to export
+- \`postsPerPage\` (number): Number of posts per batch
+
+\`\`\`javascript
+startBatchExport( 'post', 100 );
+\`\`\`
+
+#### handleAjaxExport( event )
+Handle AJAX export form submission.
+
+**Parameters:**
+- \`event\` (Event): Form submit event
+
+\`\`\`javascript
+const form = document.querySelector('#export-form');
+form.addEventListener('submit', handleAjaxExport);
+\`\`\`
+
+## Database Tables
+
+### swift_csv_batches
+
+Stores batch processing information.
+
+**Columns:**
+- \`id\` (bigint): Primary key
+- \`batch_type\` (varchar): Type of batch (import/export)
+- \`status\` (varchar): Current status
+- \`total_items\` (int): Total items to process
+- \`processed_items\` (int): Items processed so far
+- \`created_at\` (datetime): Creation timestamp
+- \`updated_at\` (datetime): Last update timestamp
+
+## Configuration Options
+
+### Import Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| \`post_type\` | string | 'post' | Target post type |
+| \`update_existing\` | boolean | false | Update existing posts |
+| \`default_status\` | string | 'draft' | Default post status |
+| \`author_id\` | int | 1 | Default author ID |
+
+### Export Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| \`post_type\` | string | 'post' | Post type to export |
+| \`post_status\` | string | 'publish' | Post status filter |
+| \`posts_per_page\` | int | -1 | Posts per page (-1 = all) |
+| \`include_meta\` | boolean | true | Include custom fields |
+| \`include_taxonomies\` | boolean | true | Include taxonomies |
+
+## Error Handling
+
+### Error Codes
+
+| Code | Message | Description |
+|------|---------|-------------|
+| 1001 | Invalid file format | CSV file is not valid |
+| 1002 | File too large | File exceeds size limit |
+| 1003 | Memory limit exceeded | PHP memory limit reached |
+| 1004 | Database error | Database query failed |
+| 1005 | Invalid post type | Post type doesn't exist |
+
+### Error Response Format
+
+\`\`\`json
+{
+    "success": false,
+    "error": {
+        "code": 1001,
+        "message": "Invalid file format",
+        "data": {
+            "file": "example.csv",
+            "line": 15
+        }
+    }
+}
+\`\`\`
+API
+
+                # Create contributing guide
+                cat > docs/contributing.md << 'CONTRIBUTING'
+# 🤝 Contributing
+
+We welcome contributions to Swift CSV! This guide will help you get started.
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **WordPress**: Local WordPress installation
+- **PHP**: 7.4 or higher
+- **Node.js**: 16.0 or higher (for development)
+- **Git**: Version control
+
+### Setup
+
+1. **Fork the repository**
+   \`\`\`bash
+   git clone https://github.com/YOUR_USERNAME/swift-csv.git
+   cd swift-csv
+   \`\`\`
+
+2. **Install dependencies**
+   \`\`\`bash
+   composer install
+   npm install
+   \`\`\`
+
+3. **Start development**
+   \`\`\`bash
+   npm run dev
+   \`\`\`
+
+## 📝 Development Workflow
+
+### 1. Create a Branch
+
+\`\`\`bash
+git checkout -b feature/your-feature-name
+\`\`\`
+
+### 2. Make Changes
+
+- Follow WordPress coding standards
+- Write tests for new features
+- Update documentation
+
+### 3. Test Your Changes
+
+\`\`\`bash
+# Run PHP tests
+npm run test:php
+
+# Run JavaScript tests
+npm run test:js
+
+# Check code style
+npm run lint
+\`\`\`
+
+### 4. Submit Pull Request
+
+- Push your branch to your fork
+- Create a pull request to main branch
+- Describe your changes clearly
+- Wait for review
+
+## 🐛 Bug Reports
+
+### Reporting Bugs
+
+1. **Check existing issues** - Search for similar problems
+2. **Create new issue** - Use bug report template
+3. **Provide details**:
+   - WordPress version
+   - PHP version
+   - Browser version
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Screenshots if applicable
+
+### Bug Report Template
+
+\`\`\`markdown
+## Bug Description
+Brief description of the issue
+
+## Environment
+- WordPress: X.X.X
+- PHP: X.X.X
+- Browser: Chrome/Firefox/Safari X.X.X
+
+## Steps to Reproduce
+1. Step one
+2. Step two
+3. Step three
+
+## Expected Behavior
+What should happen
+
+## Actual Behavior
+What actually happens
+
+## Screenshots
+If applicable, add screenshots
+
+## Additional Context
+Any other relevant information
+\`\`\`
+
+## ✨ Feature Requests
+
+### Requesting Features
+
+1. **Check existing issues** - Avoid duplicates
+2. **Use feature request template**
+3. **Provide use case** - Explain why it's needed
+4. **Consider implementation** - Suggest approach if possible
+
+### Feature Request Template
+
+\`\`\`markdown
+## Feature Description
+Clear description of the feature
+
+## Use Case
+Why this feature is needed
+
+## Proposed Solution
+How you think it should work
+
+## Alternatives Considered
+Other approaches you've thought about
+
+## Additional Context
+Any other relevant information
+\`\`\`
+
+## 🔧 Code Standards
+
+### PHP Standards
+
+Follow [WordPress Coding Standards](https://make.wordpress.org/core/handbook/best-practices/coding-standards/):
+
+\`\`\`php
+// Good
+function swift_csv_get_posts( $args = array() ) {
+    $defaults = array(
+        'post_type'      => 'post',
+        'posts_per_page' => 10,
+    );
+    
+    $args = wp_parse_args( $args, $defaults );
+    
+    return get_posts( $args );
+}
+
+// Bad
+function getposts($a){
+    return get_posts($a);
+}
+\`\`\`
+
+### JavaScript Standards
+
+Use modern ES6+ features:
+
+\`\`\`javascript
+// Good
+const exportData = async (postType, options) => {
+    try {
+        const response = await fetch(swiftCSV.ajaxUrl, {
+            method: 'POST',
+            body: JSON.stringify({ postType, options })
+        });
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Export failed:', error);
+    }
+};
+
+// Bad
+function exportData(postType,options){
+    return fetch(swiftCSV.ajaxUrl,{
+        method:'POST',
+        body:JSON.stringify({postType,options})
+    });
+}
+\`\`\`
+
+### CSS Standards
+
+Use BEM methodology:
+
+\`\`\`css
+/* Good */
+.swift-csv__progress-bar {
+    width: 100%;
+    height: 20px;
+}
+
+.swift-csv__progress-bar--active {
+    background-color: #0073aa;
+}
+
+.swift-csv__progress-bar__fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Bad */
+.progressBar {
+    width:100%;
+    height:20px;
+}
+\`\`\`
+
+## 📚 Documentation
+
+### Updating Documentation
+
+- **README.md**: Main project description
+- **Inline docs**: PHPDoc comments for functions
+- **User guide**: Usage instructions
+- **API docs**: Developer reference
+
+### PHPDoc Example
+
+\`\`\`php
+/**
+ * Import CSV file in batches.
+ *
+ * @since 0.9.0
+ * @param string $file_path Path to CSV file.
+ * @param array  $options   Import options.
+ * @return array Import results.
+ */
+public function import_csv( $file_path, $options = array() ) {
+    // Implementation
+}
+\`\`\`
+
+## 🧪 Testing
+
+### Writing Tests
+
+- **Unit tests**: Test individual functions
+- **Integration tests**: Test component interactions
+- **End-to-end tests**: Test complete workflows
+
+### Test Structure
+
+\`\`\`bash
+tests/
+├── php/
+│   ├── unit/
+│   └── integration/
+├── js/
+│   ├── unit/
+│   └── integration/
+└── e2e/
+\`\`\`
+
+### Running Tests
+
+\`\`\`bash
+# PHP tests
+composer test
+
+# JavaScript tests
+npm run test
+
+# Coverage report
+npm run test:coverage
+\`\`\`
+
+## 📦 Release Process
+
+### Version Bumping
+
+1. Update version numbers:
+   - \`swift-csv.php\`
+   - \`package.json\`
+   - \`README.md\`
+
+2. Update changelog
+3. Create git tag
+4. Create GitHub release
+
+### Release Checklist
+
+- [ ] All tests pass
+- [ ] Documentation updated
+- [ ] Version numbers updated
+- [ ] Changelog updated
+- [ ] Git tag created
+- [ ] GitHub release created
+
+## 🏆 Recognition
+
+Contributors will be recognized in:
+- README.md contributors section
+- GitHub contributors list
+- Release notes
+- Plugin credits
+
+## 📞 Getting Help
+
+### Resources
+
+- [WordPress Developer Resources](https://developer.wordpress.org/)
+- [GitHub Docs](https://docs.github.com/)
+- [Node.js Documentation](https://nodejs.org/docs/)
+
+### Contact
+
+- **Issues**: [GitHub Issues](https://github.com/firstelementjp/swift-csv/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/firstelementjp/swift-csv/discussions)
+- **Email**: support@firstelement.co.jp
+
+## 📄 License
+
+By contributing, you agree that your contributions will be licensed under the same license as the project (GPLv2+).
+
+---
+
+Thank you for contributing to Swift CSV! 🎉
+CONTRIBUTING
+
+                # Create index.html with full Docsify
+                cat > docs/index.html << 'HTML'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Swift CSV Documentation</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/dark.css">
+    <style>
+        :root {
+            --theme-color: #0073aa;
+            --sidebar-width: 300px;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #0073aa 0%, #005a87 100%);
+            color: white;
+        }
+        .sidebar h1 {
+            color: white;
+            font-size: 1.5em;
+            margin: 1rem 0;
+        }
+        .sidebar p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9em;
+        }
+        .content {
+            padding-top: 60px;
+        }
+        .badge {
+            background: #0073aa;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .download-btn {
+            display: inline-block;
+            background: #0073aa;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .download-btn:hover {
+            background: #005a87;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #0073aa;
+        }
+        .search {
+            margin-bottom: 20px;
+        }
+        .sidebar-toggle {
+            background: #0073aa;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <script>
+        window.$docsify = {
+            name: '📊 Swift CSV',
+            repo: 'https://github.com/firstelementjp/swift-csv',
+            loadSidebar: '_sidebar.md',
+            loadNavbar: false,
+            maxLevel: 4,
+            subMaxLevel: 2,
+            search: {
+                maxAge: 86400000,
+                paths: 'auto',
+                placeholder: 'Type to search',
+                noData: 'No Results!',
+                depth: 6
+            },
+            copyCode: {
+                buttonText: 'Copy to clipboard',
+                errorText: 'Failed to copy',
+                successText: 'Copied'
+            },
+            pagination: {
+                previousText: 'Previous',
+                nextText: 'Next',
+                crossChapter: true,
+                crossChapterText: true,
+            },
+            plugins: [
+                function(hook, vm) {
+                    hook.doneEach(function() {
+                        // Add custom styling after each page render
+                        const preBlocks = document.querySelectorAll('pre[data-lang]');
+                        preBlocks.forEach(block => {
+                            if (!block.querySelector('.copy-code-button')) {
+                                const button = document.createElement('button');
+                                button.className = 'copy-code-button';
+                                button.textContent = 'Copy';
+                                button.onclick = function() {
+                                    navigator.clipboard.writeText(block.textContent);
+                                    button.textContent = 'Copied!';
+                                    setTimeout(() => {
+                                        button.textContent = 'Copy';
+                                    }, 2000);
+                                };
+                                block.style.position = 'relative';
+                                block.appendChild(button);
+                            }
+                        });
+                    });
+                }
+            ]
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/zoom-image.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/clipboard.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/pagination.min.js"></script>
+</body>
+</html>
+HTML
 
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v3

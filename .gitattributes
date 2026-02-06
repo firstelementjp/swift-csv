@@ -40,6 +40,12 @@ swift-csv/ export-ignore
 docs/ export-ignore
 phpdoc/ export-ignore
 
+# Exclude large banner images (not needed for plugin functionality)
+assets/images/swift-csv-banner.jpeg export-ignore
+assets/images/banner-772x250.png export-ignore
+assets/images/icon-256x256.png export-ignore
+assets/images/icon-128x128.png export-ignore
+
 # Exclude temporary and cache files
 *.log export-ignore
 debug.log export-ignore

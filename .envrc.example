@@ -1,52 +1,168 @@
-# =============================================================================
-# WordPress Plugin Template - direnv Configuration Template
-# =============================================================================
+# =============================================================
+# WordPress Plugin Development Environment Template
+# =============================================================
+# 
+# This is a template file for direnv configuration optimized for
+# WordPress plugin development with Local by Flywheel.
+# 
 # Usage:
-# 1. cp .envrc.example .envrc
-# 2. Customize as needed
-# 3. direnv allow
-#
-# Customization Points:
-# - Prompt name: Change "(wp-plugin)" in PS1 to your project name
-# - Environment variables: Set DB_NAME, etc. to project-specific values
-# - Aliases: Add or remove as needed
-# =============================================================================
+#   cp .envrc.example .envrc
+#   direnv allow
+# 
+# Requirements:
+#   - direnv: https://direnv.net/
+#   - mysql-client: brew install mysql-client
+#   - WP-CLI: brew install wp-cli
+#   - Composer: https://getcomposer.org/
+# =============================================================
 
-# Project Root
-# =============================================================================
-export PROJECT_ROOT=$PWD
+# =============================================================
+# Project Configuration
+# =============================================================
+export PROJECT_ROOT="$PWD"
+export PROJECT_NAME="$(basename "$PWD")"
 
-# PATH Configuration
-# =============================================================================
-PATH_add bin
-PATH_add vendor/bin
+# =============================================================
+# Development Tools PATH
+# =============================================================
+# Add mysql-client to PATH (required for Local by Flywheel)
+export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
 
-# Environment Variables
-# =============================================================================
+# Add project vendor binaries to PATH
+export PATH="$PROJECT_ROOT/vendor/bin:$PATH"
+
+# =============================================================
+# WordPress Configuration
+# =============================================================
+# Enable WordPress debug mode
 export WP_DEBUG=true
-export DB_HOST=localhost
-# export DB_NAME=your_database_name # Optional
-# export DB_USER=your_username # Optional
-# export DB_PASSWORD=your_password # Optional
 
-# Aliases
-# =============================================================================
-alias cdp="cd $PROJECT_ROOT"
-alias cdcore="cd $PROJECT_ROOT/includes/core"
-alias cdi18n="cd $PROJECT_ROOT/includes/i18n"
-alias cdadmin="cd $PROJECT_ROOT/includes/admin"
-alias cdassets="cd $PROJECT_ROOT/assets"
+# =============================================================
+# Database Configuration (Local by Flywheel)
+# =============================================================
+# Get these values from Local by Flywheel > Site > Database
+# 
+# To find MySQL socket path:
+# 1. Open Local by Flywheel
+# 2. Go to your site
+# 3. Click "Database" tab
+# 4. Look for "Socket" value
+# 
+# Example values:
+#   export DB_HOST="localhost"
+#   export DB_NAME="local"
+#   export DB_USER="root"
+#   export DB_PASSWORD="root"
+#   export MYSQL_UNIX_PORT="/Users/username/Library/Application Support/Local/run/xxxxxxxx/mysql/mysqld.sock"
 
-# Custom Functions
-# =============================================================================
-fe_phpcs() {
-    ./vendor/bin/phpcs --standard=WordPress --report=full "${@:-.}"
-}
+# Database settings (customize for your environment)
+export DB_HOST="localhost"
+export DB_NAME="local"
+export DB_USER="root"
+export DB_PASSWORD="root"
 
-fe_phpcbf() {
-    ./vendor/bin/phpcbf --standard=WordPress "${@:-.}"
-}
+# MySQL socket path for Local by Flywheel
+# IMPORTANT: Update this path for your Local installation
+export MYSQL_UNIX_PORT="/Users/YOUR_USERNAME/Library/Application Support/Local/run/SITE_ID/mysql/mysqld.sock"
 
-# Prompt Customization
-# =============================================================================
-export PS1="(wp-plugin) $PS1"
+# =============================================================
+# Development Tools Configuration
+# =============================================================
+# Composer scripts are used instead of direnv functions
+# See composer.json > scripts section
+# 
+# Usage:
+#   composer phpcs -- file.php
+#   composer phpcbf -- file.php
+#   composer install
+#   composer update
+
+# =============================================================
+# Optional: Custom Aliases (uncomment if needed)
+# =============================================================
+# These may not work reliably with direnv, but you can try:
+#
+# Directory navigation aliases
+# cdadmin() { cd "$PROJECT_ROOT/includes/admin"; }
+# cdassets() { cd "$PROJECT_ROOT/assets"; }
+# cdinc() { cd "$PROJECT_ROOT/includes"; }
+#
+# Development aliases
+# test() { echo "Testing $PROJECT_NAME..."; }
+# 
+# For reliable aliases, add them to ~/.zshrc instead:
+# alias cdadmin='cd ./includes/admin'
+# alias cdassets='cd ./assets'
+
+# =============================================================
+# Shell Configuration
+# =============================================================
+# Custom prompt to show current project
+export PS1="($PROJECT_NAME) $PS1"
+
+# =============================================================
+# Additional Environment Variables (Optional)
+# =============================================================
+# Add any project-specific environment variables here
+# 
+# Examples:
+#   export API_KEY="your-api-key-here"
+#   export NODE_ENV="development"
+#   export LOG_LEVEL="debug"
+
+# =============================================================
+# Verification Commands
+# =============================================================
+# After setting up .envrc, verify your environment:
+# 
+#   # Check if direnv is working
+#   echo $PROJECT_ROOT
+#   
+#   # Check if mysql-client is available
+#   which mysql
+#   mysql --version
+#   
+#   # Check if WP-CLI can connect to database
+#   wp db query "SELECT 1;" --path=/path/to/wordpress
+#   
+#   # Check if Composer scripts work
+#   composer phpcs -- --version
+#   
+#   # Check if vendor binaries are in PATH
+#   which phpcs
+#   which phpcbf
+
+# =============================================================
+# Troubleshooting
+# =============================================================
+# 
+# If commands are not found:
+#   1. Run: direnv allow
+#   2. Run: direnv reload
+#   3. Check: which mysql
+#   4. Install: brew install mysql-client
+# 
+# If WP-CLI cannot connect to database:
+#   1. Verify DB_HOST, DB_NAME, DB_USER, DB_PASSWORD
+#   2. Verify MYSQL_UNIX_PORT path exists
+#   3. Run: wp cli cache clear
+# 
+# If Composer scripts don't work:
+#   1. Run: composer install
+#   2. Check: composer.json scripts section
+#   3. Run: composer install --no-dev
+
+# =============================================================
+# Team Collaboration
+# =============================================================
+# 
+# 1. Add .envrc.example to git repository
+# 2. Add .envrc to .gitignore
+# 3. Team members copy .envrc.example to .envrc
+# 4. Each team member customizes their .envrc
+# 5. Never commit .envrc to version control
+# 
+# This ensures:
+#   - Consistent development environment
+#   - No sensitive data in repository
+#   - Easy onboarding for new team members

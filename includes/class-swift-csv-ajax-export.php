@@ -30,6 +30,20 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 	$include_private_meta = (bool) $include_private_meta;
 
+	// Custom export scope - use hook with fallback to basic
+	if ( $export_scope === 'custom' ) {
+		// Apply custom filter for developers
+		$custom_headers = apply_filters( 'swift_csv_export_columns', [], $post_type, $include_private_meta );
+
+		// If custom hook returns valid headers, use them
+		if ( is_array( $custom_headers ) && ! empty( $custom_headers ) ) {
+			return $custom_headers;
+		}
+
+		// Fallback to basic if no custom implementation
+		$export_scope = 'basic';
+	}
+
 	$headers = [ 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_author' ];
 	if ( $export_scope === 'all' ) {
 		$allowed_post_fields = [

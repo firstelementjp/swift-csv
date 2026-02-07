@@ -4,12 +4,30 @@
  * @package SwiftCSV
  */
 
-// WordPress i18n API
-const { __ } = window.wp.i18n || { __: text => text };
+// WordPress i18n API with proper fallback
+function __(text, domain = 'swift-csv') {
+	if (window.wp && window.wp.i18n && window.wp.i18n.__) {
+		return window.wp.i18n.__(text, domain);
+	}
+	// Fallback: return original text (will be translated by PHP if needed)
+	return text;
+}
 
 document.addEventListener('DOMContentLoaded', function () {
 	// Initialize logging system
 	initLoggingSystem();
+
+	// Export scope toggle for custom help
+	const exportScopeRadios = document.querySelectorAll('input[name="export_scope"]');
+	const customHelp = document.getElementById('custom-export-help');
+
+	if (exportScopeRadios.length && customHelp) {
+		exportScopeRadios.forEach(radio => {
+			radio.addEventListener('change', function () {
+				customHelp.style.display = this.value === 'custom' ? 'block' : 'none';
+			});
+		});
+	}
 
 	// Batch export functionality
 	const exportBtn = document.querySelector('#export-csv-btn');
@@ -55,14 +73,14 @@ function initLoggingSystem() {
 	if (exportLogContent) {
 		exportLogContent.innerHTML =
 			'<div class="log-entry log-info">' +
-			__('Ready to start export...', 'swift-csv') +
+			(swiftCSV.messages.readyToExport || 'Ready to start export...') +
 			'</div>';
 	}
 
 	if (importLogContent) {
 		importLogContent.innerHTML =
 			'<div class="log-entry log-info">' +
-			__('Ready to start import...', 'swift-csv') +
+			(swiftCSV.messages.readyToImport || 'Ready to start import...') +
 			'</div>';
 	}
 }
@@ -237,6 +255,14 @@ function handleAjaxExport(e) {
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'inline-block';
+	}
+
+	// Reset download button to disabled state
+	const downloadBtn = document.querySelector('#export-download-btn');
+	if (downloadBtn) {
+		downloadBtn.classList.remove('enabled');
+		downloadBtn.href = '#';
+		downloadBtn.removeAttribute('download');
 	}
 
 	let csvContent = '';
@@ -638,11 +664,12 @@ function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
 
 	const filename = `swiftcsv_export_${postType}_${dateStr}.csv`;
 
-	const downloadLink = document.querySelector('#ajax-export-download-link a');
-	if (downloadLink) {
-		downloadLink.href = url;
-		downloadLink.download = filename;
-		downloadLink.parentElement.style.display = 'block';
+	// Update download button with new ID and state management
+	const downloadBtn = document.querySelector('#export-download-btn');
+	if (downloadBtn) {
+		downloadBtn.href = url;
+		downloadBtn.download = filename;
+		downloadBtn.classList.add('enabled'); // Enable the button
 	}
 
 	// Reset buttons

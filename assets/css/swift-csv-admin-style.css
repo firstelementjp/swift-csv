@@ -13,7 +13,7 @@
 	background-repeat: no-repeat;
 	background-size: 27%;
 	background-color: white;
-	margin-bottom: 15px;
+	margin: -10px -20px 15px -22px;
 }
 
 #plugin_header_upper {
@@ -105,6 +105,14 @@
 .tab-content {
 	background: white;
 }
+
+.tab-content h3 {
+	background: #e0ebe6;
+	padding: 0.2rem 0.5rem;
+	border-radius: 3px;
+	margin: 0 -0.5rem 1rem;
+	font-size: 1.2em;
+}
 .swift-csv-layout {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -119,27 +127,71 @@
 	}
 }
 
+.swift-csv .card {
+	border: none;
+	box-shadow: none;
+	max-width: none;
+}
+
 /* Settings Column */
 .swift-csv-settings {
 	min-height: 400px;
+	padding: 20px;
 }
 
 .swift-csv-settings .card {
 	height: auto;
+	padding: 0;
+}
+
+/* File Upload Section in Settings */
+.swift-csv-file-upload-section {
+	margin-bottom: 25px;
+}
+
+.swift-csv-file-upload-section .file-upload-area {
+	margin-bottom: 15px;
+}
+
+.swift-csv-file-upload-section .file-info {
+	background-color: #f0f6fc;
+	border: 1px solid #0073aa;
+	border-radius: 4px;
+	padding: 10px 15px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
 /* Log Column */
 .swift-csv-log {
 	/* min-height: 600px; */
-}
-
-.swift-csv-log .card {
-	height: 100%;
+	padding: 20px;
 	display: flex;
 	flex-direction: column;
 }
 
-/* Progress Section */
+.swift-csv-log .card {
+	height: auto;
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+}
+
+/* Log Area */
+.swift-csv-log-area {
+	flex: 1;
+	min-height: 300px;
+	max-height: 400px;
+	overflow-y: auto;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	background-color: #f9f9f9;
+	padding: 15px;
+	margin-bottom: 20px;
+}
+
+/* Progress Section - Moved below log area */
 .swift-csv-progress {
 	margin-bottom: 20px;
 }
@@ -179,6 +231,56 @@
 	background-color: #f9f9f9;
 	border-radius: 4px;
 	text-align: center;
+}
+
+/* Download Button - Always visible with state changes */
+.swift-csv-download-section {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	margin-top: 15px;
+	padding-top: 15px;
+}
+
+.swift-csv-download-btn {
+	padding: 8px 16px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	background-color: #f5f5f5;
+	color: #999;
+	cursor: not-allowed;
+	font-size: 13px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.swift-csv-download-btn:hover {
+	background-color: #f5f5f5;
+	color: #999;
+}
+
+.swift-csv-download-btn.enabled {
+	background-color: #0073aa;
+	border-color: #0073aa;
+	color: white;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.swift-csv-download-btn.enabled:hover {
+	background-color: #005a87;
+	border-color: #005a87;
+	color: white;
+}
+
+.swift-csv-download-btn .dashicons {
+	font-size: 16px;
+	height: 16px;
+	width: 16px;
 }
 
 .swift-csv-progress .created {
@@ -410,12 +512,8 @@
 	line-height: 1.9;
 }
 
-.swift-csv .card {
-	background: none;
-	border: none;
-	box-shadow: none;
-	margin-top: 0;
-	padding: 20px;
+a.nav-tab:last-of-type {
+	border: none !important;
 }
 
 .swift-csv .form-table th {

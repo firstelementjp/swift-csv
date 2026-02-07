@@ -56,10 +56,18 @@ export WP_DEBUG=true
 #   export MYSQL_UNIX_PORT="/Users/username/Library/Application Support/Local/run/xxxxxxxx/mysql/mysqld.sock"
 
 # Database settings (customize for your environment)
-export DB_HOST="localhost"
-export DB_NAME="local"
-export DB_USER="root"
-export DB_PASSWORD="root"
+export DB_HOST=localhost
+export DB_NAME=local
+export DB_USER=root
+export DB_PASSWORD=root
+
+# WordPress path for WP-CLI (avoid spaces in path)
+export WP_PATH="/path/to/your/wordpress/public"
+
+# IMPORTANT NOTES:
+# 1. Use unquoted values for database variables: export DB_HOST=localhost (not "localhost")
+# 2. Use quoted values for paths with spaces: export WP_PATH="/path with spaces/wordpress"
+# 3. Test WP-CLI connection: wp db query "SELECT 1;" --path="$WP_PATH"
 
 # MySQL socket path for Local by Flywheel
 # IMPORTANT: Update this path for your Local installation

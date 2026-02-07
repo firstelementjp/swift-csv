@@ -102,12 +102,14 @@
 /* ==========================================================================
 	New Layout: Two Column Design
 	========================================================================== */
-
+.tab-content {
+	background: white;
+}
 .swift-csv-layout {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 20px;
-	margin-top: 20px;
+	margin-top: 0;
 }
 
 @media (max-width: 1200px) {
@@ -123,12 +125,12 @@
 }
 
 .swift-csv-settings .card {
-	height: 100%;
+	height: auto;
 }
 
 /* Log Column */
 .swift-csv-log {
-	min-height: 600px;
+	/* min-height: 600px; */
 }
 
 .swift-csv-log .card {
@@ -377,15 +379,42 @@
 }
 
 /* Existing Styles */
+.tab-content {
+	background: white;
+}
+
+.tab-contet h3 {
+	background: #e0ebe6;
+	padding: 0.5em 0.5em;
+	border-radius: 3px;
+}
+
 .swift-csv .nav-tab-wrapper {
-	margin-bottom: 20px;
+	margin-bottom: 0;
+	border: none;
+}
+
+.nav-tab {
+	border: none;
+	padding: 0.5em 1em;
+	color: #0071a1;
+	margin-bottom: 2px;
+	background: #f9f9f9;
+	font-size: 13px;
+}
+
+.nav-tab.nav-tab-active {
+	color: #1d2327;
+	background: #fff;
+	margin-bottom: -2px;
+	line-height: 1.9;
 }
 
 .swift-csv .card {
-	background: #fff;
-	border: 1px solid #ccd0d4;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
-	margin-top: 20px;
+	background: none;
+	border: none;
+	box-shadow: none;
+	margin-top: 0;
 	padding: 20px;
 }
 

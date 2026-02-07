@@ -83,6 +83,63 @@ const dateStr = now.getFullYear() + '-' +
 
 ---
 
+## #004 direnv Environment Setup Issues (2026-02-07)
+
+**Symptom**: WP-CLI cannot connect to database, or environment variables not working properly.
+
+**Cause**: Two common issues with `.envrc` configuration:
+
+1. Database variables with double quotes cause WP-CLI connection failures
+2. Paths with spaces break WP-CLI commands
+
+**Fix** (`.envrc`):
+
+```bash
+# BEFORE — problematic
+export DB_HOST="localhost"        # ❌ Double quotes break WP-CLI
+export DB_NAME="local"           # ❌ Same issue
+export WP_PATH=/Users/name/Local Sites/app  # ❌ Spaces break command
+
+# AFTER — working configuration
+export DB_HOST=localhost         # ✅ Unquoted for database vars
+export DB_NAME=local            # ✅ Unquoted for database vars
+export DB_USER=root              # ✅ Unquoted for database vars
+export DB_PASSWORD=root          # ✅ Unquoted for database vars
+export WP_PATH="/Users/name/Local Sites/app"  # ✅ Quoted for spaces
+```
+
+**Test commands**:
+
+```bash
+# Test database connection
+wp db query "SELECT 1;" --path="$WP_PATH"
+
+# Test environment variables
+echo "DB_HOST: $DB_HOST"
+echo "WP_PATH: $WP_PATH"
+```
+
+**Lesson**:
+
+- Database variables: Use unquoted values (`export DB_HOST=localhost`)
+- Paths with spaces: Use quoted values (`export WP_PATH="/path with spaces"`)
+- Always test WP-CLI connection after setup
+
+**Debug approach**:
+
+```bash
+# Check if direnv is loaded
+direnv status
+
+# Check exported variables
+env | grep -E "(DB_|WP_)"
+
+# Test WP-CLI with verbose output
+wp db query "SELECT 1;" --path="$WP_PATH" --debug
+```
+
+---
+
 ## Quick Reference Table
 
 | #   | Symptom                    | Root Cause                                 | Key File                          |
@@ -90,6 +147,7 @@ const dateStr = now.getFullYear() + '-' +
 | 001 | Empty ACF columns          | Missing `$post_id` in `get_field_object()` | `class-swift-csv-ajax-export.php` |
 | 002 | Progress element not found | Old DOM selector after UI refactor         | `admin-scripts.js`                |
 | 003 | Malformed date in filename | Missing hyphen in string concat            | `admin-scripts.js`                |
+| 004 | WP-CLI connection fails    | Database variables quoted, paths unquoted  | `.envrc`                          |
 
 ---
 

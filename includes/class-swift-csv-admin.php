@@ -62,7 +62,7 @@ class Swift_CSV_Admin {
 		if ( 'toplevel_page_swift-csv' === $hook ) {
 			wp_enqueue_style(
 				'swift-csv-admin',
-				SWIFT_CSV_PLUGIN_URL . 'assets/css/admin-style.min.css',
+				SWIFT_CSV_PLUGIN_URL . 'assets/css/swift-csv-admin-style.min.css',
 				[],
 				SWIFT_CSV_VERSION
 			);
@@ -82,7 +82,7 @@ class Swift_CSV_Admin {
 		if ( 'toplevel_page_swift-csv' === $hook ) {
 			wp_register_script(
 				'swift-csv-admin',
-				plugin_dir_url( __FILE__ ) . '../assets/js/admin-scripts.min.js',
+				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-admin-scripts.min.js',
 				[ 'wp-i18n' ],
 				SWIFT_CSV_VERSION,
 				true

@@ -1,0 +1,117 @@
+<?php
+/**
+ * Debug configuration template for Swift CSV plugin
+ * 
+ * Copy this file to debug.php and customize for your development needs.
+ * Add debug.php to .gitignore to exclude from repository.
+ * 
+ * Usage examples:
+ * - swift_csv_debug_log( 'Message', 'INFO' );
+ * - swift_csv_debug_acf_field( 'field_name', $post_id );
+ * - swift_csv_debug_db_query( $sql, $params, $result );
+ * 
+ * See SKILL.md #005 for complete documentation.
+ * 
+ * @since 0.9.5
+ */
+
+// Prevent direct access
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+// Custom debug log path
+$log_file = plugin_dir_path( __FILE__ ) . 'debug.log';
+ini_set( 'error_log', $log_file );
+
+// Enhanced debug settings
+ini_set( 'log_errors', 1 );
+ini_set( 'error_reporting', E_ALL );
+
+// Debug constants
+define( 'SWIFT_CSV_DEBUG_MODE', true );
+define( 'SWIFT_CSV_LOG_LEVEL', 'DEBUG' );
+
+/**
+ * Custom debug logging function
+ * 
+ * @param string $message Debug message
+ * @param string $level   Log level (DEBUG, INFO, WARNING, ERROR)
+ * @return void
+ */
+function swift_csv_debug_log( $message, $level = 'INFO' ) {
+	if ( ! SWIFT_CSV_DEBUG_MODE ) {
+		return;
+	}
+	
+	$log_file = plugin_dir_path( __FILE__ ) . 'debug.log';
+	$timestamp = current_time( 'Y-m-d H:i:s' );
+	
+	// Get caller information for better debugging
+	$trace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 );
+	$caller = isset( $trace[1]['function'] ) ? $trace[1]['function'] : 'unknown';
+	$file = isset( $trace[1]['file'] ) ? basename( $trace[1]['file'] ) : 'unknown';
+	$line = isset( $trace[1]['line'] ) ? $trace[1]['line'] : '0';
+	
+	$log_entry = "[{$timestamp}] [SWIFT-CSV] [{$level}] [{$caller}:{$file}:{$line}] {$message}\n";
+	error_log( $log_entry, 3, $log_file );
+}
+
+/**
+ * Log ACF field information for debugging
+ * 
+ * @param string $field_name Field name
+ * @param int    $post_id    Post ID
+ * @param mixed  $value      Field value
+ * @return void
+ */
+function swift_csv_debug_acf_field( $field_name, $post_id, $value = null ) {
+	if ( ! SWIFT_CSV_DEBUG_MODE ) {
+		return;
+	}
+	
+	$field_object = get_field_object( $field_name, $post_id, false, false );
+	
+	swift_csv_debug_log( "ACF Field: {$field_name} for post {$post_id}", 'DEBUG' );
+	swift_csv_debug_log( "Field Object: " . ( $field_object ? 'EXISTS' : 'NULL' ), 'DEBUG' );
+	swift_csv_debug_log( "Field Value: " . print_r( $value, true ), 'DEBUG' );
+	
+	if ( $field_object ) {
+		swift_csv_debug_log( "Field Type: " . $field_object['type'], 'DEBUG' );
+		swift_csv_debug_log( "Field Label: " . $field_object['label'], 'DEBUG' );
+	}
+}
+
+/**
+ * Log database queries for debugging
+ * 
+ * @param string $query    SQL query
+ * @param array  $params   Query parameters
+ * @param mixed  $result   Query result
+ * @return void
+ */
+function swift_csv_debug_db_query( $query, $params = [], $result = null ) {
+	if ( ! SWIFT_CSV_DEBUG_MODE ) {
+		return;
+	}
+	
+	swift_csv_debug_log( "DB Query: {$query}", 'DEBUG' );
+	
+	if ( ! empty( $params ) ) {
+		swift_csv_debug_log( "Query Params: " . print_r( $params, true ), 'DEBUG' );
+	}
+	
+	if ( $result !== null ) {
+		$result_type = gettype( $result );
+		if ( $result_type === 'object' ) {
+			$result_type = get_class( $result );
+		}
+		swift_csv_debug_log( "Query Result Type: {$result_type}", 'DEBUG' );
+	}
+}
+
+// Log plugin initialization
+swift_csv_debug_log( 'Debug configuration loaded', 'INFO' );
+swift_csv_debug_log( 'Plugin directory: ' . plugin_dir_path( __FILE__ ), 'INFO' );
+swift_csv_debug_log( 'Current WordPress version: ' . get_bloginfo( 'version' ), 'INFO' );
+swift_csv_debug_log( 'Current PHP version: ' . PHP_VERSION, 'INFO' );

@@ -68,6 +68,9 @@ export WP_PATH="/path/to/your/wordpress/public"
 # 1. Use unquoted values for database variables: export DB_HOST=localhost (not "localhost")
 # 2. Use quoted values for paths with spaces: export WP_PATH="/path with spaces/wordpress"
 # 3. Test WP-CLI connection: wp db query "SELECT 1;" --path="$WP_PATH"
+# 4. For enhanced debugging, create debug.php from template:
+#    cp debug.php.example debug.php  # Customize as needed
+#    See SKILL.md #005 for advanced usage
 
 # MySQL socket path for Local by Flywheel
 # IMPORTANT: Update this path for your Local installation

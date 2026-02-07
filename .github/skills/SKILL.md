@@ -140,6 +140,83 @@ wp db query "SELECT 1;" --path="$WP_PATH" --debug
 
 ---
 
+## #005 Enhanced Debug Configuration (2026-02-07)
+
+**Symptom**: Need better debugging capabilities without affecting production or team repository.
+
+**Cause**: Standard WordPress debug.log is shared across all plugins and lacks detailed context.
+
+**Fix**: Create conditional debug.php with enhanced logging:
+
+1. **Create debug.php** (add to .gitignore):
+
+```php
+<?php
+// Custom debug functions with detailed context
+function swift_csv_debug_log( $message, $level = 'INFO' ) {
+    $trace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 2 );
+    $caller = isset( $trace[1]['function'] ) ? $trace[1]['function'] : 'unknown';
+    $file = isset( $trace[1]['file'] ) ? basename( $trace[1]['file'] ) : 'unknown';
+    $line = isset( $trace[1]['line'] ) ? $trace[1]['line'] : '0';
+
+    $log_entry = "[{$timestamp}] [SWIFT-CSV] [{$level}] [{$caller}:{$file}:{$line}] {$message}\n";
+    error_log( $log_entry, 3, plugin_dir_path( __FILE__ ) . 'debug.log' );
+}
+
+// ACF-specific debugging
+function swift_csv_debug_acf_field( $field_name, $post_id, $value = null ) {
+    // Detailed ACF field analysis
+}
+```
+
+2. **Load conditionally** (in swift-csv.php):
+
+```php
+if ( defined( 'WP_DEBUG' ) && WP_DEBUG && file_exists( __DIR__ . '/debug.php' ) ) {
+    require_once __DIR__ . '/debug.php';
+}
+```
+
+3. **Add to .gitignore**:
+
+```
+debug.php
+```
+
+**Usage examples**:
+
+```php
+// Replace basic error_log
+swift_csv_debug_log( 'Processing ACF field: ' . $field_name, 'DEBUG' );
+
+// ACF-specific debugging
+swift_csv_debug_acf_field( $field_name, $post_id, $value );
+
+// Database query debugging
+swift_csv_debug_db_query( $sql, $params, $result );
+```
+
+**Lesson**:
+
+- Use conditional loading for development-only features
+- Create context-aware logging functions
+- Exclude debug configurations from repository
+- Provide specialized debugging functions for common patterns
+
+**Debug approach**:
+
+```bash
+# Monitor debug log in real-time
+tail -f debug.log
+
+# Test debug functions
+if ( function_exists( 'swift_csv_debug_log' ) ) {
+    swift_csv_debug_log( 'Test message', 'INFO' );
+}
+```
+
+---
+
 ## Quick Reference Table
 
 | #   | Symptom                    | Root Cause                                 | Key File                          |
@@ -148,6 +225,7 @@ wp db query "SELECT 1;" --path="$WP_PATH" --debug
 | 002 | Progress element not found | Old DOM selector after UI refactor         | `admin-scripts.js`                |
 | 003 | Malformed date in filename | Missing hyphen in string concat            | `admin-scripts.js`                |
 | 004 | WP-CLI connection fails    | Database variables quoted, paths unquoted  | `.envrc`                          |
+| 005 | Debug logging insufficient | Standard WordPress debug lacks context     | `debug.php`                       |
 
 ---
 

@@ -30,9 +30,9 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 	$include_private_meta = (bool) $include_private_meta;
 
-	$headers = array( 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_author' );
+	$headers = [ 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_author' ];
 	if ( $export_scope === 'all' ) {
-		$allowed_post_fields = array(
+		$allowed_post_fields = [
 			'post_title',
 			'post_content',
 			'post_excerpt',
@@ -49,7 +49,7 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 			'comment_status',
 			'ping_status',
 			'post_type',
-		);
+		];
 		foreach ( $allowed_post_fields as $field ) {
 			$headers[] = $field;
 		}
@@ -65,6 +65,9 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	if ( function_exists( 'acf_get_field_groups' ) ) {
 		$field_groups = acf_get_field_groups();
 		error_log( 'ACF field groups found: ' . print_r( $field_groups, true ) );
+		if ( function_exists( 'swift_csv_debug_log' ) ) {
+			swift_csv_debug_log( 'ACF field groups found: ' . count( $field_groups ) . ' groups', 'INFO' );
+		}
 		foreach ( $field_groups as $group ) {
 			$show_for_post_type = false;
 			if ( isset( $group['location'] ) ) {
@@ -96,27 +99,27 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	}
 
 	$default_headers  = $headers;
-	$filtered_headers = apply_filters( 'swift_csv_export_headers', $headers, array( 'post_type' => $post_type ) );
+	$filtered_headers = apply_filters( 'swift_csv_export_headers', $headers, [ 'post_type' => $post_type ] );
 	if ( $filtered_headers !== $default_headers ) {
 		return swift_csv_ajax_export_normalize_headers( $filtered_headers );
 	}
 
-	$acf_field_names = array();
+	$acf_field_names = [];
 	foreach ( $headers as $header ) {
 		if ( str_starts_with( $header, 'acf_' ) ) {
 			$acf_field_names[ substr( $header, 4 ) ] = true;
 		}
 	}
 
-	$sample_query_args                   = array(
+	$sample_query_args                   = [
 		'post_type'      => $post_type,
 		'post_status'    => 'publish',
 		'posts_per_page' => 1,
 		'orderby'        => 'ID',
 		'order'          => 'DESC',
 		'fields'         => 'ids',
-	);
-	$sample_query_args                   = apply_filters( 'swift_csv_export_query_args', $sample_query_args, array( 'post_type' => $post_type ) );
+	];
+	$sample_query_args                   = apply_filters( 'swift_csv_export_query_args', $sample_query_args, [ 'post_type' => $post_type ] );
 	$sample_query_args['posts_per_page'] = 1;
 	$sample_query_args['offset']         = 0;
 	$sample_query_args['fields']         = 'ids';
@@ -160,7 +163,7 @@ function swift_csv_ajax_export_resolve_post_field_value( WP_Post $post, $header 
 		return null;
 	}
 
-	$allowed_post_fields = array(
+	$allowed_post_fields = [
 		'post_title',
 		'post_content',
 		'post_excerpt',
@@ -177,7 +180,7 @@ function swift_csv_ajax_export_resolve_post_field_value( WP_Post $post, $header 
 		'comment_status',
 		'ping_status',
 		'post_type',
-	);
+	];
 	if ( ! in_array( $header, $allowed_post_fields, true ) ) {
 		return null;
 	}
@@ -228,14 +231,14 @@ function swift_csv_ajax_export_handler() {
 	}
 
 	// Get total posts count with limit
-	$total_posts_query_args = array(
+	$total_posts_query_args = [
 		'post_type'      => $post_type,
 		'post_status'    => 'publish',
 		'posts_per_page' => $export_limit > 0 ? $export_limit : -1, // Use limit or all posts
 		'fields'         => 'ids',
-	);
+	];
 	// Apply filter but check if it modifies our limit
-	$filtered_args = apply_filters( 'swift_csv_export_query_args', $total_posts_query_args, array( 'post_type' => $post_type ) );
+	$filtered_args = apply_filters( 'swift_csv_export_query_args', $total_posts_query_args, [ 'post_type' => $post_type ] );
 
 	// Force our limit regardless of filter
 	$filtered_args['posts_per_page'] = $export_limit > 0 ? $export_limit : -1;
@@ -248,14 +251,14 @@ function swift_csv_ajax_export_handler() {
 	$max_posts_to_process = $export_limit > 0 ? $export_limit : $total_count;
 
 	// Get posts for current batch
-	$posts_query_args = array(
+	$posts_query_args = [
 		'post_type'      => $post_type,
 		'post_status'    => 'publish',
 		'posts_per_page' => min( $batch_size, $total_count - $start_row ),
 		'offset'         => $start_row,
 		'fields'         => 'ids',
-	);
-	$posts_query_args = apply_filters( 'swift_csv_export_query_args', $posts_query_args, array( 'post_type' => $post_type ) );
+	];
+	$posts_query_args = apply_filters( 'swift_csv_export_query_args', $posts_query_args, [ 'post_type' => $post_type ] );
 
 	// Force our limit regardless of filter
 	$posts_query_args['posts_per_page'] = min( $batch_size, $max_posts_to_process - $start_row );
@@ -265,13 +268,13 @@ function swift_csv_ajax_export_handler() {
 	// Stop if we've reached the limit
 	if ( $start_row >= $max_posts_to_process ) {
 		wp_send_json(
-			array(
+			[
 				'success'   => true,
 				'processed' => $start_row,
 				'total'     => $max_posts_to_process,
 				'continue'  => false,
 				'csv_chunk' => '',
-			)
+			]
 		);
 		return;
 	}
@@ -286,13 +289,13 @@ function swift_csv_ajax_export_handler() {
 
 	if ( empty( $posts ) ) {
 		wp_send_json(
-			array(
+			[
 				'success'   => true,
 				'processed' => $start_row,
 				'total'     => $max_posts_to_process,
 				'continue'  => false,
 				'csv_chunk' => '',
-			)
+			]
 		);
 		return;
 	}
@@ -307,7 +310,7 @@ function swift_csv_ajax_export_handler() {
 	}
 
 	// Cache ACF field objects to reduce repeated calls
-	static $acf_field_cache = array();
+	static $acf_field_cache = [];
 
 	foreach ( $posts as $post_id ) {
 		$post = get_post( $post_id );
@@ -316,7 +319,7 @@ function swift_csv_ajax_export_handler() {
 		$all_meta = get_post_meta( $post_id );
 
 		// Build data row based on headers
-		$row_data = array();
+		$row_data = [];
 		foreach ( $headers as $header ) {
 			$value = '';
 
@@ -357,6 +360,11 @@ function swift_csv_ajax_export_handler() {
 				$field_name = substr( $header, 4 );
 				error_log( 'Processing ACF field: ' . $field_name . ' for post: ' . $post_id );
 
+				// Enhanced debugging with custom function
+				if ( function_exists( 'swift_csv_debug_acf_field' ) ) {
+					swift_csv_debug_acf_field( $field_name, $post_id );
+				}
+
 				if ( function_exists( 'get_field_object' ) ) {
 					// Use cache to avoid repeated get_field_object calls
 					if ( ! isset( $acf_field_cache[ $field_name ] ) ) {
@@ -371,7 +379,7 @@ function swift_csv_ajax_export_handler() {
 						error_log( 'ACF value for ' . $field_name . ': ' . print_r( $acf_value, true ) );
 
 						if ( $field_object['type'] === 'taxonomy' ) {
-							$term_names = array();
+							$term_names = [];
 							if ( is_array( $acf_value ) ) {
 								foreach ( $acf_value as $term ) {
 									if ( is_object( $term ) && isset( $term->name ) ) {
@@ -437,7 +445,7 @@ function swift_csv_ajax_export_handler() {
 	$progress = round( ( $next_row / $max_posts_to_process ) * 100, 2 );
 
 	wp_send_json(
-		array(
+		[
 			'success'         => true,
 			'processed'       => $start_row + count( $posts ),
 			'total'           => $max_posts_to_process,
@@ -445,7 +453,7 @@ function swift_csv_ajax_export_handler() {
 			'progress'        => $progress,
 			'csv_chunk'       => $csv_chunk,
 			'posts_processed' => count( $posts ),
-		)
+		]
 	);
 }
 

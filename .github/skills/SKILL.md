@@ -198,6 +198,72 @@ wp_send_json_error($message);    // Automatically adds success: false
 
 ---
 
+## #006 WordPress Yoda Conditions Coding Standard (2026-02-09)
+
+**Symptom**: Inconsistent conditional formatting across codebase. Some conditions use Yoda notation, others don't.
+
+**Cause**: Misunderstanding of WordPress coding standards for Yoda conditions.
+
+**Fix** (WordPress Coding Standards):
+
+```php
+// ✅ REQUIRED - Yoda notation for true/false/null comparisons
+if ( true === $some_condition ) {
+    // Process
+}
+
+if ( false === $some_condition ) {
+    // Process
+}
+
+if ( null === $some_variable ) {
+    // Process
+}
+
+if ( 0 === $some_number ) {
+    // Process
+}
+
+// ✅ OPTIONAL - Regular notation is acceptable for other comparisons
+if ( $export_scope === 'custom' ) {  // String comparison
+    // Process
+}
+
+if ( $count > 0 ) {  // Numeric comparison
+    // Process
+}
+
+if ( isset($variable) ) {  // Function call
+    // Process
+}
+```
+
+**Project Standard**:
+
+- **Mandatory**: Use Yoda notation for `true`/`false`/`null` comparisons
+- **Recommended**: Use readable format for string/number/function comparisons
+- **Consistency**: Follow existing code patterns within the project
+
+**Lesson**: WordPress coding standards require Yoda notation only for boolean/null comparisons, not all comparisons. Focus on readability and consistency.
+
+**Debug approach**:
+
+```php
+// Check for proper boolean comparisons
+grep -r "if.*===.*true\|false\|null" includes/
+
+// Verify consistent patterns
+grep -r "if.*===.*'" includes/
+```
+
+**Related patterns**:
+
+- Use `wp_verify_nonce()` for security checks
+- Use `current_user_can()` for permission checks
+- Use `defined()` for constant checks
+
+---
+
 ## Quick Reference Table
 
 | #   | Symptom                    | Root Cause                                 | Key File                          |
@@ -207,6 +273,7 @@ wp_send_json_error($message);    // Automatically adds success: false
 | 003 | Malformed date in filename | Missing hyphen in string concat            | `admin-scripts.js`                |
 | 004 | WP-CLI connection fails    | Database variables quoted, paths unquoted  | `.envrc`                          |
 | 005 | AJAX error after success   | Missing `success: true` in JSON response   | `class-swift-csv-ajax-import.php` |
+| 006 | Inconsistent conditionals  | Misunderstanding WordPress Yoda notation   | Multiple files                    |
 
 ---
 

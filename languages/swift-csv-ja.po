@@ -102,9 +102,40 @@ msgstr ""
 msgid "Go to contact form"
 msgstr ""
 
-#: includes/class-swift-csv-admin.php:222
-msgid "Export"
-msgstr "エクスポート"
+#: includes/class-swift-csv-admin.php:668
+msgid "Dry Run"
+msgstr "テスト実行"
+
+#: includes/class-swift-csv-admin.php:658
+#: includes/class-swift-csv-admin.php:495
+msgid "Names"
+msgstr "名前（name）"
+
+#: includes/class-swift-csv-admin.php:661
+#: includes/class-swift-csv-admin.php:498
+msgid "Term IDs"
+msgstr "タームID（term_id）"
+
+#: includes/class-swift-csv-admin.php:670
+msgid "Test import without creating posts"
+msgstr "投稿を作成せずにインポートをテスト"
+
+#: includes/class-swift-csv-admin.php:671
+msgid "Preview what will be imported without actually creating posts or taxonomies. Useful for testing large files or verifying data before import."
+msgstr "実際に投稿やタクソノミーを作成せずにインポート内容をプレビューします。大規模なファイルのテストやインポート前のデータ確認に便利です。"
+
+#: includes/class-swift-csv-ajax-import.php:310
+msgid "Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Names\" but CSV contains only numeric values: %2$s. Please check your data format."
+msgstr "タクソノミー \"%1$s\" で形式の不一致が検出されました。UIは「名前」に設定されていますが、CSVには数値のみが含まれています：%2$s。データ形式を確認してください。"
+
+#: includes/class-swift-csv-ajax-import.php:325
+msgid "Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Term IDs\" but CSV contains only text values: %2$s. Please check your data format."
+msgstr "タクソノミー \"%1$s\" で形式の不一致が検出されました。UIは「タームID」に設定されていますが、CSVにはテキストのみが含まれています：%2$s。データ形式を確認してください。"
+
+#: includes/class-swift-csv-admin.php:664
+#: includes/class-swift-csv-admin.php:501
+msgid "Choose how taxonomy terms are imported: names for readability or term IDs for data integrity."
+msgstr "タクソノミータームのインポート形式を選択：読みやすさのための名前、またはデータ整合性のためのタームID。"
 
 #: includes/class-swift-csv-admin.php:225
 msgid "Import"

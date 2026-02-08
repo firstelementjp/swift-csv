@@ -95,6 +95,46 @@ msgstr ""
 msgid "Ready to start import..."
 msgstr ""
 
+#: includes/class-swift-csv-admin.php:668
+msgid "Dry Run"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:670
+msgid "Test import without creating posts"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:671
+msgid "Preview what will be imported without actually creating posts or taxonomies. Useful for testing large files or verifying data before import."
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:653
+#: includes/class-swift-csv-admin.php:490
+msgid "Taxonomy Format"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:658
+#: includes/class-swift-csv-admin.php:495
+msgid "Names"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:661
+#: includes/class-swift-csv-admin.php:498
+msgid "Term IDs"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:664
+#: includes/class-swift-csv-admin.php:501
+msgid "Choose how taxonomy terms are imported: names for readability or term IDs for data integrity."
+msgstr ""
+
+#: includes/class-swift-csv-ajax-import.php:310
+msgid "Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Names\" but CSV contains only numeric values: %2$s. Please check your data format."
+msgstr ""
+
+#: includes/class-swift-csv-ajax-import.php:325
+msgid "Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Term IDs\" but CSV contains only text values: %2$s. Please check your data format."
+msgstr ""
+
 #: includes/class-swift-csv-admin.php:116
 #: includes/class-swift-csv-admin.php:159
 msgid "An error occurred. Please try again."

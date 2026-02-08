@@ -264,16 +264,77 @@ grep -r "if.*===.*'" includes/
 
 ---
 
+## #007 Conditional Hook Execution Anti-Pattern (2026-02-09)
+
+**Symptom**: Hooks only execute under specific conditions, making debugging difficult and behavior unpredictable.
+
+**Cause**: Placing `apply_filters()` inside conditional statements instead of executing hooks consistently.
+
+**Fix** (WordPress Best Practice):
+
+```php
+// ❌ BEFORE - Conditional hook execution
+if ( $export_scope === 'custom' ) {
+    $custom_headers = apply_filters( 'swift_csv_export_columns', [], $post_type, $include_private_meta );
+    if ( ! empty( $custom_headers ) ) {
+        return $custom_headers;
+    }
+}
+
+// ✅ AFTER - Consistent hook execution with parameters
+$custom_headers = apply_filters( 'swift_csv_export_columns', [], $post_type, $export_scope, $include_private_meta );
+
+if ( is_array( $custom_headers ) && ! empty( $custom_headers ) ) {
+    return $custom_headers;
+}
+
+// Hook implementation handles conditions internally
+add_filter( 'swift_csv_export_columns', function( $headers, $post_type, $export_scope, $include_private_meta ) {
+    if ( 'custom' === $export_scope ) {  // Condition logic inside hook
+        return ['custom_field_1', 'custom_field_2'];
+    }
+    return $headers;  // Return empty for other scopes
+}, 10, 4 );
+```
+
+**Benefits of Consistent Hook Execution**:
+
+- **Predictability**: Hooks always execute when expected
+- **Debuggability**: Easy to trace hook execution
+- **Flexibility**: Developers can implement complex conditional logic
+- **Testing**: Hooks can be tested independently of conditions
+
+**Lesson**: Always execute hooks consistently and pass context as parameters. Let hook implementations handle their own conditional logic.
+
+**Debug approach**:
+
+```php
+// Add logging to verify hook execution
+add_filter( 'swift_csv_export_columns', function( $headers, $post_type, $export_scope, $include_private_meta ) {
+    error_log( "Hook executed: scope={$export_scope}, post_type={$post_type}" );
+    return $headers;
+}, 10, 4 );
+```
+
+**Related patterns**:
+
+- Pass all relevant context as hook parameters
+- Use priority and argument count for hook flexibility
+- Document hook behavior and expected return values
+
+---
+
 ## Quick Reference Table
 
-| #   | Symptom                    | Root Cause                                 | Key File                          |
-| --- | -------------------------- | ------------------------------------------ | --------------------------------- |
-| 001 | Empty ACF columns          | Missing `$post_id` in `get_field_object()` | `class-swift-csv-ajax-export.php` |
-| 002 | Progress element not found | Old DOM selector after UI refactor         | `admin-scripts.js`                |
-| 003 | Malformed date in filename | Missing hyphen in string concat            | `admin-scripts.js`                |
-| 004 | WP-CLI connection fails    | Database variables quoted, paths unquoted  | `.envrc`                          |
-| 005 | AJAX error after success   | Missing `success: true` in JSON response   | `class-swift-csv-ajax-import.php` |
-| 006 | Inconsistent conditionals  | Misunderstanding WordPress Yoda notation   | Multiple files                    |
+| #   | Symptom                    | Root Cause                                   | Key File                          |
+| --- | -------------------------- | -------------------------------------------- | --------------------------------- |
+| 001 | Empty ACF columns          | Missing `$post_id` in `get_field_object()`   | `class-swift-csv-ajax-export.php` |
+| 002 | Progress element not found | Old DOM selector after UI refactor           | `admin-scripts.js`                |
+| 003 | Malformed date in filename | Missing hyphen in string concat              | `admin-scripts.js`                |
+| 004 | WP-CLI connection fails    | Database variables quoted, paths unquoted    | `.envrc`                          |
+| 005 | AJAX error after success   | Missing `success: true` in JSON response     | `class-swift-csv-ajax-import.php` |
+| 006 | Inconsistent conditionals  | Misunderstanding WordPress Yoda notation     | Multiple files                    |
+| 007 | Conditional hook execution | Hooks only execute under specific conditions | `class-swift-csv-ajax-export.php` |
 
 ---
 

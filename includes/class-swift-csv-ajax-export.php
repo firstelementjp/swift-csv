@@ -50,29 +50,25 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 	$include_private_meta = (bool) $include_private_meta;
 
-	// Custom export scope - use hook with fallback to basic
-	if ( $export_scope === 'custom' ) {
-		/**
-		 * Filter custom export columns for custom export scope
-		 *
-		 * Allows developers to define custom column headers for export.
-		 * This hook is only called when export_scope is set to 'custom'.
-		 *
-		 * @since 0.9.0
-		 * @param array $custom_headers Array of custom header strings
-		 * @param string $post_type The post type being exported
-		 * @param bool $include_private_meta Whether to include private meta fields
-		 * @return array Array of header strings to use for export
-		 */
-		$custom_headers = apply_filters( 'swift_csv_export_columns', [], $post_type, $include_private_meta );
+	// Apply custom columns filter for all export scopes
+	/**
+	 * Filter custom export columns for any export scope
+	 *
+	 * Allows developers to define custom column headers for export.
+	 * This hook is called for all export scopes, allowing conditional logic within the hook.
+	 *
+	 * @since 0.9.0
+	 * @param array $custom_headers Array of custom header strings
+	 * @param string $post_type The post type being exported
+	 * @param string $export_scope The current export scope ('basic', 'all', 'custom')
+	 * @param bool $include_private_meta Whether to include private meta fields
+	 * @return array Array of header strings to use for export
+	 */
+	$custom_headers = apply_filters( 'swift_csv_export_columns', [], $post_type, $export_scope, $include_private_meta );
 
-		// If custom hook returns valid headers, use them
-		if ( is_array( $custom_headers ) && ! empty( $custom_headers ) ) {
-			return $custom_headers;
-		}
-
-		// Fallback to basic if no custom implementation
-		$export_scope = 'basic';
+	// If custom hook returns valid headers, use them
+	if ( is_array( $custom_headers ) && ! empty( $custom_headers ) ) {
+		return $custom_headers;
 	}
 
 	$headers = [ 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_author' ];
@@ -108,6 +104,7 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	}
 
 	$default_headers = $headers;
+
 	/**
 	 * Filter export headers
 	 *
@@ -147,6 +144,7 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		'order'          => 'DESC', // Get newest post by date
 		'fields'         => 'ids',
 	];
+
 	/**
 	 * Filter export query arguments
 	 *

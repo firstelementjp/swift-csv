@@ -4,9 +4,9 @@
 
 > Simple yet powerful CSV import/export plugin for WordPress
 
-[![License](https://img.shields.io/badge/license-GPL--2.0%2B-blue.svg)](LICENSE.md)
+[![License](https://img.shields.io/badge/license-GPL--2.0%2B-blue.svg)](legal.md)
 [![Version](https://img.shields.io/badge/version-0.9.5-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
-[![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
+[![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org/)
 
 Swift CSV is a lightweight plugin for easily importing and exporting CSV files on WordPress sites. You can start using it right away without complex configurations.
 
@@ -25,33 +25,45 @@ Swift CSV is a lightweight plugin for easily importing and exporting CSV files o
 - 🌐 **Multilingual Support** - English and Japanese support
 - 🔒 **Secure** - WordPress security standards compliant
 
-## 🚀 Download
+## � Requirements
+
+- **WordPress**: 6.0 or higher
+- **PHP**: 8.0 or higher
+- **Memory**: 128MB+ (for large CSV processing)
+- **Extensions**: `mbstring`, `zip` (for file handling)
+
+## �🚀 Download
 
 [Download swift-csv-v0.9.5.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.5/swift-csv-v0.9.5.zip){: .download-btn }
 
 ## 🚀 Quick Start
 
 1. [Download swift-csv-v0.9.5.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.5/swift-csv-v0.9.5.zip)
-2. Extract to get \`swift-csv/\` folder
-3. Upload to \`/wp-content/plugins/\`
+2. Extract to get `swift-csv/` folder
+3. Upload to `/wp-content/plugins/`
 4. Activate from admin dashboard
 
 That's it! CSV data import is complete.
 
 ## 📖 Documentation
 
-- [Installation Guide](installation.md) - Detailed installation instructions
-- [API Documentation](api.md) - Developer reference
-- [Examples](examples.md) - Implementation examples
-- [Configuration Guide](configuration.md) - Detailed settings
+- [Getting Started](start.md) - Quick introduction and basics
+- [Installation](install.md) - Detailed installation instructions
+- [Configuration](config.md) - Configuration options and settings
+- [Examples](example.md) - Implementation examples and use cases
+- [Troubleshooting](help.md) - Common issues and solutions
+- [Developer Hooks](hooks.md) - Developer reference and customization
+- [Contributing](contribute.md) - Development guidelines
+- [Changelog](changes.md) - Version history and updates
+- [License](legal.md) - License and legal information
 
 ## 🤝 Contributing
 
-Contributions are welcome! See the [Contributing Guide](contributing.md) for details.
+Contributions are welcome! See the [Contributing Guide](contribute.md) for details.
 
 ## 📄 License
 
-This plugin is provided under the GPL-2.0+ license. See [LICENSE.md](license.md) for details.
+This plugin is provided under the GPL-2.0+ license. See [legal.md](legal.md) for details.
 
 ---
 

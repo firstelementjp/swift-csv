@@ -136,14 +136,11 @@ function initFileUpload() {
 
 	// Prevent multiple event listener registrations
 	if (uploadArea.dataset.swiftCsvInitialized === 'true') {
-		console.log('File upload already initialized, skipping');
 		return;
 	}
 
 	// Mark as initialized
 	uploadArea.dataset.swiftCsvInitialized = 'true';
-
-	console.log('Initializing file upload functionality');
 
 	// File selection change event first
 	fileInput.addEventListener('change', e => {
@@ -159,18 +156,15 @@ function initFileUpload() {
 		'click',
 		function (e) {
 			if (isClicking) {
-				console.log('Click already in progress, ignoring');
 				return;
 			}
 
 			isClicking = true;
-			console.log('Upload area clicked');
 
 			// Use setTimeout to ensure proper timing
 			setTimeout(() => {
 				try {
 					fileInput.click();
-					console.log('fileInput.click() executed successfully');
 				} catch (error) {
 					console.error('Error calling fileInput.click():', error);
 				} finally {

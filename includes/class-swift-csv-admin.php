@@ -38,14 +38,13 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	public function add_admin_menu() {
-		add_menu_page(
+		add_submenu_page(
+			'tools.php',
 			'Swift CSV',
 			'Swift CSV',
 			'manage_options',
 			'swift-csv',
-			[ $this, 'render_main_page' ],
-			'dashicons-migrate',
-			30
+			[ $this, 'render_main_page' ]
 		);
 	}
 
@@ -59,10 +58,10 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	public function enqueue_styles( $hook ) {
-		if ( 'toplevel_page_swift-csv' === $hook ) {
+		if ( 'tools_page_swift-csv' === $hook ) {
 			wp_enqueue_style(
 				'swift-csv-admin',
-				SWIFT_CSV_PLUGIN_URL . 'assets/css/admin-style.min.css',
+				SWIFT_CSV_PLUGIN_URL . 'assets/css/swift-csv-admin-style.css',
 				[],
 				SWIFT_CSV_VERSION
 			);
@@ -79,16 +78,16 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	public function enqueue_scripts( $hook ) {
-		if ( 'toplevel_page_swift-csv' === $hook ) {
+		if ( 'tools_page_swift-csv' === $hook ) {
 			wp_register_script(
 				'swift-csv-admin',
-				plugin_dir_url( __FILE__ ) . '../assets/js/admin-scripts.min.js',
+				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-admin-scripts.js',
 				[ 'wp-i18n' ],
 				SWIFT_CSV_VERSION,
 				true
 			);
 
-			wp_set_script_translations( 'swift-csv-admin', 'swift-csv', plugin_dir_path( __FILE__ ) . 'languages' );
+			wp_set_script_translations( 'swift-csv-admin', 'swift-csv', SWIFT_CSV_PLUGIN_DIR . 'languages' );
 
 			wp_enqueue_script( 'swift-csv-admin' );
 
@@ -97,15 +96,24 @@ class Swift_CSV_Admin {
 				'swiftCSV',
 				[
 					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
-					'nonce'    => wp_create_nonce( 'swift_csv_nonce' ),
+					'nonce'    => wp_create_nonce( 'swift_csv_ajax_nonce' ),
 					'messages' => [
-						'error'      => __( 'An error occurred. Please try again.', 'swift-csv' ),
-						'exporting'  => __( 'Exporting...', 'swift-csv' ),
-						'exportCsv'  => __( 'Export CSV', 'swift-csv' ),
-						'processing' => __( 'Processing...', 'swift-csv' ),
-						'completed'  => __( 'Export completed successfully!', 'swift-csv' ),
-						'cancelled'  => __( 'Export cancelled', 'swift-csv' ),
-						'failed'     => __( 'Export failed', 'swift-csv' ),
+						'exportCsv'      => esc_html__( 'Export CSV', 'swift-csv' ),
+						'importCsv'      => esc_html__( 'Import CSV', 'swift-csv' ),
+						'exporting'      => esc_html__( 'Exporting...', 'swift-csv' ),
+						'importing'      => esc_html__( 'Importing...', 'swift-csv' ),
+						'readyToExport'  => esc_html__( 'Ready to start export...', 'swift-csv' ),
+						'readyToImport'  => esc_html__( 'Ready to start import...', 'swift-csv' ),
+						'error'          => esc_html__( 'An error occurred. Please try again.', 'swift-csv' ),
+						'success'        => esc_html__( 'Operation completed successfully!', 'swift-csv' ),
+						'cancelled'      => esc_html__( 'Export cancelled', 'swift-csv' ),
+						'failed'         => esc_html__( 'Export failed', 'swift-csv' ),
+						'importSettings' => esc_html__( 'Import Settings', 'swift-csv' ),
+						'dropFileHere'   => esc_html__( 'Drop CSV file here or click to browse', 'swift-csv' ),
+						'maxFileSize'    => esc_html__( 'Maximum file size: %s', 'swift-csv' ),
+						'custom'         => esc_html__( 'Custom', 'swift-csv' ),
+						'customHelp'     => esc_html__( 'Use the %1$s hook to specify custom export items and order. See %2$s for details.', 'swift-csv' ),
+						'documentation'  => esc_html__( 'documentation', 'swift-csv' ),
 					],
 				]
 			);
@@ -113,9 +121,71 @@ class Swift_CSV_Admin {
 	}
 
 	/**
-	 * Render plugin header
+	 * Get PHP upload limits
 	 *
-	 * Displays professional header with version info and support links.
+	 * @return array Upload limit information
+	 */
+	private function get_upload_limits() {
+		$upload_max = ini_get( 'upload_max_filesize' );
+		$post_max   = ini_get( 'post_max_size' );
+
+		// Convert to bytes
+		$upload_max_bytes = $this->parse_ini_size( $upload_max );
+		$post_max_bytes   = $this->parse_ini_size( $post_max );
+
+		// Get the smaller limit
+		$max_file_size       = min( $upload_max_bytes, $post_max_bytes );
+		$max_file_size_human = $this->format_bytes( $max_file_size );
+
+		return [
+			'upload_max_filesize'   => $upload_max,
+			'post_max_size'         => $post_max,
+			'effective_limit'       => $max_file_size,
+			'effective_limit_human' => $max_file_size_human,
+		];
+	}
+
+	/**
+	 * Parse PHP ini size string to bytes
+	 *
+	 * @param string $size Size string (e.g., "2M", "8M")
+	 * @return int Size in bytes
+	 */
+	private function parse_ini_size( $size ) {
+		$unit  = strtoupper( substr( $size, -1 ) );
+		$value = (int) substr( $size, 0, -1 );
+
+		switch ( $unit ) {
+			case 'G':
+				return $value * 1024 * 1024 * 1024;
+			case 'M':
+				return $value * 1024 * 1024;
+			case 'K':
+				return $value * 1024;
+			default:
+				return (int) $size;
+		}
+	}
+
+	/**
+	 * Format bytes to human readable format
+	 *
+	 * @param int $bytes Bytes
+	 * @return string Formatted size
+	 */
+	private function format_bytes( $bytes ) {
+		if ( $bytes >= 1024 * 1024 * 1024 ) {
+			return round( $bytes / 1024 / 1024 / 1024, 1 ) . 'GB';
+		} elseif ( $bytes >= 1024 * 1024 ) {
+			return round( $bytes / 1024 / 1024, 1 ) . 'MB';
+		} elseif ( $bytes >= 1024 ) {
+			return round( $bytes / 1024, 1 ) . 'KB';
+		} else {
+			return $bytes . 'B';
+		}
+	}
+	/**
+	 * Displays professional header with version info and support links .
 	 *
 	 * @since  0.9.0
 	 * @return void
@@ -199,7 +269,9 @@ class Swift_CSV_Admin {
 	public function render_main_page() {
 		// Sanitize and validate tab parameter.
 		$tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'export';
-		$tab = in_array( $tab, [ 'export', 'import' ], true ) ? $tab : 'export';
+
+		// Allow custom tabs (like Pro version tabs) - don't restrict to export/import only
+		// The validation will be handled by the individual tab rendering logic
 
 		// Check for batch processing
 		$batch_id = isset( $_GET['batch'] ) ? sanitize_text_field( $_GET['batch'] ) : '';
@@ -229,6 +301,17 @@ class Swift_CSV_Admin {
 				<a href="?page=swift-csv&tab=import" class="nav-tab <?php echo 'import' === $tab ? 'nav-tab-active' : ''; ?>">
 				<?php esc_html_e( 'Import', 'swift-csv' ); ?>
 				</a>
+				<?php
+				/**
+				 * Fires within the settings page's tab wrapper to add custom navigation tabs.
+				 *
+				 * This action allows Pro version and other add-ons to add custom tabs.
+				 *
+				 * @since 0.9.5
+				 * @param string $tab Currently active tab
+				 */
+				do_action( 'swift_csv_settings_tabs', $tab );
+				?>
 			</nav>
 
 			<div class="tab-content">
@@ -239,11 +322,29 @@ class Swift_CSV_Admin {
 					} else {
 						$this->render_export_tab();
 					}
-				} elseif ( $batch_id ) {
-					$this->render_batch_progress( $batch_id );
-				} else {
-					$this->render_import_tab( $import_results );
+				} elseif ( 'import' === $tab ) {
+					if ( $batch_id ) {
+						$this->render_batch_progress( $batch_id );
+					} else {
+						$this->render_import_tab( $import_results );
+					}
 				}
+				// Custom tabs (like Pro version) will be handled by the hook below
+				?>
+				
+				<?php
+				/**
+				 * Fires within the main settings form to add custom tab content panels.
+				 *
+				 * This action is intended to be used in conjunction with the
+				 * 'swift_csv_settings_tabs' action. It allows Pro version and other add-ons
+				 * to render the content for the custom tabs they have added.
+				 *
+				 * @since 0.9.5
+				 * @param string $tab Currently active tab
+				 * @param array  $import_results Import results data (for import tab)
+				 */
+				do_action( 'swift_csv_settings_tabs_content', $tab, $import_results );
 				?>
 			</div>
 		</div>
@@ -354,6 +455,20 @@ class Swift_CSV_Admin {
 										<input type="radio" name="export_scope" value="all">
 										<?php esc_html_e( 'All Fields', 'swift-csv' ); ?>
 									</label>
+									<label style="display:block;">
+										<input type="radio" name="export_scope" value="custom">
+										<?php esc_html_e( 'Custom', 'swift-csv' ); ?>
+									</label>
+									<div id="custom-export-help" style="display: none; margin-top: 10px; padding: 8px; background-color: #f9f9f9; border-left: 3px solid #0073aa; font-size: 12px; color: #666;">
+										<?php
+										$docs_url = SWIFT_CSV_PLUGIN_URL . 'docs/hooks.md#swift_csv_export_columns';
+										printf(
+											esc_html__( 'Use the %1$s hook to specify custom export items and order. See %2$s for details.', 'swift-csv' ),
+											'<code>swift_csv_export_columns</code>',
+											'<a href="' . esc_url( $docs_url ) . '" target="_blank">' . esc_html__( 'documentation', 'swift-csv' ) . '</a>'
+										);
+										?>
+									</div>
 								</td>
 							</tr>
 							<tr>
@@ -393,6 +508,13 @@ class Swift_CSV_Admin {
 				<div class="card">
 					<h3><?php esc_html_e( 'Export Log', 'swift-csv' ); ?></h3>
 
+					<!-- Log Area -->
+					<div class="swift-csv-log-area">
+						<div class="log-content" id="export-log-content">
+							<div class="log-entry log-info"><?php esc_html_e( 'Ready to start export...', 'swift-csv' ); ?></div>
+						</div>
+					</div>
+
 					<!-- Progress Bar -->
 					<div class="swift-csv-progress">
 						<div class="progress-bar">
@@ -401,19 +523,11 @@ class Swift_CSV_Admin {
 						<div class="progress-stats">
 							<span class="processed-rows">0</span> / <span class="total-rows">0</span> <?php esc_html_e( 'rows processed', 'swift-csv' ); ?> (<span class="percentage">0</span>%)
 						</div>
-					</div>
 
-					<!-- Log Area -->
-					<div class="swift-csv-log-area">
-						<div class="log-content" id="export-log-content">
-							<div class="log-entry log-info"><?php esc_html_e( 'Ready to start export...', 'swift-csv' ); ?></div>
-						</div>
-					</div>
-
-					<!-- Download Button -->
-					<div class="swift-csv-actions">
-						<div id="ajax-export-download-link" style="display: none;">
-							<a href="#" class="button button-primary" download>
+						<!-- Download Button - Always visible -->
+						<div class="swift-csv-download-section">
+							<a href="#" id="export-download-btn" class="swift-csv-download-btn" download>
+								<span class="dashicons dashicons-download"></span>
 								<?php esc_html_e( 'Download CSV', 'swift-csv' ); ?>
 							</a>
 						</div>
@@ -446,6 +560,34 @@ class Swift_CSV_Admin {
 			<div class="swift-csv-settings">
 				<div class="card">
 					<h3><?php esc_html_e( 'Import Settings', 'swift-csv' ); ?></h3>
+
+					<!-- File Upload Area - Moved to top -->
+					<div class="swift-csv-file-upload-section">
+						<div class="file-upload-area" id="csv-file-upload">
+							<div class="file-upload-content">
+								<svg class="file-upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+									<polyline points="7,10 12,15 17,10"></polyline>
+									<line x1="12" y1="15" x2="12" y2="3"></line>
+								</svg>
+								<p class="file-upload-text"><?php esc_html_e( 'Drop CSV file here or click to browse', 'swift-csv' ); ?></p>
+								<p class="file-upload-hint">
+								<?php
+									$limits = $this->get_upload_limits();
+									printf(
+										esc_html__( 'Maximum file size: %s', 'swift-csv' ),
+										esc_html( $limits['effective_limit_human'] )
+									);
+								?>
+								</p>
+								<input type="file" name="csv_file" id="ajax_csv_file" accept=".csv" style="display: none;">
+							</div>
+						</div>
+						<div class="file-info" id="csv-file-info" style="display: none;">
+							<span class="file-name"></span>
+							<button type="button" class="button button-secondary" id="remove-file-btn"><?php esc_html_e( 'Remove', 'swift-csv' ); ?></button>
+						</div>
+					</div>
 
 					<form id="swift-csv-ajax-import-form" enctype="multipart/form-data">
 						<table class="form-table">
@@ -495,6 +637,13 @@ class Swift_CSV_Admin {
 				<div class="card">
 					<h3><?php esc_html_e( 'Import Log', 'swift-csv' ); ?></h3>
 
+					<!-- Log Area -->
+					<div class="swift-csv-log-area">
+						<div class="log-content" id="import-log-content">
+							<div class="log-entry log-info"><?php esc_html_e( 'Ready to start import...', 'swift-csv' ); ?></div>
+						</div>
+					</div>
+
 					<!-- Progress Bar -->
 					<div class="swift-csv-progress">
 						<div class="progress-bar">
@@ -507,33 +656,6 @@ class Swift_CSV_Admin {
 							<div class="created"><?php esc_html_e( 'Created:', 'swift-csv' ); ?> <span class="created-count">0</span></div>
 							<div class="modified"><?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <span class="updated-count">0</span></div>
 							<div class="errors"><?php esc_html_e( 'Errors:', 'swift-csv' ); ?> <span class="error-count">0</span></div>
-						</div>
-					</div>
-
-					<!-- Log Area -->
-					<div class="swift-csv-log-area">
-						<div class="log-content" id="import-log-content">
-							<div class="log-entry log-info"><?php esc_html_e( 'Ready to start import...', 'swift-csv' ); ?></div>
-						</div>
-					</div>
-
-					<!-- File Upload Area -->
-					<div class="swift-csv-actions">
-						<div class="file-upload-area" id="csv-file-upload">
-							<div class="file-upload-content">
-								<svg class="file-upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-									<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-									<polyline points="7,10 12,15 17,10"></polyline>
-									<line x1="12" y1="15" x2="12" y2="3"></line>
-								</svg>
-								<p class="file-upload-text"><?php esc_html_e( 'Drop CSV file here or click to browse', 'swift-csv' ); ?></p>
-								<p class="file-upload-hint"><?php esc_html_e( 'Maximum file size: 10MB', 'swift-csv' ); ?></p>
-								<input type="file" name="csv_file" id="ajax_csv_file" accept=".csv" style="display: none;">
-							</div>
-						</div>
-						<div class="file-info" id="csv-file-info" style="display: none;">
-							<span class="file-name"></span>
-							<button type="button" class="button button-secondary" id="remove-file-btn"><?php esc_html_e( 'Remove', 'swift-csv' ); ?></button>
 						</div>
 					</div>
 				</div>

@@ -27,8 +27,6 @@ function swift_csv_ajax_export_normalize_headers( $headers ) {
 }
 
 function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic', $include_private_meta = false ) {
-	error_log( '[SWIFT-CSV-AJAX] Building headers: post_type=' . $post_type . ', include_private_meta=' . ( $include_private_meta ? 'true' : 'false' ) );
-
 	$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 	$include_private_meta = (bool) $include_private_meta;
 
@@ -84,12 +82,8 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		return swift_csv_ajax_export_normalize_headers( $filtered_headers );
 	}
 
-	$acf_field_names = [];
-	foreach ( $headers as $header ) {
-		if ( str_starts_with( $header, 'acf_' ) ) {
-			$acf_field_names[ substr( $header, 4 ) ] = true;
-		}
-	}
+	// Pro版ACF統合用フック
+	$headers = apply_filters( 'swift_csv_add_acf_headers', $headers, $post_type, [] );
 
 	$sample_query_args                   = [
 		'post_type'      => $post_type,
@@ -111,19 +105,12 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		$post_meta      = get_post_meta( $sample_post_id );
 		$meta_keys      = array_keys( (array) $post_meta );
 
-		if ( function_exists( 'swift_csv_log' ) ) {
-			swift_csv_log( 'Checking post ID: ' . $sample_post_id . ' with ' . count( $meta_keys ) . ' meta keys' );
-		}
-
 		foreach ( $meta_keys as $meta_key ) {
 			if ( ! in_array( $meta_key, $all_meta_keys ) ) {
 				$all_meta_keys[] = $meta_key;
 			}
 			if ( str_starts_with( $meta_key, '_' ) ) {
 				$found_private_meta = true;
-				if ( function_exists( 'swift_csv_log' ) ) {
-					swift_csv_log( 'Found private meta: ' . $meta_key );
-				}
 			}
 		}
 
@@ -132,25 +119,21 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		}
 	}
 
-	if ( function_exists( 'swift_csv_log' ) ) {
-		swift_csv_log( 'Total unique meta keys found: ' . count( $all_meta_keys ) );
-		swift_csv_log( 'Private meta found: ' . ( $found_private_meta ? 'true' : 'false' ) );
-	}
-
-	foreach ( $all_meta_keys as $meta_key ) {
-		if ( ! is_string( $meta_key ) || $meta_key === '' ) {
-			continue;
-		}
-		if ( ! $include_private_meta && str_starts_with( $meta_key, '_' ) ) {
-			if ( function_exists( 'swift_csv_log' ) ) {
-				swift_csv_log( 'Skipping private meta: ' . $meta_key );
+	// Check if Pro version is available and delegate processing
+	if ( class_exists( 'Swift_CSV_Pro_ACF_Integration' ) ) {
+		// Pro版に全ヘッダー生成を委譲
+		$headers = apply_filters( 'swift_csv_generate_all_headers', $headers, $post_type, $include_private_meta );
+	} else {
+		// Free版のデフォルト処理
+		foreach ( $all_meta_keys as $meta_key ) {
+			if ( ! is_string( $meta_key ) || $meta_key === '' ) {
+				continue;
 			}
-			continue;
+			if ( ! $include_private_meta && str_starts_with( $meta_key, '_' ) ) {
+				continue; // Skip private meta
+			}
+			$headers[] = 'cf_' . $meta_key;
 		}
-		if ( function_exists( 'swift_csv_log' ) ) {
-			swift_csv_log( 'Adding header: cf_' . $meta_key );
-		}
-		$headers[] = 'cf_' . $meta_key;
 	}
 
 	return swift_csv_ajax_export_normalize_headers( $headers );
@@ -225,8 +208,6 @@ function swift_csv_ajax_normalize_quotes( $field ) {
  * Simple Ajax export handler
  */
 function swift_csv_ajax_export_handler() {
-	error_log( '[SWIFT-CSV-AJAX] Export handler called at ' . date( 'Y-m-d H:i:s' ) );
-
 	try {
 		// Security check
 		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
@@ -326,16 +307,11 @@ function swift_csv_ajax_export_handler() {
 			$csv_chunk .= swift_csv_ajax_export_fputcsv_row( $headers );
 		}
 
-		// Cache ACF field objects to reduce repeated calls
-		static $acf_field_cache = [];
-
 		foreach ( $posts as $post_id ) {
 			$post = get_post( $post_id );
 
 			// Batch get all meta data for this post to reduce queries
-			$all_meta = get_post_meta( $post_id );
-
-			// Build data row based on headers
+			$all_meta = get_post_meta( $post_id, '', false );
 			$row_data = [];
 			foreach ( $headers as $header ) {
 				$value = '';
@@ -374,28 +350,8 @@ function swift_csv_ajax_export_handler() {
 					$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
 					$value       = $clean_value;
 				} elseif ( str_starts_with( $header, 'acf_' ) ) {
-					// ACF fields are handled as regular custom fields in Free version
-					$field_name = substr( $header, 4 );
-					$value      = '';
-
-					// Get custom field value directly
-					$meta_values = get_post_meta( $post_id, $field_name, false );
-					if ( ! empty( $meta_values ) ) {
-						// Handle multiple values
-						if ( count( $meta_values ) > 1 ) {
-							$value = implode( '|', $meta_values );
-						} else {
-							$value = $meta_values[0];
-						}
-
-						// Clean up the value
-						if ( is_array( $value ) ) {
-							$value = implode( '|', $value );
-						}
-						$clean_value = strip_tags( (string) $value );
-						$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
-						$value       = $clean_value;
-					}
+					// Pro版ACF統合用フック
+					$value = apply_filters( 'swift_csv_process_acf_field_value', '', $header, $post_id, $post_type );
 				} else {
 					$value = '';
 				}
@@ -425,4 +381,4 @@ function swift_csv_ajax_export_handler() {
 	}
 }
 
-add_action( 'wp_ajax_swift_csv_ajax_export', 'swift_csv_ajax_export_handler' );
+		add_action( 'wp_ajax_swift_csv_ajax_export', 'swift_csv_ajax_export_handler' );

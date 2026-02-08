@@ -22,7 +22,32 @@ function swift_csv_ajax_upload_handler() {
 		return;
 	}
 
-	if ( $file['size'] > 10 * 1024 * 1024 ) { // 10MB limit
+	// Get actual PHP upload limits
+	$upload_max = ini_get( 'upload_max_filesize' );
+	$post_max   = ini_get( 'post_max_size' );
+
+	// Convert to bytes
+	function parse_ini_size( $size ) {
+		$unit  = strtoupper( substr( $size, -1 ) );
+		$value = (int) substr( $size, 0, -1 );
+
+		switch ( $unit ) {
+			case 'G':
+				return $value * 1024 * 1024 * 1024;
+			case 'M':
+				return $value * 1024 * 1024;
+			case 'K':
+				return $value * 1024;
+			default:
+				return (int) $size;
+		}
+	}
+
+	$upload_max_bytes = parse_ini_size( $upload_max );
+	$post_max_bytes   = parse_ini_size( $post_max );
+	$max_file_size    = min( $upload_max_bytes, $post_max_bytes );
+
+	if ( $file['size'] > $max_file_size ) {
 		wp_send_json( [ 'error' => 'File too large' ] );
 		return;
 	}
@@ -565,6 +590,13 @@ function swift_csv_ajax_import_handler() {
 							],
 							[ '%d', '%s', '%s' ]
 						);
+					}
+				}
+
+				// Pro版ACF統合用フック - 各ACFフィールドを処理
+				foreach ( $meta_fields as $meta_key => $meta_value ) {
+					if ( str_starts_with( $meta_key, 'acf_' ) ) {
+						do_action( 'swift_csv_import_acf_field', $post_id, $meta_key, $meta_value, [] );
 					}
 				}
 			} else {

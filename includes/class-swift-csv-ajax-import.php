@@ -500,7 +500,7 @@ function swift_csv_ajax_import_handler() {
 
 					if ( $dry_run ) {
 						error_log( "[Dry Run] Would update post ID: {$post_id} with title: " . ( $post_data['post_title'] ?? 'Untitled' ) );
-						$dry_run_log[] = "更新投稿プレビュー: ID={$post_id}, タイトル=" . ( $post_data['post_title'] ?? 'Untitled' );
+						$dry_run_log[] = "更新投稿: ID={$post_id}, タイトル=" . ( $post_data['post_title'] ?? 'Untitled' );
 						$result        = 1; // Simulate success for dry run
 					} else {
 						$result = $wpdb->update(
@@ -520,7 +520,7 @@ function swift_csv_ajax_import_handler() {
 
 				if ( $dry_run ) {
 					error_log( '[Dry Run] Would create new post with title: ' . ( $post_data['post_title'] ?? 'Untitled' ) );
-					$dry_run_log[] = '新規投稿プレビュー: タイトル=' . ( $post_data['post_title'] ?? 'Untitled' );
+					$dry_run_log[] = '新規投稿: タイトル=' . ( $post_data['post_title'] ?? 'Untitled' );
 					$result        = 1; // Simulate success for dry run
 					$post_id       = 0; // Placeholder for dry run
 				} else {
@@ -733,8 +733,19 @@ function swift_csv_ajax_import_handler() {
 						}
 
 						if ( ! empty( $term_ids ) ) {
-							wp_set_post_terms( $post_id, $term_ids, $taxonomy, false );
-							error_log( "[Swift CSV] Set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
+							if ( $dry_run ) {
+								error_log( "[Dry Run] Would set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
+								// Log each term for Dry Run
+								foreach ( $term_ids as $term_id ) {
+									$term = get_term( $term_id, $taxonomy );
+									if ( $term && ! is_wp_error( $term ) ) {
+										$dry_run_log[] = "既存ターム: {$term->name} (ID: {$term_id}, タクソノミー: {$taxonomy})";
+									}
+								}
+							} else {
+								wp_set_post_terms( $post_id, $term_ids, $taxonomy, false );
+								error_log( "[Swift CSV] Set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
+							}
 						}
 					}
 				}
@@ -746,45 +757,63 @@ function swift_csv_ajax_import_handler() {
 						continue;
 					}
 
-					// Always replace existing meta for this key to ensure update works even if meta row doesn't exist.
-					$wpdb->query(
-						$wpdb->prepare(
-							"DELETE FROM {$wpdb->postmeta} 
-                         WHERE post_id = %d 
-                         AND meta_key = %s",
-							$post_id,
-							$key
-						)
-					);
+					if ( $dry_run ) {
+						error_log( "[Dry Run] Would process custom field: {$key} = {$value}" );
 
-					// Handle multi-value custom fields (pipe-separated)
-					if ( strpos( $value, '|' ) !== false ) {
-						// Add each value separately
-						$values = array_map( 'trim', explode( '|', $value ) );
-						foreach ( $values as $single_value ) {
-							if ( $single_value !== '' ) {
-								$wpdb->insert(
-									$wpdb->postmeta,
-									[
-										'post_id'    => $post_id,
-										'meta_key'   => $key,
-										'meta_value' => $single_value,
-									],
-									[ '%d', '%s', '%s' ]
-								);
+						// Handle multi-value custom fields (pipe-separated)
+						if ( strpos( $value, '|' ) !== false ) {
+							// Add each value separately
+							$values = array_map( 'trim', explode( '|', $value ) );
+							foreach ( $values as $single_value ) {
+								if ( $single_value !== '' ) {
+									$dry_run_log[] = "カスタムフィールド（複数値）: {$key} = {$single_value}";
+								}
 							}
+						} else {
+							// Single value (including serialized strings)
+							$dry_run_log[] = "カスタムフィールド: {$key} = {$value}";
 						}
 					} else {
-						// Single value (including serialized strings)
-						$wpdb->insert(
-							$wpdb->postmeta,
-							[
-								'post_id'    => $post_id,
-								'meta_key'   => $key,
-								'meta_value' => is_string( $value ) ? $value : maybe_serialize( $value ),
-							],
-							[ '%d', '%s', '%s' ]
+						// Always replace existing meta for this key to ensure update works even if meta row doesn't exist.
+						$wpdb->query(
+							$wpdb->prepare(
+								"DELETE FROM {$wpdb->postmeta} 
+	                         WHERE post_id = %d 
+	                         AND meta_key = %s",
+								$post_id,
+								$key
+							)
 						);
+
+						// Handle multi-value custom fields (pipe-separated)
+						if ( strpos( $value, '|' ) !== false ) {
+							// Add each value separately
+							$values = array_map( 'trim', explode( '|', $value ) );
+							foreach ( $values as $single_value ) {
+								if ( $single_value !== '' ) {
+									$wpdb->insert(
+										$wpdb->postmeta,
+										[
+											'post_id'    => $post_id,
+											'meta_key'   => $key,
+											'meta_value' => $single_value,
+										],
+										[ '%d', '%s', '%s' ]
+									);
+								}
+							}
+						} else {
+							// Single value (including serialized strings)
+							$wpdb->insert(
+								$wpdb->postmeta,
+								[
+									'post_id'    => $post_id,
+									'meta_key'   => $key,
+									'meta_value' => is_string( $value ) ? $value : maybe_serialize( $value ),
+								],
+								[ '%d', '%s', '%s' ]
+							);
+						}
 					}
 				}
 

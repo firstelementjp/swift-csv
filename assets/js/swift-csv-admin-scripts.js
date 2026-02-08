@@ -600,13 +600,13 @@ function handleAjaxImport(e) {
 				// Log details - use cumulative values
 				if (data.cumulative_created !== undefined) {
 					const createdText = dryRun
-						? '[Dry Run] 新規投稿プレビュー: '
+						? '[Dry Run] 新規投稿: '
 						: swiftCSV.messages.createdInfo;
 					addLogEntry(createdText + ' ' + data.cumulative_created, 'success', 'import');
 				}
 				if (data.cumulative_updated !== undefined) {
 					const updatedText = dryRun
-						? '[Dry Run] 更新投稿プレビュー: '
+						? '[Dry Run] 更新投稿: '
 						: swiftCSV.messages.updatedInfo;
 					addLogEntry(updatedText + ' ' + data.cumulative_updated, 'info', 'import');
 				}
@@ -837,19 +837,18 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	// Log final results - use cumulative values
 	if (data.cumulative_created !== undefined) {
 		const createdMessage = isDryRun
-			? '[Dry Run] 合計テスト数: '
+			? '[Dry Run] 新規作成: '
 			: swiftCSV.messages.totalImported + ' ';
 		addLogEntry(createdMessage + data.cumulative_created, 'success', 'import');
 	}
 	if (data.cumulative_updated !== undefined) {
-		const updatedMessage = isDryRun
-			? '[Dry Run] 合計更新テスト数: '
-			: swiftCSV.messages.totalUpdated + ' ';
+		const updatedMessage = isDryRun ? '[Dry Run] 更新: ' : swiftCSV.messages.totalUpdated + ' ';
 		addLogEntry(updatedMessage + data.cumulative_updated, 'success', 'import');
 	}
 	if (data.cumulative_errors !== undefined) {
+		const errorMessage = isDryRun ? '[Dry Run] エラー: ' : swiftCSV.messages.totalErrors + ' ';
 		addLogEntry(
-			swiftCSV.messages.totalErrors + ' ' + data.cumulative_errors,
+			errorMessage + data.cumulative_errors,
 			data.cumulative_errors > 0 ? 'warning' : 'success',
 			'import'
 		);

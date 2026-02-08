@@ -872,8 +872,3 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	if (uploadArea) uploadArea.style.display = 'block';
 	if (fileInfo) fileInfo.style.display = 'none';
 }
-
-// Legacy functions for compatibility - deprecated
-function startBatchExport(postType, postsPerPage) {
-	console.warn('startBatchExport is deprecated. Use AJAX export instead.');
-}

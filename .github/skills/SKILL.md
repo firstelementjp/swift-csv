@@ -140,6 +140,64 @@ wp db query "SELECT 1;" --path="$WP_PATH" --debug
 
 ---
 
+## #005 WordPress AJAX Success Flag Missing (2026-02-08)
+
+**Symptom**: AJAX request succeeds but JavaScript throws error after 2 seconds. Console shows "Import failed" or similar error, despite server processing completing successfully.
+
+**Cause**: WordPress AJAX responses must include `success: true` flag. JavaScript checks `if (!data.success)` and throws error when flag is missing.
+
+**Fix** (`class-swift-csv-ajax-import.php`):
+
+```php
+// BEFORE — Missing success flag, JavaScript treats as error
+wp_send_json([
+    'processed' => $next_row,
+    'total' => $total_rows,
+    'continue' => $continue,
+    'message' => "Processed $processed rows, $errors errors"
+]);
+
+// AFTER — Include success flag for WordPress AJAX compatibility
+wp_send_json([
+    'success' => true,        // ← REQUIRED for WordPress AJAX
+    'processed' => $next_row,
+    'total' => $total_rows,
+    'continue' => $continue,
+    'message' => "Processed $processed rows, $errors errors"
+]);
+```
+
+**Alternative (WordPress standard)**:
+
+```php
+// Use WordPress standard functions when possible
+wp_send_json_success($data);     // Automatically adds success: true
+wp_send_json_error($message);    // Automatically adds success: false
+```
+
+**Lesson**: WordPress AJAX has strict response format. Always include `success` flag in JSON responses. This is WordPress-specific convention, not general JSON standard.
+
+**Debug approach**:
+
+```javascript
+// Check actual response in browser Network tab
+.then(data => {
+    console.log('Response:', data);  // Look for success flag
+    if (!data.success) {
+        console.error('Missing success flag in response');
+        throw new Error(data.data || 'Operation failed');
+    }
+})
+```
+
+**Related patterns**:
+
+- Always validate nonce: `wp_verify_nonce($_POST['nonce'], 'action')`
+- Use consistent nonce key between frontend (`nonce`) and backend
+- Handle file uploads directly in import handler, not via file paths
+
+---
+
 ## Quick Reference Table
 
 | #   | Symptom                    | Root Cause                                 | Key File                          |
@@ -148,6 +206,7 @@ wp db query "SELECT 1;" --path="$WP_PATH" --debug
 | 002 | Progress element not found | Old DOM selector after UI refactor         | `admin-scripts.js`                |
 | 003 | Malformed date in filename | Missing hyphen in string concat            | `admin-scripts.js`                |
 | 004 | WP-CLI connection fails    | Database variables quoted, paths unquoted  | `.envrc`                          |
+| 005 | AJAX error after success   | Missing `success: true` in JSON response   | `class-swift-csv-ajax-import.php` |
 
 ---
 

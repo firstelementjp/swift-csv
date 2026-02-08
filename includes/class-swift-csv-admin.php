@@ -61,7 +61,7 @@ class Swift_CSV_Admin {
 		if ( 'tools_page_swift-csv' === $hook ) {
 			wp_enqueue_style(
 				'swift-csv-admin',
-				SWIFT_CSV_PLUGIN_URL . 'assets/css/swift-csv-admin-style.css',
+				SWIFT_CSV_PLUGIN_URL . 'assets/css/swift-csv-admin-style.min.css',
 				[],
 				SWIFT_CSV_VERSION
 			);
@@ -81,7 +81,7 @@ class Swift_CSV_Admin {
 		if ( 'tools_page_swift-csv' === $hook ) {
 			wp_register_script(
 				'swift-csv-admin',
-				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-admin-scripts.js',
+				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-admin-scripts.min.js',
 				[ 'wp-i18n' ],
 				SWIFT_CSV_VERSION,
 				true
@@ -98,22 +98,67 @@ class Swift_CSV_Admin {
 					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'swift_csv_ajax_nonce' ),
 					'messages' => [
-						'exportCsv'      => esc_html__( 'Export CSV', 'swift-csv' ),
-						'importCsv'      => esc_html__( 'Import CSV', 'swift-csv' ),
-						'exporting'      => esc_html__( 'Exporting...', 'swift-csv' ),
-						'importing'      => esc_html__( 'Importing...', 'swift-csv' ),
-						'readyToExport'  => esc_html__( 'Ready to start export...', 'swift-csv' ),
-						'readyToImport'  => esc_html__( 'Ready to start import...', 'swift-csv' ),
-						'error'          => esc_html__( 'An error occurred. Please try again.', 'swift-csv' ),
-						'success'        => esc_html__( 'Operation completed successfully!', 'swift-csv' ),
-						'cancelled'      => esc_html__( 'Export cancelled', 'swift-csv' ),
-						'failed'         => esc_html__( 'Export failed', 'swift-csv' ),
-						'importSettings' => esc_html__( 'Import Settings', 'swift-csv' ),
-						'dropFileHere'   => esc_html__( 'Drop CSV file here or click to browse', 'swift-csv' ),
-						'maxFileSize'    => esc_html__( 'Maximum file size: %s', 'swift-csv' ),
-						'custom'         => esc_html__( 'Custom', 'swift-csv' ),
-						'customHelp'     => esc_html__( 'Use the %1$s hook to specify custom export items and order. See %2$s for details.', 'swift-csv' ),
-						'documentation'  => esc_html__( 'documentation', 'swift-csv' ),
+						'exportCsv'             => esc_html__( 'Export CSV', 'swift-csv' ),
+						'importCsv'             => esc_html__( 'Import CSV', 'swift-csv' ),
+						'startImport'           => esc_html__( 'Start Import', 'swift-csv' ),
+						'exporting'             => esc_html__( 'Exporting...', 'swift-csv' ),
+						'importing'             => esc_html__( 'Importing...', 'swift-csv' ),
+						'readyToExport'         => esc_html__( 'Ready to start export...', 'swift-csv' ),
+						'readyToImport'         => esc_html__( 'Ready to start import...', 'swift-csv' ),
+						'error'                 => esc_html__( 'An error occurred. Please try again.', 'swift-csv' ),
+						'success'               => esc_html__( 'Operation completed successfully!', 'swift-csv' ),
+						'cancelled'             => esc_html__( 'Export cancelled', 'swift-csv' ),
+						'failed'                => esc_html__( 'Export failed', 'swift-csv' ),
+						'importSettings'        => esc_html__( 'Import Settings', 'swift-csv' ),
+						'dropFileHere'          => esc_html__( 'Drop CSV file here or click to browse', 'swift-csv' ),
+						'maxFileSize'           => esc_html__( 'Maximum file size: %s', 'swift-csv' ),
+						'custom'                => esc_html__( 'Custom', 'swift-csv' ),
+						'customHelp'            => esc_html__( 'Use the %1$s hook to specify custom export items and order. See %2$s for details.', 'swift-csv' ),
+						'documentation'         => esc_html__( 'documentation', 'swift-csv' ),
+						// Log messages
+						'startingImport'        => esc_html__( 'Starting import process...', 'swift-csv' ),
+						'fileInfo'              => esc_html__( 'File:', 'swift-csv' ),
+						'fileSize'              => esc_html__( 'File Size:', 'swift-csv' ),
+						'postTypeInfo'          => esc_html__( 'Post Type:', 'swift-csv' ),
+						'updateExistingInfo'    => esc_html__( 'Update Existing:', 'swift-csv' ),
+						'processingChunk'       => esc_html__( 'Chunk processing start position (row):', 'swift-csv' ),
+						'processedInfo'         => esc_html__( 'Processed', 'swift-csv' ),
+						'createdInfo'           => esc_html__( 'Created:', 'swift-csv' ),
+						'updatedInfo'           => esc_html__( 'Updated:', 'swift-csv' ),
+						'errorsInfo'            => esc_html__( 'Errors:', 'swift-csv' ),
+						'importCompleted'       => esc_html__( 'Import completed!', 'swift-csv' ),
+						'totalUpdated'          => esc_html__( 'Total updated:', 'swift-csv' ),
+						'totalErrors'           => esc_html__( 'Total errors:', 'swift-csv' ),
+						'importCancelledByUser' => esc_html__( 'Import cancelled by user', 'swift-csv' ),
+						'importError'           => esc_html__( 'Import error:', 'swift-csv' ),
+						// Export messages
+						'startingExport'        => esc_html__( 'Starting export process...', 'swift-csv' ),
+						'postTypeExport'        => esc_html__( 'Post Type:', 'swift-csv' ),
+						'exportScope'           => esc_html__( 'Export Scope:', 'swift-csv' ),
+						'includePrivateMeta'    => esc_html__( 'Include Private Meta:', 'swift-csv' ),
+						'exportLimit'           => esc_html__( 'Export Limit:', 'swift-csv' ),
+						'exporting'             => esc_html__( 'Exporting...', 'swift-csv' ),
+						'exportCancelledByUser' => esc_html__( 'Export cancelled by user', 'swift-csv' ),
+						'processedExport'       => esc_html__( 'Processed', 'swift-csv' ),
+						'exportError'           => esc_html__( 'Export error:', 'swift-csv' ),
+						'exportCompleted'       => esc_html__( 'Export completed successfully!', 'swift-csv' ),
+						'downloadReady'         => esc_html__( 'Download ready:', 'swift-csv' ),
+						'batchExportStarted'    => esc_html__( 'Batch export started', 'swift-csv' ),
+						// Common messages
+						'yes'                   => esc_html__( 'Yes', 'swift-csv' ),
+						'no'                    => esc_html__( 'No', 'swift-csv' ),
+						'noLimit'               => esc_html__( 'No limit', 'swift-csv' ),
+						'errorOccurred'         => esc_html__( 'An error occurred. Please try again.', 'swift-csv' ),
+						'totalImported'         => esc_html__( 'Total imported:', 'swift-csv' ),
+						// File operation messages
+						'fileRemoved'           => esc_html__( 'File removed', 'swift-csv' ),
+						'selectCsvFile'         => esc_html__( 'Please select a CSV file', 'swift-csv' ),
+						'fileSizeExceedsLimit'  => esc_html__( 'File size exceeds 10MB limit', 'swift-csv' ),
+						'fileSelected'          => esc_html__( 'File selected:', 'swift-csv' ),
+						'removeFile'            => esc_html__( 'Remove', 'swift-csv' ),
+						// Export scope mappings
+						'exportScopeBasic'      => esc_html__( 'Basic Fields', 'swift-csv' ),
+						'exportScopeAll'        => esc_html__( 'All Fields', 'swift-csv' ),
 					],
 				]
 			);
@@ -331,7 +376,7 @@ class Swift_CSV_Admin {
 				}
 				// Custom tabs (like Pro version) will be handled by the hook below
 				?>
-				
+
 				<?php
 				/**
 				 * Fires within the main settings form to add custom tab content panels.
@@ -436,7 +481,7 @@ class Swift_CSV_Admin {
 									<select name="post_type" id="ajax_export_post_type" required>
 										<?php foreach ( $post_types as $post_type ) : ?>
 											<option value="<?php echo esc_attr( $post_type->name ); ?>">
-												<?php echo esc_html( $post_type->labels->name ); ?>
+												<?php echo esc_html( $post_type->labels->name ); ?> (<?php echo esc_html( $post_type->name ); ?>)
 											</option>
 										<?php endforeach; ?>
 									</select>
@@ -602,7 +647,7 @@ class Swift_CSV_Admin {
 										foreach ( $post_types as $post_type ) :
 											?>
 											<option value="<?php echo esc_attr( $post_type->name ); ?>">
-												<?php echo esc_html( $post_type->labels->name ); ?>
+												<?php echo esc_html( $post_type->labels->name ); ?> (<?php echo esc_html( $post_type->name ); ?>)
 											</option>
 										<?php endforeach; ?>
 									</select>

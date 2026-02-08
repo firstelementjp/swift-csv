@@ -359,3 +359,174 @@ msgstr "分"
 
 msgid "Est. remaining:"
 msgstr "残り時間:"
+
+msgid "Ready to start import..."
+msgstr "インポートの準備ができました..."
+
+msgid "Import Log"
+msgstr "インポートログ"
+
+msgid "Starting import process..."
+msgstr "インポート処理を開始します..."
+
+msgid "An error occurred. Please try again."
+msgstr "エラーが発生しました。もう一度お試しください。"
+
+msgid "Ready to start export..."
+msgstr "エクスポートの準備ができました..."
+
+msgid "File removed"
+msgstr "ファイルが削除されました"
+
+msgid "Please select a CSV file"
+msgstr "CSVファイルを選択してください"
+
+msgid "File size exceeds 10MB limit"
+msgstr "ファイルサイズが10MBの制限を超えています"
+
+msgid "File selected:"
+msgstr "ファイルが選択されました:"
+
+msgid "Remove"
+msgstr "削除"
+
+msgid "Basic Fields"
+msgstr "基本項目"
+
+msgid "All Fields"
+msgstr "全項目"
+
+msgid "Starting export process..."
+msgstr "エクスポート処理を開始します..."
+
+msgid "Post Type:"
+msgstr "投稿タイプ:"
+
+msgid "Export Scope:"
+msgstr "エクスポート範囲:"
+
+msgid "Include Private Meta:"
+msgstr "プライベートメタを含める:"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "No"
+msgstr "いいえ"
+
+msgid "Export Limit:"
+msgstr "エクスポート制限:"
+
+msgid "No limit"
+msgstr "制限なし"
+
+msgid "Export cancelled by user"
+msgstr "ユーザーによってエクスポートがキャンセルされました"
+
+msgid "Chunk processing start position (row):"
+msgstr "チャンク処理開始位置（行）:"
+
+msgid "Processed"
+msgstr "処理済み"
+
+msgid "Export error:"
+msgstr "エクスポートエラー:"
+
+msgid "File:"
+msgstr "ファイル:"
+
+msgid "File Size:"
+msgstr "ファイルサイズ:"
+
+msgid "Update Existing:"
+msgstr "既存を更新:"
+
+msgid "Importing..."
+msgstr "インポート中..."
+
+msgid "Import cancelled by user"
+msgstr "ユーザーによってインポートがキャンセルされました"
+
+msgid "Import error:"
+msgstr "インポートエラー:"
+
+msgid "Download ready:"
+msgstr "ダウンロード準備完了:"
+
+msgid "Total imported:"
+msgstr "総インポート数:"
+
+msgid "Total updated:"
+msgstr "総更新数:"
+
+msgid "Total errors:"
+msgstr "総エラー数:"
+
+msgid "Batch export started"
+msgstr "バッチエクスポートが開始されました"
+
+msgid "Import Settings"
+msgstr "インポート設定"
+
+msgid "Drop CSV file here or click to browse"
+msgstr "CSVファイルをここにドロップまたはクリックして選択"
+
+msgid "Maximum file size: %s"
+msgstr "最大ファイルサイズ: %s"
+
+msgid "Custom"
+msgstr "カスタム"
+
+msgid "Use the %1$s hook to specify custom export items and order. See %2$s for details."
+msgstr "%1$sフックを使用してカスタムエクスポート項目と順序を指定します。詳細については%2$sを参照してください。"
+
+msgid "documentation"
+msgstr "ドキュメント"
+
+msgid "Export Settings"
+msgstr "エクスポート設定"
+
+msgid "File: %s"
+msgstr "ファイル: %s"
+
+msgid "File Size: %s"
+msgstr "ファイルサイズ: %s"
+
+msgid "Post Type: %s"
+msgstr "投稿タイプ: %s"
+
+msgid "Update Existing: %s"
+msgstr "既存投稿の更新: %s"
+
+msgid "Processing chunk starting from row %d"
+msgstr "行 %d からチャンクを処理中"
+
+msgid "Processed"
+msgstr "処理済み"
+
+msgid "Created: %d"
+msgstr "新規作成: %d"
+
+msgid "Updated: %d"
+msgstr "更新: %d"
+
+msgid "Errors: %d"
+msgstr "エラー: %d"
+
+msgid "Import completed!"
+msgstr "インポート完了！"
+
+msgid "Total updated: %d"
+msgstr "総更新数: %d"
+
+msgid "Total errors: %d"
+msgstr "総エラー数: %d"
+
+msgid "Import cancelled by user"
+msgstr "ユーザーによりインポートがキャンセルされました"
+
+msgid "Import error:"
+msgstr "インポートエラー:"
+
+msgid "Export Log"
+msgstr "エクスポートログ"

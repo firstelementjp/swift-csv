@@ -326,10 +326,25 @@ function swift_csv_ajax_export_handler() {
 				}
 
 				if ( str_starts_with( $header, 'cf_' ) ) {
-					$field_name = substr( $header, 3 );
-					$meta_value = $all_meta[ $field_name ][0] ?? '';
-					if ( is_array( $meta_value ) ) {
-						$meta_value = implode( '|', $meta_value );
+					$field_name  = substr( $header, 3 );
+					$meta_values = $all_meta[ $field_name ] ?? [];
+					if ( is_array( $meta_values ) && count( $meta_values ) > 1 ) {
+						// Multiple values - join with pipe separator
+						$meta_value = implode(
+							'|',
+							array_map(
+								function ( $val ) {
+									return is_array( $val ) ? implode( '|', $val ) : (string) $val;
+								},
+								$meta_values
+							)
+						);
+					} else {
+						// Single value
+						$meta_value = $meta_values[0] ?? '';
+						if ( is_array( $meta_value ) ) {
+							$meta_value = implode( '|', $meta_value );
+						}
 					}
 					$clean_value = strip_tags( (string) $meta_value );
 					$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );

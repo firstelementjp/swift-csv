@@ -4,7 +4,14 @@
  * @package SwiftCSV
  */
 
-// WordPress i18n API with proper fallback
+/**
+ * WordPress i18n fallback function
+ *
+ * Provides fallback for WordPress i18n when not available.
+ * @param {string} text - The text to translate
+ * @param {string} domain - The text domain
+ * @returns {string} The translated text or original text
+ */
 function __(text, domain = 'swift-csv') {
 	if (window.wp && window.wp.i18n && window.wp.i18n.__) {
 		return window.wp.i18n.__(text, domain);
@@ -29,22 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	// Batch export functionality
-	const exportBtn = document.querySelector('#export-csv-btn');
-	if (exportBtn) {
-		exportBtn.addEventListener('click', function (e) {
-			e.preventDefault();
-			const postType = document.querySelector('#post_type')?.value;
-			const postsPerPage = document.querySelector('#posts_per_page')?.value;
-
-			if (!postType || !postsPerPage || postsPerPage < 1) {
-				addLogEntry(swiftCSV.messages.errorOccurred, 'error');
-				return;
-			}
-
-			startBatchExport(postType, postsPerPage);
-		});
-	}
+	// File upload functionality
+	initFileUpload();
 
 	// Ajax export functionality
 	const ajaxExportForm = document.querySelector('#swift-csv-ajax-export-form');
@@ -64,6 +57,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 /**
  * Initialize logging system
+ *
+ * Sets up logging functionality for import/export operations.
+ * Clears existing logs on page load.
  */
 function initLoggingSystem() {
 	// Clear logs on page load
@@ -86,11 +82,11 @@ function initLoggingSystem() {
 }
 
 /**
- * Add log entry to the log area
+ * Add log entry to the log display
  *
- * @param {string} message Log message
- * @param {string} level Log level (info, success, warning, error, debug)
- * @param {string} context Log context (export, import)
+ * @param {string} message - The log message
+ * @param {string} level - Log level (info, success, warning, error, debug)
+ * @param {string} context - Log context (export, import)
  */
 function addLogEntry(message, level = 'info', context = 'export') {
 	const logContent = document.querySelector(`#${context}-log-content`);
@@ -118,7 +114,7 @@ function addLogEntry(message, level = 'info', context = 'export') {
 /**
  * Clear log entries
  *
- * @param {string} context Log context (export, import)
+ * @param {string} context - Log context (export, import)
  */
 function clearLog(context = 'export') {
 	const logContent = document.querySelector(`#${context}-log-content`);
@@ -138,10 +134,55 @@ function initFileUpload() {
 
 	if (!uploadArea || !fileInput) return;
 
-	// Click to upload
-	uploadArea.addEventListener('click', () => {
-		fileInput.click();
+	// Prevent multiple event listener registrations
+	if (uploadArea.dataset.swiftCsvInitialized === 'true') {
+		console.log('File upload already initialized, skipping');
+		return;
+	}
+
+	// Mark as initialized
+	uploadArea.dataset.swiftCsvInitialized = 'true';
+
+	console.log('Initializing file upload functionality');
+
+	// File selection change event first
+	fileInput.addEventListener('change', e => {
+		if (e.target.files.length > 0) {
+			handleFileSelect(e.target.files[0]);
+		}
 	});
+
+	// Click to upload - prevent duplicate clicks
+	let isClicking = false;
+
+	uploadArea.addEventListener(
+		'click',
+		function (e) {
+			if (isClicking) {
+				console.log('Click already in progress, ignoring');
+				return;
+			}
+
+			isClicking = true;
+			console.log('Upload area clicked');
+
+			// Use setTimeout to ensure proper timing
+			setTimeout(() => {
+				try {
+					fileInput.click();
+					console.log('fileInput.click() executed successfully');
+				} catch (error) {
+					console.error('Error calling fileInput.click():', error);
+				} finally {
+					// Reset flag after a short delay
+					setTimeout(() => {
+						isClicking = false;
+					}, 100);
+				}
+			}, 0);
+		},
+		false
+	);
 
 	// Drag and drop
 	uploadArea.addEventListener('dragover', e => {
@@ -160,13 +201,6 @@ function initFileUpload() {
 		const files = e.dataTransfer.files;
 		if (files.length > 0) {
 			handleFileSelect(files[0]);
-		}
-	});
-
-	// File selection
-	fileInput.addEventListener('change', e => {
-		if (e.target.files.length > 0) {
-			handleFileSelect(e.target.files[0]);
 		}
 	});
 
@@ -212,6 +246,11 @@ function initFileUpload() {
 	}
 }
 
+/**
+ * Handle AJAX export form submission
+ *
+ * @param {Event} e - Form submission event
+ */
 function handleAjaxExport(e) {
 	e.preventDefault();
 
@@ -290,6 +329,12 @@ function handleAjaxExport(e) {
 		});
 	}
 
+	/**
+	 * Process export chunk
+	 *
+	 * Handles chunked export processing for large datasets.
+	 * @param {number} startRow - Starting row number
+	 */
 	function processChunk(startRow = 0) {
 		if (isCancelled) return;
 
@@ -436,12 +481,20 @@ function handleAjaxImport(e) {
 		});
 	}
 
-	function processImportChunk(startRow = 0) {
+	function processImportChunk(
+		startRow = 0,
+		cumulativeCreated = 0,
+		cumulativeUpdated = 0,
+		cumulativeErrors = 0
+	) {
 		if (isCancelled) return;
 
 		addLogEntry(swiftCSV.messages.processingChunk + ' ' + startRow, 'debug', 'import');
 
 		formData.set('start_row', startRow);
+		formData.set('cumulative_created', cumulativeCreated);
+		formData.set('cumulative_updated', cumulativeUpdated);
+		formData.set('cumulative_errors', cumulativeErrors);
 
 		fetch(swiftCSV.ajaxUrl, {
 			method: 'POST',
@@ -473,24 +526,24 @@ function handleAjaxImport(e) {
 					);
 				}
 
-				// Log details
-				if (data.created !== undefined) {
+				// Log details - use cumulative values
+				if (data.cumulative_created !== undefined) {
 					addLogEntry(
-						swiftCSV.messages.createdInfo + ' ' + data.created,
+						swiftCSV.messages.createdInfo + ' ' + data.cumulative_created,
 						'success',
 						'import'
 					);
 				}
-				if (data.updated !== undefined) {
+				if (data.cumulative_updated !== undefined) {
 					addLogEntry(
-						swiftCSV.messages.updatedInfo + ' ' + data.updated,
+						swiftCSV.messages.updatedInfo + ' ' + data.cumulative_updated,
 						'success',
 						'import'
 					);
 				}
-				if (data.errors > 0) {
+				if (data.cumulative_errors > 0) {
 					addLogEntry(
-						swiftCSV.messages.errorsInfo + ' ' + data.errors,
+						swiftCSV.messages.errorsInfo + ' ' + data.cumulative_errors,
 						'warning',
 						'import'
 					);
@@ -498,7 +551,16 @@ function handleAjaxImport(e) {
 
 				// Continue processing or complete
 				if (data.continue && !isCancelled) {
-					setTimeout(() => processImportChunk(data.processed), 100);
+					setTimeout(
+						() =>
+							processImportChunk(
+								data.processed,
+								data.cumulative_created,
+								data.cumulative_updated,
+								data.cumulative_errors
+							),
+						100
+					);
 				} else {
 					completeAjaxImport(data, importBtn, cancelBtn);
 				}
@@ -611,15 +673,15 @@ function updateImportProgress(data, startTime) {
 		percentageEl.textContent = data.progress;
 	}
 
-	// Update details
-	if (createdEl && data.created !== undefined) {
-		createdEl.textContent = data.created;
+	// Update details - use cumulative values
+	if (createdEl && data.cumulative_created !== undefined) {
+		createdEl.textContent = data.cumulative_created;
 	}
-	if (updatedEl && data.updated !== undefined) {
-		updatedEl.textContent = data.updated;
+	if (updatedEl && data.cumulative_updated !== undefined) {
+		updatedEl.textContent = data.cumulative_updated;
 	}
-	if (errorEl && data.errors !== undefined) {
-		errorEl.textContent = data.errors;
+	if (errorEl && data.cumulative_errors !== undefined) {
+		errorEl.textContent = data.cumulative_errors;
 	}
 }
 
@@ -685,17 +747,25 @@ function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
 function completeAjaxImport(data, importBtn, cancelBtn) {
 	addLogEntry(swiftCSV.messages.importCompleted, 'success', 'import');
 
-	// Log final results
-	if (data.imported !== undefined) {
-		addLogEntry(swiftCSV.messages.totalImported + ' ' + data.imported, 'success', 'import');
-	}
-	if (data.updated !== undefined) {
-		addLogEntry(swiftCSV.messages.totalUpdated + ' ' + data.updated, 'success', 'import');
-	}
-	if (data.errors !== undefined) {
+	// Log final results - use cumulative values
+	if (data.cumulative_created !== undefined) {
 		addLogEntry(
-			swiftCSV.messages.totalErrors + ' ' + data.errors,
-			data.errors > 0 ? 'warning' : 'success',
+			swiftCSV.messages.totalImported + ' ' + data.cumulative_created,
+			'success',
+			'import'
+		);
+	}
+	if (data.cumulative_updated !== undefined) {
+		addLogEntry(
+			swiftCSV.messages.totalUpdated + ' ' + data.cumulative_updated,
+			'success',
+			'import'
+		);
+	}
+	if (data.cumulative_errors !== undefined) {
+		addLogEntry(
+			swiftCSV.messages.totalErrors + ' ' + data.cumulative_errors,
+			data.cumulative_errors > 0 ? 'warning' : 'success',
 			'import'
 		);
 	}
@@ -719,8 +789,7 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	if (fileInfo) fileInfo.style.display = 'none';
 }
 
-// Legacy functions for compatibility
+// Legacy functions for compatibility - deprecated
 function startBatchExport(postType, postsPerPage) {
-	addLogEntry(swiftCSV.messages.batchExportStarted, 'info', 'export');
-	// Implementation would go here
+	console.warn('startBatchExport is deprecated. Use AJAX export instead.');
 }

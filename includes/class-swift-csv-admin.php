@@ -13,6 +13,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Admin class for Swift CSV plugin
+ *
+ * Handles admin menu, settings, and UI for CSV import/export functionality.
+ *
+ * @since 0.9.0
+ * @package Swift_CSV
+ */
 class Swift_CSV_Admin {
 
 	/**

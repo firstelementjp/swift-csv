@@ -1,6 +1,12 @@
 <?php
 /**
- * Ajax-based CSV Import - No transactions, no locks
+ * Ajax Import Handler for Swift CSV
+ *
+ * Handles asynchronous CSV import with chunked processing for large files.
+ * Supports custom post types, taxonomies, and meta fields.
+ *
+ * @since 0.9.0
+ * @package Swift_CSV
  */
 
 add_action( 'wp_ajax_swift_csv_ajax_import', 'swift_csv_ajax_import_handler' );
@@ -8,6 +14,12 @@ add_action( 'wp_ajax_nopriv_swift_csv_ajax_import', 'swift_csv_ajax_import_handl
 add_action( 'wp_ajax_swift_csv_ajax_upload', 'swift_csv_ajax_upload_handler' );
 add_action( 'wp_ajax_nopriv_swift_csv_ajax_upload', 'swift_csv_ajax_upload_handler' );
 
+/**
+ * Handle CSV file upload via AJAX
+ *
+ * @since 0.9.0
+ * @return void Sends JSON response
+ */
 function swift_csv_ajax_upload_handler() {
 	// Verify nonce
 	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'swift_csv_ajax_nonce' ) ) {
@@ -33,6 +45,13 @@ function swift_csv_ajax_upload_handler() {
 	$post_max   = ini_get( 'post_max_size' );
 
 	// Convert to bytes
+	/**
+	 * Parse PHP ini size string to bytes
+	 *
+	 * @since 0.9.0
+	 * @param string $size The size string (e.g., '10M', '1G')
+	 * @return int Size in bytes
+	 */
 	function parse_ini_size( $size ) {
 		$unit  = strtoupper( substr( $size, -1 ) );
 		$value = (int) substr( $size, 0, -1 );
@@ -74,6 +93,12 @@ function swift_csv_ajax_upload_handler() {
 	}
 }
 
+/**
+ * Handle CSV import processing via AJAX
+ *
+ * @since 0.9.0
+ * @return void Sends JSON response with import results
+ */
 function swift_csv_ajax_import_handler() {
 	global $wpdb;
 
@@ -191,14 +216,27 @@ function swift_csv_ajax_import_handler() {
 		return;
 	}
 
-	$total_rows = count( $lines );
+	// Count actual data rows (exclude empty lines)
+	$total_rows = 0;
+	foreach ( $lines as $line ) {
+		if ( ! empty( trim( $line ) ) ) {
+			++$total_rows;
+		}
+	}
 
 	$processed = 0;
 	$errors    = 0;
 
-	// Process small batch
+	// Get cumulative counts from previous chunks
+	$previous_created = isset( $_POST['cumulative_created'] ) ? intval( $_POST['cumulative_created'] ) : 0;
+	$previous_updated = isset( $_POST['cumulative_updated'] ) ? intval( $_POST['cumulative_updated'] ) : 0;
+	$previous_errors  = isset( $_POST['cumulative_errors'] ) ? intval( $_POST['cumulative_errors'] ) : 0;
+
+	$created = 0;
+	$updated = 0;
 
 	for ( $i = $start_row; $i < min( $start_row + $batch_size, $total_rows ); $i++ ) {
+		// Skip empty lines only
 		if ( empty( trim( $lines[ $i ] ) ) ) {
 			++$processed; // Count empty lines as processed to avoid infinite loop
 			continue;
@@ -261,10 +299,7 @@ function swift_csv_ajax_import_handler() {
 			if ( $existing_post_id ) {
 				$post_id   = $existing_post_id;
 				$is_update = true;
-			} else {
-				continue;
 			}
-		} else {
 		}
 
 		// Validation
@@ -539,6 +574,16 @@ function swift_csv_ajax_import_handler() {
 				}
 
 				// Custom field processing hook for extensions
+				/**
+				 * Action for processing custom fields during import
+				 *
+				 * Allows extensions to process custom fields with their own logic.
+				 * This hook is called after basic field processing is complete.
+				 *
+				 * @since 0.9.0
+				 * @param int $post_id The ID of the created/updated post
+				 * @param array $meta_fields Array of meta fields to process
+				 */
 				do_action( 'swift_csv_process_custom_fields', $post_id, $meta_fields );
 			} else {
 				++$errors;
@@ -548,22 +593,24 @@ function swift_csv_ajax_import_handler() {
 		}
 	}
 
-	$next_row = $start_row + $processed; // Use actual processed count instead of batch_size
+	$next_row = $start_row + $processed; // Use actual processed count
 	$continue = $next_row < $total_rows;
 
 	wp_send_json(
 		[
-			'success'         => true,
-			'processed'       => $next_row,
-			'total'           => $total_rows,
-			'batch_processed' => $processed,
-			'batch_errors'    => $errors,
-			'created'         => $created,
-			'updated'         => $updated,
-			'errors'          => $errors,
-			'progress'        => round( ( $next_row / $total_rows ) * 100, 2 ),
-			'continue'        => $continue,
-			'message'         => "Processed $processed rows, $errors errors",
+			'success'            => true,
+			'processed'          => $next_row,
+			'total'              => $total_rows,
+			'batch_processed'    => $processed,
+			'batch_errors'       => $errors,
+			'created'            => $created,
+			'updated'            => $updated,
+			'errors'             => $errors,
+			'cumulative_created' => $previous_created + $created,
+			'cumulative_updated' => $previous_updated + $updated,
+			'cumulative_errors'  => $previous_errors + $errors,
+			'progress'           => round( ( $next_row / $total_rows ) * 100, 2 ),
+			'continue'           => $continue,
 		]
 	);
 }

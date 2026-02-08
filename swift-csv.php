@@ -54,9 +54,6 @@ add_action( 'plugins_loaded', 'swift_csv_load_textdomain' );
 
 // Include required files.
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-admin.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-exporter.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-importer.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-batch.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-updater.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-import.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';
@@ -72,9 +69,6 @@ require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';
  */
 function swift_csv_init() {
 	new Swift_CSV_Admin();
-	new Swift_CSV_Exporter();
-	// new Swift_CSV_Importer(); // Currently unused - using ajax-import.php instead
-	new Swift_CSV_Batch();
 	new Swift_CSV_Updater( __FILE__ );
 }
 add_action( 'plugins_loaded', 'swift_csv_init' );

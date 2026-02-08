@@ -1,14 +1,25 @@
 <?php
 /**
- * Simple Ajax Export Handler for Swift CSV Plugin
+ * Ajax Export Handler for Swift CSV
  *
- * @since  1.0.0
+ * Handles asynchronous CSV export with chunked processing for large datasets.
+ * Supports basic, all fields, and custom export scopes.
+ *
+ * @since 0.9.0
+ * @package Swift_CSV
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Normalize CSV headers by removing empty values and duplicates
+ *
+ * @since 0.9.0
+ * @param array $headers Array of CSV header strings
+ * @return array Normalized headers array
+ */
 function swift_csv_ajax_export_normalize_headers( $headers ) {
 	$headers = array_values( array_filter( array_map( 'trim', (array) $headers ), 'strlen' ) );
 	$headers = array_values( array_unique( $headers ) );
@@ -26,13 +37,33 @@ function swift_csv_ajax_export_normalize_headers( $headers ) {
 	return $headers;
 }
 
+/**
+ * Build CSV headers based on post type and export scope
+ *
+ * @since 0.9.0
+ * @param string $post_type The post type to export
+ * @param string $export_scope The export scope ('basic', 'all', 'custom')
+ * @param bool   $include_private_meta Whether to include private meta fields
+ * @return array Array of CSV header strings
+ */
 function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic', $include_private_meta = false ) {
 	$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 	$include_private_meta = (bool) $include_private_meta;
 
 	// Custom export scope - use hook with fallback to basic
 	if ( $export_scope === 'custom' ) {
-		// Apply custom filter for developers
+		/**
+		 * Filter custom export columns for custom export scope
+		 *
+		 * Allows developers to define custom column headers for export.
+		 * This hook is only called when export_scope is set to 'custom'.
+		 *
+		 * @since 0.9.0
+		 * @param array $custom_headers Array of custom header strings
+		 * @param string $post_type The post type being exported
+		 * @param bool $include_private_meta Whether to include private meta fields
+		 * @return array Array of header strings to use for export
+		 */
 		$custom_headers = apply_filters( 'swift_csv_export_columns', [], $post_type, $include_private_meta );
 
 		// If custom hook returns valid headers, use them
@@ -76,16 +107,39 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		}
 	}
 
-	$default_headers  = $headers;
+	$default_headers = $headers;
+	/**
+	 * Filter export headers
+	 *
+	 * Allows developers to modify the CSV headers before export.
+	 * Can be used to add, remove, or reorder columns.
+	 *
+	 * @since 0.9.0
+	 * @param array $headers Array of header strings
+	 * @param array $args Export arguments including post_type
+	 * @return array Modified headers array
+	 */
 	$filtered_headers = apply_filters( 'swift_csv_export_headers', $headers, [ 'post_type' => $post_type ] );
 	if ( $filtered_headers !== $default_headers ) {
 		return swift_csv_ajax_export_normalize_headers( $filtered_headers );
 	}
 
-	// Pro版ACF統合用フック
-	$headers = apply_filters( 'swift_csv_add_acf_headers', $headers, $post_type, [] );
+	// Additional headers hook for extensions
+	/**
+	 * Filter additional headers for export
+	 *
+	 * Allows developers to add custom headers to the export.
+	 * This hook can be used by any extension to add specialized fields.
+	 *
+	 * @since 0.9.0
+	 * @param array $headers Current headers array
+	 * @param string $post_type The post type being exported
+	 * @param array $args Additional arguments
+	 * @return array Modified headers with additional fields
+	 */
+	$headers = apply_filters( 'swift_csv_add_additional_headers', $headers, $post_type, [] );
 
-	$sample_query_args                   = [
+	$sample_query_args = [
 		'post_type'      => $post_type,
 		'post_status'    => 'publish',
 		'posts_per_page' => 1, // Check only the first post for header structure
@@ -93,6 +147,17 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		'order'          => 'DESC', // Get newest post by date
 		'fields'         => 'ids',
 	];
+	/**
+	 * Filter export query arguments
+	 *
+	 * Allows developers to modify the WP_Query arguments used for export.
+	 * Can be used to filter posts by taxonomy, meta values, etc.
+	 *
+	 * @since 0.9.0
+	 * @param array $query_args WP_Query arguments
+	 * @param array $args Export arguments including post_type
+	 * @return array Modified query arguments
+	 */
 	$sample_query_args                   = apply_filters( 'swift_csv_export_query_args', $sample_query_args, [ 'post_type' => $post_type ] );
 	$sample_query_args['posts_per_page'] = 1; // Ensure only 1 post
 	$sample_post_ids                     = get_posts( $sample_query_args );
@@ -121,10 +186,21 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 
 	// Check if Pro version is available and delegate processing
 	if ( class_exists( 'Swift_CSV_Pro_ACF_Integration' ) ) {
-		// Pro版に全ヘッダー生成を委譲
+		/**
+		 * Filter all headers for export
+		 *
+		 * Allows extensions to completely override header generation.
+		 * This hook can be used by Pro version or other extensions.
+		 *
+		 * @since 0.9.0
+		 * @param array $headers Current headers array
+		 * @param string $post_type The post type being exported
+		 * @param bool $include_private_meta Whether to include private meta fields
+		 * @return array Complete headers array
+		 */
 		$headers = apply_filters( 'swift_csv_generate_all_headers', $headers, $post_type, $include_private_meta );
 	} else {
-		// Free版のデフォルト処理
+		// Free version default processing
 		foreach ( $all_meta_keys as $meta_key ) {
 			if ( ! is_string( $meta_key ) || $meta_key === '' ) {
 				continue;
@@ -139,6 +215,13 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	return swift_csv_ajax_export_normalize_headers( $headers );
 }
 
+/**
+ * Generate a CSV row string from an array of values
+ *
+ * @since 0.9.0
+ * @param array $row Array of values to convert to CSV
+ * @return string CSV formatted string
+ */
 function swift_csv_ajax_export_fputcsv_row( array $row ) {
 	$fh = fopen( 'php://temp', 'r+' );
 	fputcsv( $fh, $row );
@@ -148,6 +231,14 @@ function swift_csv_ajax_export_fputcsv_row( array $row ) {
 	return $csv;
 }
 
+/**
+ * Resolve post field value for CSV export
+ *
+ * @since 0.9.0
+ * @param WP_Post $post The post object
+ * @param string  $header The field name to resolve
+ * @return string The resolved field value
+ */
 function swift_csv_ajax_export_resolve_post_field_value( WP_Post $post, $header ) {
 	if ( $header === 'ID' ) {
 		return (string) $post->ID;
@@ -365,8 +456,20 @@ function swift_csv_ajax_export_handler() {
 					$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
 					$value       = $clean_value;
 				} elseif ( str_starts_with( $header, 'acf_' ) ) {
-					// Pro版ACF統合用フック
-					$value = apply_filters( 'swift_csv_process_acf_field_value', '', $header, $post_id, $post_type );
+					/**
+					 * Filter custom field value for export
+					 *
+					 * Allows developers to process custom field values during export.
+					 * This hook can be used by any extension to handle specialized fields.
+					 *
+					 * @since 0.9.0
+					 * @param string $value The current field value
+					 * @param string $header The field header name
+					 * @param int $post_id The post ID
+					 * @param string $post_type The post type
+					 * @return string The processed field value
+					 */
+					$value = apply_filters( 'swift_csv_process_custom_field_value', '', $header, $post_id, $post_type );
 				} else {
 					$value = '';
 				}

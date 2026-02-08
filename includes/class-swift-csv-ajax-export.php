@@ -285,11 +285,9 @@ function swift_csv_ajax_normalize_quotes( $field ) {
 	$field = preg_replace( '/\\\\"\\\\"/', '""', $field );
 
 	// Convert remaining escaped quotes to regular quotes
-	// fputcsv will handle proper CSV escaping
 	$field = str_replace( '\\"', '"', $field );
 
 	// Handle edge case of literal backslash before quote
-	// Preserve intentional \" patterns
 	$field = preg_replace( '/\\\\\\\\(")/', '\\\\"$1', $field );
 
 	return $field;
@@ -308,11 +306,14 @@ function swift_csv_ajax_export_handler() {
 		$export_scope         = sanitize_text_field( $_POST['export_scope'] ?? 'basic' );
 		$include_private_meta = ! empty( $_POST['include_private_meta'] ) && (string) $_POST['include_private_meta'] === '1';
 		$export_limit         = ! empty( $_POST['export_limit'] ) ? intval( $_POST['export_limit'] ) : 0;
+		$taxonomy_format      = sanitize_text_field( $_POST['taxonomy_format'] ?? 'name' );
 		$start_row            = intval( $_POST['start_row'] ?? 0 );
 		$batch_size           = 500; // Increase batch size for better performance
 
-		// Log parameters
-		error_log( '[SWIFT-CSV-AJAX] Parameters processed: post_type=' . $post_type . ', include_private_meta=' . ( $include_private_meta ? 'true' : 'false' ) );
+		// Log export start for debugging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( "[Swift CSV] Export started: post_type={$post_type}, scope={$export_scope}, limit={$export_limit}, start_row={$start_row}, taxonomy_format={$taxonomy_format}" );
+		}
 
 		// Validate post type
 		if ( ! post_type_exists( $post_type ) ) {
@@ -338,6 +339,11 @@ function swift_csv_ajax_export_handler() {
 
 		// Define max_posts_to_process
 		$max_posts_to_process = $export_limit > 0 ? $export_limit : $total_count;
+
+		// Log data retrieval info for debugging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( "[Swift CSV] Data retrieved: total_count={$total_count}, max_posts={$max_posts_to_process}" );
+		}
 
 		// Get posts for current batch
 		$posts_query_args = [
@@ -398,40 +404,28 @@ function swift_csv_ajax_export_handler() {
 			$csv_chunk .= swift_csv_ajax_export_fputcsv_row( $headers );
 		}
 
+		// Process each post
 		foreach ( $posts as $post_id ) {
-			$post = get_post( $post_id );
+			$row = [];
 
-			// Batch get all meta data for this post to reduce queries
-			$all_meta = get_post_meta( $post_id, '', false );
-			$row_data = [];
+			// Pass taxonomy_format to inner scope
+			$current_taxonomy_format = $taxonomy_format;
+
 			foreach ( $headers as $header ) {
 				$value = '';
 
-				$post_field_value = swift_csv_ajax_export_resolve_post_field_value( $post, $header );
-				if ( $post_field_value !== null ) {
-					// Clean up HTML tags and normalize quotes, but keep newlines for readability
-					$clean_value = strip_tags( $post_field_value );
-					$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
-					$row_data[]  = $clean_value;
-					continue;
-				}
-
-				if ( str_starts_with( $header, 'cf_' ) ) {
-					$field_name  = substr( $header, 3 );
-					$meta_values = $all_meta[ $field_name ] ?? [];
-					if ( is_array( $meta_values ) && count( $meta_values ) > 1 ) {
-						// Multiple values - join with pipe separator
-						$meta_value = implode(
-							'|',
-							array_map(
-								function ( $val ) {
-									return is_array( $val ) ? implode( '|', $val ) : (string) $val;
-								},
-								$meta_values
-							)
-						);
-					} else {
-						// Single value
+				// Handle ID field
+				if ( $header === 'ID' ) {
+					$value = $post_id;
+				} elseif ( $header === 'post_author' ) {
+					$author = get_user_by( 'id', get_post_field( 'post_author', $post_id ) );
+					$value  = $author ? $author->display_name : '';
+				} elseif ( in_array( $header, [ 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_modified', 'post_parent', 'menu_order', 'comment_status', 'ping_status' ], true ) ) {
+					$value = get_post_field( $header, $post_id );
+				} elseif ( str_starts_with( $header, 'cf_' ) ) {
+					$meta_key    = substr( $header, 3 );
+					$meta_values = get_post_meta( $post_id, $meta_key );
+					if ( $meta_values && ! is_wp_error( $meta_values ) ) {
 						$meta_value = $meta_values[0] ?? '';
 						if ( is_array( $meta_value ) ) {
 							$meta_value = implode( '|', $meta_value );
@@ -444,43 +438,64 @@ function swift_csv_ajax_export_handler() {
 					$taxonomy_name = substr( $header, 4 );
 					$terms         = get_the_terms( $post_id, $taxonomy_name );
 					if ( $terms && ! is_wp_error( $terms ) ) {
-						$term_names = array_map(
-							function ( $term ) {
-								return $term->name;
+						// Debug log for taxonomy processing
+						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+							error_log( "[Swift CSV] Processing taxonomy: {$taxonomy_name}, format: {$taxonomy_format}" );
+						}
+
+						$term_values = array_map(
+							function ( $term ) use ( $current_taxonomy_format ) {
+								$result = $current_taxonomy_format === 'id' ? $term->term_id : $term->name;
+								if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+									error_log( "[Swift CSV] Term: {$term->name} (ID: {$term->term_id}) -> Result: {$result} (format: {$current_taxonomy_format})" );
+								}
+								return $result;
 							},
 							$terms
 						);
-						$value      = implode( '|', $term_names );
+						$value       = implode( '|', $term_values );
+
+						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+							error_log( "[Swift CSV] Final taxonomy value: {$value}" );
+						}
 					}
 					$clean_value = strip_tags( (string) $value );
 					$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
 					$value       = $clean_value;
-				} elseif ( str_starts_with( $header, 'acf_' ) ) {
-					/**
-					 * Filter custom field value for export
-					 *
-					 * Allows developers to process custom field values during export.
-					 * This hook can be used by any extension to handle specialized fields.
-					 *
-					 * @since 0.9.0
-					 * @param string $value The current field value
-					 * @param string $header The field header name
-					 * @param int $post_id The post ID
-					 * @param string $post_type The post type
-					 * @return string The processed field value
-					 */
-					$value = apply_filters( 'swift_csv_process_custom_field_value', '', $header, $post_id, $post_type );
 				} else {
-					$value = '';
+					// Try to get as post field first
+					$post_field_value = get_post_field( $header, $post_id );
+					if ( $post_field_value !== '' && $post_field_value !== null ) {
+						$value = $post_field_value;
+					} else {
+						// Try as meta field
+						$meta_values = get_post_meta( $post_id, $header );
+						if ( $meta_values && ! is_wp_error( $meta_values ) ) {
+							$meta_value = $meta_values[0] ?? '';
+							if ( is_array( $meta_value ) ) {
+								$meta_value = implode( '|', $meta_value );
+							}
+							$clean_value = strip_tags( (string) $meta_value );
+							$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
+							$value       = $clean_value;
+						}
+					}
 				}
-				$row_data[] = $value;
+
+				$row[] = $value;
 			}
-			$csv_chunk .= swift_csv_ajax_export_fputcsv_row( $row_data );
+
+			$csv_chunk .= swift_csv_ajax_export_fputcsv_row( $row );
 		}
 
 		$next_row = $start_row + count( $posts );
 		$continue = $next_row < $max_posts_to_process;
 		$progress = round( ( $next_row / $max_posts_to_process ) * 100, 2 );
+
+		// Log batch completion for debugging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( '[Swift CSV] Export batch completed: posts_processed=' . count( $posts ) . ", next_row={$next_row}/{$max_posts_to_process}, progress={$progress}%" );
+		}
 
 		wp_send_json(
 			[
@@ -493,10 +508,9 @@ function swift_csv_ajax_export_handler() {
 				'posts_processed' => count( $posts ),
 			]
 		);
-	} // End try
-	catch ( Exception $e ) {
+	} catch ( Exception $e ) {
 		wp_send_json_error( 'Export failed: ' . $e->getMessage() );
 	}
 }
 
-		add_action( 'wp_ajax_swift_csv_ajax_export', 'swift_csv_ajax_export_handler' );
+add_action( 'wp_ajax_swift_csv_ajax_export', 'swift_csv_ajax_export_handler' );

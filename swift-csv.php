@@ -17,16 +17,28 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-// Load debug configuration in development mode
-if ( defined( 'WP_DEBUG' ) && WP_DEBUG && file_exists( __DIR__ . '/debug.php' ) ) {
-	require_once __DIR__ . '/debug.php';
-}
+$log_file = plugin_dir_path( __FILE__ ) . 'debug.log';
+ini_set( 'error_log', $log_file );
 
 // Define plugin constants.
 define( 'SWIFT_CSV_VERSION', '0.9.5' );
 define( 'SWIFT_CSV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SWIFT_CSV_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );
+
+// Include required files.
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-admin.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-updater.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-import.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';
+
+// Register plugin hooks.
+register_activation_hook( __FILE__, 'swift_csv_activate' );
+register_deactivation_hook( __FILE__, 'swift_csv_deactivate' );
+
+// Initialize plugin.
+add_action( 'plugins_loaded', 'swift_csv_init' );
+add_action( 'plugins_loaded', 'swift_csv_load_textdomain' );
 
 /**
  * Load plugin textdomain.
@@ -37,26 +49,12 @@ define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );
  * @return void
  */
 function swift_csv_load_textdomain() {
-	$loaded = load_plugin_textdomain(
+	load_plugin_textdomain(
 		'swift-csv',
 		false,
 		dirname( SWIFT_CSV_BASENAME ) . '/languages'
 	);
-
-	// Debug: Check if textdomain is loaded
-	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		error_log( 'Swift CSV textdomain loaded: ' . ( $loaded ? 'yes' : 'no' ) );
-		error_log( 'Current locale: ' . get_locale() );
-		error_log( 'Textdomain path: ' . dirname( SWIFT_CSV_BASENAME ) . '/languages' );
-	}
 }
-add_action( 'plugins_loaded', 'swift_csv_load_textdomain' );
-
-// Include required files.
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-admin.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-updater.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-import.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';
 
 /**
  * Initialize Swift CSV plugin
@@ -71,9 +69,6 @@ function swift_csv_init() {
 	new Swift_CSV_Admin();
 	new Swift_CSV_Updater( __FILE__ );
 }
-add_action( 'plugins_loaded', 'swift_csv_init' );
-
-register_activation_hook( __FILE__, 'swift_csv_activate' );
 
 /**
  * Plugin activation hook

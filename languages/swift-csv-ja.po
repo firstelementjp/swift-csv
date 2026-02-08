@@ -17,6 +17,30 @@ msgstr ""
 "X-Generator: Poedit 3.4.2\n"
 "X-Domain: swift-csv\n"
 
+#: includes/class-swift-csv-admin.php:490
+msgid "Taxonomy Format"
+msgstr "タクソノミー形式"
+
+#: includes/class-swift-csv-admin.php:495
+msgid "Names (readable)"
+msgstr "名前（読みやすい）"
+
+#: includes/class-swift-csv-admin.php:498
+msgid "IDs (term_id)"
+msgstr "ID（term_id）"
+
+#: includes/class-swift-csv-admin.php:501
+msgid "Choose how taxonomy terms are exported: names for readability or IDs for data integrity."
+msgstr "タクソノミータームのエクスポート形式を選択：読みやすさのための名前、またはデータ整合性のためのID。"
+
+#: includes/class-swift-csv-admin.php:506
+msgid "Custom Fields"
+msgstr "カスタムフィールド"
+
+#: includes/class-swift-csv-admin.php:510
+msgid "Include fields starting with \"_\""
+msgstr "\"_\"で始まるフィールドを含める"
+
 #. Plugin Name of the plugin
 #: swift-csv.php
 msgid "Swift CSV"
@@ -324,9 +348,6 @@ msgid "All Fields"
 msgstr "全項目"
 
 #: includes/class-swift-csv-admin.php:359
-msgid "Include fields starting with \"_\""
-msgstr "\"_\"から始まるフィールドを含める"
-
 msgid "Processed:"
 msgstr "処理済み:"
 
@@ -390,12 +411,6 @@ msgstr "ファイルが選択されました:"
 msgid "Remove"
 msgstr "削除"
 
-msgid "Basic Fields"
-msgstr "基本項目"
-
-msgid "All Fields"
-msgstr "全項目"
-
 msgid "Starting export process..."
 msgstr "エクスポート処理を開始します..."
 
@@ -420,14 +435,8 @@ msgstr "エクスポート制限:"
 msgid "No limit"
 msgstr "制限なし"
 
-msgid "Export cancelled by user"
-msgstr "ユーザーによってエクスポートがキャンセルされました"
-
 msgid "Chunk processing start position (row):"
 msgstr "チャンク処理開始位置（行）:"
-
-msgid "Processed"
-msgstr "処理済み"
 
 msgid "Export error:"
 msgstr "エクスポートエラー:"
@@ -452,9 +461,6 @@ msgstr "インポートエラー:"
 
 msgid "Download ready:"
 msgstr "ダウンロード準備完了:"
-
-msgid "Total imported:"
-msgstr "総インポート数:"
 
 msgid "Total updated:"
 msgstr "総更新数:"
@@ -513,20 +519,14 @@ msgstr "更新: %d"
 msgid "Errors: %d"
 msgstr "エラー: %d"
 
-msgid "Import completed!"
-msgstr "インポート完了！"
-
 msgid "Total updated: %d"
 msgstr "総更新数: %d"
 
 msgid "Total errors: %d"
 msgstr "総エラー数: %d"
 
-msgid "Import cancelled by user"
-msgstr "ユーザーによりインポートがキャンセルされました"
-
-msgid "Import error:"
-msgstr "インポートエラー:"
-
 msgid "Export Log"
 msgstr "エクスポートログ"
+
+msgid "Export cancelled by user"
+msgstr "ユーザーによってエクスポートがキャンセルされました"

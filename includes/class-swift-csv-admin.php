@@ -97,14 +97,13 @@ class Swift_CSV_Admin {
 
 			wp_set_script_translations( 'swift-csv-admin', 'swift-csv', SWIFT_CSV_PLUGIN_DIR . 'languages' );
 
-			wp_enqueue_script( 'swift-csv-admin' );
-
 			wp_localize_script(
 				'swift-csv-admin',
 				'swiftCSV',
 				[
 					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'swift_csv_ajax_nonce' ),
+					'debug'    => defined( 'WP_DEBUG' ) && WP_DEBUG,
 					'messages' => [
 						'exportCsv'             => esc_html__( 'Export CSV', 'swift-csv' ),
 						'importCsv'             => esc_html__( 'Import CSV', 'swift-csv' ),
@@ -119,9 +118,9 @@ class Swift_CSV_Admin {
 						'failed'                => esc_html__( 'Export failed', 'swift-csv' ),
 						'importSettings'        => esc_html__( 'Import Settings', 'swift-csv' ),
 						'dropFileHere'          => esc_html__( 'Drop CSV file here or click to browse', 'swift-csv' ),
-						'maxFileSize'           => esc_html__( 'Maximum file size: %s', 'swift-csv' ),
+						'maxFileSize'           => /* translators: %s: File size (e.g., 10MB) */ esc_html__( 'Maximum file size: %s', 'swift-csv' ),
 						'custom'                => esc_html__( 'Custom', 'swift-csv' ),
-						'customHelp'            => esc_html__( 'Use the %1$s hook to specify custom export items and order. See %2$s for details.', 'swift-csv' ),
+						'customHelp'            => /* translators: 1: Hook name, 2: Documentation link */ esc_html__( 'Use the %1$s hook to specify custom export items and order. See %2$s for details.', 'swift-csv' ),
 						'documentation'         => esc_html__( 'documentation', 'swift-csv' ),
 						// Log messages
 						'startingImport'        => esc_html__( 'Starting import process...', 'swift-csv' ),
@@ -170,6 +169,13 @@ class Swift_CSV_Admin {
 					],
 				]
 			);
+
+			wp_enqueue_script( 'swift-csv-admin' );
+
+			// Log script loading for debugging
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[Swift CSV] Admin scripts loaded: swift-csv-admin v' . SWIFT_CSV_VERSION );
+			}
 		}
 	}
 
@@ -323,6 +329,11 @@ class Swift_CSV_Admin {
 		// Sanitize and validate tab parameter.
 		$tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'export';
 
+		// Log admin page access for debugging
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( "[Swift CSV] Admin page accessed: tab={$tab}" );
+		}
+
 		// Allow custom tabs (like Pro version tabs) - don't restrict to export/import only
 		// The validation will be handled by the individual tab rendering logic
 
@@ -340,6 +351,11 @@ class Swift_CSV_Admin {
 
 			if ( isset( $_GET['error_details'] ) ) {
 				$import_results['error_details'] = explode( '|', urldecode( $_GET['error_details'] ) );
+			}
+
+			// Log import results for debugging
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( "[Swift CSV] Import results displayed: imported={$import_results['imported']}, updated={$import_results['updated']}, errors={$import_results['errors']}" );
 			}
 		}
 
@@ -404,61 +420,6 @@ class Swift_CSV_Admin {
 		<?php
 	}
 
-	/**
-	 * Render export batch progress
-	 *
-	 * @since  1.0.0
-	 * @param  string $batch_id Batch ID to track.
-	 * @return void
-	 */
-	private function render_export_batch_progress( $batch_id ) {
-		?>
-		<div class="card">
-			<h3><?php esc_html_e( 'CSV Export Progress', 'swift-csv' ); ?></h3>
-			<div id="export-batch-progress">
-				<div class="progress-bar">
-					<div class="progress-bar-fill"></div>
-				</div>
-				<div class="progress-stats">
-					<span class="processed-rows">0</span> / <span class="total-rows">0</span> <?php esc_html_e( 'rows processed', 'swift-csv' ); ?> (<span class="percentage">0</span>%)
-				</div>
-			</div>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Render import batch progress
-	 *
-	 * @since  0.9.3
-	 * @param  string $batch_id Batch ID to track.
-	 * @return void
-	 */
-	private function render_batch_progress( $batch_id ) {
-		?>
-		<div class="card">
-			<h3><?php esc_html_e( 'CSV Import Progress', 'swift-csv' ); ?></h3>
-			<div id="batch-progress">
-				<div class="progress-bar">
-					<div class="progress-bar-fill"></div>
-				</div>
-				<div class="progress-stats">
-					<span class="processed-rows">0</span> / <span class="total-rows">0</span> <?php esc_html_e( 'rows processed', 'swift-csv' ); ?> (<span class="percentage">0</span>%)
-				</div>
-				<div class="progress-details">
-					<div class="created"><?php esc_html_e( 'Created:', 'swift-csv' ); ?> <span class="created-count">0</span></div>
-					<div class="modified"><?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <span class="updated-count">0</span></div>
-					<div class="errors"><?php esc_html_e( 'Errors:', 'swift-csv' ); ?> <span class="error-count">0</span></div>
-				</div>
-			</div>
-
-			<div id="batch-errors" class="swift-csv-batch-errors">
-				<h3><?php esc_html_e( 'Error Details', 'swift-csv' ); ?></h3>
-				<ul class="error-list"></ul>
-			</div>
-		</div>
-		<?php
-	}
 
 	/**
 	 * Render export tab
@@ -526,10 +487,26 @@ class Swift_CSV_Admin {
 							</tr>
 							<tr>
 								<th scope="row">
-									<?php esc_html_e( 'Advanced', 'swift-csv' ); ?>
+									<?php esc_html_e( 'Taxonomy Format', 'swift-csv' ); ?>
 								</th>
 								<td>
-									<label>
+									<label style="display:block;">
+										<input type="radio" name="taxonomy_format" value="name" checked>
+										<?php esc_html_e( 'Names (readable)', 'swift-csv' ); ?>
+									</label>
+									<label style="display:block;">
+										<input type="radio" name="taxonomy_format" value="id">
+										<?php esc_html_e( 'IDs (term_id)', 'swift-csv' ); ?>
+									</label>
+									<p class="description"><?php esc_html_e( 'Choose how taxonomy terms are exported: names for readability or IDs for data integrity.', 'swift-csv' ); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row">
+									<?php esc_html_e( 'Custom Fields', 'swift-csv' ); ?>
+								</th>
+								<td>
+									<label style="display:block;">
 										<input type="checkbox" name="include_private_meta" value="1">
 										<?php esc_html_e( 'Include fields starting with "_"', 'swift-csv' ); ?>
 									</label>
@@ -715,39 +692,6 @@ class Swift_CSV_Admin {
 			</div>
 		</div>
 
-		<?php
-	}
-
-	/**
-	 * Render import results
-	 *
-	 * @since  0.9.3
-	 * @param  array $results Import results.
-	 * @return void
-	 */
-	private function render_import_results( $results ) {
-		?>
-		<div class="notice notice-success is-dismissible">
-			<p>
-				<strong><?php esc_html_e( 'Import completed!', 'swift-csv' ); ?></strong><br>
-				<?php esc_html_e( 'Created:', 'swift-csv' ); ?> <?php echo $results['imported']; ?> <?php esc_html_e( 'posts', 'swift-csv' ); ?><br>
-				<?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <?php echo $results['updated']; ?> <?php esc_html_e( 'posts', 'swift-csv' ); ?>
-				<?php if ( $results['errors'] > 0 ) : ?>
-					<br><?php esc_html_e( 'Errors:', 'swift-csv' ); ?> <?php echo $results['errors']; ?>
-				<?php endif; ?>
-			</p>
-		</div>
-
-		<?php if ( ! empty( $results['error_details'] ) ) : ?>
-			<div class="notice notice-error">
-				<h3><?php esc_html_e( 'Errors:', 'swift-csv' ); ?></h3>
-				<ul>
-					<?php foreach ( $results['error_details'] as $error ) : ?>
-						<li><?php echo esc_html( $error ); ?></li>
-					<?php endforeach; ?>
-				</ul>
-			</div>
-		<?php endif; ?>
 		<?php
 	}
 }

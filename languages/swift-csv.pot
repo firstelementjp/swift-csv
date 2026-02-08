@@ -1,18 +1,42 @@
-# Copyright (C) 2026 FirstElement,Inc.
+# Copyright (C) 2026 FirstElement, Inc.
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Swift CSV 0.9.1\n"
+"Project-Id-Version: Swift CSV 0.9.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/swift-csv\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-01-29T12:17:05+00:00\n"
+"POT-Creation-Date: 2026-02-08T11:22:09+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: swift-csv\n"
+
+#: includes/class-swift-csv-admin.php:490
+msgid "Taxonomy Format"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:495
+msgid "Names (readable)"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:498
+msgid "IDs (term_id)"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:501
+msgid "Choose how taxonomy terms are exported: names for readability or IDs for data integrity."
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:506
+msgid "Custom Fields"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:510
+msgid "Include fields starting with \"_\""
+msgstr ""
 
 #. Plugin Name of the plugin
 #: swift-csv.php
@@ -31,7 +55,7 @@ msgstr ""
 
 #. Author of the plugin
 #: swift-csv.php
-msgid "FirstElement,Inc."
+msgid "FirstElement, Inc."
 msgstr ""
 
 #. Author URI of the plugin
@@ -39,228 +63,372 @@ msgstr ""
 msgid "https://www.firstelement.co.jp/"
 msgstr ""
 
-#: includes/class-swift-csv-admin.php:55
-msgid "Swift CSV Update"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:59
-msgid "Update Now"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:64
-msgid "Show Release Notes"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:149
-msgid "Go to the instruction manual"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:150
-msgid "Documentation"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:154
-msgid "Go to GitHub repository"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:171
-msgid "Go to X"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:187
-msgid "Go to Facebook page"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:192
-msgid "Go to contact form"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:222
-msgid "Export"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:225
-msgid "Import"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:256
-msgid "CSV Import Progress"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:262
-msgid "rows processed"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:265
-#: includes/class-swift-csv-importer.php:582
-msgid "Created:"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:266
-#: includes/class-swift-csv-importer.php:583
-msgid "Updated:"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:267
-#: includes/class-swift-csv-importer.php:589
-msgid "Errors:"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:272
-msgid "Error Details"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:318
-msgid "CSV import completed!"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:324
-msgid "Failed to get progress."
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:396
-msgid "Export Post Data"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:403
-#: includes/class-swift-csv-admin.php:456
-msgid "Post Type"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:417
-msgid "Number of Posts"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:421
-msgid "Number of posts to export at once (max 10000)"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:428
+#: includes/class-swift-csv-admin.php:109
 msgid "Export CSV"
 msgstr ""
 
-#: includes/class-swift-csv-admin.php:449
-msgid "Import CSV File"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:466
-msgid "Select the target post type for import."
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:471
-msgid "CSV File"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:476
-msgid "CSVファイルを選択してください（UTF-8、Shift_JIS、EUC-JP、JIS対応）。"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:477
-msgid "The first row will be used as header for automatic mapping."
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:478
-msgid "Custom fields should be prefixed with \"cf_\" (example: cf_price)."
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:486
-msgid "Update existing posts"
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:491
-msgid "Preparing export..."
-msgstr ""
-
-msgid "Processing posts..."
-msgstr ""
-
-msgid "Export completed!"
-msgstr ""
-
-msgid "Export failed. Please try again."
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:492
-msgid "If unchecked, creates new posts."
-msgstr ""
-
-#: includes/class-swift-csv-admin.php:500
+#: includes/class-swift-csv-admin.php:110
 msgid "Import CSV"
 msgstr ""
 
-#: includes/class-swift-csv-exporter.php:48
-#: includes/class-swift-csv-importer.php:46
-msgid "Security check failed."
+#: includes/class-swift-csv-admin.php:111
+#: includes/class-swift-csv-admin.php:678
+msgid "Start Import"
 msgstr ""
 
-#: includes/class-swift-csv-exporter.php:53
-#: includes/class-swift-csv-importer.php:51
-msgid "Invalid request."
+#: includes/class-swift-csv-admin.php:112
+#: includes/class-swift-csv-admin.php:148
+msgid "Exporting..."
 msgstr ""
 
-#: includes/class-swift-csv-exporter.php:62
-#: includes/class-swift-csv-importer.php:83
-msgid "Invalid post type."
+#: includes/class-swift-csv-admin.php:113
+msgid "Importing..."
 msgstr ""
 
-#: includes/class-swift-csv-exporter.php:103
-msgid "No posts found to export."
+#: includes/class-swift-csv-admin.php:114
+#: includes/class-swift-csv-admin.php:567
+msgid "Ready to start export..."
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:56
-msgid "File upload failed."
+#: includes/class-swift-csv-admin.php:115
+#: includes/class-swift-csv-admin.php:696
+msgid "Ready to start import..."
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:61
-msgid "Invalid upload."
+#: includes/class-swift-csv-admin.php:116
+#: includes/class-swift-csv-admin.php:159
+msgid "An error occurred. Please try again."
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:71
-msgid "Only CSV files can be uploaded."
+#: includes/class-swift-csv-admin.php:117
+msgid "Operation completed successfully!"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:76
-msgid "File size is too large. Please select a file under 50MB."
+#: includes/class-swift-csv-admin.php:118
+msgid "Export cancelled"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:160
-msgid "CSV file is empty or invalid."
+#: includes/class-swift-csv-admin.php:119
+msgid "Export failed"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:402
-msgid "Database error:"
+#: includes/class-swift-csv-admin.php:120
+#: includes/class-swift-csv-admin.php:615
+msgid "Import Settings"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:577
-msgid "Import Results"
+#: includes/class-swift-csv-admin.php:121
+#: includes/class-swift-csv-admin.php:626
+msgid "Drop CSV file here or click to browse"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:581
+#: includes/class-swift-csv-admin.php:122
+#: includes/class-swift-csv-admin.php:631
+msgid "Maximum file size: %s"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:123
+#: includes/class-swift-csv-admin.php:513
+msgid "Custom"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:124
+#: includes/class-swift-csv-admin.php:519
+msgid "Use the %1$s hook to specify custom export items and order. See %2$s for details."
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:125
+#: includes/class-swift-csv-admin.php:521
+msgid "documentation"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:127
+msgid "Starting import process..."
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:128
+msgid "File:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:129
+msgid "File Size:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:130
+#: includes/class-swift-csv-admin.php:144
+msgid "Post Type:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:131
+msgid "Update Existing:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:132
+msgid "Chunk processing start position (row):"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:133
+#: includes/class-swift-csv-admin.php:150
+msgid "Processed"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:134
+#: includes/class-swift-csv-admin.php:449
+#: includes/class-swift-csv-admin.php:709
+#: includes/class-swift-csv-admin.php:733
+msgid "Created:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:135
+#: includes/class-swift-csv-admin.php:450
+#: includes/class-swift-csv-admin.php:710
+#: includes/class-swift-csv-admin.php:734
+msgid "Updated:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:136
+#: includes/class-swift-csv-admin.php:451
+#: includes/class-swift-csv-admin.php:711
+#: includes/class-swift-csv-admin.php:736
+#: includes/class-swift-csv-admin.php:743
+msgid "Errors:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:137
+#: includes/class-swift-csv-admin.php:732
 msgid "Import completed!"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:582
-#: includes/class-swift-csv-importer.php:583
+#: includes/class-swift-csv-admin.php:138
+msgid "Total updated:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:139
+msgid "Total errors:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:140
+msgid "Import cancelled by user"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:141
+msgid "Import error:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:143
+msgid "Starting export process..."
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:145
+msgid "Export Scope:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:146
+msgid "Include Private Meta:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:147
+msgid "Export Limit:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:149
+msgid "Export cancelled by user"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:151
+msgid "Export error:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:152
+msgid "Export completed successfully!"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:153
+msgid "Download ready:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:154
+msgid "Batch export started"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:156
+msgid "Yes"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:157
+msgid "No"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:158
+msgid "No limit"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:160
+msgid "Total imported:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:162
+msgid "File removed"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:163
+msgid "Please select a CSV file"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:164
+msgid "File size exceeds 10MB limit"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:165
+msgid "File selected:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:166
+#: includes/class-swift-csv-admin.php:641
+msgid "Remove"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:168
+#: includes/class-swift-csv-admin.php:505
+msgid "Basic Fields"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:169
+#: includes/class-swift-csv-admin.php:509
+msgid "All Fields"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:263
+msgid "Go to the instruction manual"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:264
+msgid "Documentation"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:268
+msgid "Go to GitHub repository"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:285
+msgid "Go to X"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:301
+msgid "Go to Facebook page"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:306
+msgid "Go to contact form"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:352
+msgid "Export"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:355
+msgid "Import"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:417
+msgid "CSV Export Progress"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:423
+#: includes/class-swift-csv-admin.php:446
+#: includes/class-swift-csv-admin.php:577
+#: includes/class-swift-csv-admin.php:706
+msgid "rows processed"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:440
+msgid "CSV Import Progress"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:456
+msgid "Error Details"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:480
+msgid "Export Settings"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:486
+#: includes/class-swift-csv-admin.php:649
+msgid "Post Type"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:500
+msgid "Export Scope"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:529
+msgid "Advanced"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:534
+msgid "Include fields starting with \"_\""
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:540
+msgid "Export Limit"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:543
+msgid "No limit (0 = all)"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:544
+msgid "Maximum number of posts to export. Enter 0 for no limit."
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:550
+msgid "Start Export"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:552
+#: includes/class-swift-csv-admin.php:681
+msgid "Cancel"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:562
+msgid "Export Log"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:584
+msgid "Download CSV"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:662
+msgid "Select the target post type for import."
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:667
+msgid "Update Existing Posts"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:671
+msgid "Check to update existing posts based on ID."
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:691
+msgid "Import Log"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:733
+#: includes/class-swift-csv-admin.php:734
 msgid "posts"
 msgstr ""
 
-#: includes/class-swift-csv-importer.php:599
-msgid "Continue Import"
-msgstr ""
-
-#: includes/class-swift-csv-importer.php:600
-msgid "Back to Admin"
-msgstr ""
-
-#: includes/class-swift-csv-updater.php:305
+#: includes/class-swift-csv-updater.php:333
 msgid "Failed to get update information."
 msgstr ""
 
 #. translators: %s: version number
-#: includes/class-swift-csv-updater.php:318
+#: includes/class-swift-csv-updater.php:346
 msgid "New version %s is available."
 msgstr ""
 
-#: includes/class-swift-csv-updater.php:330
+#: includes/class-swift-csv-updater.php:358
 msgid "Plugin is up to date."
 msgstr ""

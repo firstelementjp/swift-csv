@@ -20,7 +20,35 @@ function __(text, domain = 'swift-csv') {
 	return text;
 }
 
+/**
+ * Debug logging function
+ *
+ * Logs messages to console when debug mode is enabled.
+ * @param {string} message - The message to log
+ * @param {string} type - Log type (info, warn, error)
+ */
+function swiftCSVLog(message, type = 'info') {
+	if (window.swiftCSV && window.swiftCSV.debug) {
+		const timestamp = new Date().toISOString();
+		const logMessage = `[Swift CSV] ${message}`;
+
+		switch (type) {
+			case 'warn':
+				console.warn(logMessage, timestamp);
+				break;
+			case 'error':
+				console.error(logMessage, timestamp);
+				break;
+			default:
+				console.log(logMessage, timestamp);
+		}
+	}
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+	// Log initialization
+	swiftCSVLog('JavaScript initialized');
+
 	// Initialize logging system
 	initLoggingSystem();
 
@@ -29,6 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	const customHelp = document.getElementById('custom-export-help');
 
 	if (exportScopeRadios.length && customHelp) {
+		swiftCSVLog('Export scope toggle initialized');
 		exportScopeRadios.forEach(radio => {
 			radio.addEventListener('change', function () {
 				customHelp.style.display = this.value === 'custom' ? 'block' : 'none';
@@ -42,12 +71,14 @@ document.addEventListener('DOMContentLoaded', function () {
 	// Ajax export functionality
 	const ajaxExportForm = document.querySelector('#swift-csv-ajax-export-form');
 	if (ajaxExportForm) {
+		swiftCSVLog('Ajax export form initialized');
 		ajaxExportForm.addEventListener('submit', handleAjaxExport);
 	}
 
 	// Ajax import functionality
 	const ajaxImportForm = document.querySelector('#swift-csv-ajax-import-form');
 	if (ajaxImportForm) {
+		swiftCSVLog('Ajax import form initialized');
 		ajaxImportForm.addEventListener('submit', handleAjaxImport);
 	}
 
@@ -223,9 +254,16 @@ function initFileUpload() {
 		// Validate file size (10MB limit)
 		const maxSize = 10 * 1024 * 1024; // 10MB
 		if (file.size > maxSize) {
+			swiftCSVLog(
+				`File size validation failed: ${file.size} bytes exceeds ${maxSize} bytes`,
+				'warn'
+			);
 			addLogEntry(swiftCSV.messages.fileSizeExceedsLimit, 'error', 'import');
 			return;
 		}
+
+		// Log file selection
+		swiftCSVLog(`File selected: ${file.name} (${file.size} bytes)`);
 
 		// Update UI
 		const fileName = fileInfo.querySelector('.file-name');
@@ -258,6 +296,8 @@ function handleAjaxExport(e) {
 	const includePrivateMeta = document.querySelector('input[name="include_private_meta"]')?.checked
 		? '1'
 		: '0';
+	const taxonomyFormat =
+		document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name';
 	const exportLimit = document.querySelector('#export_limit')?.value || '';
 
 	// Log export settings
@@ -340,6 +380,7 @@ function handleAjaxExport(e) {
 			post_type: postType,
 			export_scope: exportScope,
 			include_private_meta: includePrivateMeta,
+			taxonomy_format: taxonomyFormat,
 			export_limit: exportLimit,
 			start_row: startRow,
 		});
@@ -449,6 +490,9 @@ function handleAjaxImport(e) {
 	const cancelBtn = document.querySelector('#ajax-import-cancel-btn');
 	const startTime = Date.now();
 	let isCancelled = false;
+
+	// Log import start
+	swiftCSVLog(`Import started: post_type=${postType}, update_existing=${updateExisting}`);
 
 	// Update button states
 	if (importBtn) {

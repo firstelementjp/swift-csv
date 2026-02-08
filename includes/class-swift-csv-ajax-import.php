@@ -23,12 +23,22 @@ add_action( 'wp_ajax_nopriv_swift_csv_ajax_upload', 'swift_csv_ajax_upload_handl
 function swift_csv_ajax_upload_handler() {
 	// Verify nonce
 	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'swift_csv_ajax_nonce' ) ) {
-		wp_send_json( [ 'error' => 'Security check failed' ] );
+		wp_send_json(
+			[
+				'success' => false,
+				'error'   => 'Security check failed',
+			]
+		);
 		return;
 	}
 
 	if ( ! isset( $_FILES['csv_file'] ) ) {
-		wp_send_json( [ 'error' => 'No file uploaded' ] );
+		wp_send_json(
+			[
+				'success' => false,
+				'error'   => 'No file uploaded',
+			]
+		);
 		return;
 	}
 
@@ -36,7 +46,12 @@ function swift_csv_ajax_upload_handler() {
 
 	// Validate file
 	if ( $file['error'] !== UPLOAD_ERR_OK ) {
-		wp_send_json( [ 'error' => 'Upload error: ' . $file['error'] ] );
+		wp_send_json(
+			[
+				'success' => false,
+				'error'   => 'Upload error: ' . $file['error'],
+			]
+		);
 		return;
 	}
 
@@ -73,7 +88,12 @@ function swift_csv_ajax_upload_handler() {
 	$max_file_size    = min( $upload_max_bytes, $post_max_bytes );
 
 	if ( $file['size'] > $max_file_size ) {
-		wp_send_json( [ 'error' => 'File too large' ] );
+		wp_send_json(
+			[
+				'success' => false,
+				'error'   => 'File too large',
+			]
+		);
 		return;
 	}
 
@@ -89,7 +109,12 @@ function swift_csv_ajax_upload_handler() {
 	if ( move_uploaded_file( $file['tmp_name'], $temp_file ) ) {
 		wp_send_json( [ 'file_path' => $temp_file ] );
 	} else {
-		wp_send_json( [ 'error' => 'Failed to save file' ] );
+		wp_send_json(
+			[
+				'success' => false,
+				'error'   => 'Failed to save file',
+			]
+		);
 	}
 }
 
@@ -114,17 +139,29 @@ function swift_csv_ajax_import_handler() {
 
 	$start_row       = intval( $_POST['start_row'] ?? 0 );
 	$batch_size      = 10;
-	$post_type       = $_POST['post_type'] ?? 'post';
-	$update_existing = $_POST['update_existing'] ?? '0';
+	$post_type       = sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) );
+	$update_existing = sanitize_text_field( wp_unslash( $_POST['update_existing'] ?? '0' ) );
+	$taxonomy_format = sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) );
+	$dry_run         = sanitize_text_field( wp_unslash( $_POST['dry_run'] ?? '0' ) ) === '1';
+
+	// Advanced taxonomy format detection and validation
+	$taxonomy_format_validation = [];
+	$first_row_processed        = false;
 
 	// Initialize counters
-	$created = 0;
-	$updated = 0;
-	$errors  = 0;
+	$created     = 0;
+	$updated     = 0;
+	$errors      = 0;
+	$dry_run_log = [];
 
 	// Handle file upload directly
 	if ( ! isset( $_FILES['csv_file'] ) ) {
-		wp_send_json( [ 'error' => 'No file uploaded' ] );
+		wp_send_json(
+			[
+				'success' => false,
+				'error'   => 'No file uploaded',
+			]
+		);
 		return;
 	}
 
@@ -132,7 +169,12 @@ function swift_csv_ajax_import_handler() {
 
 	// Validate file
 	if ( $file['error'] !== UPLOAD_ERR_OK ) {
-		wp_send_json( [ 'error' => 'Upload error: ' . $file['error'] ] );
+		wp_send_json(
+			[
+				'success' => false,
+				'error'   => 'Upload error: ' . $file['error'],
+			]
+		);
 		return;
 	}
 
@@ -192,6 +234,104 @@ function swift_csv_ajax_import_handler() {
 		$headers
 	);
 
+	// Advanced taxonomy format detection and validation
+	$taxonomy_format_validation = [];
+	$first_row_processed        = false;
+
+	// Process first row for format detection
+	$data = [];
+	foreach ( $lines as $line ) {
+		$row = str_getcsv( $line, $delimiter );
+		if ( count( $row ) !== count( $headers ) ) {
+			continue; // Skip malformed rows
+		}
+		$data[] = $row;
+
+		// Process taxonomies for format detection on first data row only
+		if ( ! $first_row_processed ) {
+			foreach ( $headers as $j => $header_name ) {
+				$header_name_normalized = strtolower( trim( $header_name ) );
+
+				if ( strpos( $header_name_normalized, 'tax_' ) === 0 ) {
+					$taxonomy_name = substr( $header_name_normalized, 4 ); // Remove tax_
+
+					// Get taxonomy object to validate
+					$taxonomy_obj = get_taxonomy( $taxonomy_name );
+					if ( ! $taxonomy_obj ) {
+						continue; // Skip invalid taxonomy
+					}
+
+					$meta_value = $row[ $j ] ?? '';
+					if ( $meta_value !== '' ) {
+						$term_values = array_map( 'trim', explode( ',', $meta_value ) );
+						$all_numeric = true;
+						$all_string  = true;
+						$mixed       = false;
+
+						foreach ( $term_values as $term_val ) {
+							if ( $term_val === '' ) {
+								continue;
+							}
+
+							if ( is_numeric( $term_val ) ) {
+								$all_string = false;
+							} else {
+								$all_numeric = false;
+							}
+
+							if ( ! $all_numeric && ! $all_string ) {
+								$mixed = true;
+								break;
+							}
+						}
+
+						$taxonomy_format_validation[ $taxonomy_name ] = [
+							'all_numeric'   => $all_numeric,
+							'all_string'    => $all_string,
+							'mixed'         => $mixed,
+							'sample_values' => $term_values,
+						];
+					}
+				}
+			}
+			$first_row_processed = true;
+		}
+	}
+
+	// Validate format consistency
+	foreach ( $taxonomy_format_validation as $taxonomy_name => $validation ) {
+		// Check for format mismatches
+		if ( $taxonomy_format === 'name' && $validation['all_numeric'] ) {
+			wp_send_json(
+				[
+					'success' => false,
+					'error'   => sprintf(
+						/* translators: 1: taxonomy name, 2: UI format, 3: sample values */
+						__( 'Format mismatch detected for taxonomy "%1$s". UI is set to "Names" but CSV contains only numeric values: %2$s. Please check your data format.', 'swift-csv' ),
+						$taxonomy_name,
+						implode( ', ', $validation['sample_values'] )
+					),
+				]
+			);
+			return;
+		}
+
+		if ( $taxonomy_format === 'id' && $validation['all_string'] ) {
+			wp_send_json(
+				[
+					'success' => false,
+					'error'   => sprintf(
+						/* translators: 1: taxonomy name, 2: UI format, 3: sample values */
+						__( 'Format mismatch detected for taxonomy "%1$s". UI is set to "Term IDs" but CSV contains only text values: %2$s. Please check your data format.', 'swift-csv' ),
+						$taxonomy_name,
+						implode( ', ', $validation['sample_values'] )
+					),
+				]
+			);
+			return;
+		}
+	}
+
 	$allowed_post_fields = [
 		'post_title',
 		'post_content',
@@ -212,7 +352,12 @@ function swift_csv_ajax_import_handler() {
 
 	$id_col = array_search( 'ID', $headers, true );
 	if ( $id_col === false ) {
-		wp_send_json( [ 'error' => 'Invalid CSV format: ID column is required' ] );
+		wp_send_json(
+			[
+				'success' => false,
+				'error'   => 'Invalid CSV format: ID column is required',
+			]
+		);
 		return;
 	}
 
@@ -352,22 +497,37 @@ function swift_csv_ajax_import_handler() {
 					foreach ( array_keys( $post_data ) as $key ) {
 						$post_data_formats[] = in_array( $key, [ 'post_author', 'post_parent', 'menu_order' ], true ) ? '%d' : '%s';
 					}
-					$result = $wpdb->update(
-						$wpdb->posts,
-						$post_data,
-						[ 'ID' => $post_id ],
-						$post_data_formats,
-						[ '%d' ]
-					);
+
+					if ( $dry_run ) {
+						error_log( "[Dry Run] Would update post ID: {$post_id} with title: " . ( $post_data['post_title'] ?? 'Untitled' ) );
+						$dry_run_log[] = "更新投稿プレビュー: ID={$post_id}, タイトル=" . ( $post_data['post_title'] ?? 'Untitled' );
+						$result        = 1; // Simulate success for dry run
+					} else {
+						$result = $wpdb->update(
+							$wpdb->posts,
+							$post_data,
+							[ 'ID' => $post_id ],
+							$post_data_formats,
+							[ '%d' ]
+						);
+					}
 				}
 			} else {
 				$post_data_formats = [];
 				foreach ( array_keys( $post_data ) as $key ) {
 					$post_data_formats[] = in_array( $key, [ 'post_author', 'post_parent', 'menu_order' ], true ) ? '%d' : '%s';
 				}
-				$result = $wpdb->insert( $wpdb->posts, $post_data, $post_data_formats );
-				if ( $result !== false ) {
-					$post_id = $wpdb->insert_id;
+
+				if ( $dry_run ) {
+					error_log( '[Dry Run] Would create new post with title: ' . ( $post_data['post_title'] ?? 'Untitled' ) );
+					$dry_run_log[] = '新規投稿プレビュー: タイトル=' . ( $post_data['post_title'] ?? 'Untitled' );
+					$result        = 1; // Simulate success for dry run
+					$post_id       = 0; // Placeholder for dry run
+				} else {
+					$result = $wpdb->insert( $wpdb->posts, $post_data, $post_data_formats );
+					if ( $result !== false ) {
+						$post_id = $wpdb->insert_id;
+					}
 				}
 			}
 
@@ -499,28 +659,83 @@ function swift_csv_ajax_import_handler() {
 				// Process taxonomies
 				foreach ( $taxonomies as $taxonomy => $terms ) {
 					if ( ! empty( $terms ) ) {
+						// Debug log for taxonomy processing
+						error_log( "[Swift CSV] Processing taxonomy: {$taxonomy}, format: {$taxonomy_format}" );
+
 						// Use WordPress API to set term relationships (handles tt_id and counts)
 						$term_ids = [];
-						foreach ( $terms as $term_name ) {
-							$term_name = trim( (string) $term_name );
-							if ( $term_name === '' ) {
+						foreach ( $terms as $term_value ) {
+							$term_value = trim( (string) $term_value );
+							if ( $term_value === '' ) {
 								continue;
 							}
 
-							$term = get_term_by( 'name', $term_name, $taxonomy );
-							if ( ! $term ) {
-								$created = wp_insert_term( $term_name, $taxonomy );
-								if ( is_wp_error( $created ) ) {
-									error_log( "Failed to create term '$term_name' in taxonomy '$taxonomy'" );
-									continue;
+							error_log( "[Swift CSV] Processing term value: '{$term_value}' with format: {$taxonomy_format}" );
+
+							// Handle different taxonomy formats with mixed data support
+							if ( $taxonomy_format === 'id' ) {
+								// Handle term IDs
+								$term_id = intval( $term_value );
+								error_log( "[Swift CSV] Looking up term by ID: {$term_id}" );
+
+								// Check if the term value is actually a valid ID
+								if ( $term_id === 0 ) {
+									// For mixed format, treat numeric values as names
+									if ( isset( $taxonomy_format_validation[ $taxonomy ] ) && $taxonomy_format_validation[ $taxonomy ]['mixed'] ) {
+										error_log( "[Swift CSV] Mixed format detected: treating '{$term_value}' as term name" );
+										$term = get_term_by( 'name', $term_value, $taxonomy );
+										if ( ! $term ) {
+											error_log( "[Swift CSV] Term not found, creating new term: '{$term_value}'" );
+											$created = wp_insert_term( $term_value, $taxonomy );
+											if ( is_wp_error( $created ) ) {
+												error_log( "Failed to create term '$term_value' in taxonomy '$taxonomy'" );
+												continue;
+											}
+											$term_ids[] = (int) $created['term_id'];
+											error_log( "[Swift CSV] Created new term: '{$term_value}' with ID: {$created['term_id']}" );
+										} else {
+											$term_ids[] = (int) $term->term_id;
+											error_log( "[Swift CSV] Found existing term by name: '{$term_value}' with ID: {$term->term_id}" );
+										}
+									} else {
+										error_log( "[Swift CSV] ERROR: Term value '{$term_value}' is not a valid ID. Expected numeric ID when 'Term IDs' format is selected." );
+										// Skip this term as it's not a valid ID
+										continue;
+									}
+								} else {
+									// Valid ID, process normally
+									$term = get_term( $term_id, $taxonomy );
+									if ( $term && ! is_wp_error( $term ) ) {
+										$term_ids[] = $term_id;
+										error_log( "[Swift CSV] Found term by ID: {$term_id} -> {$term->name}" );
+									} else {
+										error_log( "[Swift CSV] Invalid term ID: {$term_id} in taxonomy '{$taxonomy}'" );
+									}
 								}
-								$term_ids[] = (int) $created['term_id'];
 							} else {
-								$term_ids[] = (int) $term->term_id;
+								// Handle term names (default)
+								error_log( "[Swift CSV] Looking up term by name: '{$term_value}'" );
+								$term = get_term_by( 'name', $term_value, $taxonomy );
+								if ( ! $term ) {
+									error_log( "[Swift CSV] Term not found, creating new term: '{$term_value}'" );
+									$created = wp_insert_term( $term_value, $taxonomy );
+									if ( is_wp_error( $created ) ) {
+										error_log( "Failed to create term '$term_value' in taxonomy '$taxonomy'" );
+										continue;
+									}
+									$term_ids[] = (int) $created['term_id'];
+									error_log( "[Swift CSV] Created new term: '{$term_value}' with ID: {$created['term_id']}" );
+								} else {
+									$term_ids[] = (int) $term->term_id;
+									error_log( "[Swift CSV] Found existing term by name: '{$term_value}' with ID: {$term->term_id}" );
+								}
 							}
 						}
 
-						wp_set_post_terms( $post_id, $term_ids, $taxonomy, false );
+						if ( ! empty( $term_ids ) ) {
+							wp_set_post_terms( $post_id, $term_ids, $taxonomy, false );
+							error_log( "[Swift CSV] Set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
+						}
 					}
 				}
 
@@ -611,6 +826,8 @@ function swift_csv_ajax_import_handler() {
 			'cumulative_errors'  => $previous_errors + $errors,
 			'progress'           => round( ( $next_row / $total_rows ) * 100, 2 ),
 			'continue'           => $continue,
+			'dry_run'            => $dry_run,
+			'dry_run_log'        => $dry_run_log,
 		]
 	);
 }

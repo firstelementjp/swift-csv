@@ -648,6 +648,29 @@ class Swift_CSV_Admin {
 									<p class="description"><?php esc_html_e( 'Check to update existing posts based on ID.', 'swift-csv' ); ?></p>
 								</td>
 							</tr>
+							<tr>
+								<th scope="row">
+									<label><?php esc_html_e( 'Taxonomy Format', 'swift-csv' ); ?></label>
+								</th>
+								<td>
+									<label style="display:block;">
+										<input type="radio" name="taxonomy_format" value="name" checked>
+										<?php esc_html_e( 'Names', 'swift-csv' ); ?>
+									</label>
+									<label style="display:block;">
+										<input type="radio" name="taxonomy_format" value="id">
+										<?php esc_html_e( 'Term IDs', 'swift-csv' ); ?>
+									</label>
+									<p class="description"><?php esc_html_e( 'Choose how taxonomy terms are imported: names for readability or term IDs for data integrity.', 'swift-csv' ); ?></p>
+								</td>
+							</tr>
+							<tr>
+								<th scope="row"><?php esc_html_e( 'Dry Run', 'swift-csv' ); ?></th>
+								<td>
+									<label><input type="checkbox" name="dry_run" id="dry_run" value="1"><?php esc_html_e( 'Test import without creating posts', 'swift-csv' ); ?></label>
+									<p class="description"><?php esc_html_e( 'Preview what will be imported without actually creating posts or taxonomies. Useful for testing large files or verifying data before import.', 'swift-csv' ); ?></p>
+								</td>
+							</tr>
 						</table>
 
 						<p class="submit">

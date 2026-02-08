@@ -453,13 +453,24 @@ function handleAjaxImport(e) {
 
 	// Clear import log
 	clearLog('import');
-	addLogEntry(swiftCSV.messages.startingImport, 'info', 'import');
 
 	const fileInput = document.querySelector('#ajax_csv_file');
 	const postType = document.querySelector('#ajax_post_type')?.value;
 	const updateExisting = document.querySelector('#ajax_update_existing')?.checked;
+	const taxonomyFormat =
+		document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name';
+	const dryRun = document.querySelector('#dry_run')?.checked || false;
 
-	// Validate file
+	// Add Dry Run notice if enabled
+	if (dryRun) {
+		addLogEntry(
+			'[Dry Run] テスト実行モードでインポートをプレビューします。実際のデータは作成されません。',
+			'info',
+			'import'
+		);
+	}
+
+	addLogEntry(swiftCSV.messages.startingImport, 'info', 'import');
 	if (!fileInput || !fileInput.files.length) {
 		addLogEntry(swiftCSV.messages.selectCsvFile, 'error', 'import');
 		return;
@@ -485,6 +496,8 @@ function handleAjaxImport(e) {
 	formData.append('csv_file', file);
 	formData.append('post_type', postType);
 	formData.append('update_existing', updateExisting ? '1' : '0');
+	formData.append('taxonomy_format', taxonomyFormat);
+	formData.append('dry_run', dryRun ? '1' : '0');
 
 	const importBtn = e.target.querySelector('button[type="submit"]');
 	const cancelBtn = document.querySelector('#ajax-import-cancel-btn');
@@ -492,7 +505,9 @@ function handleAjaxImport(e) {
 	let isCancelled = false;
 
 	// Log import start
-	swiftCSVLog(`Import started: post_type=${postType}, update_existing=${updateExisting}`);
+	swiftCSVLog(
+		`Import started: post_type=${postType}, update_existing=${updateExisting}, taxonomy_format=${taxonomyFormat}, dry_run=${dryRun}`
+	);
 
 	// Update button states
 	if (importBtn) {
@@ -541,7 +556,7 @@ function handleAjaxImport(e) {
 			.then(response => response.json())
 			.then(data => {
 				if (!data.success) {
-					throw new Error(data.data || 'Import failed');
+					throw new Error(data.error || 'Import failed');
 				}
 
 				// Update progress
@@ -564,20 +579,36 @@ function handleAjaxImport(e) {
 					);
 				}
 
+				// Log Dry Run specific information
+				if (dryRun) {
+					// Check if dry_run_log exists and is an array
+					if (
+						data.dry_run_log &&
+						Array.isArray(data.dry_run_log) &&
+						data.dry_run_log.length > 0
+					) {
+						data.dry_run_log.forEach(logEntry => {
+							if (logEntry && logEntry.trim() !== '') {
+								addLogEntry('[Dry Run] ' + logEntry, 'info', 'import');
+							}
+						});
+					}
+					// If dry_run_log doesn't exist or is empty, that's normal for now
+					// The PHP side hasn't implemented the full Dry Run logic yet
+				}
+
 				// Log details - use cumulative values
 				if (data.cumulative_created !== undefined) {
-					addLogEntry(
-						swiftCSV.messages.createdInfo + ' ' + data.cumulative_created,
-						'success',
-						'import'
-					);
+					const createdText = dryRun
+						? '[Dry Run] 新規投稿プレビュー: '
+						: swiftCSV.messages.createdInfo;
+					addLogEntry(createdText + ' ' + data.cumulative_created, 'success', 'import');
 				}
 				if (data.cumulative_updated !== undefined) {
-					addLogEntry(
-						swiftCSV.messages.updatedInfo + ' ' + data.cumulative_updated,
-						'success',
-						'import'
-					);
+					const updatedText = dryRun
+						? '[Dry Run] 更新投稿プレビュー: '
+						: swiftCSV.messages.updatedInfo;
+					addLogEntry(updatedText + ' ' + data.cumulative_updated, 'info', 'import');
 				}
 				if (data.cumulative_errors > 0) {
 					addLogEntry(
@@ -605,7 +636,17 @@ function handleAjaxImport(e) {
 			})
 			.catch(error => {
 				console.error('Import error:', error);
-				addLogEntry(swiftCSV.messages.importError + ' ' + error.message, 'error', 'import');
+
+				// Extract the actual error message
+				let errorMessage = error.message;
+				if (
+					errorMessage === 'Import failed' &&
+					error.message.includes('Format mismatch detected')
+				) {
+					errorMessage = error.message;
+				}
+
+				addLogEntry(swiftCSV.messages.importError + ' ' + errorMessage, 'error', 'import');
 
 				if (importBtn) {
 					importBtn.disabled = false;
@@ -783,22 +824,28 @@ function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
  * @param {HTMLElement} cancelBtn Cancel button
  */
 function completeAjaxImport(data, importBtn, cancelBtn) {
-	addLogEntry(swiftCSV.messages.importCompleted, 'success', 'import');
+	// Check if this was a Dry Run
+	const isDryRun = data.dry_run || false;
+
+	// Add appropriate completion message
+	if (isDryRun) {
+		addLogEntry('[Dry Run] テスト完了！', 'success', 'import');
+	} else {
+		addLogEntry(swiftCSV.messages.importCompleted, 'success', 'import');
+	}
 
 	// Log final results - use cumulative values
 	if (data.cumulative_created !== undefined) {
-		addLogEntry(
-			swiftCSV.messages.totalImported + ' ' + data.cumulative_created,
-			'success',
-			'import'
-		);
+		const createdMessage = isDryRun
+			? '[Dry Run] 合計テスト数: '
+			: swiftCSV.messages.totalImported + ' ';
+		addLogEntry(createdMessage + data.cumulative_created, 'success', 'import');
 	}
 	if (data.cumulative_updated !== undefined) {
-		addLogEntry(
-			swiftCSV.messages.totalUpdated + ' ' + data.cumulative_updated,
-			'success',
-			'import'
-		);
+		const updatedMessage = isDryRun
+			? '[Dry Run] 合計更新テスト数: '
+			: swiftCSV.messages.totalUpdated + ' ';
+		addLogEntry(updatedMessage + data.cumulative_updated, 'success', 'import');
 	}
 	if (data.cumulative_errors !== undefined) {
 		addLogEntry(

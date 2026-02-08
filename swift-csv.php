@@ -17,8 +17,13 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+// Load debug configuration in development mode
+if ( defined( 'WP_DEBUG' ) && WP_DEBUG && file_exists( __DIR__ . '/debug.php' ) ) {
+	require_once __DIR__ . '/debug.php';
+}
+
 // Define plugin constants.
-define( 'SWIFT_CSV_VERSION', '0.9.4' );
+define( 'SWIFT_CSV_VERSION', '0.9.5' );
 define( 'SWIFT_CSV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SWIFT_CSV_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );

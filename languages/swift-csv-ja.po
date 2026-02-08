@@ -120,9 +120,53 @@ msgstr "タームID（term_id）"
 msgid "Test import without creating posts"
 msgstr "投稿を作成せずにインポートをテスト"
 
-#: includes/class-swift-csv-admin.php:671
-msgid "Preview what will be imported without actually creating posts or taxonomies. Useful for testing large files or verifying data before import."
-msgstr "実際に投稿やタクソノミーを作成せずにインポート内容をプレビューします。大規模なファイルのテストやインポート前のデータ確認に便利です。"
+#: includes/class-swift-csv-admin.php:677
+msgid "Preview what will be imported by checking the log output without actually creating posts or taxonomies (Dry Run)."
+msgstr "インポートされる内容をログに出力してあらかじめ確認できます（Dry Run）。"
+
+#: includes/class-swift-csv-admin.php:352
+msgid "Export"
+msgstr "エクスポート"
+
+#: includes/class-swift-csv-admin.php:670
+msgid "Select whether the term values in the CSV are names (text) or term IDs (numeric)."
+msgstr "CSV上のタームの値が名前（テキスト）かタームID（数値）により選択してください。"
+
+#: includes/class-swift-csv-admin.php:142
+msgid "Test import without creating posts or modifying data."
+msgstr "投稿を作成せずにインポートをテストします。実際のデータは変更されません。"
+
+#: includes/class-swift-csv-admin.php:143
+msgid "Test completed!"
+msgstr "テスト完了！"
+
+#: includes/class-swift-csv-admin.php:144
+msgid "Created posts:"
+msgstr "新規作成:"
+
+#: includes/class-swift-csv-admin.php:145
+msgid "Updated posts:"
+msgstr "更新:"
+
+#: includes/class-swift-csv-ajax-import.php:505
+msgid "Update post: ID=%1$s, title=%2$s"
+msgstr "更新投稿: ID=%1$s, タイトル=%2$s"
+
+#: includes/class-swift-csv-ajax-import.php:530
+msgid "New post: title=%1$s"
+msgstr "新規投稿: タイトル=%1$s"
+
+#: includes/class-swift-csv-ajax-import.php:753
+msgid "Existing term: %1$s (ID: %2$s, taxonomy: %3$s)"
+msgstr "既存ターム: %1$s (ID: %2$s, タクソノミー: %3$s)"
+
+#: includes/class-swift-csv-ajax-import.php:786
+msgid "Custom field (multi-value): %1$s = %2$s"
+msgstr "カスタムフィールド（複数値）: %1$s = %2$s"
+
+#: includes/class-swift-csv-ajax-import.php:794
+msgid "Custom field: %1$s = %2$s"
+msgstr "カスタムフィールド: %1$s = %2$s"
 
 #: includes/class-swift-csv-ajax-import.php:310
 msgid "Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Names\" but CSV contains only numeric values: %2$s. Please check your data format."

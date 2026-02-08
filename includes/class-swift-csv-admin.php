@@ -138,6 +138,12 @@ class Swift_CSV_Admin {
 						'totalErrors'           => esc_html__( 'Total errors:', 'swift-csv' ),
 						'importCancelledByUser' => esc_html__( 'Import cancelled by user', 'swift-csv' ),
 						'importError'           => esc_html__( 'Import error:', 'swift-csv' ),
+						// Dry Run messages
+						'dryRunNotice'          => esc_html__( 'Test import without creating posts or modifying data.', 'swift-csv' ),
+						'dryRunCompleted'       => esc_html__( 'Test completed!', 'swift-csv' ),
+						'dryRunCreated'         => esc_html__( 'Created posts:', 'swift-csv' ),
+						'dryRunUpdated'         => esc_html__( 'Updated posts:', 'swift-csv' ),
+						'dryRunErrors'          => esc_html__( 'Errors:', 'swift-csv' ),
 						// Export messages
 						'startingExport'        => esc_html__( 'Starting export process...', 'swift-csv' ),
 						'postTypeExport'        => esc_html__( 'Post Type:', 'swift-csv' ),
@@ -661,14 +667,14 @@ class Swift_CSV_Admin {
 										<input type="radio" name="taxonomy_format" value="id">
 										<?php esc_html_e( 'Term IDs', 'swift-csv' ); ?>
 									</label>
-									<p class="description"><?php esc_html_e( 'Choose how taxonomy terms are imported: names for readability or term IDs for data integrity.', 'swift-csv' ); ?></p>
+									<p class="description"><?php esc_html_e( 'Select whether the term values in the CSV are names (text) or term IDs (numeric).', 'swift-csv' ); ?></p>
 								</td>
 							</tr>
 							<tr>
 								<th scope="row"><?php esc_html_e( 'Dry Run', 'swift-csv' ); ?></th>
 								<td>
 									<label><input type="checkbox" name="dry_run" id="dry_run" value="1"><?php esc_html_e( 'Test import without creating posts', 'swift-csv' ); ?></label>
-									<p class="description"><?php esc_html_e( 'Preview what will be imported without actually creating posts or taxonomies. Useful for testing large files or verifying data before import.', 'swift-csv' ); ?></p>
+									<p class="description"><?php esc_html_e( 'Preview what will be imported by checking the log output without actually creating posts or taxonomies (Dry Run).', 'swift-csv' ); ?></p>
 								</td>
 							</tr>
 						</table>

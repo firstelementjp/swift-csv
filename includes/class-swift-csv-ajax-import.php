@@ -500,8 +500,13 @@ function swift_csv_ajax_import_handler() {
 
 					if ( $dry_run ) {
 						error_log( "[Dry Run] Would update post ID: {$post_id} with title: " . ( $post_data['post_title'] ?? 'Untitled' ) );
-						$dry_run_log[] = "更新投稿: ID={$post_id}, タイトル=" . ( $post_data['post_title'] ?? 'Untitled' );
-						$result        = 1; // Simulate success for dry run
+						$dry_run_log[] = sprintf(
+							/* translators: 1: post ID, 2: post title */
+							__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ),
+							$post_id,
+							$post_data['post_title'] ?? 'Untitled'
+						);
+						$result = 1; // Simulate success for dry run
 					} else {
 						$result = $wpdb->update(
 							$wpdb->posts,
@@ -520,9 +525,13 @@ function swift_csv_ajax_import_handler() {
 
 				if ( $dry_run ) {
 					error_log( '[Dry Run] Would create new post with title: ' . ( $post_data['post_title'] ?? 'Untitled' ) );
-					$dry_run_log[] = '新規投稿: タイトル=' . ( $post_data['post_title'] ?? 'Untitled' );
-					$result        = 1; // Simulate success for dry run
-					$post_id       = 0; // Placeholder for dry run
+					$dry_run_log[] = sprintf(
+						/* translators: 1: post title */
+						__( 'New post: title=%1$s', 'swift-csv' ),
+						$post_data['post_title'] ?? 'Untitled'
+					);
+					$result  = 1; // Simulate success for dry run
+					$post_id = 0; // Placeholder for dry run
 				} else {
 					$result = $wpdb->insert( $wpdb->posts, $post_data, $post_data_formats );
 					if ( $result !== false ) {
@@ -739,7 +748,13 @@ function swift_csv_ajax_import_handler() {
 								foreach ( $term_ids as $term_id ) {
 									$term = get_term( $term_id, $taxonomy );
 									if ( $term && ! is_wp_error( $term ) ) {
-										$dry_run_log[] = "既存ターム: {$term->name} (ID: {$term_id}, タクソノミー: {$taxonomy})";
+										$dry_run_log[] = sprintf(
+											/* translators: 1: term name, 2: term ID, 3: taxonomy name */
+											__( 'Existing term: %1$s (ID: %2$s, taxonomy: %3$s)', 'swift-csv' ),
+											$term->name,
+											$term_id,
+											$taxonomy
+										);
 									}
 								}
 							} else {
@@ -766,12 +781,22 @@ function swift_csv_ajax_import_handler() {
 							$values = array_map( 'trim', explode( '|', $value ) );
 							foreach ( $values as $single_value ) {
 								if ( $single_value !== '' ) {
-									$dry_run_log[] = "カスタムフィールド（複数値）: {$key} = {$single_value}";
+									$dry_run_log[] = sprintf(
+										/* translators: 1: field name, 2: field value */
+										__( 'Custom field (multi-value): %1$s = %2$s', 'swift-csv' ),
+										$key,
+										$single_value
+									);
 								}
 							}
 						} else {
 							// Single value (including serialized strings)
-							$dry_run_log[] = "カスタムフィールド: {$key} = {$value}";
+							$dry_run_log[] = sprintf(
+								/* translators: 1: field name, 2: field value */
+								__( 'Custom field: %1$s = %2$s', 'swift-csv' ),
+								$key,
+								$value
+							);
 						}
 					} else {
 						// Always replace existing meta for this key to ensure update works even if meta row doesn't exist.

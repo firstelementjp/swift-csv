@@ -463,11 +463,7 @@ function handleAjaxImport(e) {
 
 	// Add Dry Run notice if enabled
 	if (dryRun) {
-		addLogEntry(
-			'[Dry Run] テスト実行モードでインポートをプレビューします。実際のデータは作成されません。',
-			'info',
-			'import'
-		);
+		addLogEntry('[Dry Run] ' + swiftCSV.messages.dryRunNotice, 'info', 'import');
 	}
 
 	addLogEntry(swiftCSV.messages.startingImport, 'info', 'import');
@@ -600,13 +596,13 @@ function handleAjaxImport(e) {
 				// Log details - use cumulative values
 				if (data.cumulative_created !== undefined) {
 					const createdText = dryRun
-						? '[Dry Run] 新規投稿: '
+						? '[Dry Run] ' + swiftCSV.messages.dryRunCreated + ' '
 						: swiftCSV.messages.createdInfo;
 					addLogEntry(createdText + ' ' + data.cumulative_created, 'success', 'import');
 				}
 				if (data.cumulative_updated !== undefined) {
 					const updatedText = dryRun
-						? '[Dry Run] 更新投稿: '
+						? '[Dry Run] ' + swiftCSV.messages.dryRunUpdated + ' '
 						: swiftCSV.messages.updatedInfo;
 					addLogEntry(updatedText + ' ' + data.cumulative_updated, 'info', 'import');
 				}
@@ -829,7 +825,7 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 
 	// Add appropriate completion message
 	if (isDryRun) {
-		addLogEntry('[Dry Run] テスト完了！', 'success', 'import');
+		addLogEntry('[Dry Run] ' + swiftCSV.messages.dryRunCompleted, 'success', 'import');
 	} else {
 		addLogEntry(swiftCSV.messages.importCompleted, 'success', 'import');
 	}
@@ -837,16 +833,20 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	// Log final results - use cumulative values
 	if (data.cumulative_created !== undefined) {
 		const createdMessage = isDryRun
-			? '[Dry Run] 新規作成: '
+			? '[Dry Run] ' + swiftCSV.messages.dryRunCreated + ' '
 			: swiftCSV.messages.totalImported + ' ';
 		addLogEntry(createdMessage + data.cumulative_created, 'success', 'import');
 	}
 	if (data.cumulative_updated !== undefined) {
-		const updatedMessage = isDryRun ? '[Dry Run] 更新: ' : swiftCSV.messages.totalUpdated + ' ';
+		const updatedMessage = isDryRun
+			? '[Dry Run] ' + swiftCSV.messages.dryRunUpdated + ' '
+			: swiftCSV.messages.totalUpdated + ' ';
 		addLogEntry(updatedMessage + data.cumulative_updated, 'success', 'import');
 	}
 	if (data.cumulative_errors !== undefined) {
-		const errorMessage = isDryRun ? '[Dry Run] エラー: ' : swiftCSV.messages.totalErrors + ' ';
+		const errorMessage = isDryRun
+			? '[Dry Run] ' + swiftCSV.messages.dryRunErrors + ' '
+			: swiftCSV.messages.totalErrors + ' ';
 		addLogEntry(
 			errorMessage + data.cumulative_errors,
 			data.cumulative_errors > 0 ? 'warning' : 'success',

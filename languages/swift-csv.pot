@@ -127,6 +127,54 @@ msgstr ""
 msgid "Choose how taxonomy terms are imported: names for readability or term IDs for data integrity."
 msgstr ""
 
+#: includes/class-swift-csv-admin.php:677
+msgid "Preview what will be imported by checking the log output without actually creating posts or taxonomies (Dry Run)."
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:670
+msgid "Select whether the term values in the CSV are names (text) or term IDs (numeric)."
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:142
+msgid "Test import without creating posts or modifying data."
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:143
+msgid "Test completed!"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:144
+msgid "Created posts:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:145
+msgid "Updated posts:"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:146
+msgid "Errors:"
+msgstr ""
+
+#: includes/class-swift-csv-ajax-import.php:505
+msgid "Update post: ID=%1$s, title=%2$s"
+msgstr ""
+
+#: includes/class-swift-csv-ajax-import.php:530
+msgid "New post: title=%1$s"
+msgstr ""
+
+#: includes/class-swift-csv-ajax-import.php:753
+msgid "Existing term: %1$s (ID: %2$s, taxonomy: %3$s)"
+msgstr ""
+
+#: includes/class-swift-csv-ajax-import.php:786
+msgid "Custom field (multi-value): %1$s = %2$s"
+msgstr ""
+
+#: includes/class-swift-csv-ajax-import.php:794
+msgid "Custom field: %1$s = %2$s"
+msgstr ""
+
 #: includes/class-swift-csv-ajax-import.php:310
 msgid "Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Names\" but CSV contains only numeric values: %2$s. Please check your data format."
 msgstr ""

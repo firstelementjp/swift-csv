@@ -492,13 +492,13 @@ class Swift_CSV_Admin {
 								<td>
 									<label style="display:block;">
 										<input type="radio" name="taxonomy_format" value="name" checked>
-										<?php esc_html_e( 'Names (readable)', 'swift-csv' ); ?>
+										<?php esc_html_e( 'Names (name)', 'swift-csv' ); ?>
 									</label>
 									<label style="display:block;">
 										<input type="radio" name="taxonomy_format" value="id">
-										<?php esc_html_e( 'IDs (term_id)', 'swift-csv' ); ?>
+										<?php esc_html_e( 'Term IDs (term_id)', 'swift-csv' ); ?>
 									</label>
-									<p class="description"><?php esc_html_e( 'Choose how taxonomy terms are exported: names for readability or IDs for data integrity.', 'swift-csv' ); ?></p>
+									<p class="description"><?php esc_html_e( 'Choose how taxonomy terms are exported: names for readability or term IDs for data integrity.', 'swift-csv' ); ?></p>
 								</td>
 							</tr>
 							<tr>

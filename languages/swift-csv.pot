@@ -19,15 +19,15 @@ msgid "Taxonomy Format"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:495
-msgid "Names (readable)"
+msgid "Names (name)"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:498
-msgid "IDs (term_id)"
+msgid "Term IDs (term_id)"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:501
-msgid "Choose how taxonomy terms are exported: names for readability or IDs for data integrity."
+msgid "Choose how taxonomy terms are exported: names for readability or term IDs for data integrity."
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:506

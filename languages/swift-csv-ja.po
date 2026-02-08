@@ -22,16 +22,16 @@ msgid "Taxonomy Format"
 msgstr "タクソノミー形式"
 
 #: includes/class-swift-csv-admin.php:495
-msgid "Names (readable)"
-msgstr "名前（読みやすい）"
+msgid "Names (name)"
+msgstr "名前（name）"
 
 #: includes/class-swift-csv-admin.php:498
-msgid "IDs (term_id)"
-msgstr "ID（term_id）"
+msgid "Term IDs (term_id)"
+msgstr "タームID（term_id）"
 
 #: includes/class-swift-csv-admin.php:501
-msgid "Choose how taxonomy terms are exported: names for readability or IDs for data integrity."
-msgstr "タクソノミータームのエクスポート形式を選択：読みやすさのための名前、またはデータ整合性のためのID。"
+msgid "Choose how taxonomy terms are exported: names for readability or term IDs for data integrity."
+msgstr "タクソノミータームのエクスポート形式を選択：読みやすさのための名前、またはデータ整合性のためのタームID。"
 
 #: includes/class-swift-csv-admin.php:506
 msgid "Custom Fields"

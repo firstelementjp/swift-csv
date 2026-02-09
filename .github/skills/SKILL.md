@@ -415,6 +415,87 @@ add_filter('swift_csv_generate_headers', function($headers, $args) {
 
 ---
 
+## #009 Code Duplication Elimination (2026-02-09)
+
+**Symptom**: Same field lists defined in multiple places causing maintenance overhead and inconsistency.
+
+**Cause**: Hardcoded field arrays scattered across different functions without centralization.
+
+**Fix** (Extract Common Function Pattern):
+
+```php
+// ❌ BEFORE - Duplicated field lists
+function build_headers() {
+    $default_headers = ['ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_author'];
+    // ...
+}
+
+function process_data() {
+    in_array($header, ['post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_modified', 'post_parent', 'menu_order', 'comment_status', 'ping_status'], true);
+    // ...
+}
+
+// ✅ AFTER - Centralized field management
+function swift_csv_get_allowed_post_fields($export_scope = 'basic') {
+    $basic_fields = ['ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_author'];
+
+    if ('all' === $export_scope) {
+        $additional_fields = ['post_date_gmt', 'post_modified', 'post_modified_gmt', 'post_parent', 'menu_order', 'guid', 'comment_status', 'ping_status', 'post_type'];
+        $additional_fields = apply_filters('swift_csv_additional_post_fields', $additional_fields, $export_scope);
+        return array_merge($basic_fields, $additional_fields);
+    }
+
+    $basic_fields = apply_filters('swift_csv_basic_post_fields', $basic_fields, $export_scope);
+    return $basic_fields;
+}
+
+function build_headers() {
+    $headers = swift_csv_get_allowed_post_fields($export_scope);
+    // ...
+}
+
+function process_data() {
+    if (in_array($header, swift_csv_get_allowed_post_fields('basic'), true)) {
+        // ...
+    }
+}
+```
+
+**Benefits of Centralization**:
+
+- **Single Source of Truth**: Field lists defined in one place
+- **Hook Integration**: Natural extension points for field customization
+- **Maintainability**: Changes only need to be made in one location
+- **Consistency**: All functions use the same field definitions
+- **Extensibility**: Developers can easily add/remove fields via hooks
+
+**Hook Integration Benefits**:
+
+- **`swift_csv_basic_post_fields`**: Customize basic export fields
+- **`swift_csv_additional_post_fields`**: Customize 'all' scope additional fields
+- **Scope-aware**: Hooks receive export scope context for conditional logic
+
+**Lesson**: Extract repeated data structures into centralized functions with built-in extension points. This creates both maintainability and extensibility.
+
+**Debug approach**:
+
+```php
+// Verify field list consistency
+add_filter('swift_csv_basic_post_fields', function($fields, $scope) {
+    error_log("Basic fields for scope {$scope}: " . implode(', ', $fields));
+    return $fields;
+}, 10, 2);
+```
+
+**Related patterns**:
+
+- Create single source of truth for data structures
+- Add hooks to centralized functions for natural extensibility
+- Use function parameters to provide context for conditional logic
+- Apply DRY principle consistently across codebase
+
+---
+
 ## Quick Reference Table
 
 | #   | Symptom                    | Root Cause                                   | Key File                          |
@@ -427,6 +508,7 @@ add_filter('swift_csv_generate_headers', function($headers, $args) {
 | 006 | Inconsistent conditionals  | Misunderstanding WordPress Yoda notation     | Multiple files                    |
 | 007 | Conditional hook execution | Hooks only execute under specific conditions | `class-swift-csv-ajax-export.php` |
 | 008 | Scattered hook structure   | Multiple overlapping hooks causing confusion | `class-swift-csv-ajax-export.php` |
+| 009 | Code duplication           | Same field lists defined in multiple places  | `class-swift-csv-ajax-export.php` |
 
 ---
 

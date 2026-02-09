@@ -38,6 +38,68 @@ function swift_csv_ajax_export_normalize_headers( $headers ) {
 }
 
 /**
+ * Get allowed post fields for CSV export based on scope
+ *
+ * @since 0.9.0
+ * @param string $export_scope The export scope ('basic', 'all')
+ * @return array Array of allowed post field names
+ */
+function swift_csv_get_allowed_post_fields( $export_scope = 'basic' ) {
+	$basic_fields = [
+		'ID',
+		'post_title',
+		'post_content',
+		'post_excerpt',
+		'post_status',
+		'post_name',
+		'post_date',
+		'post_author',
+	];
+
+	if ( 'all' === $export_scope ) {
+		$additional_fields = [
+			'post_date_gmt',
+			'post_modified',
+			'post_modified_gmt',
+			'post_parent',
+			'menu_order',
+			'guid',
+			'comment_status',
+			'ping_status',
+			'post_type',
+		];
+
+		/**
+		 * Filter additional post fields for 'all' export scope
+		 *
+		 * Allows developers to modify the additional fields included in 'all' scope exports.
+		 *
+		 * @since 0.9.0
+		 * @param array $additional_fields Array of additional field names
+		 * @param string $export_scope The current export scope
+		 * @return array Modified additional fields array
+		 */
+		$additional_fields = apply_filters( 'swift_csv_additional_post_fields', $additional_fields, $export_scope );
+
+		return array_merge( $basic_fields, $additional_fields );
+	}
+
+	/**
+	 * Filter basic post fields for CSV export
+	 *
+	 * Allows developers to modify the basic fields included in exports.
+	 *
+	 * @since 0.9.0
+	 * @param array $basic_fields Array of basic field names
+	 * @param string $export_scope The current export scope
+	 * @return array Modified basic fields array
+	 */
+	$basic_fields = apply_filters( 'swift_csv_basic_post_fields', $basic_fields, $export_scope );
+
+	return $basic_fields;
+}
+
+/**
  * Build CSV headers based on post type and export scope
  *
  * @since 0.9.0
@@ -50,63 +112,40 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 	$include_private_meta = (bool) $include_private_meta;
 
-	// Apply unified header generation hook
-	/**
-	 * Generate CSV headers for export
-	 *
-	 * Unified hook for all header generation needs. Allows developers to completely
-	 * customize headers based on context and parameters.
-	 *
-	 * @since 0.9.0
-	 * @param array $headers Current headers array
-	 * @param array $args Export arguments including context
-	 * @return array Modified headers array
-	 */
-	$export_args = [
-		'post_type'            => $post_type,
-		'export_scope'         => $export_scope,
-		'include_private_meta' => $include_private_meta,
-		'context'              => 'header_generation',
-	];
-	$headers     = apply_filters( 'swift_csv_generate_headers', [], $export_args );
-
-	// If hook returned custom headers, normalize and return
-	$default_headers = [ 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_author' ];
-	if ( $headers !== $default_headers ) {
-		return swift_csv_ajax_export_normalize_headers( $headers );
-	}
-
-	// Build default headers if hook didn't modify
-	$headers = $default_headers;
-	if ( $export_scope === 'all' ) {
-		$allowed_post_fields = [
-			'post_title',
-			'post_content',
-			'post_excerpt',
-			'post_status',
-			'post_name',
-			'post_date',
-			'post_date_gmt',
-			'post_modified',
-			'post_modified_gmt',
-			'post_author',
-			'post_parent',
-			'menu_order',
-			'guid',
-			'comment_status',
-			'ping_status',
-			'post_type',
-		];
-		foreach ( $allowed_post_fields as $field ) {
-			$headers[] = $field;
-		}
-	}
+	// Get allowed post fields using common function
+	$headers = swift_csv_get_allowed_post_fields( $export_scope );
 
 	$taxonomies = get_object_taxonomies( $post_type, 'objects' );
 	foreach ( $taxonomies as $taxonomy ) {
 		if ( $taxonomy->public ) {
 			$headers[] = 'tax_' . $taxonomy->name;
 		}
+	}
+
+	// Apply unified header generation hook with built headers
+	/**
+	 * Generate CSV headers for export
+	 *
+	 * Unified hook for all header generation needs. Allows developers to completely
+	 * customize headers based on context and parameters. Receives pre-built headers
+	 * and can return modified headers or completely custom headers.
+	 *
+	 * @since 0.9.0
+	 * @param array $headers Current headers array (pre-built with defaults)
+	 * @param array $args Export arguments including context
+	 * @return array Modified headers array
+	 */
+	$export_args      = [
+		'post_type'            => $post_type,
+		'export_scope'         => $export_scope,
+		'include_private_meta' => $include_private_meta,
+		'context'              => 'header_generation',
+	];
+	$filtered_headers = apply_filters( 'swift_csv_generate_headers', $headers, $export_args );
+
+	// If hook returned different headers, use them (complete override)
+	if ( $filtered_headers !== $headers ) {
+		return swift_csv_ajax_export_normalize_headers( $filtered_headers );
 	}
 
 	// Apply sample query hook for meta field discovery
@@ -159,15 +198,34 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		}
 	}
 
-	// Add custom fields to headers
-	foreach ( $all_meta_keys as $meta_key ) {
-		if ( ! is_string( $meta_key ) || $meta_key === '' ) {
-			continue;
+	// Apply Pro version hook if available (always execute hook)
+	/**
+	 * Filter all headers for export
+	 *
+	 * Allows extensions to completely override header generation.
+	 * This hook can be used by Pro version or other extensions.
+	 * Hook implementations should check for required classes internally.
+	 *
+	 * @since 0.9.0
+	 * @param array $headers Current headers array
+	 * @param string $post_type The post type being exported
+	 * @param bool $include_private_meta Whether to include private meta fields
+	 * @return array Complete headers array
+	 */
+	$headers = apply_filters( 'swift_csv_generate_all_headers', $headers, $post_type, $include_private_meta );
+
+	// Free version default processing (only if hook didn't modify headers)
+	$default_headers = swift_csv_get_allowed_post_fields( 'basic' );
+	if ( $headers === $default_headers ) {
+		foreach ( $all_meta_keys as $meta_key ) {
+			if ( ! is_string( $meta_key ) || $meta_key === '' ) {
+				continue;
+			}
+			if ( ! $include_private_meta && str_starts_with( $meta_key, '_' ) ) {
+				continue; // Skip private meta
+			}
+			$headers[] = 'cf_' . $meta_key;
 		}
-		if ( ! $include_private_meta && str_starts_with( $meta_key, '_' ) ) {
-			continue; // Skip private meta
-		}
-		$headers[] = 'cf_' . $meta_key;
 	}
 
 	return swift_csv_ajax_export_normalize_headers( $headers );
@@ -187,49 +245,6 @@ function swift_csv_ajax_export_fputcsv_row( array $row ) {
 	$csv = stream_get_contents( $fh );
 	fclose( $fh );
 	return $csv;
-}
-
-/**
- * Resolve post field value for CSV export
- *
- * @since 0.9.0
- * @param WP_Post $post The post object
- * @param string  $header The field name to resolve
- * @return string The resolved field value
- */
-function swift_csv_ajax_export_resolve_post_field_value( WP_Post $post, $header ) {
-	if ( $header === 'ID' ) {
-		return (string) $post->ID;
-	}
-
-	if ( ! str_starts_with( $header, 'post_' ) || ! isset( $post->{$header} ) ) {
-		return null;
-	}
-
-	$allowed_post_fields = [
-		'post_title',
-		'post_content',
-		'post_excerpt',
-		'post_status',
-		'post_name',
-		'post_date',
-		'post_date_gmt',
-		'post_modified',
-		'post_modified_gmt',
-		'post_author',
-		'post_parent',
-		'menu_order',
-		'guid',
-		'comment_status',
-		'ping_status',
-		'post_type',
-	];
-	if ( ! in_array( $header, $allowed_post_fields, true ) ) {
-		return null;
-	}
-
-	$value = (string) $post->{$header};
-	return $value;
 }
 
 /**
@@ -395,7 +410,7 @@ function swift_csv_ajax_export_handler() {
 				} elseif ( $header === 'post_author' ) {
 					$author = get_user_by( 'id', get_post_field( 'post_author', $post_id ) );
 					$value  = $author ? $author->display_name : '';
-				} elseif ( in_array( $header, [ 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_modified', 'post_parent', 'menu_order', 'comment_status', 'ping_status' ], true ) ) {
+				} elseif ( in_array( $header, swift_csv_get_allowed_post_fields( 'basic' ), true ) ) {
 					$value = get_post_field( $header, $post_id );
 				} elseif ( str_starts_with( $header, 'cf_' ) ) {
 					$meta_key    = substr( $header, 3 );

@@ -240,15 +240,7 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		'context'              => 'meta_key_classification',
 	];
 
-	error_log( '=== Free Version Classification Hook Call ===' );
-	error_log( 'Calling swift_csv_classify_meta_keys with:' );
-	error_log( 'All Meta Keys: ' . print_r( $all_meta_keys, true ) );
-	error_log( 'Args: ' . print_r( $meta_classify_args, true ) );
-
 	$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', $all_meta_keys, $meta_classify_args );
-
-	error_log( 'Classification Hook Result: ' . print_r( $classified_meta_keys, true ) );
-	error_log( '=== End Free Version Classification Hook Call ===' );
 
 	// Ensure classified structure exists
 	if ( ! is_array( $classified_meta_keys ) || ! isset( $classified_meta_keys['acf'] ) ) {
@@ -289,21 +281,10 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		'context'              => 'custom_field_headers_generation',
 	];
 
-	error_log( '=== Free Version Headers Generation Hook Call ===' );
-	error_log( 'Calling swift_csv_generate_custom_field_headers with:' );
-	error_log( 'Classified Meta Keys: ' . print_r( $classified_meta_keys, true ) );
-	error_log( 'Args: ' . print_r( $custom_field_args, true ) );
-
 	$custom_field_headers = apply_filters( 'swift_csv_generate_custom_field_headers', [], $classified_meta_keys, $custom_field_args );
-
-	error_log( 'Headers Generation Hook Result: ' . print_r( $custom_field_headers, true ) );
-	error_log( '=== End Free Version Headers Generation Hook Call ===' );
 
 	// Fallback: if no hook implementation, use basic processing
 	if ( empty( $custom_field_headers ) ) {
-		error_log( '=== Free Version Fallback Processing ===' );
-		error_log( 'Hook returned empty array - using fallback processing' );
-
 		$custom_field_headers = [];
 
 		// Process regular fields
@@ -312,7 +293,6 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 				continue;
 			}
 			$custom_field_headers[] = 'cf_' . $meta_key;
-			error_log( 'Fallback Added Regular Header: cf_' . $meta_key );
 		}
 
 		// Process private fields if allowed
@@ -322,12 +302,8 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 					continue;
 				}
 				$custom_field_headers[] = 'cf_' . $meta_key;
-				error_log( 'Fallback Added Private Header: cf_' . $meta_key );
 			}
 		}
-
-		error_log( 'Fallback Final Headers: ' . print_r( $custom_field_headers, true ) );
-		error_log( '=== End Free Version Fallback Processing ===' );
 	}
 
 	// Merge all three header types
@@ -408,10 +384,10 @@ function swift_csv_ajax_export_handler() {
 
 		// Apply export query filter for full export
 		/**
-		 * Filter export query arguments for full export
+		 * Filter export query arguments for count retrieval
 		 *
-		 * Allows developers to customize the main export query used to retrieve
-		 * all posts for CSV generation. This affects the actual export content.
+		 * Allows developers to customize the query used to retrieve
+		 * the total count of posts for export progress tracking.
 		 *
 		 * @since 0.9.0
 		 * @param array $query_args Export query arguments
@@ -420,17 +396,19 @@ function swift_csv_ajax_export_handler() {
 		 */
 		$export_query_args = [
 			'post_type'    => $post_type,
-			'context'      => 'full_export',
+			'context'      => 'count_retrieval',
 			'export_limit' => $export_limit,
 		];
-		$filtered_args     = apply_filters( 'swift_csv_export_query_args', $total_posts_query_args, $export_query_args );
+		$filtered_args     = apply_filters( 'swift_csv_export_count_query_args', $total_posts_query_args, $export_query_args );
 
 		// Preserve export limit regardless of filter modifications
 		$filtered_args['posts_per_page'] = $export_limit > 0 ? $export_limit : -1;
 
 		$total_posts_query_args = $filtered_args;
-		$total_posts            = get_posts( $total_posts_query_args );
-		$total_count            = count( $total_posts );
+
+		// Use WP_Query for efficient count retrieval
+		$total_query = new WP_Query( $total_posts_query_args );
+		$total_count = $total_query->found_posts;
 
 		// Define max_posts_to_process
 		$max_posts_to_process = $export_limit > 0 ? $export_limit : $total_count;
@@ -448,7 +426,19 @@ function swift_csv_ajax_export_handler() {
 			'offset'         => $start_row,
 			'fields'         => 'ids',
 		];
-		$posts_query_args = apply_filters( 'swift_csv_export_query_args', $posts_query_args, [ 'post_type' => $post_type ] );
+
+		/**
+		 * Filter export query arguments for data retrieval
+		 *
+		 * Allows developers to customize the query used to retrieve
+		 * the actual post data for CSV generation.
+		 *
+		 * @since 0.9.0
+		 * @param array $query_args Export query arguments
+		 * @param array $args Export arguments including context
+		 * @return array Modified query arguments
+		 */
+		$posts_query_args = apply_filters( 'swift_csv_export_data_query_args', $posts_query_args, [ 'post_type' => $post_type ] );
 
 		// Force our limit regardless of filter
 		$posts_query_args['posts_per_page'] = min( $batch_size, $max_posts_to_process - $start_row );
@@ -517,6 +507,34 @@ function swift_csv_ajax_export_handler() {
 					$value  = $author ? $author->display_name : '';
 				} elseif ( in_array( $header, swift_csv_get_allowed_post_fields( 'basic' ), true ) ) {
 					$value = get_post_field( $header, $post_id );
+				} elseif ( str_starts_with( $header, 'tax_' ) ) {
+					$taxonomy_name = substr( $header, 4 );
+					$terms         = get_the_terms( $post_id, $taxonomy_name );
+					if ( $terms && ! is_wp_error( $terms ) ) {
+						// Debug log for taxonomy processing
+						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+							error_log( "[Swift CSV] Processing taxonomy: {$taxonomy_name}, format: {$taxonomy_format}" );
+						}
+
+						$term_values = array_map(
+							function ( $term ) use ( $current_taxonomy_format ) {
+								$result = $current_taxonomy_format === 'id' ? $term->term_id : $term->name;
+								if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+									error_log( "[Swift CSV] Term: {$term->name} (ID: {$term->term_id}) -> Result: {$result} (format: {$current_taxonomy_format})" );
+								}
+								return $result;
+							},
+							$terms
+						);
+						$value       = implode( '|', $term_values );
+
+						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+							error_log( "[Swift CSV] Final taxonomy value: {$value}" );
+						}
+					}
+					$clean_value = strip_tags( (string) $value );
+					$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
+					$value       = $clean_value;
 				} elseif ( str_starts_with( $header, 'acf_' ) ) {
 					// Handle ACF fields - delegate to Pro version processing
 					$meta_key = substr( $header, 4 );
@@ -548,40 +566,14 @@ function swift_csv_ajax_export_handler() {
 					$meta_key    = substr( $header, 3 );
 					$meta_values = get_post_meta( $post_id, $meta_key );
 					if ( $meta_values && ! is_wp_error( $meta_values ) ) {
-						$meta_value = $meta_values[0] ?? '';
-						if ( is_array( $meta_value ) ) {
-							$meta_value = implode( '|', $meta_value );
+						// Handle multiple values - join with pipe separator
+						if ( count( $meta_values ) > 1 ) {
+							$meta_value = implode( '|', $meta_values );
+						} else {
+							$meta_value = $meta_values[0] ?? '';
 						}
 					}
 					$clean_value = strip_tags( (string) $meta_value );
-					$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
-					$value       = $clean_value;
-				} elseif ( str_starts_with( $header, 'tax_' ) ) {
-					$taxonomy_name = substr( $header, 4 );
-					$terms         = get_the_terms( $post_id, $taxonomy_name );
-					if ( $terms && ! is_wp_error( $terms ) ) {
-						// Debug log for taxonomy processing
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( "[Swift CSV] Processing taxonomy: {$taxonomy_name}, format: {$taxonomy_format}" );
-						}
-
-						$term_values = array_map(
-							function ( $term ) use ( $current_taxonomy_format ) {
-								$result = $current_taxonomy_format === 'id' ? $term->term_id : $term->name;
-								if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-									error_log( "[Swift CSV] Term: {$term->name} (ID: {$term->term_id}) -> Result: {$result} (format: {$current_taxonomy_format})" );
-								}
-								return $result;
-							},
-							$terms
-						);
-						$value       = implode( '|', $term_values );
-
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( "[Swift CSV] Final taxonomy value: {$value}" );
-						}
-					}
-					$clean_value = strip_tags( (string) $value );
 					$clean_value = swift_csv_ajax_normalize_quotes( $clean_value );
 					$value       = $clean_value;
 				} else {

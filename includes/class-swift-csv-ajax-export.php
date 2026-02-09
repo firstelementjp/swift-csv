@@ -229,10 +229,10 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	 * custom field processing systems.
 	 *
 	 * @since 0.9.0
-	 * @param array $headers Current headers array
+	 * @param array $custom_field_headers Array of custom field headers (cf_ prefixed)
 	 * @param array $meta_keys Discovered meta keys
 	 * @param array $args Export arguments including context
-	 * @return array Complete headers array
+	 * @return array Modified custom field headers array
 	 */
 	$custom_field_args = [
 		'post_type'            => $post_type,
@@ -241,29 +241,24 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		'context'              => 'custom_fields',
 		'discovered_meta_keys' => $all_meta_keys,
 	];
-	$headers           = apply_filters( 'swift_csv_filter_custom_field_headers', $headers, $all_meta_keys, $custom_field_args );
 
-	// Free version default processing (only if hook didn't modify headers)
-	$default_headers  = swift_csv_get_allowed_post_fields( 'basic' );
-	$taxonomy_headers = array_filter(
-		$headers,
-		function ( $header ) {
-			return str_starts_with( $header, 'tax_' );
+	// Build custom field headers from meta keys
+	$custom_field_headers = [];
+	foreach ( $all_meta_keys as $meta_key ) {
+		if ( ! is_string( $meta_key ) || $meta_key === '' ) {
+			continue;
 		}
-	);
-	$expected_headers = array_merge( $default_headers, $taxonomy_headers );
-
-	if ( $headers === $expected_headers ) {
-		foreach ( $all_meta_keys as $meta_key ) {
-			if ( ! is_string( $meta_key ) || $meta_key === '' ) {
-				continue;
-			}
-			if ( ! $include_private_meta && str_starts_with( $meta_key, '_' ) ) {
-				continue; // Skip private meta
-			}
-			$headers[] = 'cf_' . $meta_key;
+		if ( ! $include_private_meta && str_starts_with( $meta_key, '_' ) ) {
+			continue; // Skip private meta
 		}
+		$custom_field_headers[] = 'cf_' . $meta_key;
 	}
+
+	// Apply custom field hook
+	$custom_field_headers = apply_filters( 'swift_csv_filter_custom_field_headers', $custom_field_headers, $all_meta_keys, $custom_field_args );
+
+	// Merge all three header types
+	$headers = array_merge( $headers, $custom_field_headers );
 
 	return swift_csv_ajax_export_normalize_headers( $headers );
 }

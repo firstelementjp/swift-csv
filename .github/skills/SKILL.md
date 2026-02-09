@@ -896,6 +896,132 @@ add_filter('swift_csv_filter_taxonomy_objects', function($taxonomies, $args) {
 
 ---
 
+## #013 Simple Three-Element Merge Pattern (2026-02-09)
+
+**Symptom**: Complex header building logic with multiple hooks and fallback mechanisms, making code hard to understand and maintain.
+
+**Cause**: Mixing different data types in single variables and complex hook override detection logic.
+
+**Fix** (Simple Three-Element Merge Pattern):
+
+```php
+// ❌ BEFORE - Complex mixed processing
+$headers = get_post_fields();
+$headers = apply_filters('swift_csv_filter_post_field_headers', $headers, $args);
+$taxonomy_headers = get_taxonomy_headers();
+$headers = array_merge($headers, $taxonomy_headers);
+$custom_field_headers = apply_filters('swift_csv_filter_custom_field_headers', $headers, $meta_keys, $args);
+// Complex fallback logic to detect if hooks modified anything...
+
+// ✅ AFTER - Clean three-element separation
+$post_field_headers = get_post_fields();
+$taxonomy_headers = get_taxonomy_headers();
+$custom_field_headers = build_custom_field_headers($meta_keys);
+
+// Apply hooks to individual elements
+$taxonomy_headers = apply_filters('swift_csv_filter_taxonomy_objects', $taxonomy_objects, $args);
+$custom_field_headers = apply_filters('swift_csv_filter_custom_field_headers', $custom_field_headers, $meta_keys, $args);
+
+// Simple, predictable merge
+$headers = array_merge($post_field_headers, $taxonomy_headers, $custom_field_headers);
+```
+
+**Three-Element Architecture**:
+
+- **`$post_field_headers`**: Core WordPress post fields
+- **`$taxonomy_headers`**: Taxonomy headers (tax\_ prefixed)
+- **`$custom_field_headers`**: Custom field headers (cf\_ prefixed)
+
+**Benefits of Simple Separation**:
+
+- **Clear Data Flow**: Each element has distinct lifecycle
+- **No Complex Detection**: No need to detect hook modifications
+- **Predictable Results**: Always know what each element contains
+- **Easy Debugging**: Each element can be inspected independently
+- **Maintainable**: Simple, linear processing flow
+
+**Element Processing Flow**:
+
+```php
+// 1. Post fields - direct from common function
+$post_field_headers = swift_csv_get_allowed_post_fields($export_scope);
+
+// 2. Taxonomies - object filtering then header creation
+$taxonomy_objects = get_object_taxonomies($post_type, 'objects');
+$taxonomy_objects = apply_filters('swift_csv_filter_taxonomy_objects', $taxonomy_objects, $args);
+$taxonomy_headers = [];
+foreach ($taxonomy_objects as $taxonomy) {
+    if ($taxonomy->public) {
+        $taxonomy_headers[] = 'tax_' . $taxonomy->name;
+    }
+}
+
+// 3. Custom fields - build then filter
+$custom_field_headers = [];
+foreach ($all_meta_keys as $meta_key) {
+    if (!$include_private_meta && str_starts_with($meta_key, '_')) {
+        continue;
+    }
+    $custom_field_headers[] = 'cf_' . $meta_key;
+}
+$custom_field_headers = apply_filters('swift_csv_filter_custom_field_headers', $custom_field_headers, $all_meta_keys, $args);
+
+// 4. Simple merge
+$headers = array_merge($post_field_headers, $taxonomy_headers, $custom_field_headers);
+```
+
+**Hook Simplification**:
+
+```php
+// Old complex approach with fallback detection
+add_filter('swift_csv_filter_custom_field_headers', function($headers, $meta_keys, $args) {
+    // Complex logic needed to detect if we should modify or create new headers
+    if (should_override_headers($headers, $args)) {
+        return build_custom_headers($meta_keys);
+    }
+    return $headers;
+});
+
+// New simple approach - work with dedicated element
+add_filter('swift_csv_filter_custom_field_headers', function($custom_field_headers, $meta_keys, $args) {
+    // Direct modification of custom field headers only
+    if (class_exists('ACF')) {
+        return process_acf_fields($custom_field_headers, $meta_keys, $args);
+    }
+    return $custom_field_headers;
+});
+```
+
+**Debug Benefits**:
+
+```php
+// Easy debugging of each element
+error_log("Post fields: " . count($post_field_headers));
+error_log("Taxonomy headers: " . count($taxonomy_headers));
+error_log("Custom field headers: " . count($custom_field_headers));
+error_log("Total headers: " . count(array_merge($post_field_headers, $taxonomy_headers, $custom_field_headers)));
+```
+
+**Migration from Complex Processing**:
+
+```php
+// Remove complex fallback logic
+// Remove swift_csv_filter_post_field_headers hook
+// Simplify swift_csv_filter_custom_field_headers to work with custom_field_headers only
+// Use clean three-element merge pattern
+```
+
+**Lesson**: Separate data into distinct elements, process each independently, then merge. This eliminates complex detection logic and creates predictable, maintainable code.
+
+**Related patterns**:
+
+- Process each data type independently
+- Use dedicated variables for each element type
+- Apply hooks to specific elements, not mixed data
+- Use simple, predictable merge operations
+
+---
+
 ## Quick Reference Table
 
 | #   | Symptom                    | Root Cause                                   | Key File                          |
@@ -912,6 +1038,7 @@ add_filter('swift_csv_filter_taxonomy_objects', function($taxonomies, $args) {
 | 010 | Hook misplacement          | Hooks at inappropriate points in flow        | `class-swift-csv-ajax-export.php` |
 | 011 | Mixed hook data            | Hooks receiving mixed data types             | `class-swift-csv-ajax-export.php` |
 | 012 | Limited object filtering   | No access to objects for filtering decisions | `class-swift-csv-ajax-export.php` |
+| 013 | Complex header processing  | Mixed data types and complex fallback logic  | `class-swift-csv-ajax-export.php` |
 
 ---
 

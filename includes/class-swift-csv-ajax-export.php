@@ -177,6 +177,27 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	$sample_query_args['posts_per_page'] = 1; // Ensure only 1 post
 	$sample_post_ids                     = get_posts( $sample_query_args );
 
+	// Hook for sample post filtering (Pro version optimization)
+	/**
+	 * Filter sample posts for meta key discovery
+	 *
+	 * Allows developers to customize which sample posts are used for meta key
+	 * discovery. This hook is ideal for Pro versions that may want to use
+	 * specific posts for better field detection.
+	 *
+	 * @since 0.9.0
+	 * @param array $sample_post_ids Sample post IDs
+	 * @param array $args Export arguments including context
+	 * @return array Modified sample post IDs
+	 */
+	$sample_filter_args = [
+		'post_type'            => $post_type,
+		'export_scope'         => $export_scope,
+		'include_private_meta' => $include_private_meta,
+		'context'              => 'sample_posts_filter',
+	];
+	$sample_post_ids    = apply_filters( 'swift_csv_filter_sample_posts', $sample_post_ids, $sample_filter_args );
+
 	$all_meta_keys      = [];
 	$found_private_meta = false;
 
@@ -199,42 +220,89 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		}
 	}
 
-	// Hook for custom field headers (Pro version ACF integration)
+	// Hook for meta key classification (Pro version ACF integration)
 	/**
-	 * Filter custom field headers for export
+	 * Filter and classify discovered meta keys
 	 *
-	 * Allows extensions to completely customize custom field headers.
-	 * This hook is ideal for Pro version ACF integration and other
-	 * custom field processing systems.
+	 * Allows developers to classify meta keys into different categories
+	 * (ACF, regular, private) for specialized processing. This hook is
+	 * ideal for Pro versions with ACF integration.
 	 *
 	 * @since 0.9.0
-	 * @param array $custom_field_headers Array of custom field headers (cf_ prefixed)
-	 * @param array $meta_keys Discovered meta keys
+	 * @param array $all_meta_keys All discovered meta keys
 	 * @param array $args Export arguments including context
-	 * @return array Modified custom field headers array
+	 * @return array Classified meta keys array with 'acf', 'regular', 'private' keys
 	 */
-	$custom_field_args = [
+	$meta_classify_args   = [
 		'post_type'            => $post_type,
 		'export_scope'         => $export_scope,
 		'include_private_meta' => $include_private_meta,
-		'context'              => 'custom_fields',
-		'discovered_meta_keys' => $all_meta_keys,
+		'context'              => 'meta_key_classification',
 	];
+	$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', $all_meta_keys, $meta_classify_args );
 
-	// Build custom field headers from meta keys
-	$custom_field_headers = [];
-	foreach ( $all_meta_keys as $meta_key ) {
-		if ( ! is_string( $meta_key ) || $meta_key === '' ) {
-			continue;
+	// Ensure classified structure exists
+	if ( ! is_array( $classified_meta_keys ) || ! isset( $classified_meta_keys['acf'] ) ) {
+		// Fallback: create basic classification
+		$classified_meta_keys = [
+			'acf'     => [],
+			'regular' => [],
+			'private' => [],
+		];
+
+		foreach ( $all_meta_keys as $meta_key ) {
+			if ( str_starts_with( $meta_key, '_' ) ) {
+				$classified_meta_keys['private'][] = $meta_key;
+			} else {
+				$classified_meta_keys['regular'][] = $meta_key;
+			}
 		}
-		if ( ! $include_private_meta && str_starts_with( $meta_key, '_' ) ) {
-			continue; // Skip private meta
-		}
-		$custom_field_headers[] = 'cf_' . $meta_key;
 	}
 
-	// Apply custom field hook
-	$custom_field_headers = apply_filters( 'swift_csv_filter_custom_field_headers', $custom_field_headers, $all_meta_keys, $custom_field_args );
+	// Hook for custom field headers generation (Pro version ACF integration)
+	/**
+	 * Generate custom field headers for export
+	 *
+	 * Allows extensions to generate custom field headers from classified meta keys.
+	 * This hook is ideal for Pro versions with ACF integration that need to create
+	 * headers with different prefixes (acf_, cf_) based on field type.
+	 *
+	 * @since 0.9.0
+	 * @param array $custom_field_headers Array of custom field headers (empty array to start)
+	 * @param array $classified_meta_keys Classified meta keys with 'acf', 'regular', 'private' keys
+	 * @param array $args Export arguments including context
+	 * @return array Complete custom field headers array
+	 */
+	$custom_field_args    = [
+		'post_type'            => $post_type,
+		'export_scope'         => $export_scope,
+		'include_private_meta' => $include_private_meta,
+		'context'              => 'custom_field_headers_generation',
+	];
+	$custom_field_headers = apply_filters( 'swift_csv_generate_custom_field_headers', [], $classified_meta_keys, $custom_field_args );
+
+	// Fallback: if no hook implementation, use basic processing
+	if ( empty( $custom_field_headers ) ) {
+		$custom_field_headers = [];
+
+		// Process regular fields
+		foreach ( $classified_meta_keys['regular'] as $meta_key ) {
+			if ( ! is_string( $meta_key ) || $meta_key === '' ) {
+				continue;
+			}
+			$custom_field_headers[] = 'cf_' . $meta_key;
+		}
+
+		// Process private fields if allowed
+		if ( $include_private_meta ) {
+			foreach ( $classified_meta_keys['private'] as $meta_key ) {
+				if ( ! is_string( $meta_key ) || $meta_key === '' ) {
+					continue;
+				}
+				$custom_field_headers[] = 'cf_' . $meta_key;
+			}
+		}
+	}
 
 	// Merge all three header types
 	$headers = array_merge( $headers, $custom_field_headers );

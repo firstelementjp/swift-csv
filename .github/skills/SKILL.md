@@ -1059,23 +1059,228 @@ $headers = array_merge($headers, $taxonomy_headers, $custom_field_headers);
 
 ---
 
+## #014 Three-Stage Custom Field Integration Pattern (2026-02-09)
+
+**Symptom**: Pro version ACF integration uses legacy hooks that don't align with new Free version architecture, creating maintenance complexity and limiting extensibility.
+
+**Cause**: Separate hook architectures between Free and Pro versions, with Pro version using `swift_csv_generate_all_headers` for complete control while Free version uses individual hooks.
+
+**Fix** (Three-Stage Custom Field Integration Pattern):
+
+```php
+// ❌ BEFORE - Separate architectures
+// Free version
+$headers = swift_csv_get_allowed_post_fields($export_scope);
+$custom_field_headers = apply_filters('swift_csv_filter_custom_field_headers', $headers, $meta_keys, $args);
+
+// Pro version (legacy)
+add_filter('swift_csv_generate_all_headers', [$this, 'generate_all_headers'], 10, 2);
+
+// ✅ AFTER - Unified three-stage architecture
+// Stage 1: Sample post filtering
+$sample_post_ids = apply_filters('swift_csv_filter_sample_posts', $sample_post_ids, $args);
+
+// Stage 2: Meta key classification
+$classified_meta_keys = apply_filters('swift_csv_classify_meta_keys', $all_meta_keys, $args);
+// Returns: ['acf' => [...], 'regular' => [...], 'private' => [...]
+
+// Stage 3: Custom field headers generation
+$custom_field_headers = apply_filters('swift_csv_generate_custom_field_headers', [], $classified_meta_keys, $args);
+```
+
+**Three-Stage Architecture Benefits**:
+
+- **Unified Structure**: Free and Pro versions use same hook architecture
+- **ACF Integration**: Natural integration point for Pro version ACF processing
+- **Extensibility**: Other extensions can use same hooks for different field types
+- **Backward Compatibility**: Pro version maintains legacy hooks alongside new ones
+- **Performance**: Each stage can be optimized independently
+
+**Stage 1: Sample Post Filtering**:
+
+```php
+// Free version implementation
+add_filter('swift_csv_filter_sample_posts', function($sample_post_ids, $args) {
+    // Default: return original sample posts
+    return $sample_post_ids;
+}, 10, 2);
+
+// Pro version ACF optimization
+add_filter('swift_csv_filter_sample_posts', function($sample_post_ids, $args) {
+    if (class_exists('ACF')) {
+        // Get more sample posts for better ACF field detection
+        $enhanced_query = [
+            'post_type' => $args['post_type'],
+            'posts_per_page' => 10,
+            'post_status' => 'any',
+            'fields' => 'ids',
+        ];
+        return get_posts($enhanced_query);
+    }
+    return $sample_post_ids;
+}, 10, 2);
+```
+
+**Stage 2: Meta Key Classification**:
+
+```php
+// Free version fallback
+add_filter('swift_csv_classify_meta_keys', function($all_meta_keys, $args) {
+    $classified = ['acf' => [], 'regular' => [], 'private' => []];
+
+    foreach ($all_meta_keys as $meta_key) {
+        if (str_starts_with($meta_key, '_')) {
+            $classified['private'][] = $meta_key;
+        } else {
+            $classified['regular'][] = $meta_key;
+        }
+    }
+
+    return $classified;
+}, 10, 2);
+
+// Pro version ACF integration
+add_filter('swift_csv_classify_meta_keys', function($all_meta_keys, $args) {
+    if (!class_exists('ACF')) {
+        // Use fallback classification
+        return fallback_classify_meta_keys($all_meta_keys, $args);
+    }
+
+    $acf_fields = get_acf_field_names($args['post_type']);
+    $classified = ['acf' => [], 'regular' => [], 'private' => []];
+
+    foreach ($all_meta_keys as $meta_key) {
+        if (str_starts_with($meta_key, '_')) {
+            $classified['private'][] = $meta_key;
+        } elseif (in_array($meta_key, $acf_fields, true)) {
+            $classified['acf'][] = $meta_key;
+        } else {
+            $classified['regular'][] = $meta_key;
+        }
+    }
+
+    return $classified;
+}, 10, 2);
+```
+
+**Stage 3: Custom Field Headers Generation**:
+
+```php
+// Free version basic implementation
+add_filter('swift_csv_generate_custom_field_headers', function($headers, $classified_meta_keys, $args) {
+    // Process regular fields
+    foreach ($classified_meta_keys['regular'] as $field) {
+        $headers[] = 'cf_' . $field;
+    }
+
+    // Process private fields if allowed
+    if ($args['include_private_meta']) {
+        foreach ($classified_meta_keys['private'] as $field) {
+            $headers[] = 'cf_' . $field;
+        }
+    }
+
+    return $headers;
+}, 10, 3);
+
+// Pro version ACF integration
+add_filter('swift_csv_generate_custom_field_headers', function($headers, $classified_meta_keys, $args) {
+    // Process ACF fields with acf_ prefix
+    foreach ($classified_meta_keys['acf'] as $acf_field) {
+        $headers[] = 'acf_' . $acf_field;
+    }
+
+    // Process regular fields with cf_ prefix
+    foreach ($classified_meta_keys['regular'] as $regular_field) {
+        $headers[] = 'cf_' . $regular_field;
+    }
+
+    // Process private fields if allowed
+    if ($args['include_private_meta']) {
+        foreach ($classified_meta_keys['private'] as $private_field) {
+            $headers[] = 'cf_' . $private_field;
+        }
+    }
+
+    return $headers;
+}, 10, 3);
+```
+
+**Data Processing Integration**:
+
+```php
+// Unified data processing hook
+add_filter('swift_csv_process_custom_field_value', function($value, $meta_key, $post_id, $args) {
+    if (str_starts_with($meta_key, 'acf_')) {
+        // Delegate to Pro version ACF processing
+        return apply_filters('swift_csv_process_acf_field_value', $value, $meta_key, $post_id, $args);
+    } else {
+        // Regular custom field processing
+        return get_post_meta($post_id, substr($meta_key, 3), true);
+    }
+}, 10, 4);
+```
+
+**Migration Strategy**:
+
+```php
+// Phase 1: Add new hooks to Free version (completed)
+// Phase 2: Add new hooks to Pro version alongside legacy hooks (completed)
+// Phase 3: Test both versions work with new architecture
+// Phase 4: Deprecate legacy Pro hooks in future version
+```
+
+**Benefits for Different Extensions**:
+
+```php
+// Other field types can use same pattern
+add_filter('swift_csv_classify_meta_keys', function($all_meta_keys, $args) {
+    if (class_exists('Meta_Box')) {
+        $mb_fields = get_meta_box_fields($args['post_type']);
+        // Add 'metabox' category
+        $classified['metabox'] = array_intersect($all_meta_keys, $mb_fields);
+    }
+    return $classified;
+}, 15, 2);
+
+add_filter('swift_csv_generate_custom_field_headers', function($headers, $classified_meta_keys, $args) {
+    // Process Meta Box fields with mb_ prefix
+    foreach ($classified_meta_keys['metabox'] ?? [] as $mb_field) {
+        $headers[] = 'mb_' . $mb_field;
+    }
+    return $headers;
+}, 15, 3);
+```
+
+**Lesson**: Use three-stage architecture for complex field processing: sample filtering → classification → generation. This provides unified structure across Free/Pro versions while maintaining extensibility for other field types.
+
+**Related patterns**:
+
+- Three-stage processing for complex data transformations
+- Unified hook architecture across plugin versions
+- Backward compatibility during architecture transitions
+- Extensible classification system for different field types
+
+---
+
 ## Quick Reference Table
 
-| #   | Symptom                    | Root Cause                                   | Key File                          |
-| --- | -------------------------- | -------------------------------------------- | --------------------------------- |
-| 001 | Empty ACF columns          | Missing `$post_id` in `get_field_object()`   | `class-swift-csv-ajax-export.php` |
-| 002 | Progress element not found | Old DOM selector after UI refactor           | `admin-scripts.js`                |
-| 003 | Malformed date in filename | Missing hyphen in string concat              | `admin-scripts.js`                |
-| 004 | WP-CLI connection fails    | Database variables quoted, paths unquoted    | `.envrc`                          |
-| 005 | AJAX error after success   | Missing `success: true` in JSON response     | `class-swift-csv-ajax-import.php` |
-| 006 | Inconsistent conditionals  | Misunderstanding WordPress Yoda notation     | Multiple files                    |
-| 007 | Conditional hook execution | Hooks only execute under specific conditions | `class-swift-csv-ajax-export.php` |
-| 008 | Scattered hook structure   | Multiple overlapping hooks causing confusion | `class-swift-csv-ajax-export.php` |
-| 009 | Code duplication           | Same field lists defined in multiple places  | `class-swift-csv-ajax-export.php` |
-| 010 | Hook misplacement          | Hooks at inappropriate points in flow        | `class-swift-csv-ajax-export.php` |
-| 011 | Mixed hook data            | Hooks receiving mixed data types             | `class-swift-csv-ajax-export.php` |
-| 012 | Limited object filtering   | No access to objects for filtering decisions | `class-swift-csv-ajax-export.php` |
-| 013 | Complex header processing  | Mixed data types and complex fallback logic  | `class-swift-csv-ajax-export.php` |
+| #   | Symptom                     | Root Cause                                   | Key File                          |
+| --- | --------------------------- | -------------------------------------------- | --------------------------------- |
+| 001 | Empty ACF columns           | Missing `$post_id` in `get_field_object()`   | `class-swift-csv-ajax-export.php` |
+| 002 | Progress element not found  | Old DOM selector after UI refactor           | `admin-scripts.js`                |
+| 003 | Malformed date in filename  | Missing hyphen in string concat              | `admin-scripts.js`                |
+| 004 | WP-CLI connection fails     | Database variables quoted, paths unquoted    | `.envrc`                          |
+| 005 | AJAX error after success    | Missing `success: true` in JSON response     | `class-swift-csv-ajax-import.php` |
+| 006 | Inconsistent conditionals   | Misunderstanding WordPress Yoda notation     | Multiple files                    |
+| 007 | Conditional hook execution  | Hooks only execute under specific conditions | `class-swift-csv-ajax-export.php` |
+| 008 | Scattered hook structure    | Multiple overlapping hooks causing confusion | `class-swift-csv-ajax-export.php` |
+| 009 | Code duplication            | Same field lists defined in multiple places  | `class-swift-csv-ajax-export.php` |
+| 010 | Hook misplacement           | Hooks at inappropriate points in flow        | `class-swift-csv-ajax-export.php` |
+| 011 | Mixed hook data             | Hooks receiving mixed data types             | `class-swift-csv-ajax-export.php` |
+| 012 | Limited object filtering    | No access to objects for filtering decisions | `class-swift-csv-ajax-export.php` |
+| 013 | Complex header processing   | Mixed data types and complex fallback logic  | `class-swift-csv-ajax-export.php` |
+| 014 | Pro/Free architecture split | Different hook systems between versions      | `class-swift-csv-ajax-export.php` |
 
 ---
 

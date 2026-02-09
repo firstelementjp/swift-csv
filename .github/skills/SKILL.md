@@ -1011,7 +1011,44 @@ error_log("Total headers: " . count(array_merge($post_field_headers, $taxonomy_h
 // Use clean three-element merge pattern
 ```
 
-**Lesson**: Separate data into distinct elements, process each independently, then merge. This eliminates complex detection logic and creates predictable, maintainable code.
+**Final Simple Architecture**:
+
+```php
+// 1. Post fields - from centralized function
+$headers = swift_csv_get_allowed_post_fields($export_scope);
+
+// 2. Taxonomies - object filtering then header creation
+$taxonomy_objects = get_object_taxonomies($post_type, 'objects');
+$taxonomy_objects = apply_filters('swift_csv_filter_taxonomy_objects', $taxonomy_objects, $args);
+$taxonomy_headers = [];
+foreach ($taxonomy_objects as $taxonomy) {
+    if ($taxonomy->public) {
+        $taxonomy_headers[] = 'tax_' . $taxonomy->name;
+    }
+}
+
+// 3. Custom fields - build then filter
+$custom_field_headers = [];
+foreach ($all_meta_keys as $meta_key) {
+    if (!$include_private_meta && str_starts_with($meta_key, '_')) {
+        continue;
+    }
+    $custom_field_headers[] = 'cf_' . $meta_key;
+}
+$custom_field_headers = apply_filters('swift_csv_filter_custom_field_headers', $custom_field_headers, $all_meta_keys, $args);
+
+// 4. Simple merge
+$headers = array_merge($headers, $taxonomy_headers, $custom_field_headers);
+```
+
+**Hook Simplification Benefits**:
+
+- **Posts fields**: Handled by `swift_csv_basic_post_fields` and `swift_csv_additional_post_fields` hooks in centralized function
+- **Taxonomies**: `swift_csv_filter_taxonomy_objects` for object-level filtering
+- **Custom fields**: `swift_csv_filter_custom_field_headers` for custom field processing
+- **No redundant hooks**: Each data type has exactly one appropriate hook
+
+**Lesson**: Remove redundant hooks when centralized functions already provide appropriate extension points.
 
 **Related patterns**:
 

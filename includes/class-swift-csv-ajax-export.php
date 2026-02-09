@@ -146,27 +146,6 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		}
 	}
 
-	// Hook for post fields customization
-	/**
-	 * Filter post field headers for export
-	 *
-	 * Allows developers to customize post field headers independently.
-	 * This hook receives only post field headers, making it easy to
-	 * add, remove, or modify post fields without affecting taxonomies.
-	 *
-	 * @since 0.9.0
-	 * @param array $headers Array of post field headers
-	 * @param array $args Export arguments including context
-	 * @return array Modified post field headers array
-	 */
-	$post_field_args = [
-		'post_type'            => $post_type,
-		'export_scope'         => $export_scope,
-		'include_private_meta' => $include_private_meta,
-		'context'              => 'post_fields',
-	];
-	$headers         = apply_filters( 'swift_csv_filter_post_field_headers', $headers, $post_field_args );
-
 	// Merge post fields and taxonomies
 	$headers = array_merge( $headers, $taxonomy_headers );
 

@@ -496,6 +496,102 @@ add_filter('swift_csv_basic_post_fields', function($fields, $scope) {
 
 ---
 
+## #010 Hook Architecture Optimization (2026-02-09)
+
+**Symptom**: Hooks placed at inappropriate points in the processing flow, causing confusion and incomplete customization capabilities.
+
+**Cause**: Hook placement without considering the complete data flow and separation of concerns.
+
+**Fix** (Strategic Hook Placement Pattern):
+
+```php
+// ❌ BEFORE - Misplaced hook causing incomplete customization
+$headers = get_post_fields();
+$taxonomies = get_taxonomies();
+$filtered_headers = apply_filters('swift_csv_generate_headers', $headers, $args); // Too early!
+$meta_keys = discover_meta_keys();
+$all_headers = apply_filters('swift_csv_generate_all_headers', $headers, $args); // Confusing!
+
+// ✅ AFTER - Strategic hook placement with clear responsibilities
+// 1. Post fields and taxonomy hook
+$headers = get_post_fields();
+$taxonomies = get_taxonomies();
+$headers = apply_filters('swift_csv_filter_post_taxonomy_headers', $headers, $args);
+
+// 2. Custom field discovery
+$meta_keys = discover_meta_keys();
+
+// 3. Custom field hook (Pro version ACF integration)
+$headers = apply_filters('swift_csv_filter_custom_field_headers', $headers, $meta_keys, $args);
+```
+
+**New Optimized Hook Architecture**:
+
+- **`swift_csv_filter_post_taxonomy_headers`**: Customize post fields and taxonomies
+- **`swift_csv_filter_custom_field_headers`**: Customize custom field processing (Pro version)
+- **`swift_csv_sample_query_args`**: Customize meta discovery query
+- **`swift_csv_export_query_args`**: Customize full export query
+
+**Hook Responsibilities**:
+
+1. **Post/Taxonomy Hook**: Basic fields + taxonomy modifications
+2. **Custom Field Hook**: ACF integration, custom field processing
+3. **Sample Query Hook**: Meta discovery optimization
+4. **Export Query Hook**: Content filtering for actual export
+
+**Benefits of Strategic Placement**:
+
+- **Clear Separation**: Each hook has distinct responsibility
+- **Complete Context**: Hooks receive all relevant data
+- **Pro Version Integration**: Natural hook for ACF processing
+- **Developer Experience**: Predictable customization points
+- **Maintainability**: Clear hook purposes and timing
+
+**Migration Guide**:
+
+```php
+// Old unified hook → New specialized hooks
+add_filter('swift_csv_generate_headers', $callback);
+// → swift_csv_filter_post_taxonomy_headers OR swift_csv_filter_custom_field_headers
+
+add_filter('swift_csv_generate_all_headers', $callback);
+// → swift_csv_filter_custom_field_headers
+
+// Example: Pro version ACF integration
+add_filter('swift_csv_filter_custom_field_headers', function($headers, $meta_keys, $args) {
+    if (class_exists('ACF')) {
+        return process_acf_fields($headers, $meta_keys, $args);
+    }
+    return $headers;
+}, 10, 3);
+```
+
+**Lesson**: Place hooks at strategic points where they have complete context and clear responsibilities. Consider the entire data flow and separate concerns logically.
+
+**Debug approach**:
+
+```php
+// Track hook execution with context
+add_filter('swift_csv_filter_post_taxonomy_headers', function($headers, $args) {
+    error_log("Post/Taxonomy hook: context={$args['context']}, headers=" . count($headers));
+    return $headers;
+}, 10, 2);
+
+add_filter('swift_csv_filter_custom_field_headers', function($headers, $meta_keys, $args) {
+    error_log("Custom field hook: meta_keys=" . count($meta_keys) . ", context={$args['context']}");
+    return $headers;
+}, 10, 3);
+```
+
+**Related patterns**:
+
+- Design hooks with single responsibility principle
+- Place hooks where they have complete data context
+- Provide clear migration paths for API changes
+- Consider Pro version integration requirements
+
+---
+
 ## Quick Reference Table
 
 | #   | Symptom                    | Root Cause                                   | Key File                          |
@@ -509,6 +605,7 @@ add_filter('swift_csv_basic_post_fields', function($fields, $scope) {
 | 007 | Conditional hook execution | Hooks only execute under specific conditions | `class-swift-csv-ajax-export.php` |
 | 008 | Scattered hook structure   | Multiple overlapping hooks causing confusion | `class-swift-csv-ajax-export.php` |
 | 009 | Code duplication           | Same field lists defined in multiple places  | `class-swift-csv-ajax-export.php` |
+| 010 | Hook misplacement          | Hooks at inappropriate points in flow        | `class-swift-csv-ajax-export.php` |
 
 ---
 

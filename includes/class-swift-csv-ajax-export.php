@@ -122,31 +122,26 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		}
 	}
 
-	// Apply unified header generation hook with built headers
+	// Hook for post fields and taxonomy customization
 	/**
-	 * Generate CSV headers for export
+	 * Filter post fields and taxonomy headers
 	 *
-	 * Unified hook for all header generation needs. Allows developers to completely
-	 * customize headers based on context and parameters. Receives pre-built headers
-	 * and can return modified headers or completely custom headers.
+	 * Allows developers to customize post fields and taxonomy headers
+	 * before custom field discovery. This is the ideal place for
+	 * post field and taxonomy modifications.
 	 *
 	 * @since 0.9.0
-	 * @param array $headers Current headers array (pre-built with defaults)
+	 * @param array $headers Current headers array (post fields + taxonomies)
 	 * @param array $args Export arguments including context
 	 * @return array Modified headers array
 	 */
-	$export_args      = [
+	$export_args = [
 		'post_type'            => $post_type,
 		'export_scope'         => $export_scope,
 		'include_private_meta' => $include_private_meta,
-		'context'              => 'header_generation',
+		'context'              => 'post_fields_and_taxonomies',
 	];
-	$filtered_headers = apply_filters( 'swift_csv_generate_headers', $headers, $export_args );
-
-	// If hook returned different headers, use them (complete override)
-	if ( $filtered_headers !== $headers ) {
-		return swift_csv_ajax_export_normalize_headers( $filtered_headers );
-	}
+	$headers     = apply_filters( 'swift_csv_filter_post_taxonomy_headers', $headers, $export_args );
 
 	// Apply sample query hook for meta field discovery
 	/**
@@ -198,25 +193,40 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		}
 	}
 
-	// Apply Pro version hook if available (always execute hook)
+	// Hook for custom field headers (Pro version ACF integration)
 	/**
-	 * Filter all headers for export
+	 * Filter custom field headers for export
 	 *
-	 * Allows extensions to completely override header generation.
-	 * This hook can be used by Pro version or other extensions.
-	 * Hook implementations should check for required classes internally.
+	 * Allows extensions to completely customize custom field headers.
+	 * This hook is ideal for Pro version ACF integration and other
+	 * custom field processing systems.
 	 *
 	 * @since 0.9.0
 	 * @param array $headers Current headers array
-	 * @param string $post_type The post type being exported
-	 * @param bool $include_private_meta Whether to include private meta fields
+	 * @param array $meta_keys Discovered meta keys
+	 * @param array $args Export arguments including context
 	 * @return array Complete headers array
 	 */
-	$headers = apply_filters( 'swift_csv_generate_all_headers', $headers, $post_type, $include_private_meta );
+	$custom_field_args = [
+		'post_type'            => $post_type,
+		'export_scope'         => $export_scope,
+		'include_private_meta' => $include_private_meta,
+		'context'              => 'custom_fields',
+		'discovered_meta_keys' => $all_meta_keys,
+	];
+	$headers           = apply_filters( 'swift_csv_filter_custom_field_headers', $headers, $all_meta_keys, $custom_field_args );
 
 	// Free version default processing (only if hook didn't modify headers)
-	$default_headers = swift_csv_get_allowed_post_fields( 'basic' );
-	if ( $headers === $default_headers ) {
+	$default_headers  = swift_csv_get_allowed_post_fields( 'basic' );
+	$taxonomy_headers = array_filter(
+		$headers,
+		function ( $header ) {
+			return str_starts_with( $header, 'tax_' );
+		}
+	);
+	$expected_headers = array_merge( $default_headers, $taxonomy_headers );
+
+	if ( $headers === $expected_headers ) {
 		foreach ( $all_meta_keys as $meta_key ) {
 			if ( ! is_string( $meta_key ) || $meta_key === '' ) {
 				continue;

@@ -731,6 +731,171 @@ add_filter('swift_csv_filter_taxonomy_headers', function($taxonomy_headers, $tax
 
 ---
 
+## #012 Object-Level Filtering Pattern (2026-02-09)
+
+**Symptom**: Need to filter data objects before processing, but hooks only receive processed arrays.
+
+**Cause**: Hooks placed after data transformation, losing access to original objects for filtering decisions.
+
+**Fix** (Object-Level Filtering Pattern):
+
+```php
+// ❌ BEFORE - No access to taxonomy objects for filtering
+$taxonomies = get_object_taxonomies($post_type, 'objects');
+$taxonomy_headers = [];
+foreach ($taxonomies as $taxonomy) {
+    if ($taxonomy->public) {
+        $taxonomy_headers[] = 'tax_' . $taxonomy->name;
+    }
+}
+// No way to filter taxonomies based on object properties
+
+// ✅ AFTER - Filter objects before processing
+$taxonomies = get_object_taxonomies($post_type, 'objects');
+
+// Filter taxonomy objects based on properties
+$taxonomies = apply_filters('swift_csv_filter_taxonomy_objects', $taxonomies, $args);
+
+// Process filtered objects normally
+$taxonomy_headers = [];
+foreach ($taxonomies as $taxonomy) {
+    if ($taxonomy->public) {
+        $taxonomy_headers[] = 'tax_' . $taxonomy->name;
+    }
+}
+```
+
+**Object-Level Filtering Benefits**:
+
+- **Property Access**: Full access to object properties for filtering decisions
+- **Selective Processing**: Include/exclude based on complex criteria
+- **Maintainable Logic**: Filtering logic separated from processing logic
+- **Extensible**: Easy to add new filtering criteria
+
+**Usage Examples**:
+
+```php
+// Filter taxonomies by various properties
+add_filter('swift_csv_filter_taxonomy_objects', function($taxonomies, $args) {
+    $filtered_taxonomies = [];
+
+    foreach ($taxonomies as $taxonomy) {
+        // Exclude specific taxonomies
+        if (in_array($taxonomy->name, ['hidden_taxonomy', 'internal_category'])) {
+            continue;
+        }
+
+        // Only include hierarchical taxonomies for certain post types
+        if ('product' === $args['post_type'] && !$taxonomy->hierarchical) {
+            continue;
+        }
+
+        // Only include taxonomies with sufficient terms
+        $term_count = wp_count_terms($taxonomy->name);
+        if ($term_count < 5) {
+            continue;
+        }
+
+        $filtered_taxonomies[] = $taxonomy;
+    }
+
+    return $filtered_taxonomies;
+}, 10, 2);
+
+// Add custom taxonomy for specific contexts
+add_filter('swift_csv_filter_taxonomy_objects', function($taxonomies, $args) {
+    if ('all' === $args['export_scope']) {
+        // Add virtual taxonomy for special processing
+        $virtual_taxonomy = new stdClass();
+        $virtual_taxonomy->name = 'custom_export_taxonomy';
+        $virtual_taxonomy->public = true;
+        $virtual_taxonomy->hierarchical = false;
+
+        $taxonomies[] = $virtual_taxonomy;
+    }
+
+    return $taxonomies;
+}, 10, 2);
+```
+
+**Advanced Filtering Scenarios**:
+
+```php
+// Context-aware taxonomy filtering
+add_filter('swift_csv_filter_taxonomy_objects', function($taxonomies, $args) {
+    switch ($args['context']) {
+        case 'taxonomy_objects_filter':
+            // Filter for export headers
+            return array_filter($taxonomies, function($taxonomy) {
+                return $taxonomy->public && !$taxonomy->_builtin;
+            });
+
+        case 'other_context':
+            // Different filtering for other contexts
+            return array_filter($taxonomies, function($taxonomy) {
+                return $taxonomy->hierarchical;
+            });
+
+        default:
+            return $taxonomies;
+    }
+}, 10, 2);
+
+// Integration with external systems
+add_filter('swift_csv_filter_taxonomy_objects', function($taxonomies, $args) {
+    if (class_exists('Advanced_Taxonomy_Manager')) {
+        return Advanced_Taxonomy_Manager::filter_for_export($taxonomies, $args);
+    }
+    return $taxonomies;
+}, 10, 2);
+```
+
+**Migration from Header Filtering**:
+
+```php
+// Old approach - filter headers after creation
+add_filter('swift_csv_filter_taxonomy_headers', function($taxonomy_headers, $taxonomies, $args) {
+    // Limited filtering - only have header names
+    return array_filter($taxonomy_headers, function($header) {
+        return $header !== 'tax_hidden_taxonomy';
+    });
+});
+
+// New approach - filter objects before header creation
+add_filter('swift_csv_filter_taxonomy_objects', function($taxonomies, $args) {
+    // Full control - access to all taxonomy properties
+    return array_filter($taxonomies, function($taxonomy) {
+        return $taxonomy->public && $taxonomy->name !== 'hidden_taxonomy';
+    });
+});
+```
+
+**Lesson**: Filter data objects before processing when you need access to object properties for complex filtering decisions. This provides maximum flexibility and maintainability.
+
+**Debug approach**:
+
+```php
+// Track taxonomy object filtering
+add_filter('swift_csv_filter_taxonomy_objects', function($taxonomies, $args) {
+    $original_count = count($taxonomies);
+    $taxonomy_names = array_map(function($t) { return $t->name; }, $taxonomies);
+
+    error_log("Taxonomy filter: {$original_count} taxonomies, context={$args['context']}");
+    error_log("Taxonomy names: " . implode(', ', $taxonomy_names));
+
+    return $taxonomies;
+}, 10, 2);
+```
+
+**Related patterns**:
+
+- Filter objects before processing for maximum flexibility
+- Use object properties for complex filtering decisions
+- Separate filtering logic from processing logic
+- Provide context-aware filtering for different use cases
+
+---
+
 ## Quick Reference Table
 
 | #   | Symptom                    | Root Cause                                   | Key File                          |
@@ -746,6 +911,7 @@ add_filter('swift_csv_filter_taxonomy_headers', function($taxonomy_headers, $tax
 | 009 | Code duplication           | Same field lists defined in multiple places  | `class-swift-csv-ajax-export.php` |
 | 010 | Hook misplacement          | Hooks at inappropriate points in flow        | `class-swift-csv-ajax-export.php` |
 | 011 | Mixed hook data            | Hooks receiving mixed data types             | `class-swift-csv-ajax-export.php` |
+| 012 | Limited object filtering   | No access to objects for filtering decisions | `class-swift-csv-ajax-export.php` |
 
 ---
 

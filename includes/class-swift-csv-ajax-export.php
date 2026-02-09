@@ -115,7 +115,30 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	// Get allowed post fields using common function
 	$headers = swift_csv_get_allowed_post_fields( $export_scope );
 
-	$taxonomies       = get_object_taxonomies( $post_type, 'objects' );
+	$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+
+	// Hook for taxonomy object filtering
+	/**
+	 * Filter taxonomy objects for export header generation
+	 *
+	 * Allows developers to filter which taxonomy objects should be included
+	 * in header generation. This hook receives the actual taxonomy objects,
+	 * enabling selective inclusion/exclusion based on taxonomy properties.
+	 *
+	 * @since 0.9.0
+	 * @param array $taxonomies Array of taxonomy objects
+	 * @param array $args Export arguments including context
+	 * @return array Modified taxonomy objects array
+	 */
+	$taxonomy_filter_args = [
+		'post_type'            => $post_type,
+		'export_scope'         => $export_scope,
+		'include_private_meta' => $include_private_meta,
+		'context'              => 'taxonomy_objects_filter',
+	];
+	$taxonomies           = apply_filters( 'swift_csv_filter_taxonomy_objects', $taxonomies, $taxonomy_filter_args );
+
+	// Build taxonomy headers from filtered taxonomy objects
 	$taxonomy_headers = [];
 	foreach ( $taxonomies as $taxonomy ) {
 		if ( $taxonomy->public ) {
@@ -123,29 +146,7 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		}
 	}
 
-	// Hook for taxonomy-only customization
-	/**
-	 * Filter taxonomy headers for export
-	 *
-	 * Allows developers to customize taxonomy headers independently.
-	 * This hook receives only taxonomy headers, making it easy to
-	 * add, remove, or modify taxonomies without affecting post fields.
-	 *
-	 * @since 0.9.0
-	 * @param array $taxonomy_headers Array of taxonomy headers (tax_ prefixed)
-	 * @param array $taxonomies Array of taxonomy objects
-	 * @param array $args Export arguments including context
-	 * @return array Modified taxonomy headers array
-	 */
-	$taxonomy_args    = [
-		'post_type'            => $post_type,
-		'export_scope'         => $export_scope,
-		'include_private_meta' => $include_private_meta,
-		'context'              => 'taxonomy_headers',
-	];
-	$taxonomy_headers = apply_filters( 'swift_csv_filter_taxonomy_headers', $taxonomy_headers, $taxonomies, $taxonomy_args );
-
-	// Hook for post fields customization (taxonomy-free)
+	// Hook for post fields customization
 	/**
 	 * Filter post field headers for export
 	 *

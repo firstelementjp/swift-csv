@@ -592,6 +592,145 @@ add_filter('swift_csv_filter_custom_field_headers', function($headers, $meta_key
 
 ---
 
+## #011 Hook Separation for Single Responsibility (2026-02-09)
+
+**Symptom**: Hooks receiving mixed data types making targeted modifications complex and error-prone.
+
+**Cause**: Combining different data types (post fields + taxonomies) in single hooks without separation.
+
+**Fix** (Single Responsibility Hook Pattern):
+
+```php
+// ❌ BEFORE - Mixed data in single hook
+$headers = get_post_fields();
+$taxonomies = get_taxonomies();
+foreach ($taxonomies as $taxonomy) {
+    $headers[] = 'tax_' . $taxonomy->name;
+}
+$filtered_headers = apply_filters('swift_csv_filter_post_taxonomy_headers', $headers, $args);
+// Problem: Need to filter out taxonomies to modify only post fields
+
+// ✅ AFTER - Separated hooks for single responsibility
+$headers = get_post_fields();
+$taxonomies = get_taxonomies();
+
+// Separate taxonomy processing
+$taxonomy_headers = [];
+foreach ($taxonomies as $taxonomy) {
+    $taxonomy_headers[] = 'tax_' . $taxonomy->name;
+}
+
+// Independent hooks with single data type
+$taxonomy_headers = apply_filters('swift_csv_filter_taxonomy_headers', $taxonomy_headers, $taxonomies, $args);
+$headers = apply_filters('swift_csv_filter_post_field_headers', $headers, $args);
+
+// Clean merge
+$headers = array_merge($headers, $taxonomy_headers);
+```
+
+**New Separated Hook Architecture**:
+
+- **`swift_csv_filter_post_field_headers`**: Post field customization only
+- **`swift_csv_filter_taxonomy_headers`**: Taxonomy customization only
+- **`swift_csv_filter_custom_field_headers`**: Custom field processing only
+
+**Hook Responsibilities**:
+
+1. **Post Field Hook**: Basic fields, scope-based fields, custom post fields
+2. **Taxonomy Hook**: Taxonomy inclusion/exclusion, custom taxonomy processing
+3. **Custom Field Hook**: ACF integration, custom field systems
+
+**Benefits of Separation**:
+
+- **Single Data Type**: Each hook receives only relevant data
+- **Targeted Processing**: Easy to modify specific element types
+- **Clean Logic**: No need to filter mixed arrays
+- **Better Performance**: Smaller arrays, faster processing
+- **Clear Intent**: Hook names clearly indicate purpose
+
+**Usage Examples**:
+
+```php
+// Post field customization - clean and simple
+add_filter('swift_csv_filter_post_field_headers', function($headers, $args) {
+    if ('product' === $args['post_type']) {
+        $headers[] = 'custom_product_field';
+    }
+    return $headers;
+}, 10, 2);
+
+// Taxonomy customization - taxonomy objects available
+add_filter('swift_csv_filter_taxonomy_headers', function($taxonomy_headers, $taxonomies, $args) {
+    // Remove specific taxonomy
+    $taxonomy_headers = array_filter($taxonomy_headers, function($header) {
+        return $header !== 'tax_hidden_category';
+    });
+
+    // Add custom taxonomy
+    $taxonomy_headers[] = 'tax_custom_taxonomy';
+    return $taxonomy_headers;
+}, 10, 3);
+
+// Custom field processing - meta keys available
+add_filter('swift_csv_filter_custom_field_headers', function($headers, $meta_keys, $args) {
+    if (class_exists('ACF')) {
+        return process_acf_fields($headers, $meta_keys, $args);
+    }
+    return $headers;
+}, 10, 3);
+```
+
+**Migration from Mixed Hook**:
+
+```php
+// Old mixed hook approach
+add_filter('swift_csv_filter_post_taxonomy_headers', function($headers, $args) {
+    // Complex filtering needed
+    $post_fields = array_filter($headers, function($h) { return !str_starts_with($h, 'tax_'); });
+    $taxonomies = array_filter($headers, function($h) { return str_starts_with($h, 'tax_'); });
+
+    // Modify specific elements...
+    return array_merge($post_fields, $taxonomies);
+});
+
+// New separated approach - clean and simple
+add_filter('swift_csv_filter_post_field_headers', function($headers, $args) {
+    // Direct post field modification
+    return $headers;
+});
+
+add_filter('swift_csv_filter_taxonomy_headers', function($taxonomy_headers, $taxonomies, $args) {
+    // Direct taxonomy modification
+    return $taxonomy_headers;
+});
+```
+
+**Lesson**: Separate hooks by data type and responsibility. Each hook should receive only the data it needs to process, making implementations cleaner and more maintainable.
+
+**Debug approach**:
+
+```php
+// Track each hook independently
+add_filter('swift_csv_filter_post_field_headers', function($headers, $args) {
+    error_log("Post field hook: " . count($headers) . " fields, context={$args['context']}");
+    return $headers;
+}, 10, 2);
+
+add_filter('swift_csv_filter_taxonomy_headers', function($taxonomy_headers, $taxonomies, $args) {
+    error_log("Taxonomy hook: " . count($taxonomy_headers) . " taxonomies, " . count($taxonomies) . " objects");
+    return $taxonomy_headers;
+}, 10, 3);
+```
+
+**Related patterns**:
+
+- Single Responsibility Principle in hook design
+- Data type separation for cleaner processing
+- Context-aware hook parameters
+- Clean merge patterns after independent processing
+
+---
+
 ## Quick Reference Table
 
 | #   | Symptom                    | Root Cause                                   | Key File                          |
@@ -606,6 +745,7 @@ add_filter('swift_csv_filter_custom_field_headers', function($headers, $meta_key
 | 008 | Scattered hook structure   | Multiple overlapping hooks causing confusion | `class-swift-csv-ajax-export.php` |
 | 009 | Code duplication           | Same field lists defined in multiple places  | `class-swift-csv-ajax-export.php` |
 | 010 | Hook misplacement          | Hooks at inappropriate points in flow        | `class-swift-csv-ajax-export.php` |
+| 011 | Mixed hook data            | Hooks receiving mixed data types             | `class-swift-csv-ajax-export.php` |
 
 ---
 

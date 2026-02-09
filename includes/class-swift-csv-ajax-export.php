@@ -115,33 +115,59 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	// Get allowed post fields using common function
 	$headers = swift_csv_get_allowed_post_fields( $export_scope );
 
-	$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+	$taxonomies       = get_object_taxonomies( $post_type, 'objects' );
+	$taxonomy_headers = [];
 	foreach ( $taxonomies as $taxonomy ) {
 		if ( $taxonomy->public ) {
-			$headers[] = 'tax_' . $taxonomy->name;
+			$taxonomy_headers[] = 'tax_' . $taxonomy->name;
 		}
 	}
 
-	// Hook for post fields and taxonomy customization
+	// Hook for taxonomy-only customization
 	/**
-	 * Filter post fields and taxonomy headers
+	 * Filter taxonomy headers for export
 	 *
-	 * Allows developers to customize post fields and taxonomy headers
-	 * before custom field discovery. This is the ideal place for
-	 * post field and taxonomy modifications.
+	 * Allows developers to customize taxonomy headers independently.
+	 * This hook receives only taxonomy headers, making it easy to
+	 * add, remove, or modify taxonomies without affecting post fields.
 	 *
 	 * @since 0.9.0
-	 * @param array $headers Current headers array (post fields + taxonomies)
+	 * @param array $taxonomy_headers Array of taxonomy headers (tax_ prefixed)
+	 * @param array $taxonomies Array of taxonomy objects
 	 * @param array $args Export arguments including context
-	 * @return array Modified headers array
+	 * @return array Modified taxonomy headers array
 	 */
-	$export_args = [
+	$taxonomy_args    = [
 		'post_type'            => $post_type,
 		'export_scope'         => $export_scope,
 		'include_private_meta' => $include_private_meta,
-		'context'              => 'post_fields_and_taxonomies',
+		'context'              => 'taxonomy_headers',
 	];
-	$headers     = apply_filters( 'swift_csv_filter_post_taxonomy_headers', $headers, $export_args );
+	$taxonomy_headers = apply_filters( 'swift_csv_filter_taxonomy_headers', $taxonomy_headers, $taxonomies, $taxonomy_args );
+
+	// Hook for post fields customization (taxonomy-free)
+	/**
+	 * Filter post field headers for export
+	 *
+	 * Allows developers to customize post field headers independently.
+	 * This hook receives only post field headers, making it easy to
+	 * add, remove, or modify post fields without affecting taxonomies.
+	 *
+	 * @since 0.9.0
+	 * @param array $headers Array of post field headers
+	 * @param array $args Export arguments including context
+	 * @return array Modified post field headers array
+	 */
+	$post_field_args = [
+		'post_type'            => $post_type,
+		'export_scope'         => $export_scope,
+		'include_private_meta' => $include_private_meta,
+		'context'              => 'post_fields',
+	];
+	$headers         = apply_filters( 'swift_csv_filter_post_field_headers', $headers, $post_field_args );
+
+	// Merge post fields and taxonomies
+	$headers = array_merge( $headers, $taxonomy_headers );
 
 	// Apply sample query hook for meta field discovery
 	/**

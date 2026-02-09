@@ -324,6 +324,97 @@ add_filter( 'swift_csv_export_columns', function( $headers, $post_type, $export_
 
 ---
 
+## #008 Hook Structure Consolidation (2026-02-09)
+
+**Symptom**: Multiple scattered hooks with overlapping functionality causing confusion and unpredictable behavior.
+
+**Cause**: Hook evolution over time without architectural planning, leading to 5 different header-related hooks with similar purposes.
+
+**Fix** (Hook Architecture Redesign):
+
+```php
+// ❌ BEFORE - Scattered hooks with overlapping functionality
+apply_filters('swift_csv_export_columns', [], $post_type, $export_scope, $include_private_meta);
+apply_filters('swift_csv_export_headers', $headers, ['post_type' => $post_type]);
+apply_filters('swift_csv_add_additional_headers', $headers, $post_type, []);
+apply_filters('swift_csv_generate_all_headers', $headers, $post_type, $include_private_meta);
+apply_filters('swift_csv_export_query_args', $query_args, ['post_type' => $post_type]);
+
+// ✅ AFTER - Consolidated, context-aware hooks
+// 1. Unified header generation
+$headers = apply_filters('swift_csv_generate_headers', [], [
+    'post_type' => $post_type,
+    'export_scope' => $export_scope,
+    'include_private_meta' => $include_private_meta,
+    'context' => 'header_generation'
+]);
+
+// 2. Sample query for meta discovery
+$sample_query_args = apply_filters('swift_csv_sample_query_args', $query_args, [
+    'post_type' => $post_type,
+    'context' => 'meta_discovery'
+]);
+
+// 3. Full export query
+$export_query_args = apply_filters('swift_csv_export_query_args', $query_args, [
+    'post_type' => $post_type,
+    'context' => 'full_export',
+    'export_limit' => $export_limit
+]);
+```
+
+**New Hook Architecture**:
+
+- **`swift_csv_generate_headers`**: Single hook for all header customization
+- **`swift_csv_sample_query_args`**: Customize sample post query for meta discovery
+- **`swift_csv_export_query_args`**: Customize main export query for content filtering
+
+**Benefits of Consolidation**:
+
+- **Predictability**: Clear execution order and single responsibility
+- **Flexibility**: Context parameters enable conditional logic within hooks
+- **Maintainability**: Easier to document and understand
+- **Extensibility**: Pro version and extensions use consistent API
+
+**Migration Guide**:
+
+```php
+// Old hooks → New unified hook
+add_filter('swift_csv_export_columns', $callback); // → swift_csv_generate_headers
+add_filter('swift_csv_export_headers', $callback);  // → swift_csv_generate_headers
+add_filter('swift_csv_add_additional_headers', $callback); // → swift_csv_generate_headers
+add_filter('swift_csv_generate_all_headers', $callback);   // → swift_csv_generate_headers
+
+// Implementation with context
+add_filter('swift_csv_generate_headers', function($headers, $args) {
+    if ('custom' === $args['export_scope']) {
+        return ['custom_field_1', 'custom_field_2'];
+    }
+    return $headers;
+}, 10, 2);
+```
+
+**Lesson**: Design hook architecture with clear separation of concerns and context awareness from the start. Avoid hook proliferation by thinking in terms of capabilities rather than specific use cases.
+
+**Debug approach**:
+
+```php
+// Track hook execution with context
+add_filter('swift_csv_generate_headers', function($headers, $args) {
+    error_log("Header generation: context={$args['context']}, scope={$args['export_scope']}");
+    return $headers;
+}, 10, 2);
+```
+
+**Related patterns**:
+
+- Use context parameters for hook flexibility
+- Design hooks with single responsibility principle
+- Provide migration paths for API changes
+- Document hook execution order clearly
+
+---
+
 ## Quick Reference Table
 
 | #   | Symptom                    | Root Cause                                   | Key File                          |
@@ -335,6 +426,7 @@ add_filter( 'swift_csv_export_columns', function( $headers, $post_type, $export_
 | 005 | AJAX error after success   | Missing `success: true` in JSON response     | `class-swift-csv-ajax-import.php` |
 | 006 | Inconsistent conditionals  | Misunderstanding WordPress Yoda notation     | Multiple files                    |
 | 007 | Conditional hook execution | Hooks only execute under specific conditions | `class-swift-csv-ajax-export.php` |
+| 008 | Scattered hook structure   | Multiple overlapping hooks causing confusion | `class-swift-csv-ajax-export.php` |
 
 ---
 

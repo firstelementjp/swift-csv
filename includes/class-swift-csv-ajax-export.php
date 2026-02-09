@@ -50,28 +50,34 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 	$include_private_meta = (bool) $include_private_meta;
 
-	// Apply custom columns filter for all export scopes
+	// Apply unified header generation hook
 	/**
-	 * Filter custom export columns for any export scope
+	 * Generate CSV headers for export
 	 *
-	 * Allows developers to define custom column headers for export.
-	 * This hook is called for all export scopes, allowing conditional logic within the hook.
+	 * Unified hook for all header generation needs. Allows developers to completely
+	 * customize headers based on context and parameters.
 	 *
 	 * @since 0.9.0
-	 * @param array $custom_headers Array of custom header strings
-	 * @param string $post_type The post type being exported
-	 * @param string $export_scope The current export scope ('basic', 'all', 'custom')
-	 * @param bool $include_private_meta Whether to include private meta fields
-	 * @return array Array of header strings to use for export
+	 * @param array $headers Current headers array
+	 * @param array $args Export arguments including context
+	 * @return array Modified headers array
 	 */
-	$custom_headers = apply_filters( 'swift_csv_export_columns', [], $post_type, $export_scope, $include_private_meta );
+	$export_args = [
+		'post_type'            => $post_type,
+		'export_scope'         => $export_scope,
+		'include_private_meta' => $include_private_meta,
+		'context'              => 'header_generation',
+	];
+	$headers     = apply_filters( 'swift_csv_generate_headers', [], $export_args );
 
-	// If custom hook returns valid headers, use them
-	if ( is_array( $custom_headers ) && ! empty( $custom_headers ) ) {
-		return $custom_headers;
+	// If hook returned custom headers, normalize and return
+	$default_headers = [ 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_author' ];
+	if ( $headers !== $default_headers ) {
+		return swift_csv_ajax_export_normalize_headers( $headers );
 	}
 
-	$headers = [ 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date', 'post_author' ];
+	// Build default headers if hook didn't modify
+	$headers = $default_headers;
 	if ( $export_scope === 'all' ) {
 		$allowed_post_fields = [
 			'post_title',
@@ -103,60 +109,31 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		}
 	}
 
-	$default_headers = $headers;
-
+	// Apply sample query hook for meta field discovery
 	/**
-	 * Filter export headers
+	 * Filter sample query arguments for meta field discovery
 	 *
-	 * Allows developers to modify the CSV headers before export.
-	 * Can be used to add, remove, or reorder columns.
+	 * Allows developers to customize the sample post query used to discover
+	 * custom field keys for header generation.
 	 *
 	 * @since 0.9.0
-	 * @param array $headers Array of header strings
-	 * @param array $args Export arguments including post_type
-	 * @return array Modified headers array
-	 */
-	$filtered_headers = apply_filters( 'swift_csv_export_headers', $headers, [ 'post_type' => $post_type ] );
-	if ( $filtered_headers !== $default_headers ) {
-		return swift_csv_ajax_export_normalize_headers( $filtered_headers );
-	}
-
-	// Additional headers hook for extensions
-	/**
-	 * Filter additional headers for export
-	 *
-	 * Allows developers to add custom headers to the export.
-	 * This hook can be used by any extension to add specialized fields.
-	 *
-	 * @since 0.9.0
-	 * @param array $headers Current headers array
-	 * @param string $post_type The post type being exported
-	 * @param array $args Additional arguments
-	 * @return array Modified headers with additional fields
-	 */
-	$headers = apply_filters( 'swift_csv_add_additional_headers', $headers, $post_type, [] );
-
-	$sample_query_args = [
-		'post_type'      => $post_type,
-		'post_status'    => 'publish',
-		'posts_per_page' => 1, // Check only the first post for header structure
-		'orderby'        => 'post_date', // Match WordPress admin default
-		'order'          => 'DESC', // Get newest post by date
-		'fields'         => 'ids',
-	];
-
-	/**
-	 * Filter export query arguments
-	 *
-	 * Allows developers to modify the WP_Query arguments used for export.
-	 * Can be used to filter posts by taxonomy, meta values, etc.
-	 *
-	 * @since 0.9.0
-	 * @param array $query_args WP_Query arguments
-	 * @param array $args Export arguments including post_type
+	 * @param array $query_args Sample query arguments
+	 * @param array $args Export arguments including context
 	 * @return array Modified query arguments
 	 */
-	$sample_query_args                   = apply_filters( 'swift_csv_export_query_args', $sample_query_args, [ 'post_type' => $post_type ] );
+	$sample_args                         = [
+		'post_type' => $post_type,
+		'context'   => 'meta_discovery',
+	];
+	$sample_query_args                   = [
+		'post_type'      => $post_type,
+		'post_status'    => 'publish',
+		'posts_per_page' => 1,
+		'orderby'        => 'post_date',
+		'order'          => 'DESC',
+		'fields'         => 'ids',
+	];
+	$sample_query_args                   = apply_filters( 'swift_csv_sample_query_args', $sample_query_args, $sample_args );
 	$sample_query_args['posts_per_page'] = 1; // Ensure only 1 post
 	$sample_post_ids                     = get_posts( $sample_query_args );
 
@@ -182,32 +159,15 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 		}
 	}
 
-	// Check if Pro version is available and delegate processing
-	if ( class_exists( 'Swift_CSV_Pro_ACF_Integration' ) ) {
-		/**
-		 * Filter all headers for export
-		 *
-		 * Allows extensions to completely override header generation.
-		 * This hook can be used by Pro version or other extensions.
-		 *
-		 * @since 0.9.0
-		 * @param array $headers Current headers array
-		 * @param string $post_type The post type being exported
-		 * @param bool $include_private_meta Whether to include private meta fields
-		 * @return array Complete headers array
-		 */
-		$headers = apply_filters( 'swift_csv_generate_all_headers', $headers, $post_type, $include_private_meta );
-	} else {
-		// Free version default processing
-		foreach ( $all_meta_keys as $meta_key ) {
-			if ( ! is_string( $meta_key ) || $meta_key === '' ) {
-				continue;
-			}
-			if ( ! $include_private_meta && str_starts_with( $meta_key, '_' ) ) {
-				continue; // Skip private meta
-			}
-			$headers[] = 'cf_' . $meta_key;
+	// Add custom fields to headers
+	foreach ( $all_meta_keys as $meta_key ) {
+		if ( ! is_string( $meta_key ) || $meta_key === '' ) {
+			continue;
 		}
+		if ( ! $include_private_meta && str_starts_with( $meta_key, '_' ) ) {
+			continue; // Skip private meta
+		}
+		$headers[] = 'cf_' . $meta_key;
 	}
 
 	return swift_csv_ajax_export_normalize_headers( $headers );
@@ -322,13 +282,30 @@ function swift_csv_ajax_export_handler() {
 		$total_posts_query_args = [
 			'post_type'      => $post_type,
 			'post_status'    => 'publish',
-			'posts_per_page' => $export_limit > 0 ? $export_limit : -1, // Use limit or all posts
+			'posts_per_page' => $export_limit > 0 ? $export_limit : -1,
 			'fields'         => 'ids',
 		];
-		// Apply filter but check if it modifies our limit
-		$filtered_args = apply_filters( 'swift_csv_export_query_args', $total_posts_query_args, [ 'post_type' => $post_type ] );
 
-		// Force our limit regardless of filter
+		// Apply export query filter for full export
+		/**
+		 * Filter export query arguments for full export
+		 *
+		 * Allows developers to customize the main export query used to retrieve
+		 * all posts for CSV generation. This affects the actual export content.
+		 *
+		 * @since 0.9.0
+		 * @param array $query_args Export query arguments
+		 * @param array $args Export arguments including context
+		 * @return array Modified query arguments
+		 */
+		$export_query_args = [
+			'post_type'    => $post_type,
+			'context'      => 'full_export',
+			'export_limit' => $export_limit,
+		];
+		$filtered_args     = apply_filters( 'swift_csv_export_query_args', $total_posts_query_args, $export_query_args );
+
+		// Preserve export limit regardless of filter modifications
 		$filtered_args['posts_per_page'] = $export_limit > 0 ? $export_limit : -1;
 
 		$total_posts_query_args = $filtered_args;

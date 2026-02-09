@@ -233,13 +233,22 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	 * @param array $args Export arguments including context
 	 * @return array Classified meta keys array with 'acf', 'regular', 'private' keys
 	 */
-	$meta_classify_args   = [
+	$meta_classify_args = [
 		'post_type'            => $post_type,
 		'export_scope'         => $export_scope,
 		'include_private_meta' => $include_private_meta,
 		'context'              => 'meta_key_classification',
 	];
+
+	error_log( '=== Free Version Classification Hook Call ===' );
+	error_log( 'Calling swift_csv_classify_meta_keys with:' );
+	error_log( 'All Meta Keys: ' . print_r( $all_meta_keys, true ) );
+	error_log( 'Args: ' . print_r( $meta_classify_args, true ) );
+
 	$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', $all_meta_keys, $meta_classify_args );
+
+	error_log( 'Classification Hook Result: ' . print_r( $classified_meta_keys, true ) );
+	error_log( '=== End Free Version Classification Hook Call ===' );
 
 	// Ensure classified structure exists
 	if ( ! is_array( $classified_meta_keys ) || ! isset( $classified_meta_keys['acf'] ) ) {
@@ -273,16 +282,28 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 	 * @param array $args Export arguments including context
 	 * @return array Complete custom field headers array
 	 */
-	$custom_field_args    = [
+	$custom_field_args = [
 		'post_type'            => $post_type,
 		'export_scope'         => $export_scope,
 		'include_private_meta' => $include_private_meta,
 		'context'              => 'custom_field_headers_generation',
 	];
+
+	error_log( '=== Free Version Headers Generation Hook Call ===' );
+	error_log( 'Calling swift_csv_generate_custom_field_headers with:' );
+	error_log( 'Classified Meta Keys: ' . print_r( $classified_meta_keys, true ) );
+	error_log( 'Args: ' . print_r( $custom_field_args, true ) );
+
 	$custom_field_headers = apply_filters( 'swift_csv_generate_custom_field_headers', [], $classified_meta_keys, $custom_field_args );
+
+	error_log( 'Headers Generation Hook Result: ' . print_r( $custom_field_headers, true ) );
+	error_log( '=== End Free Version Headers Generation Hook Call ===' );
 
 	// Fallback: if no hook implementation, use basic processing
 	if ( empty( $custom_field_headers ) ) {
+		error_log( '=== Free Version Fallback Processing ===' );
+		error_log( 'Hook returned empty array - using fallback processing' );
+
 		$custom_field_headers = [];
 
 		// Process regular fields
@@ -291,6 +312,7 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 				continue;
 			}
 			$custom_field_headers[] = 'cf_' . $meta_key;
+			error_log( 'Fallback Added Regular Header: cf_' . $meta_key );
 		}
 
 		// Process private fields if allowed
@@ -300,8 +322,12 @@ function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic
 					continue;
 				}
 				$custom_field_headers[] = 'cf_' . $meta_key;
+				error_log( 'Fallback Added Private Header: cf_' . $meta_key );
 			}
 		}
+
+		error_log( 'Fallback Final Headers: ' . print_r( $custom_field_headers, true ) );
+		error_log( '=== End Free Version Fallback Processing ===' );
 	}
 
 	// Merge all three header types
@@ -491,6 +517,33 @@ function swift_csv_ajax_export_handler() {
 					$value  = $author ? $author->display_name : '';
 				} elseif ( in_array( $header, swift_csv_get_allowed_post_fields( 'basic' ), true ) ) {
 					$value = get_post_field( $header, $post_id );
+				} elseif ( str_starts_with( $header, 'acf_' ) ) {
+					// Handle ACF fields - delegate to Pro version processing
+					$meta_key = substr( $header, 4 );
+
+					/**
+					 * Process ACF field value for export
+					 *
+					 * Allows Pro version to handle ACF field processing with proper
+					 * formatting, taxonomy term resolution, and field type handling.
+					 *
+					 * @since 0.9.0
+					 * @param string $value Processed field value (default: empty)
+					 * @param string $meta_key Original ACF field name
+					 * @param int $post_id Post ID
+					 * @param array $args Processing arguments
+					 * @return string Processed ACF field value
+					 */
+					$acf_args = [
+						'post_type' => $post_type,
+						'context'   => 'export_data_processing',
+					];
+					$value    = apply_filters( 'swift_csv_process_acf_field_value', '', $meta_key, $post_id, $acf_args );
+
+					// Debug log for ACF processing
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						error_log( "[Swift CSV] ACF Processing: {$header} -> '{$value}' for post {$post_id}" );
+					}
 				} elseif ( str_starts_with( $header, 'cf_' ) ) {
 					$meta_key    = substr( $header, 3 );
 					$meta_values = get_post_meta( $post_id, $meta_key );

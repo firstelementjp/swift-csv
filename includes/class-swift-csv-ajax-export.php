@@ -36,6 +36,82 @@ class Swift_CSV_Ajax_Export {
 	 */
 	public function __construct() {
 		add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
+		add_action( 'wp_ajax_swift_csv_cancel_export', [ $this, 'handle_ajax_export_cancel' ] );
+	}
+
+	/**
+	 * Get export cancel option name
+	 *
+	 * @since 0.9.0
+	 * @param string $export_session Export session identifier
+	 * @return string Option name
+	 */
+	private function get_cancel_option_name( string $export_session ): string {
+		return 'swift_csv_export_cancelled_' . get_current_user_id() . '_' . $export_session;
+	}
+
+	/**
+	 * Cleanup old cancel flags for current user
+	 *
+	 * This prevents cancelled session flags from accumulating in the options table.
+	 *
+	 * @since 0.9.0
+	 * @return void
+	 */
+	private function cleanup_old_cancel_flags(): void {
+		global $wpdb;
+
+		$user_id = get_current_user_id();
+		$prefix  = 'swift_csv_export_cancelled_' . $user_id . '_';
+		$like    = $wpdb->esc_like( $prefix ) . '%';
+
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+				$like
+			)
+		);
+	}
+
+	/**
+	 * Check whether export should be cancelled
+	 *
+	 * Notes:
+	 * - connection_aborted() enables immediate cancellation when the browser aborts the fetch.
+	 * - A direct DB read avoids stale get_option() cache within the same PHP request.
+	 *
+	 * @since 0.9.0
+	 * @param string $export_session Export session identifier
+	 * @return bool True if the current export should be cancelled
+	 */
+	private function is_cancelled( string $export_session ): bool {
+		if ( connection_aborted() ) {
+			return true;
+		}
+
+		$cancel_option_name = $this->get_cancel_option_name( $export_session );
+
+		global $wpdb;
+		$option_value = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1",
+				$cancel_option_name
+			)
+		);
+
+		return ! is_null( $option_value );
+	}
+
+	/**
+	 * Check whether the request has been aborted
+	 *
+	 * This is a fast check intended to be used inside hot loops.
+	 *
+	 * @since 0.9.0
+	 * @return bool True if the client connection has been aborted
+	 */
+	private function is_connection_aborted(): bool {
+		return connection_aborted();
 	}
 
 	/*
@@ -420,6 +496,7 @@ class Swift_CSV_Ajax_Export {
 		try {
 			// Security check
 			check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
+			ignore_user_abort( false );
 
 			// Get parameters
 			$post_type            = sanitize_text_field( $_POST['post_type'] ?? 'post' );
@@ -428,10 +505,19 @@ class Swift_CSV_Ajax_Export {
 			$export_limit         = ! empty( $_POST['export_limit'] ) ? intval( $_POST['export_limit'] ) : 0;
 			$taxonomy_format      = sanitize_text_field( $_POST['taxonomy_format'] ?? 'name' );
 			$start_row            = intval( $_POST['start_row'] ?? 0 );
+			$export_session       = sanitize_key( $_POST['export_session'] ?? '' );
+			if ( '' === $export_session ) {
+				wp_send_json_error( 'Missing export session' );
+				return;
+			}
 
-			// Log export start for debugging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( "[Swift CSV] Export started: post_type={$post_type}, scope={$export_scope}, limit={$export_limit}, start_row={$start_row}, taxonomy_format={$taxonomy_format}" );
+			if ( 0 === $start_row ) {
+				$this->cleanup_old_cancel_flags();
+			}
+
+			if ( $this->is_cancelled( $export_session ) ) {
+				wp_send_json_error( 'Export cancelled by user' );
+				return;
 			}
 
 			// Validate post type
@@ -477,11 +563,6 @@ class Swift_CSV_Ajax_Export {
 
 			// Define max_posts_to_process
 			$max_posts_to_process = $export_limit > 0 ? $export_limit : $total_count;
-
-			// Log data retrieval info for debugging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( "[Swift CSV] Data retrieved: total_count={$total_count}, max_posts={$max_posts_to_process}" );
-			}
 
 			// Get posts for current batch
 			$posts_query_args = [
@@ -556,12 +637,22 @@ class Swift_CSV_Ajax_Export {
 
 			// Process each post
 			foreach ( $posts as $post_id ) {
+				if ( $this->is_cancelled( $export_session ) ) {
+					wp_send_json_error( 'Export cancelled by user' );
+					return;
+				}
+
 				$row = [];
 
 				// Pass taxonomy_format to inner scope
 				$current_taxonomy_format = $taxonomy_format;
 
 				foreach ( $headers as $header ) {
+					if ( $this->is_connection_aborted() ) {
+						wp_send_json_error( 'Export cancelled by user' );
+						return;
+					}
+
 					$value = '';
 
 					// Handle ID field
@@ -576,26 +667,14 @@ class Swift_CSV_Ajax_Export {
 						$taxonomy_name = substr( $header, 4 );
 						$terms         = get_the_terms( $post_id, $taxonomy_name );
 						if ( $terms && ! is_wp_error( $terms ) ) {
-							// Debug log for taxonomy processing
-							if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-								error_log( "[Swift CSV] Processing taxonomy: {$taxonomy_name}, format: {$taxonomy_format}" );
-							}
-
 							$term_values = array_map(
 								function ( $term ) use ( $current_taxonomy_format ) {
 									$result = $current_taxonomy_format === 'id' ? $term->term_id : $term->name;
-									if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-										error_log( "[Swift CSV] Term: {$term->name} (ID: {$term->term_id}) -> Result: {$result} (format: {$current_taxonomy_format})" );
-									}
 									return $result;
 								},
 								$terms
 							);
 							$value       = implode( '|', $term_values );
-
-							if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-								error_log( "[Swift CSV] Final taxonomy value: {$value}" );
-							}
 						}
 						$clean_value = strip_tags( (string) $value );
 						$clean_value = $this->normalize_quotes( $clean_value );
@@ -623,10 +702,6 @@ class Swift_CSV_Ajax_Export {
 						];
 						$value    = apply_filters( 'swift_csv_process_acf_field_value', '', $meta_key, $post_id, $acf_args );
 
-						// Debug log for ACF processing
-						if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-							error_log( "[Swift CSV] ACF Processing: {$header} -> '{$value}' for post {$post_id}" );
-						}
 					} elseif ( str_starts_with( $header, 'cf_' ) ) {
 						$meta_key    = substr( $header, 3 );
 						$meta_values = get_post_meta( $post_id, $meta_key );
@@ -671,9 +746,9 @@ class Swift_CSV_Ajax_Export {
 			$continue = $next_row < $max_posts_to_process;
 			$progress = round( ( $next_row / $max_posts_to_process ) * 100, 2 );
 
-			// Log batch completion for debugging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Swift CSV] Export batch completed: posts_processed=' . count( $posts ) . ", next_row={$next_row}/{$max_posts_to_process}, progress={$progress}%" );
+			if ( ! $continue ) {
+				$cancel_option_name = $this->get_cancel_option_name( $export_session );
+				delete_option( $cancel_option_name );
 			}
 
 			wp_send_json(
@@ -690,5 +765,26 @@ class Swift_CSV_Ajax_Export {
 		} catch ( Exception $e ) {
 			wp_send_json_error( 'Export failed: ' . $e->getMessage() );
 		}
+	}
+
+	/**
+	 * Handle Ajax export cancellation
+	 *
+	 * @since 0.9.0
+	 * @return void Sends JSON response
+	 */
+	public function handle_ajax_export_cancel(): void {
+		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
+
+		$export_session = sanitize_key( $_POST['export_session'] ?? '' );
+		if ( '' === $export_session ) {
+			wp_send_json_error( 'Missing export session' );
+			return;
+		}
+
+		$cancel_option_name = $this->get_cancel_option_name( $export_session );
+		update_option( $cancel_option_name, time(), false );
+
+		wp_send_json_success( 'Export cancellation signal sent' );
 	}
 }

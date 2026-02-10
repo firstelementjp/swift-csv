@@ -292,13 +292,20 @@ function handleAjaxExport(e) {
 
 	const postType = document.querySelector('#ajax_export_post_type')?.value;
 	const exportScope =
-		document.querySelector('input[name="export_scope"]:checked')?.value || 'basic';
-	const includePrivateMeta = document.querySelector('input[name="include_private_meta"]')?.checked
+		document.querySelector('input[name="swift_csv_export_scope"]:checked')?.value || 'basic';
+	const includePrivateMeta = document.querySelector(
+		'input[name="swift_csv_include_private_meta"]'
+	)?.checked
 		? '1'
 		: '0';
 	const taxonomyFormat =
-		document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name';
-	const exportLimit = document.querySelector('#export_limit')?.value || '';
+		document.querySelector('input[name="swift_csv_export_taxonomy_format"]:checked')?.value ||
+		'name';
+	const exportLimit = document.querySelector('#swift_csv_export_limit')?.value || '';
+	const exportSession = (Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(
+		/\./g,
+		''
+	);
 
 	// Log export settings
 	addLogEntry(swiftCSV.messages.postTypeExport + ' ' + postType, 'debug', 'export');
@@ -346,12 +353,37 @@ function handleAjaxExport(e) {
 	}
 
 	let csvContent = '';
+	let currentExportAbortController = null;
+	let exportCancelHandler = null;
 
 	// Cancel functionality
 	if (cancelBtn) {
-		cancelBtn.addEventListener('click', function () {
+		if (exportCancelHandler) {
+			cancelBtn.removeEventListener('click', exportCancelHandler);
+		}
+
+		exportCancelHandler = function () {
 			isCancelled = true;
 			addLogEntry(swiftCSV.messages.exportCancelledByUser, 'warning', 'export');
+
+			if (currentExportAbortController) {
+				currentExportAbortController.abort();
+			}
+
+			const cancelFormData = new URLSearchParams({
+				action: 'swift_csv_cancel_export',
+				nonce: swiftCSV.nonce,
+				export_session: exportSession,
+			});
+			fetch(swiftCSV.ajaxUrl, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: cancelFormData,
+			}).catch(() => {
+				// ignore
+			});
 
 			if (exportBtn) {
 				exportBtn.disabled = false;
@@ -360,7 +392,9 @@ function handleAjaxExport(e) {
 			if (cancelBtn) {
 				cancelBtn.style.display = 'none';
 			}
-		});
+		};
+
+		cancelBtn.addEventListener('click', exportCancelHandler, { once: true });
 	}
 
 	/**
@@ -371,6 +405,8 @@ function handleAjaxExport(e) {
 	 */
 	function processChunk(startRow = 0) {
 		if (isCancelled) return;
+
+		currentExportAbortController = new AbortController();
 
 		addLogEntry(swiftCSV.messages.processingChunk + ' ' + startRow, 'debug', 'import');
 
@@ -383,6 +419,7 @@ function handleAjaxExport(e) {
 			taxonomy_format: taxonomyFormat,
 			export_limit: exportLimit,
 			start_row: startRow,
+			export_session: exportSession,
 		});
 
 		fetch(swiftCSV.ajaxUrl, {
@@ -391,6 +428,7 @@ function handleAjaxExport(e) {
 				'Content-Type': 'application/x-www-form-urlencoded',
 			},
 			body: formData,
+			signal: currentExportAbortController.signal,
 		})
 			.then(response => response.json())
 			.then(data => {
@@ -431,6 +469,9 @@ function handleAjaxExport(e) {
 				}
 			})
 			.catch(error => {
+				if (error && error.name === 'AbortError') {
+					return;
+				}
 				console.error('Export error:', error);
 				addLogEntry(swiftCSV.messages.exportError + ' ' + error.message, 'error', 'export');
 

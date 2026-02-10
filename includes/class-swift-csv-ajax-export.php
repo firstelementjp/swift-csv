@@ -692,6 +692,3 @@ class Swift_CSV_Ajax_Export {
 		}
 	}
 }
-
-// Initialize the class
-new Swift_CSV_Ajax_Export();

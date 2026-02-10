@@ -70,6 +70,7 @@ function swift_csv_load_textdomain() {
  */
 function swift_csv_init() {
 	new Swift_CSV_Admin();
+	new Swift_CSV_Ajax_Export();
 	new Swift_CSV_Updater( __FILE__ );
 }
 

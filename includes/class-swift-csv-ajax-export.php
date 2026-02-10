@@ -46,11 +46,14 @@ class Swift_CSV_Ajax_Export {
 	/**
 	 * Normalize CSV headers by removing empty values and duplicates
 	 *
+	 * Cleans up header array by removing empty strings, trimming whitespace,
+	 * eliminating duplicates, and ensuring 'ID' is always the first header.
+	 *
 	 * @since 0.9.0
-	 * @param array $headers Array of CSV header strings
-	 * @return array Normalized headers array
+	 * @param string[] $headers Array of CSV header strings
+	 * @return string[] Normalized headers array with ID as first element
 	 */
-	private function normalize_headers( $headers ) {
+	private function normalize_headers( array $headers ): array {
 		$headers = array_values( array_filter( array_map( 'trim', (array) $headers ), 'strlen' ) );
 		$headers = array_values( array_unique( $headers ) );
 
@@ -75,11 +78,15 @@ class Swift_CSV_Ajax_Export {
 	/**
 	 * Get allowed post fields for CSV export based on scope
 	 *
+	 * Returns an array of WordPress post field names that should be included
+	 * in the CSV export based on the specified scope. The 'basic' scope includes
+	 * essential fields, while 'all' scope includes additional metadata fields.
+	 *
 	 * @since 0.9.0
 	 * @param string $export_scope The export scope ('basic', 'all')
-	 * @return array Array of allowed post field names
+	 * @return string[] Array of allowed post field names
 	 */
-	private function get_allowed_post_fields( $export_scope = 'basic' ) {
+	private function get_allowed_post_fields( string $export_scope = 'basic' ): array {
 		$basic_fields = [
 			'ID',
 			'post_title',
@@ -137,13 +144,17 @@ class Swift_CSV_Ajax_Export {
 	/**
 	 * Build CSV headers based on post type and export scope
 	 *
+	 * Generates a comprehensive array of CSV headers including post fields,
+	 * taxonomy terms, and custom fields. Supports different export scopes and
+	 * private meta field inclusion options.
+	 *
 	 * @since 0.9.0
 	 * @param string $post_type The post type to export
 	 * @param string $export_scope The export scope ('basic', 'all', 'custom')
 	 * @param bool   $include_private_meta Whether to include private meta fields
-	 * @return array Array of CSV header strings
+	 * @return string[] Array of CSV header strings
 	 */
-	private function build_headers( $post_type, $export_scope = 'basic', $include_private_meta = false ) {
+	private function build_headers( string $post_type, string $export_scope = 'basic', bool $include_private_meta = false ): array {
 		$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 		$include_private_meta = (bool) $include_private_meta;
 
@@ -355,11 +366,14 @@ class Swift_CSV_Ajax_Export {
 	/**
 	 * Generate a CSV row string from an array of values
 	 *
+	 * Converts an array of values into a properly formatted CSV string using
+	 * PHP's built-in fputcsv function with proper escaping and quoting.
+	 *
 	 * @since 0.9.0
-	 * @param array $row Array of values to convert to CSV
+	 * @param mixed[] $row Array of values to convert to CSV
 	 * @return string CSV formatted string
 	 */
-	private function fputcsv_row( array $row ) {
+	private function fputcsv_row( array $row ): string {
 		$fh = fopen( 'php://temp', 'r+' );
 		fputcsv( $fh, $row );
 		rewind( $fh );
@@ -371,10 +385,15 @@ class Swift_CSV_Ajax_Export {
 	/**
 	 * Normalize quotes and escape characters for CSV output
 	 *
+	 * Handles various quote escaping scenarios to ensure proper CSV formatting.
+	 * Fixes double-escaped quotes, converts escaped quotes, and handles edge cases
+	 * with literal backslashes before quotes.
+	 *
+	 * @since 0.9.0
 	 * @param string $field The field value to normalize
 	 * @return string The normalized field value
 	 */
-	private function normalize_quotes( $field ) {
+	private function normalize_quotes( string $field ): string {
 		// Fix double escaped quotes that are already properly escaped
 		$field = preg_replace( '/\\\\"\\\\"/', '""', $field );
 
@@ -388,11 +407,16 @@ class Swift_CSV_Ajax_Export {
 	}
 
 	/**
-	 * Simple Ajax export handler
+	 * Handle Ajax export requests with chunked processing
+	 *
+	 * Processes AJAX requests for CSV export with support for large datasets
+	 * through chunked processing. Handles security validation, parameter parsing,
+	 * data retrieval, and CSV generation with progress tracking.
 	 *
 	 * @since 0.9.0
+	 * @return void Sends JSON response with export data or error message
 	 */
-	public function handle_ajax_export() {
+	public function handle_ajax_export(): void {
 		try {
 			// Security check
 			check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );

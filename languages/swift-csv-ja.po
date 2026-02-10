@@ -704,3 +704,9 @@ msgstr "拡張ドキュメントとチュートリアル"
 
 msgid "View Swift CSV Pro Details"
 msgstr "Swift CSV Pro詳細を表示"
+
+msgid "License API URL not defined. Please activate Swift CSV Pro."
+msgstr "ライセンスAPI URLが定義されていません。Swift CSV Proを有効化してください。"
+
+msgid "License deactivated locally. Server-side activation remains active."
+msgstr "ライセンスをローカルで無効化しました。サーバー側のアクティベーションは解除されません。"

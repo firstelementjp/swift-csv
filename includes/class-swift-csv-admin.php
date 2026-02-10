@@ -183,6 +183,9 @@ class Swift_CSV_Admin {
 						// Export scope mappings
 						'exportScopeBasic'      => esc_html__( 'Basic Fields', 'swift-csv' ),
 						'exportScopeAll'        => esc_html__( 'All Fields', 'swift-csv' ),
+						// License UI
+						'show'                  => esc_html__( 'Show', 'swift-csv' ),
+						'hide'                  => esc_html__( 'Hide', 'swift-csv' ),
 					],
 				]
 			);
@@ -512,26 +515,32 @@ class Swift_CSV_Admin {
 		$license_key    = is_array( $pro_product ) ? ( $pro_product['key'] ?? '' ) : '';
 		$license_status = $this->is_pro_license_active() ? 'active' : 'inactive';
 		?>
-		<input
-			type="password"
-			autocomplete="off"
-			id="swift_csv_pro_license_key_input"
-			name="swift_csv_pro_license_key_input"
-			value="<?php echo esc_attr( $license_key ); ?>"
-			class="regular-text"
-			style="max-width: 300px;"
-		>
-		<button
-			type="button"
-			id="swift_csv_pro_license_toggle_visibility"
-			class="button button-secondary"
-			style="margin-left: 8px;"
-		>
-			<?php esc_html_e( 'Show', 'swift-csv' ); ?>
-		</button>
+		<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+			<input
+				type="password"
+				autocomplete="off"
+				id="swift_csv_pro_license_key_input"
+				name="swift_csv_pro_license_key_input"
+				value="<?php echo esc_attr( $license_key ); ?>"
+				class="regular-text"
+				style="max-width: 300px;"
+			>
+			<button
+				type="button"
+				id="swift_csv_pro_license_toggle_visibility"
+				class="button button-secondary"
+			>
+				<?php esc_html_e( 'Show', 'swift-csv' ); ?>
+			</button>
+			<?php if ( 'active' === $license_status ) : ?>
+				<button type="button" id="swift_csv_pro_license_deactivate" class="button button-secondary swift-csv-license-button" data-action="deactivate"><?php esc_html_e( 'Deactivate', 'swift-csv' ); ?></button>
+			<?php else : ?>
+				<button type="button" id="swift_csv_pro_license_activate" class="button button-primary swift-csv-license-button" data-action="activate"><?php esc_html_e( 'Activate', 'swift-csv' ); ?></button>
+			<?php endif; ?>
+			<span class="spinner" style="float: none; vertical-align: middle;"></span>
+		</div>
 
 		<?php if ( 'active' === $license_status ) : ?>
-			<button type="button" id="swift_csv_pro_license_deactivate" class="button button-secondary swift-csv-license-button" data-action="deactivate"><?php esc_html_e( 'Deactivate', 'swift-csv' ); ?></button>
 			<p class="description" style="color: green; font-weight: bold;">
 				<?php esc_html_e( 'The license is valid.', 'swift-csv' ); ?>
 			</p>
@@ -585,7 +594,6 @@ class Swift_CSV_Admin {
 				?>
 			</p>
 		<?php else : ?>
-			<button type="button" id="swift_csv_pro_license_activate" class="button button-primary swift-csv-license-button" data-action="activate"><?php esc_html_e( 'Activate', 'swift-csv' ); ?></button>
 			<p class="description">
 				<?php esc_html_e( 'Enter the license key you received at the time of purchase and press the "Activate" button.', 'swift-csv' ); ?>
 			</p>
@@ -599,9 +607,8 @@ class Swift_CSV_Admin {
 				delete_transient( 'swift_csv_pro_license_error' );
 			endif;
 			?>
-		<?php endif; ?>
 
-		<span class="spinner" style="float: none; vertical-align: middle;"></span>
+		<?php endif; ?>
 
 		<?php
 	}

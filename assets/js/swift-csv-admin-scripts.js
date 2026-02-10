@@ -872,3 +872,108 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	if (uploadArea) uploadArea.style.display = 'block';
 	if (fileInfo) fileInfo.style.display = 'none';
 }
+
+// ==========================================================================
+// Swift CSV Pro License Activation & Deactivation
+// ==========================================================================
+
+// License key visibility toggle (Show/Hide password).
+const licenseInput = document.getElementById('swift_csv_pro_license_key_input');
+const licenseToggle = document.getElementById('swift_csv_pro_license_toggle_visibility');
+if (licenseInput && licenseToggle) {
+	licenseToggle.addEventListener('click', () => {
+		const isPassword = licenseInput.type === 'password';
+		licenseInput.type = isPassword ? 'text' : 'password';
+		licenseToggle.textContent = isPassword ? swiftCSV.messages.hide : swiftCSV.messages.show;
+	});
+}
+
+/**
+ * Helper function for WordPress AJAX requests.
+ *
+ * @param {string} action - The wp_ajax_{action} hook to target.
+ * @param {Object} data   - Additional data to send in the request body.
+ * @return {Promise<Object>} A promise that resolves to the JSON response.
+ */
+async function wpPost(action, data = {}) {
+	const formData = new URLSearchParams({ action, ...data });
+	const response = await fetch(swiftCSV.ajaxUrl, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+		body: formData,
+	});
+
+	return response.json();
+}
+
+// We must use event delegation on the document body, because the license tab
+// is part of the main settings form, not a separate Pro feature.
+document.body.addEventListener('click', async e => {
+	const button = e.target.closest('.swift-csv-license-button');
+	if (!button) {
+		return;
+	}
+
+	const action = button.dataset.action;
+	if (!action) {
+		console.error('No action found on button:', button);
+		return;
+	}
+
+	console.log('License button clicked:', action);
+
+	const licenseKeyInput = document.getElementById('swift_csv_pro_license_key_input');
+	const licenseKey = licenseKeyInput ? licenseKeyInput.value : '';
+	const spinner = button.closest('div') ? button.closest('div').querySelector('.spinner') : null;
+
+	if (!licenseKey && action === 'activate') {
+		alert(__('Please enter a license key.', 'swift-csv-pro'));
+		return;
+	}
+
+	console.log('Sending license request:', {
+		action,
+		licenseKey: licenseKey.substring(0, 10) + '...',
+	});
+
+	button.disabled = true;
+	if (spinner) {
+		spinner.style.visibility = 'visible';
+	}
+
+	try {
+		// Use the wpPost helper function
+		const response = await wpPost('swift_csv_pro_manage_license', {
+			nonce: swiftCSV.nonce,
+			license_key: licenseKey,
+			license_action: action,
+		});
+
+		console.log('License response:', response);
+
+		if (!response.success) {
+			// Throw an error so that the catch block can show the backend message.
+			throw new Error(
+				response.data?.message || __('License operation failed.', 'swift-csv-pro')
+			);
+		}
+
+		// Always reload the page to show the new status.
+		location.reload();
+	} catch (error) {
+		console.error('License error:', error);
+		// eslint-disable-next-line no-alert
+		alert(
+			error.message ||
+				__(
+					'An error occurred while processing your request. Please try again.',
+					'swift-csv-pro'
+				)
+		);
+	} finally {
+		button.disabled = false;
+		if (spinner) {
+			spinner.style.visibility = 'hidden';
+		}
+	}
+});

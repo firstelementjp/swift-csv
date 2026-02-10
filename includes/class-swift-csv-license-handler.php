@@ -26,14 +26,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Swift_CSV_License_Handler {
 
 	/**
-	 * License server API endpoint.
-	 *
-	 * @since 0.9.6
-	 * @var string
-	 */
-	private $api_url = 'https://www.firstelement.co.jp/wp-json/license-manager/v1/license';
-
-	/**
 	 * Product ID for Swift CSV Pro.
 	 *
 	 * @since 0.9.6
@@ -60,6 +52,18 @@ class Swift_CSV_License_Handler {
 	 * @return array The response from the license server.
 	 */
 	public function deactivate( $license_key ) {
+		// If Pro version is not available, deactivate locally only
+		if ( ! defined( 'SWIFT_CSV_LICENSE_API_URL' ) || empty( SWIFT_CSV_LICENSE_API_URL ) ) {
+			// Remove local license data
+			delete_option( 'swift_csv_pro_license' );
+
+			return [
+				'success'    => true,
+				'message'    => __( 'License deactivated locally. Server-side activation remains active.', 'swift-csv' ),
+				'local_only' => true,
+			];
+		}
+
 		return $this->call_license_api( 'deactivate', $license_key );
 	}
 
@@ -72,22 +76,21 @@ class Swift_CSV_License_Handler {
 	 * @return array The response from the license server.
 	 */
 	private function call_license_api( $action, $license_key ) {
-		$api_url = $this->api_url;
-		if ( defined( 'SWIFT_CSV_LICENSE_API_URL' ) && is_string( SWIFT_CSV_LICENSE_API_URL ) && ! empty( SWIFT_CSV_LICENSE_API_URL ) ) {
-			$api_url = SWIFT_CSV_LICENSE_API_URL;
+		if ( ! defined( 'SWIFT_CSV_LICENSE_API_URL' ) || empty( SWIFT_CSV_LICENSE_API_URL ) ) {
+			return [
+				'success' => false,
+				'message' => __( 'License API URL not defined. Please activate Swift CSV Pro.', 'swift-csv' ),
+			];
 		}
 
 		$response = wp_remote_post(
-			$api_url,
+			SWIFT_CSV_LICENSE_API_URL,
 			[
 				'body'    => [
 					'action'      => $action,
 					'license_key' => $license_key,
-					'product_id'  => $this->product_id,
 					'productId'   => $this->product_id,
 					'instance'    => home_url(),
-					'site_url'    => home_url(),
-					'domain'      => home_url(),
 				],
 				'timeout' => 30,
 				'headers' => [

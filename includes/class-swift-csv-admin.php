@@ -359,19 +359,19 @@ class Swift_CSV_Admin {
 				<?php esc_html_e( 'Export Scope', 'swift-csv' ); ?>
 			</dt>
 			<dd>
-				<label style="display:block;">
+				<label class="swift-csv-block-label">
 					<input type="radio" name="swift_csv_export_scope" value="basic" checked>
 					<?php esc_html_e( 'Basic Fields', 'swift-csv' ); ?>
 				</label>
-				<label style="display:block;">
+				<label class="swift-csv-block-label">
 					<input type="radio" name="swift_csv_export_scope" value="all">
 					<?php esc_html_e( 'All Fields', 'swift-csv' ); ?>
 				</label>
-				<label style="display:block;">
+				<label class="swift-csv-block-label">
 					<input type="radio" name="swift_csv_export_scope" value="custom">
 					<?php esc_html_e( 'Custom', 'swift-csv' ); ?>
 				</label>
-				<div id="custom-export-help" style="display: none; margin-top: 10px; padding: 8px; background-color: #f9f9f9; border-left: 3px solid #0073aa; font-size: 12px; color: #666;">
+				<div id="custom-export-help" class="swift-csv-custom-help">
 					<?php
 					$docs_url = SWIFT_CSV_PLUGIN_URL . 'docs/hooks.md#swift_csv_export_columns';
 					printf(
@@ -399,11 +399,11 @@ class Swift_CSV_Admin {
 				<?php esc_html_e( 'Taxonomy Format', 'swift-csv' ); ?>
 			</dt>
 			<dd>
-				<label style="display:block;">
+				<label class="swift-csv-block-label">
 					<input type="radio" name="swift_csv_export_taxonomy_format" value="name" checked>
 					<?php esc_html_e( 'Names (name)', 'swift-csv' ); ?>
 				</label>
-				<label style="display:block;">
+				<label class="swift-csv-block-label">
 					<input type="radio" name="swift_csv_export_taxonomy_format" value="id">
 					<?php esc_html_e( 'Term IDs (term_id)', 'swift-csv' ); ?>
 				</label>
@@ -550,11 +550,11 @@ class Swift_CSV_Admin {
 				<?php esc_html_e( 'Taxonomy Format', 'swift-csv' ); ?>
 			</dt>
 			<dd>
-				<label style="display:block;">
+				<label class="swift-csv-block-label">
 					<input type="radio" name="swift_csv_import_taxonomy_format" value="name" checked>
 					<?php esc_html_e( 'Names', 'swift-csv' ); ?>
 				</label>
-				<label style="display:block;">
+				<label class="swift-csv-block-label">
 					<input type="radio" name="swift_csv_import_taxonomy_format" value="id">
 					<?php esc_html_e( 'Term IDs', 'swift-csv' ); ?>
 				</label>
@@ -867,7 +867,7 @@ class Swift_CSV_Admin {
 				// Add license tab directly as default tab
 				$icon = '';
 				if ( class_exists( 'Swift_CSV_Pro_Admin' ) && ! $this->is_pro_license_active() ) {
-					$icon = '<span class="dashicons dashicons-warning" style="color: #f59e0b;"></span>';
+					$icon = '<span class="dashicons dashicons-warning swift-csv-warning-icon"></span>';
 				}
 				?>
 				<a href="?page=swift-csv&tab=license" class="nav-tab <?php echo 'license' === $tab ? 'nav-tab-active' : ''; ?>">
@@ -893,16 +893,16 @@ class Swift_CSV_Admin {
 					if ( $batch_id ) {
 						$this->render_export_batch_progress( $batch_id );
 					} else {
-						$this->render_export_tab();
+						$this->render_export_tab_content();
 					}
 				} elseif ( 'import' === $tab ) {
 					if ( $batch_id ) {
 						$this->render_batch_progress( $batch_id );
 					} else {
-						$this->render_import_tab( $import_results );
+						$this->render_import_tab_content( $import_results );
 					}
 				} elseif ( 'license' === $tab ) {
-					$this->render_license_content();
+					$this->render_license_tab_content();
 				}
 				// Custom tabs (like Pro version) will be handled by the hook below
 				/**
@@ -922,15 +922,16 @@ class Swift_CSV_Admin {
 		</div>
 		<?php
 	}
+
 	/**
-	 * Render export tab
+	 * Render export tab content
 	 *
 	 * Displays the export form using WordPress Settings API.
 	 *
 	 * @since  0.9.0
 	 * @return void
 	 */
-	private function render_export_tab() {
+	private function render_export_tab_content() {
 		?>
 		<div class="swift-csv-layout">
 			<!-- Left Column: Settings -->
@@ -957,8 +958,8 @@ class Swift_CSV_Admin {
 						<p class="submit">
 							<input type="submit" name="ajax_export_csv" class="button button-primary" id="ajax-export-csv-btn" value="<?php esc_html_e( 'Start Export', 'swift-csv' ); ?>">
 							<button type="button" class="button" id="ajax-export-cancel-btn" style="display: none;">
-								<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
-							</button>
+					<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
+				</button>
 						</p>
 					</form>
 				</div>
@@ -998,13 +999,13 @@ class Swift_CSV_Admin {
 	}
 
 	/**
-	 * Render import tab
+	 * Render import tab content
 	 *
 	 * @since  0.9.0
 	 * @param  array $import_results Import results from URL parameters.
 	 * @return void
 	 */
-	private function render_import_tab( $import_results = [] ) {
+	private function render_import_tab_content( $import_results = [] ) {
 		// Get all public post types for selection.
 		$post_types = get_post_types( [ 'public' => true ], 'objects' );
 
@@ -1056,8 +1057,8 @@ class Swift_CSV_Admin {
 								<?php esc_html_e( 'Start Import', 'swift-csv' ); ?>
 							</button>
 							<button type="button" class="button" id="ajax-import-cancel-btn" style="display: none;">
-								<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
-							</button>
+					<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
+				</button>
 						</p>
 					</form>
 				</div>
@@ -1096,11 +1097,8 @@ class Swift_CSV_Admin {
 		<?php
 	}
 
-
-
-
 	/**
-	 * Render license content
+	 * Render license tab content
 	 *
 	 * Renders the license activation interface and Pro promotion.
 	 * This method contains all license-related HTML and JavaScript.
@@ -1108,7 +1106,7 @@ class Swift_CSV_Admin {
 	 * @since 0.9.6
 	 * @return void
 	 */
-	private function render_license_content() {
+	private function render_license_tab_content() {
 		?>
 		<div class="swift-csv-layout full-width">
 			<!-- Left Column: Settings -->
@@ -1194,15 +1192,14 @@ class Swift_CSV_Admin {
 				<label for="swift_csv_pro_license_key_input"><?php esc_html_e( 'Pro License Key', 'swift-csv' ); ?></label>
 			</dt>
 			<dd>
-				<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+				<div class="swift-csv-license-input-group">
 					<input
 						type="password"
 						autocomplete="off"
 						id="swift_csv_pro_license_key_input"
 						name="swift_csv_pro_license_key_input"
 						value="<?php echo esc_attr( $license_key ); ?>"
-						class="regular-text"
-						style="max-width: 300px;"
+						class="regular-text swift-csv-license-input"
 					>
 					<button
 						type="button"
@@ -1216,11 +1213,11 @@ class Swift_CSV_Admin {
 					<?php else : ?>
 						<button type="button" id="swift_csv_pro_license_activate" class="button button-primary swift-csv-license-button" data-action="activate"><?php esc_html_e( 'Activate', 'swift-csv' ); ?></button>
 					<?php endif; ?>
-					<span class="spinner" style="float: none; vertical-align: middle;"></span>
+					<span class="spinner swift-csv-spinner"></span>
 				</div>
 
 				<?php if ( 'active' === $license_status ) : ?>
-					<p class="description" style="color: green; font-weight: bold;">
+					<p class="description swift-csv-license-valid">
 						<?php esc_html_e( 'The license is valid.', 'swift-csv' ); ?>
 					</p>
 
@@ -1281,7 +1278,7 @@ class Swift_CSV_Admin {
 					$error = get_transient( 'swift_csv_pro_license_error' );
 					if ( $error ) :
 						?>
-						<p style="color: red;"><?php echo esc_html( $error ); ?></p>
+						<p class="swift-csv-license-error"><?php echo esc_html( $error ); ?></p>
 						<?php
 						delete_transient( 'swift_csv_pro_license_error' );
 					endif;

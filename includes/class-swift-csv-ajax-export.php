@@ -38,6 +38,11 @@ class Swift_CSV_Ajax_Export {
 		add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
 	}
 
+	/*
+	==========================================================================
+		Public Methods - Main Entry Points
+		========================================================================== */
+
 	/**
 	 * Normalize CSV headers by removing empty values and duplicates
 	 *
@@ -61,6 +66,11 @@ class Swift_CSV_Ajax_Export {
 
 		return $headers;
 	}
+
+	/*
+	==========================================================================
+		Private Helper Methods - Data Preparation
+		========================================================================== */
 
 	/**
 	 * Get allowed post fields for CSV export based on scope
@@ -336,6 +346,11 @@ class Swift_CSV_Ajax_Export {
 
 		return $this->normalize_headers( $headers );
 	}
+
+	/*
+	==========================================================================
+		Private Helper Methods - CSV Generation
+		========================================================================== */
 
 	/**
 	 * Generate a CSV row string from an array of values

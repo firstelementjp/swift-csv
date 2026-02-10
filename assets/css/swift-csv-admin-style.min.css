@@ -155,6 +155,81 @@
 	color: #4c675b;
 }
 
+/* Tab navigation */
+.swift-csv .nav-tab-wrapper {
+	margin-bottom: 0;
+	border: none;
+}
+
+.nav-tab {
+	border: none;
+	padding: 0.5em 1em;
+	color: #0071a1;
+	margin-bottom: 2px;
+	background: #f9f9f9;
+	font-size: 13px;
+}
+
+.nav-tab.nav-tab-active {
+	color: #1d2327;
+	background: #fff;
+	margin-bottom: -2px;
+	line-height: 1.9;
+}
+
+a.nav-tab:last-of-type {
+	border: none !important;
+}
+
+/* Form styles */
+.swift-csv .form-table th {
+	width: 200px;
+}
+
+.swift-csv .description {
+	font-size: 13px;
+	color: #666;
+	margin-top: 5px;
+}
+
+.swift-csv input[type='file'] {
+	max-width: 400px;
+}
+
+.swift-csv select {
+	min-width: 200px;
+}
+
+.swift-csv .notice {
+	margin: 20px 0;
+}
+
+.swift-csv .notice ul {
+	margin: 10px 0;
+	padding-left: 20px;
+}
+
+/* Update Notice Styles */
+.swift-csv .swift-csv-update-notice {
+	margin-top: 10px;
+}
+
+.swift-csv .swift-csv-update-notice summary {
+	cursor: pointer;
+	font-weight: bold;
+}
+
+.swift-csv .swift-csv-release-notes {
+	margin-top: 10px;
+	padding: 10px;
+	background: #f9f9f9;
+	border-left: 4px solid #ffb900;
+}
+
+.swift-csv .swift-csv-update-button {
+	margin-left: 10px;
+}
+
 .swift-csv-layout {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -437,102 +512,6 @@
 	width: 16px;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-	.swift-csv-layout {
-		grid-template-columns: 1fr;
-	}
-
-	.swift-csv-progress .progress-details {
-		grid-template-columns: 1fr;
-		gap: 5px;
-	}
-
-	.swift-csv-log-area {
-		min-height: 200px;
-		max-height: 300px;
-	}
-
-	.file-upload-area {
-		padding: 30px 15px;
-	}
-}
-
-/* Tab navigation */
-.swift-csv .nav-tab-wrapper {
-	margin-bottom: 0;
-	border: none;
-}
-
-.nav-tab {
-	border: none;
-	padding: 0.5em 1em;
-	color: #0071a1;
-	margin-bottom: 2px;
-	background: #f9f9f9;
-	font-size: 13px;
-}
-
-.nav-tab.nav-tab-active {
-	color: #1d2327;
-	background: #fff;
-	margin-bottom: -2px;
-	line-height: 1.9;
-}
-
-a.nav-tab:last-of-type {
-	border: none !important;
-}
-
-/* Form styles */
-.swift-csv .form-table th {
-	width: 200px;
-}
-
-.swift-csv .description {
-	font-size: 13px;
-	color: #666;
-	margin-top: 5px;
-}
-
-.swift-csv input[type='file'] {
-	max-width: 400px;
-}
-
-.swift-csv select {
-	min-width: 200px;
-}
-
-.swift-csv .notice {
-	margin: 20px 0;
-}
-
-.swift-csv .notice ul {
-	margin: 10px 0;
-	padding-left: 20px;
-}
-
-/* Update Notice Styles */
-.swift-csv .swift-csv-update-notice {
-	margin-top: 10px;
-}
-
-.swift-csv .swift-csv-update-notice summary {
-	cursor: pointer;
-	font-weight: bold;
-}
-
-.swift-csv .swift-csv-release-notes {
-	margin-top: 10px;
-	padding: 10px;
-	background: #f9f9f9;
-	border-left: 4px solid #ffb900;
-}
-
-.swift-csv .swift-csv-update-button {
-	margin-left: 10px;
-}
-
 /* Export Progress Container */
 #swift-csv-pro-export-progress {
 	background: #fff;
@@ -590,19 +569,6 @@ a.nav-tab:last-of-type {
 .swift-csv-exporting select {
 	opacity: 0.7;
 	pointer-events: none;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-	.progress-bar-container {
-		flex-direction: column;
-		align-items: stretch;
-		gap: 5px;
-	}
-
-	.progress-text {
-		text-align: center;
-	}
 }
 
 /* Batch Progress Styles */
@@ -1009,4 +975,38 @@ a.nav-tab:last-of-type {
 /* License error message */
 .swift-csv-license-error {
 	color: red;
+}
+
+/* ==========================================================================
+	Responsive Design
+	========================================================================== */
+
+@media (max-width: 768px) {
+	.swift-csv-layout {
+		grid-template-columns: 1fr;
+	}
+
+	.swift-csv-progress .progress-details {
+		grid-template-columns: 1fr;
+		gap: 5px;
+	}
+
+	.swift-csv-log-area {
+		min-height: 200px;
+		max-height: 300px;
+	}
+
+	.file-upload-area {
+		padding: 30px 15px;
+	}
+
+	.progress-bar-container {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 5px;
+	}
+
+	.progress-text {
+		text-align: center;
+	}
 }

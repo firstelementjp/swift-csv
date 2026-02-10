@@ -95,6 +95,28 @@ function swift_csv_activate() {
 		wp_mkdir_p( $csv_dir );
 	}
 
+	// Create temp directory and cleanup old files.
+	$temp_dir = $upload_dir['basedir'] . '/swift-csv-temp';
+	if ( ! file_exists( $temp_dir ) ) {
+		wp_mkdir_p( $temp_dir );
+	}
+
+	// Create .htaccess to restrict web access.
+	$htaccess_file = $temp_dir . '/.htaccess';
+	if ( ! file_exists( $htaccess_file ) ) {
+		file_put_contents( $htaccess_file, "Deny from all\n" );
+	}
+
+	// Cleanup old temp files (older than 24 hours).
+	$files = glob( $temp_dir . '/*.csv' );
+	if ( $files ) {
+		foreach ( $files as $file ) {
+			if ( time() - filemtime( $file ) > 86400 ) { // 24 hours
+				unlink( $file );
+			}
+		}
+	}
+
 	// Flush rewrite rules if needed.
 	flush_rewrite_rules();
 }

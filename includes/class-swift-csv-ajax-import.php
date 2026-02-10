@@ -129,6 +129,11 @@ function swift_csv_ajax_import_handler() {
 
 	// Verify nonce
 	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'swift_csv_ajax_nonce' ) ) {
+		// Cleanup file on error
+		$file_path = sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) );
+		if ( $file_path && file_exists( $file_path ) ) {
+			unlink( $file_path );
+		}
 		wp_send_json( [ 'error' => 'Security check failed' ] );
 		return;
 	}
@@ -144,6 +149,9 @@ function swift_csv_ajax_import_handler() {
 	$taxonomy_format = sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) );
 	$dry_run         = sanitize_text_field( wp_unslash( $_POST['dry_run'] ?? '0' ) ) === '1';
 
+	// Get file path for cleanup
+	$file_path = sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) );
+
 	// Advanced taxonomy format detection and validation
 	$taxonomy_format_validation = [];
 	$first_row_processed        = false;
@@ -156,6 +164,10 @@ function swift_csv_ajax_import_handler() {
 
 	// Handle file upload directly
 	if ( ! isset( $_FILES['csv_file'] ) ) {
+		// Cleanup file on error
+		if ( $file_path && file_exists( $file_path ) ) {
+			unlink( $file_path );
+		}
 		wp_send_json(
 			[
 				'success' => false,
@@ -169,6 +181,10 @@ function swift_csv_ajax_import_handler() {
 
 	// Validate file
 	if ( $file['error'] !== UPLOAD_ERR_OK ) {
+		// Cleanup file on error
+		if ( $file_path && file_exists( $file_path ) ) {
+			unlink( $file_path );
+		}
 		wp_send_json(
 			[
 				'success' => false,
@@ -302,6 +318,10 @@ function swift_csv_ajax_import_handler() {
 	foreach ( $taxonomy_format_validation as $taxonomy_name => $validation ) {
 		// Check for format mismatches
 		if ( $taxonomy_format === 'name' && $validation['all_numeric'] ) {
+			// Cleanup file on error
+			if ( $file_path && file_exists( $file_path ) ) {
+				unlink( $file_path );
+			}
 			wp_send_json(
 				[
 					'success' => false,
@@ -317,6 +337,10 @@ function swift_csv_ajax_import_handler() {
 		}
 
 		if ( $taxonomy_format === 'id' && $validation['all_string'] ) {
+			// Cleanup file on error
+			if ( $file_path && file_exists( $file_path ) ) {
+				unlink( $file_path );
+			}
 			wp_send_json(
 				[
 					'success' => false,
@@ -352,6 +376,10 @@ function swift_csv_ajax_import_handler() {
 
 	$id_col = array_search( 'ID', $headers, true );
 	if ( $id_col === false ) {
+		// Cleanup file on error
+		if ( $file_path && file_exists( $file_path ) ) {
+			unlink( $file_path );
+		}
 		wp_send_json(
 			[
 				'success' => false,
@@ -864,6 +892,11 @@ function swift_csv_ajax_import_handler() {
 
 	$next_row = $start_row + $processed; // Use actual processed count
 	$continue = $next_row < $total_rows;
+
+	// Cleanup temporary file when import is complete
+	if ( ! $continue && $file_path && file_exists( $file_path ) ) {
+		unlink( $file_path );
+	}
 
 	wp_send_json(
 		[

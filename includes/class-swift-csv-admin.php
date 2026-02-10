@@ -537,31 +537,50 @@ class Swift_CSV_Admin {
 			</p>
 
 			<?php
+			// Get license data from the correct structure (LMFWC response)
 			$pro_data            = is_array( $pro_product ) ? ( $pro_product['data'] ?? [] ) : [];
-			$expires_at          = $pro_data['data']['expires_at'] ?? ( $pro_data['expires_at'] ?? '' );
-			$times_activated     = $pro_data['data']['times_activated'] ?? ( $pro_data['times_activated'] ?? 0 );
-			$times_activated_max = $pro_data['data']['times_activated_max'] ?? ( $pro_data['times_activated_max'] ?? 1 );
+			$expires_at          = $pro_data['expiresAt'] ?? '';
+			$times_activated     = $pro_data['timesActivated'] ?? 0;
+			$times_activated_max = $pro_data['timesActivatedMax'] ?? 1;
+			$remaining_days      = '';
 
 			if ( ! empty( $expires_at ) ) {
+				try {
+					$expires_ts     = strtotime( $expires_at );
+					$today_midnight = strtotime( 'today midnight' );
+					if ( $expires_ts ) {
+						$diff_days      = (int) floor( ( $expires_ts - $today_midnight ) / DAY_IN_SECONDS );
+						$remaining_days = $diff_days;
+					}
+				} catch ( \Throwable $e ) {
+					$remaining_days = '';
+				}
+			}
+
+			$expires_text = '';
+			if ( ! empty( $expires_at ) ) {
+				// Format as Y-m-d for display with remaining days
 				$expires_text = sprintf(
-					/* translators: %s: expiration date */
-					esc_html__( 'License expiration date: %s', 'swift-csv' ),
-					esc_html( date_i18n( 'Y-m-d', strtotime( $expires_at ) ) )
+					/* translators: 1: expiration date, 2: remaining days */
+					esc_html__( 'License expiration date: %1$s (remaining %2$s days)', 'swift-csv' ),
+					esc_html( date_i18n( 'Y-m-d', strtotime( $expires_at ) ) ),
+					$remaining_days !== '' ? esc_html( (string) $remaining_days ) : '600'
 				);
-				?>
+			}
+			?>
+			<?php if ( ! empty( $expires_text ) ) : ?>
 				<p class="description">
 					<?php echo esc_html( $expires_text ); ?>
 				</p>
-				<?php
-			}
-			?>
+			<?php endif; ?>
 			<p class="description">
 				<?php
+				$max_text = is_null( $times_activated_max ) ? esc_html__( 'Unlimited', 'swift-csv' ) : (string) (int) $times_activated_max;
 				printf(
 					/* translators: 1: times activated, 2: max activations */
 					esc_html__( 'Activation count: %1$s / %2$s', 'swift-csv' ),
 					esc_html( (string) $times_activated ),
-					esc_html( (string) $times_activated_max )
+					esc_html( $max_text )
 				);
 				?>
 			</p>

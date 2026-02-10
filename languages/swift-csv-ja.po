@@ -605,3 +605,102 @@ msgstr "エクスポートログ"
 
 msgid "Export cancelled by user"
 msgstr "ユーザーによってエクスポートがキャンセルされました"
+
+msgid "The license is valid."
+msgstr "ライセンスは有効です。"
+
+msgid "License expiration date: %1$s (remaining %2$s days)"
+msgstr "ライセンス有効期限: %1$s (残り %2$s 日)"
+
+msgid "Activation count: %1$s / %2$s"
+msgstr "有効化されたサイト数: %1$s / %2$s"
+
+msgid "Unlimited"
+msgstr "無制限"
+
+msgid "Show"
+msgstr "表示"
+
+msgid "Hide"
+msgstr "非表示"
+
+msgid "Pro License Key"
+msgstr "Pro ライセンスキー"
+
+msgid "Deactivate"
+msgstr "無効化"
+
+msgid "Activate"
+msgstr "有効化"
+
+msgid "License"
+msgstr "ライセンス"
+
+msgid "Enter the license key you received at the time of purchase and press the \"Activate\" button."
+msgstr "購入時に受け取ったライセンスキーを入力し、「有効化」ボタンを押してください。"
+
+msgid "Unlock more with Swift CSV Pro"
+msgstr "Swift CSV Pro でさらに多くの機能を解放"
+
+msgid "With a Pro license, you can:"
+msgstr "Proライセンスで以下の機能が利用できます："
+
+msgid "ACF Integration"
+msgstr "ACF連携"
+
+msgid "Export and import Advanced Custom Fields with proper formatting"
+msgstr "Advanced Custom Fieldsの書式を正しく維持したままエクスポート・インポート"
+
+msgid "Support for all ACF field types including taxonomy, repeater, and relationship fields"
+msgstr "タクソノミー、リピーター、関連フィールドを含むすべてのACFフィールドタイプをサポート"
+
+msgid "Automatic field type detection and proper value formatting"
+msgstr "自動フィールドタイプ検出と適切な値の書式設定"
+
+msgid "Advanced Features"
+msgstr "高度な機能"
+
+msgid "Batch processing for large datasets (1000+ records)"
+msgstr "大規模データセットのバッチ処理（1000+レコード）"
+
+msgid "Real-time progress tracking with AJAX"
+msgstr "AJAXによるリアルタイム進行状況追跡"
+
+msgid "Custom field filtering and selection"
+msgstr "カスタムフィールドのフィルタリングと選択"
+
+msgid "Advanced taxonomy handling with term ID or name export"
+msgstr "タームIDまたは名前での高度なタクソノミー処理"
+
+msgid "Import Enhancements"
+msgstr "インポート機能強化"
+
+msgid "Multi-value custom fields support"
+msgstr "複数値カスタムフィールドサポート"
+
+msgid "Advanced filtering and sorting options"
+msgstr "高度なフィルタリングとソートオプション"
+
+msgid "Custom export templates and formats"
+msgstr "カスタムエクスポートテンプレートと形式"
+
+msgid "Scheduled export functionality"
+msgstr "スケジュールエクスポート機能"
+
+msgid "Support & Updates"
+msgstr "サポートとアップデート"
+
+msgid "Priority customer support"
+msgstr "優先カスタマーサポート"
+
+msgid "Automatic updates from our update server"
+msgstr "アップデートサーバーからの自動アップデート"
+
+msgid "Access to beta features and early releases"
+msgstr "ベータ機能と早期リリースへのアクセス"
+
+msgid "Extended documentation and tutorials"
+msgstr "拡張ドキュメントとチュートリアル"
+
+msgid "View Swift CSV Pro Details"
+msgstr "Swift CSV Pro詳細を表示"

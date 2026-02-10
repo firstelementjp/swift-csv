@@ -116,9 +116,6 @@ function swift_csv_activate() {
 			}
 		}
 	}
-
-	// Flush rewrite rules if needed.
-	flush_rewrite_rules();
 }
 
 register_deactivation_hook( __FILE__, 'swift_csv_deactivate' );
@@ -134,7 +131,4 @@ register_deactivation_hook( __FILE__, 'swift_csv_deactivate' );
 function swift_csv_deactivate() {
 	// Clean up all scheduled cron jobs.
 	wp_clear_scheduled_hook( 'swift_csv_process_batch' );
-
-	// Flush rewrite rules.
-	flush_rewrite_rules();
 }

@@ -695,34 +695,3 @@ class Swift_CSV_Ajax_Export {
 
 // Initialize the class
 new Swift_CSV_Ajax_Export();
-
-// Backward compatibility - keep the old function names as wrappers
-function swift_csv_ajax_export_normalize_headers( $headers ) {
-	$export = new Swift_CSV_Ajax_Export();
-	return $export->normalize_headers( $headers );
-}
-
-function swift_csv_get_allowed_post_fields( $export_scope = 'basic' ) {
-	$export = new Swift_CSV_Ajax_Export();
-	return $export->get_allowed_post_fields( $export_scope );
-}
-
-function swift_csv_ajax_export_build_headers( $post_type, $export_scope = 'basic', $include_private_meta = false ) {
-	$export = new Swift_CSV_Ajax_Export();
-	return $export->build_headers( $post_type, $export_scope, $include_private_meta );
-}
-
-function swift_csv_ajax_export_fputcsv_row( array $row ) {
-	$export = new Swift_CSV_Ajax_Export();
-	return $export->fputcsv_row( $row );
-}
-
-function swift_csv_ajax_normalize_quotes( $field ) {
-	$export = new Swift_CSV_Ajax_Export();
-	return $export->normalize_quotes( $field );
-}
-
-function swift_csv_ajax_export_handler() {
-	$export = new Swift_CSV_Ajax_Export();
-	$export->handle_ajax_export();
-}

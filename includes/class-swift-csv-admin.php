@@ -82,35 +82,74 @@ class Swift_CSV_Admin {
 	/**
 	 * Enqueue admin scripts
 	 *
-	 * JavaScript loading disabled for simple operation.
+	 * Loads modular JavaScript files for better maintainability.
+	 * Uses minified versions in production for better performance.
 	 *
-	 * @since  0.9.3
+	 * @since  0.9.0
 	 * @param  string $hook Current admin page.
 	 * @return void
 	 */
 	public function enqueue_scripts( $hook ) {
 		if ( 'tools_page_swift-csv' === $hook ) {
-			$script_file = defined( 'WP_DEBUG' ) && WP_DEBUG
-				? '../assets/js/swift-csv-admin-scripts.js'
-				: '../assets/js/swift-csv-admin-scripts.min.js';
+			$debug_mode = defined( 'WP_DEBUG' ) && WP_DEBUG;
+			$suffix     = $debug_mode ? '' : '.min';
 
+			// Core utilities (must be loaded first)
 			wp_register_script(
-				'swift-csv-admin',
-				plugin_dir_url( __FILE__ ) . $script_file,
+				'swift-csv-core',
+				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-core' . $suffix . '.js',
 				[ 'wp-i18n' ],
 				SWIFT_CSV_VERSION,
 				true
 			);
 
-			wp_set_script_translations( 'swift-csv-admin', 'swift-csv', SWIFT_CSV_PLUGIN_DIR . 'languages' );
+			// Export functionality
+			wp_register_script(
+				'swift-csv-export',
+				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-export' . $suffix . '.js',
+				[ 'swift-csv-core' ],
+				SWIFT_CSV_VERSION,
+				true
+			);
 
+			// Import functionality
+			wp_register_script(
+				'swift-csv-import',
+				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-import' . $suffix . '.js',
+				[ 'swift-csv-core' ],
+				SWIFT_CSV_VERSION,
+				true
+			);
+
+			// License functionality
+			wp_register_script(
+				'swift-csv-license',
+				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-license' . $suffix . '.js',
+				[ 'swift-csv-core' ],
+				SWIFT_CSV_VERSION,
+				true
+			);
+
+			// Main entry point (must be loaded last)
+			wp_register_script(
+				'swift-csv-main',
+				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-main' . $suffix . '.js',
+				[ 'swift-csv-core', 'swift-csv-export', 'swift-csv-import', 'swift-csv-license' ],
+				SWIFT_CSV_VERSION,
+				true
+			);
+
+			// Set script translations for core module
+			wp_set_script_translations( 'swift-csv-core', 'swift-csv', SWIFT_CSV_PLUGIN_DIR . 'languages' );
+
+			// Localize script data (attached to core module)
 			wp_localize_script(
-				'swift-csv-admin',
+				'swift-csv-core',
 				'swiftCSV',
 				[
 					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
 					'nonce'    => wp_create_nonce( 'swift_csv_ajax_nonce' ),
-					'debug'    => defined( 'WP_DEBUG' ) && WP_DEBUG,
+					'debug'    => $debug_mode,
 					'messages' => [
 						'exportCsv'             => esc_html__( 'Export CSV', 'swift-csv' ),
 						'importCsv'             => esc_html__( 'Import CSV', 'swift-csv' ),
@@ -186,11 +225,16 @@ class Swift_CSV_Admin {
 				]
 			);
 
-			wp_enqueue_script( 'swift-csv-admin' );
+			// Enqueue all scripts in correct order
+			wp_enqueue_script( 'swift-csv-core' );
+			wp_enqueue_script( 'swift-csv-export' );
+			wp_enqueue_script( 'swift-csv-import' );
+			wp_enqueue_script( 'swift-csv-license' );
+			wp_enqueue_script( 'swift-csv-main' );
 
 			// Log script loading for debugging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[Swift CSV] Admin scripts loaded: swift-csv-admin v' . SWIFT_CSV_VERSION );
+			if ( $debug_mode ) {
+				error_log( '[Swift CSV] Modular admin scripts loaded v' . SWIFT_CSV_VERSION );
 			}
 		}
 	}

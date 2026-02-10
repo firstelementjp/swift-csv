@@ -62,17 +62,21 @@ class Swift_CSV_Admin {
 	/**
 	 * Enqueue admin styles
 	 *
-	 * Loads CSS styles only on the plugin's admin pages.
+	 * Loads CSS files for the admin interface.
+	 * Uses minified version in production for better performance.
 	 *
 	 * @since  0.9.0
-	 * @param  string $hook Current admin page hook.
+	 * @param  string $hook Current admin page.
 	 * @return void
 	 */
 	public function enqueue_styles( $hook ) {
 		if ( 'tools_page_swift-csv' === $hook ) {
+			$debug_mode = defined( 'WP_DEBUG' ) && WP_DEBUG;
+			$suffix     = $debug_mode ? '' : '.min';
+
 			wp_enqueue_style(
 				'swift-csv-admin',
-				SWIFT_CSV_PLUGIN_URL . 'assets/css/swift-csv-admin-style.min.css',
+				plugin_dir_url( __FILE__ ) . '../assets/css/swift-csv-style' . $suffix . '.css',
 				[],
 				SWIFT_CSV_VERSION
 			);

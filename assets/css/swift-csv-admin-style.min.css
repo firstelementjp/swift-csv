@@ -697,34 +697,6 @@ a.nav-tab:last-of-type {
 	border-color: #bd2130;
 }
 
-/* Form styles */
-.swift-csv .form-table th {
-	width: 200px;
-}
-
-.swift-csv .description {
-	font-size: 13px;
-	color: #666;
-	margin-top: 5px;
-}
-
-.swift-csv input[type='file'] {
-	max-width: 400px;
-}
-
-.swift-csv select {
-	min-width: 200px;
-}
-
-.swift-csv .notice {
-	margin: 20px 0;
-}
-
-.swift-csv .notice ul {
-	margin: 10px 0;
-	padding-left: 20px;
-}
-
 /* License Tab Pro promotion section */
 
 .swift-csv-pro-promo {

@@ -21,10 +21,13 @@
 ```
 swift-csv/                          # Free version (this repo)
 ├── swift-csv.php                   # Plugin entry point, activation/deactivation hooks
+├── uninstall.php                   # Plugin uninstallation cleanup
 ├── includes/
 │   ├── class-swift-csv-admin.php   # Admin UI, script/style enqueue, settings
 │   ├── class-swift-csv-ajax-export.php  # AJAX export handler (chunked)
-│   └── class-swift-csv-ajax-import.php  # AJAX import handler (chunked)
+│   ├── class-swift-csv-ajax-import.php  # AJAX import handler (chunked)
+│   ├── class-swift-csv-license-handler.php  # License validation/activation
+│   └── class-swift-csv-updater.php  # Plugin update system
 ├── assets/
 │   ├── js/
 │   │   ├── swift-csv-core.js       # Shared utilities (__(), wpPost, logging)
@@ -92,4 +95,3 @@ npm run build:core       # Build single module
 - **[Architecture](architecture/)** — Hook API design, Free/Pro integration, three-element merge pattern
 - **[Troubleshooting](troubleshooting/)** — Categorized pitfall catalog with fix patterns
 - **[Conventions](conventions/)** — WordPress coding standards, Yoda conditions, naming rules
-

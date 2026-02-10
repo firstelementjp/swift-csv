@@ -115,9 +115,8 @@ class Swift_CSV_Ajax_Export {
 	}
 
 	/*
-	==========================================================================
-		Public Methods - Main Entry Points
-		========================================================================== */
+	 * Public Methods - Main Entry Points
+	 */
 
 	/**
 	 * Normalize CSV headers by removing empty values and duplicates
@@ -147,9 +146,8 @@ class Swift_CSV_Ajax_Export {
 	}
 
 	/*
-	==========================================================================
-		Private Helper Methods - Data Preparation
-		========================================================================== */
+	 * Private Helper Methods - Data Preparation
+	 */
 
 	/**
 	 * Get allowed post fields for CSV export based on scope
@@ -435,9 +433,8 @@ class Swift_CSV_Ajax_Export {
 	}
 
 	/*
-	==========================================================================
-		Private Helper Methods - CSV Generation
-		========================================================================== */
+	 * Private Helper Methods - CSV Generation
+	 */
 
 	/**
 	 * Generate a CSV row string from an array of values

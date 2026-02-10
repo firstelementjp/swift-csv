@@ -373,11 +373,10 @@ class Swift_CSV_Admin {
 				</label>
 				<div id="custom-export-help" class="swift-csv-custom-help">
 					<?php
-					$docs_url = SWIFT_CSV_PLUGIN_URL . 'docs/hooks.md#swift_csv_export_columns';
 					printf(
 						esc_html__( 'Use the %1$s hook to specify custom export items and order. See %2$s for details.', 'swift-csv' ),
 						'<code>swift_csv_export_columns</code>',
-						'<a href="' . esc_url( $docs_url ) . '" target="_blank">' . esc_html__( 'documentation', 'swift-csv' ) . '</a>'
+						'<a href="' . esc_url( SWIFT_CSV_DOCS_URL ) . 'hooks" target="_blank">' . esc_html__( 'documentation', 'swift-csv' ) . '</a>'
 					);
 					?>
 				</div>
@@ -743,7 +742,6 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	private function render_plugin_header() {
-		$docs_url  = 'https://firstelementjp.github.io/swift-csv/#/';
 		$forum_url = 'https://github.com/firstelementjp/swift-csv/issues';
 		?>
 		<div id="plugin_header">
@@ -757,7 +755,7 @@ class Swift_CSV_Admin {
 				version <?php echo esc_html( SWIFT_CSV_VERSION ); ?>
 			</div>
 			<div id="plugin_support">
-				<a href="<?php echo esc_url( $docs_url ); ?>"
+				<a href="<?php echo esc_url( SWIFT_CSV_DOCS_URL ); ?>"
 					target="_blank"
 					title="<?php esc_attr_e( 'Go to the instruction manual', 'swift-csv' ); ?>">
 					<?php esc_html_e( 'Documentation', 'swift-csv' ); ?>

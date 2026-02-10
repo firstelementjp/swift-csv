@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	initLoggingSystem();
 
 	// Export scope toggle for custom help
-	const exportScopeRadios = document.querySelectorAll('input[name="export_scope"]');
+	const exportScopeRadios = document.querySelectorAll('input[name="swift_csv_export_scope"]');
 	const customHelp = document.getElementById('custom-export-help');
 
 	if (exportScopeRadios.length && customHelp) {

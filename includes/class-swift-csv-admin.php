@@ -35,6 +35,13 @@ class Swift_CSV_Admin {
 		add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_styles' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+
+		add_action( 'admin_init', [ $this, 'register_settings' ] );
+		add_action( 'wp_ajax_swift_csv_pro_manage_license', [ $this, 'ajax_manage_license' ] );
+
+		// Always add license tab (even without Pro)
+		add_action( 'swift_csv_settings_tabs', [ $this, 'add_license_tab' ] );
+		add_action( 'swift_csv_settings_tabs_content', [ $this, 'render_license_tab_content' ], 10, 2 );
 	}
 
 	/**
@@ -87,9 +94,13 @@ class Swift_CSV_Admin {
 	 */
 	public function enqueue_scripts( $hook ) {
 		if ( 'tools_page_swift-csv' === $hook ) {
+			$script_file = defined( 'WP_DEBUG' ) && WP_DEBUG
+				? '../assets/js/swift-csv-admin-scripts.js'
+				: '../assets/js/swift-csv-admin-scripts.min.js';
+
 			wp_register_script(
 				'swift-csv-admin',
-				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-admin-scripts.min.js',
+				plugin_dir_url( __FILE__ ) . $script_file,
 				[ 'wp-i18n' ],
 				SWIFT_CSV_VERSION,
 				true
@@ -321,6 +332,327 @@ class Swift_CSV_Admin {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Add license tab to navigation
+	 *
+	 * Adds the license tab to the settings navigation bar.
+	 * Shows warning icon if Pro is active but license is not valid.
+	 *
+	 * @since 0.9.6
+	 * @param string $tab Currently active tab
+	 * @return void
+	 */
+	public function add_license_tab( $tab ) {
+		$icon = '';
+
+		// Show warning icon if Pro is active but license is not valid
+		if ( class_exists( 'Swift_CSV_Pro_Admin' ) && ! $this->is_pro_license_active() ) {
+			$icon = '<span class="dashicons dashicons-warning" style="color: #f59e0b;"></span>';
+		}
+
+		$active_class = 'license' === $tab ? 'nav-tab-active' : '';
+		echo '<a href="?page=swift-csv&tab=license" class="nav-tab ' . $active_class . '">' . esc_html__( 'License', 'swift-csv' ) . ' ' . wp_kses_post( $icon ) . '</a>';
+	}
+
+	/**
+	 * Check if Pro license is active
+	 *
+	 * @since 0.9.6
+	 * @return bool
+	 */
+	private function is_pro_license_active() {
+		$license_data = get_option( 'swift_csv_pro_license', [] );
+
+		if ( ! is_array( $license_data ) || ! isset( $license_data['products'] ) ) {
+			return false;
+		}
+
+		// Check for product ID 328 (Swift CSV Pro)
+		if ( isset( $license_data['products'][328] ) && 'active' === $license_data['products'][328]['status'] ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Render license tab content
+	 *
+	 * Renders the HTML content for the license tab.
+	 * Shows different content based on Pro availability and license status.
+	 *
+	 * @since 0.9.6
+	 * @param string $tab Currently active tab
+	 * @param array  $import_results Import results data (not used in license tab)
+	 * @return void
+	 */
+	public function render_license_tab_content( $tab, $import_results ) {
+		if ( 'license' !== $tab ) {
+			return;
+		}
+
+		// Always render license content in Free version
+		$this->render_license_content();
+	}
+
+	/**
+	 * Render license content
+	 *
+	 * Renders the license activation interface and Pro promotion.
+	 * This method contains all license-related HTML and JavaScript.
+	 *
+	 * @since 0.9.6
+	 * @return void
+	 */
+	private function render_license_content() {
+		?>
+		<div class="swift-csv-layout full-width">
+			<!-- Left Column: Settings -->
+			<div class="swift-csv-settings">
+				<div class="card">
+					<table class="form-table">
+						<?php do_settings_fields( 'swift-csv', 'swift_csv_license_section' ); ?>
+					</table>
+
+					<?php
+					$is_license_active = $this->is_pro_license_active();
+					$pro_is_loaded     = class_exists( 'Swift_CSV_Pro_Admin' );
+
+					if ( ! $pro_is_loaded || ! $is_license_active ) :
+						?>
+						<div class="swift-csv-pro-promo">
+							<hr>
+							<h3><?php esc_html_e( 'Unlock more with Swift CSV Pro', 'swift-csv' ); ?></h3>
+							<p><?php esc_html_e( 'With a Pro license, you can:', 'swift-csv' ); ?></p>
+							<ul>
+								<li>
+									<h4><?php esc_html_e( 'ACF Integration', 'swift-csv' ); ?></h4>
+									<ul>
+										<li><?php esc_html_e( 'Export and import Advanced Custom Fields with proper formatting', 'swift-csv' ); ?></li>
+										<li><?php esc_html_e( 'Support for all ACF field types including taxonomy, repeater, and relationship fields', 'swift-csv' ); ?></li>
+										<li><?php esc_html_e( 'Automatic field type detection and proper value formatting', 'swift-csv' ); ?></li>
+									</ul>
+								</li>
+								<li>
+									<h4><?php esc_html_e( 'Advanced Features', 'swift-csv' ); ?></h4>
+									<ul>
+										<li><?php esc_html_e( 'Batch processing for large datasets (1000+ records)', 'swift-csv' ); ?></li>
+										<li><?php esc_html_e( 'Real-time progress tracking with AJAX', 'swift-csv' ); ?></li>
+										<li><?php esc_html_e( 'Custom field filtering and selection', 'swift-csv' ); ?></li>
+										<li><?php esc_html_e( 'Advanced taxonomy handling with term ID or name export', 'swift-csv' ); ?></li>
+									</ul>
+								</li>
+								<li>
+									<h4><?php esc_html_e( 'Import Enhancements', 'swift-csv' ); ?></h4>
+									<ul>
+										<li><?php esc_html_e( 'Multi-value custom fields support', 'swift-csv' ); ?></li>
+										<li><?php esc_html_e( 'Advanced filtering and sorting options', 'swift-csv' ); ?></li>
+										<li><?php esc_html_e( 'Custom export templates and formats', 'swift-csv' ); ?></li>
+										<li><?php esc_html_e( 'Scheduled export functionality', 'swift-csv' ); ?></li>
+									</ul>
+								</li>
+								<li>
+									<h4><?php esc_html_e( 'Support & Updates', 'swift-csv' ); ?></h4>
+									<ul>
+										<li><?php esc_html_e( 'Priority customer support', 'swift-csv' ); ?></li>
+										<li><?php esc_html_e( 'Automatic updates from our update server', 'swift-csv' ); ?></li>
+										<li><?php esc_html_e( 'Access to beta features and early releases', 'swift-csv' ); ?></li>
+										<li><?php esc_html_e( 'Extended documentation and tutorials', 'swift-csv' ); ?></li>
+									</ul>
+								</li>
+							</ul>
+							<a href="<?php echo esc_url( SWIFT_CSV_PRO_URL ); ?>" target="_blank" class="button button-primary button-hero">
+								<?php esc_html_e( 'View Swift CSV Pro Details', 'swift-csv' ); ?>
+							</a>
+						</div>
+						<?php
+					endif;
+					?>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Register license settings
+	 *
+	 * @since 0.9.6
+	 * @return void
+	 */
+	public function register_settings() {
+		add_settings_section(
+			'swift_csv_license_section',
+			__( 'License Activation', 'swift-csv' ),
+			null,
+			'swift-csv'
+		);
+
+		add_settings_field(
+			'swift_csv_license_key',
+			__( 'Pro License Key', 'swift-csv' ),
+			[ $this, 'license_field_html' ],
+			'swift-csv',
+			'swift_csv_license_section'
+		);
+	}
+
+	/**
+	 * Renders the HTML for the license key input field and action buttons.
+	 *
+	 * @since 0.9.6
+	 * @return void
+	 */
+	public function license_field_html() {
+		$license_data   = get_option( 'swift_csv_pro_license', [] );
+		$products       = is_array( $license_data ) ? ( $license_data['products'] ?? [] ) : [];
+		$pro_product    = is_array( $products ) ? ( $products[328] ?? [] ) : [];
+		$license_key    = is_array( $pro_product ) ? ( $pro_product['key'] ?? '' ) : '';
+		$license_status = $this->is_pro_license_active() ? 'active' : 'inactive';
+		?>
+		<input
+			type="password"
+			autocomplete="off"
+			id="swift_csv_pro_license_key_input"
+			name="swift_csv_pro_license_key_input"
+			value="<?php echo esc_attr( $license_key ); ?>"
+			class="regular-text"
+			style="max-width: 300px;"
+		>
+		<button
+			type="button"
+			id="swift_csv_pro_license_toggle_visibility"
+			class="button button-secondary"
+			style="margin-left: 8px;"
+		>
+			<?php esc_html_e( 'Show', 'swift-csv' ); ?>
+		</button>
+
+		<?php if ( 'active' === $license_status ) : ?>
+			<button type="button" id="swift_csv_pro_license_deactivate" class="button button-secondary swift-csv-license-button" data-action="deactivate"><?php esc_html_e( 'Deactivate', 'swift-csv' ); ?></button>
+			<p class="description" style="color: green; font-weight: bold;">
+				<?php esc_html_e( 'The license is valid.', 'swift-csv' ); ?>
+			</p>
+
+			<?php
+			$pro_data            = is_array( $pro_product ) ? ( $pro_product['data'] ?? [] ) : [];
+			$expires_at          = $pro_data['data']['expires_at'] ?? ( $pro_data['expires_at'] ?? '' );
+			$times_activated     = $pro_data['data']['times_activated'] ?? ( $pro_data['times_activated'] ?? 0 );
+			$times_activated_max = $pro_data['data']['times_activated_max'] ?? ( $pro_data['times_activated_max'] ?? 1 );
+
+			if ( ! empty( $expires_at ) ) {
+				$expires_text = sprintf(
+					/* translators: %s: expiration date */
+					esc_html__( 'License expiration date: %s', 'swift-csv' ),
+					esc_html( date_i18n( 'Y-m-d', strtotime( $expires_at ) ) )
+				);
+				?>
+				<p class="description">
+					<?php echo esc_html( $expires_text ); ?>
+				</p>
+				<?php
+			}
+			?>
+			<p class="description">
+				<?php
+				printf(
+					/* translators: 1: times activated, 2: max activations */
+					esc_html__( 'Activation count: %1$s / %2$s', 'swift-csv' ),
+					esc_html( (string) $times_activated ),
+					esc_html( (string) $times_activated_max )
+				);
+				?>
+			</p>
+		<?php else : ?>
+			<button type="button" id="swift_csv_pro_license_activate" class="button button-primary swift-csv-license-button" data-action="activate"><?php esc_html_e( 'Activate', 'swift-csv' ); ?></button>
+			<p class="description">
+				<?php esc_html_e( 'Enter the license key you received at the time of purchase and press the "Activate" button.', 'swift-csv' ); ?>
+			</p>
+
+			<?php
+			$error = get_transient( 'swift_csv_pro_license_error' );
+			if ( $error ) :
+				?>
+				<p style="color: red;"><?php echo esc_html( $error ); ?></p>
+				<?php
+				delete_transient( 'swift_csv_pro_license_error' );
+			endif;
+			?>
+		<?php endif; ?>
+
+		<span class="spinner" style="float: none; vertical-align: middle;"></span>
+
+		<?php
+	}
+
+	public function ajax_manage_license() {
+		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => 'Permission denied.' ] );
+		}
+
+		$license_key = isset( $_POST['license_key'] ) ? sanitize_text_field( $_POST['license_key'] ) : '';
+		$action      = isset( $_POST['license_action'] ) ? sanitize_key( $_POST['license_action'] ) : '';
+
+		if ( empty( $license_key ) || empty( $action ) ) {
+			wp_send_json_error( [ 'message' => 'Missing license key or action.' ] );
+		}
+
+		// Perform the license action (handled by Free version)
+		$handler = new Swift_CSV_License_Handler();
+		$result  = ( 'activate' === $action ) ? $handler->activate( $license_key ) : $handler->deactivate( $license_key );
+
+		// Determine the product ID from the remote response
+		$product_id = 328;
+		if ( isset( $result['data']['data']['productId'] ) ) {
+			$product_id = (int) $result['data']['data']['productId'];
+		} elseif ( isset( $result['data']['productId'] ) ) {
+			$product_id = (int) $result['data']['productId'];
+		}
+
+		$all_licenses = get_option( 'swift_csv_pro_license', [] );
+
+		// Ensure we have a proper array
+		if ( ! is_array( $all_licenses ) ) {
+			$all_licenses = [];
+		}
+
+		if ( ! isset( $all_licenses['products'] ) || ! is_array( $all_licenses['products'] ) ) {
+			$all_licenses['products'] = [];
+		}
+
+		if ( $result && $result['success'] ) {
+			// Determine the local license status based on the requested action
+			$local_status = ( 'activate' === $action ) ? 'active' : 'inactive';
+
+			if ( $product_id > 0 ) {
+				$all_licenses['products'][ $product_id ] = [
+					'key'    => $license_key,
+					'status' => $local_status,
+					'data'   => $result['data'] ?? [],
+				];
+			}
+
+			update_option( 'swift_csv_pro_license', $all_licenses );
+			delete_transient( 'swift_csv_pro_license_error' );
+			wp_send_json_success( [ 'message' => $result['message'] ] );
+
+		} else {
+			if ( $product_id > 0 ) {
+				$all_licenses['products'][ $product_id ] = [
+					'key'    => $license_key,
+					'status' => 'inactive',
+					'data'   => $result['data'] ?? [],
+				];
+			}
+
+			update_option( 'swift_csv_pro_license', $all_licenses );
+			set_transient( 'swift_csv_pro_license_error', $result['message'], 60 );
+			wp_send_json_error( [ 'message' => $result['message'] ] );
+		}
 	}
 
 	/**

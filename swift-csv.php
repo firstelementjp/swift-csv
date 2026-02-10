@@ -26,9 +26,11 @@ define( 'SWIFT_CSV_VERSION', '0.9.5' );
 define( 'SWIFT_CSV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SWIFT_CSV_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );
+define( 'SWIFT_CSV_PRO_URL', 'https://www.firstelement.co.jp/swift-csv-pro/' );
 
 // Include required files.
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-admin.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-license-handler.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-updater.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-import.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';

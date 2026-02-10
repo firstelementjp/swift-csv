@@ -102,23 +102,49 @@ msgstr ""
 msgid "Go to contact form"
 msgstr ""
 
-#: includes/class-swift-csv-admin.php:668
+#: includes/class-swift-csv-admin.php:504
+msgid "Update Existing"
+msgstr "既存投稿を更新"
+
+#: includes/class-swift-csv-admin.php:509
+msgid "Update existing posts if they match by ID"
+msgstr "IDが一致する場合に既存投稿を更新"
+
+#: includes/class-swift-csv-admin.php:511
+msgid "If checked, existing posts will be updated. If unchecked, only new posts will be created."
+msgstr "チェックすると既存投稿が更新されます。チェックしない場合、新しい投稿のみが作成されます。"
+
+#: includes/class-swift-csv-admin.php:527
 msgid "Dry Run"
 msgstr "テスト実行"
 
+#: includes/class-swift-csv-admin.php:531
+msgid "Test import without creating posts"
+msgstr "投稿を作成せずにインポートをテスト"
+
+#: includes/class-swift-csv-admin.php:533
+msgid "Run a test import to preview changes without modifying your data."
+msgstr "データを変更せずに変更内容をプレビューするテストインポートを実行します。"
+
+#: includes/class-swift-csv-admin.php:561
+msgid "Select whether the term values in the CSV are names (text) or term IDs (numeric)."
+msgstr "CSV上のタームの値が名前（テキスト）かタームID（数値）かを選択してください。"
+
+#: includes/class-swift-csv-admin.php:1192
+msgid "Pro License Key"
+msgstr "Proライセンスキー"
+
 #: includes/class-swift-csv-admin.php:658
 #: includes/class-swift-csv-admin.php:495
+#: includes/class-swift-csv-admin.php:555
 msgid "Names"
-msgstr "名前（name）"
+msgstr "名前"
 
 #: includes/class-swift-csv-admin.php:661
 #: includes/class-swift-csv-admin.php:498
+#: includes/class-swift-csv-admin.php:559
 msgid "Term IDs"
-msgstr "タームID（term_id）"
-
-#: includes/class-swift-csv-admin.php:670
-msgid "Test import without creating posts"
-msgstr "投稿を作成せずにインポートをテスト"
+msgstr "タームID"
 
 #: includes/class-swift-csv-admin.php:677
 msgid "Preview what will be imported by checking the log output without actually creating posts or taxonomies (Dry Run)."
@@ -127,10 +153,6 @@ msgstr "インポートされる内容をログに出力してあらかじめ確
 #: includes/class-swift-csv-admin.php:352
 msgid "Export"
 msgstr "エクスポート"
-
-#: includes/class-swift-csv-admin.php:670
-msgid "Select whether the term values in the CSV are names (text) or term IDs (numeric)."
-msgstr "CSV上のタームの値が名前（テキスト）かタームID（数値）により選択してください。"
 
 #: includes/class-swift-csv-admin.php:142
 msgid "Test import without creating posts or modifying data."
@@ -623,9 +645,6 @@ msgstr "表示"
 
 msgid "Hide"
 msgstr "非表示"
-
-msgid "Pro License Key"
-msgstr "Pro ライセンスキー"
 
 msgid "Deactivate"
 msgstr "無効化"

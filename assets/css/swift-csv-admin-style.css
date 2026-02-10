@@ -107,17 +107,21 @@
 }
 
 .tab-content h3 {
-	background: #e0ebe6;
-	padding: 0.2rem 0.5rem;
+	background: #eaf1ee;
+	padding: 0.5rem;
 	border-radius: 3px;
 	margin: 0 -0.5rem 1rem;
 	font-size: 1.2em;
+	color: #4c675b;
 }
 .swift-csv-layout {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 20px;
 	margin-top: 0;
+}
+.swift-csv-layout.full-width {
+	grid-template-columns: 1fr;
 }
 
 @media (max-width: 1200px) {
@@ -135,7 +139,7 @@
 
 /* Settings Column */
 .swift-csv-settings {
-	min-height: 400px;
+	/* min-height: 400px; */
 	padding: 20px;
 }
 
@@ -485,10 +489,13 @@
 	background: white;
 }
 
-.tab-contet h3 {
+.tab-content h3 {
 	background: #e0ebe6;
-	padding: 0.5em 0.5em;
+	padding: 0.3em 0.5em;
 	border-radius: 3px;
+	margin: 0 -0.5rem 1rem;
+	font-size: 1.2em;
+	color: #4c675b;
 }
 
 .swift-csv .nav-tab-wrapper {
@@ -887,14 +894,6 @@ a.nav-tab:last-of-type {
 	background: white;
 }
 
-.tab-content h3 {
-	background: #e0ebe6;
-	padding: 0.2rem 0.5rem;
-	border-radius: 3px;
-	margin: 0 -0.5rem 1rem;
-	font-size: 1.2em;
-}
-
 /* Tab navigation */
 .swift-csv .nav-tab-wrapper {
 	margin-bottom: 0;
@@ -1001,4 +1000,192 @@ a.nav-tab:last-of-type {
 
 .swift-csv-progress .errors {
 	color: #dc3232;
+}
+
+/* ==========================================================================
+	License Tab Pro promotion section
+	========================================================================== */
+.swift-csv-pro-promo {
+	margin-top: 3rem;
+}
+.swift-csv-pro-promo hr {
+	width: 80%;
+	margin: auto;
+	border-top: 0;
+	border-bottom: 1px solid silver;
+}
+
+.swift-csv-pro-promo h3 {
+	display: block;
+	text-align: center;
+	margin: -0.65em auto 1em;
+	background: white;
+	padding: 0em 2em;
+	width: fit-content;
+	line-height: 1;
+	font-size: 1.3em;
+}
+
+.swift-csv-pro-promo p {
+	text-align: center;
+}
+
+/* ==========================================================================
+	Settings API dl/dt/dd structure support
+	========================================================================== */
+.swift-csv-settings dl {
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: row;
+}
+
+.swift-csv-settings dt {
+	display: block;
+	width: 35%;
+	margin: 1.5em 0 0.5em 0;
+	padding: 0;
+	font-weight: 600;
+	line-height: 1.4;
+}
+.swift-csv-layout.full-width .swift-csv-settings dt {
+	width: 17.5%;
+}
+
+.swift-csv-settings dt:first-child {
+	margin-top: 0;
+}
+
+.swift-csv-settings dd {
+	width: 65%;
+	margin: 0 0 1.5em 0;
+	padding: 0;
+	line-height: 1.4;
+}
+
+.swift-csv-layout.full-width .swift-csv-settings dd {
+	width: 82.5%;
+}
+
+.swift-csv-settings dd label {
+	display: block;
+	margin-bottom: 0.5em;
+}
+
+.swift-csv-settings dd label:last-child {
+	margin-bottom: 0;
+}
+
+.swift-csv-settings dd input[type='radio'],
+.swift-csv-settings dd input[type='checkbox'] {
+	margin-right: 0.5em;
+}
+
+.swift-csv-settings dd select,
+.swift-csv-settings dd input[type='number'],
+.swift-csv-settings dd input[type='text'] {
+	width: 100%;
+	max-width: 25em;
+}
+
+.swift-csv-settings dd .description {
+	margin-top: 0.5em;
+	font-style: italic;
+	color: #666;
+	font-size: 13px;
+}
+
+/* Layout for the Pro feature list */
+.swift-csv-pro-promo > ul {
+	margin: 16px 0 0;
+	padding: 0;
+	list-style: none; /* Remove default bullets from parent UL */
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 16px;
+}
+
+/* Individual feature blocks (cards) */
+.swift-csv-pro-promo > ul > li {
+	margin: 0;
+	padding: 16px 18px;
+	border-radius: 6px;
+	border: 1px solid #6d6ddb;
+	background: #ffffff;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+/* Card heading */
+.swift-csv-pro-promo > ul > li > h4 {
+	margin: 0 0 8px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #111827;
+}
+
+/* Keep inner UL (feature list) as regular bullet list */
+.swift-csv-pro-promo > ul > li > ul {
+	margin: 0;
+	padding-left: 1.2em;
+	list-style: disc;
+}
+
+/* Spacing for nested UL (sub bullet list) */
+.swift-csv-pro-promo > ul > li ul ul {
+	margin-top: 4px;
+}
+
+/* Line height and font size for text items */
+.swift-csv-pro-promo > ul > li li {
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* Second-level list: remove bullets and indent by about one character */
+.swift-csv-pro-promo > ul > li ul ul {
+	list-style: none;
+	padding-left: 1em; /* Approximate indent width of one character */
+	margin: 4px 0 0;
+}
+
+/* Add a hyphen at the start of each second-level li */
+.swift-csv-pro-promo > ul > li ul ul > li {
+	position: relative;
+}
+
+/* Hyphen marker */
+.swift-csv-pro-promo > ul > li ul ul > li::before {
+	content: '- ';
+	position: absolute;
+	left: -1em;
+}
+
+.swift-csv-pro-promo .button {
+	margin: 2em auto;
+	background: linear-gradient(139deg, #602fba, #0082ff);
+	border: none;
+	padding: 0.2em;
+	width: 60%;
+	font-size: 1.4em;
+	opacity: 0.8;
+	transition: opacity 0.3s ease;
+	min-width: fit-content;
+	text-align: center;
+	margin: 3em auto;
+	display: block;
+}
+
+/* External link icon */
+.swift-csv-pro-promo .button::after {
+	content: '\f504'; /* dashicons-external */
+	font-family: 'dashicons';
+	display: inline-block;
+	margin-left: 0.4em;
+	font-size: 1em;
+	position: relative;
+	top: 0.08em;
+}
+
+.swift-csv-pro-promo .button:hover {
+	opacity: 1;
 }

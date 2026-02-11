@@ -10,24 +10,43 @@
  * Initialize file upload functionality
  */
 function initFileUpload() {
+	console.log('initFileUpload() called'); // Debug log
+
 	const uploadArea = document.querySelector('#csv-file-upload');
 	const fileInput = document.querySelector('#ajax_csv_file');
 	const fileInfo = document.querySelector('#csv-file-info');
 	const removeBtn = document.querySelector('#remove-file-btn');
 
-	if (!uploadArea || !fileInput) return;
+	console.log('Elements found:', {
+		// Debug log
+		uploadArea: !!uploadArea,
+		fileInput: !!fileInput,
+		fileInfo: !!fileInfo,
+		removeBtn: !!removeBtn,
+	});
+
+	if (!uploadArea || !fileInput) {
+		console.log('Missing required elements, exiting'); // Debug log
+		return;
+	}
 
 	// Prevent multiple event listener registrations
 	if (uploadArea.dataset.swiftCsvInitialized === 'true') {
+		console.log('Already initialized, skipping'); // Debug log
 		return;
 	}
 
 	// Mark as initialized
 	uploadArea.dataset.swiftCsvInitialized = 'true';
+	console.log('Marked as initialized'); // Debug log
 
 	// File selection change event first
 	fileInput.addEventListener('change', e => {
+		console.log('File input change event fired'); // Debug log
+		console.log('Selected files:', e.target.files); // Debug log
+
 		if (e.target.files.length > 0) {
+			console.log('Calling handleFileSelect from change event'); // Debug log
 			handleFileSelect(e.target.files[0]);
 		}
 	});
@@ -38,16 +57,21 @@ function initFileUpload() {
 	uploadArea.addEventListener(
 		'click',
 		function (e) {
+			console.log('Upload area clicked'); // Debug log
+
 			if (isClicking) {
+				console.log('Already clicking, ignoring'); // Debug log
 				return;
 			}
 
 			isClicking = true;
+			console.log('Triggering file input click'); // Debug log
 
 			// Use setTimeout to ensure proper timing
 			setTimeout(() => {
 				try {
 					fileInput.click();
+					console.log('File input click() called successfully'); // Debug log
 				} catch (error) {
 					console.error('Error calling fileInput.click():', error);
 				} finally {
@@ -64,14 +88,17 @@ function initFileUpload() {
 	// Drag and drop
 	uploadArea.addEventListener('dragover', e => {
 		e.preventDefault();
+		console.log('Drag over event fired'); // Debug log
 		uploadArea.classList.add('dragover');
 	});
 
 	uploadArea.addEventListener('dragleave', () => {
+		console.log('Drag leave event fired'); // Debug log
 		uploadArea.classList.remove('dragover');
 	});
 
 	uploadArea.addEventListener('drop', e => {
+		console.log('Drop event fired'); // Debug log
 		e.preventDefault();
 		uploadArea.classList.remove('dragover');
 
@@ -85,7 +112,7 @@ function initFileUpload() {
 	if (removeBtn) {
 		removeBtn.addEventListener('click', () => {
 			fileInput.value = '';
-			fileInfo.style.display = 'none';
+			fileInfo.classList.remove('visible'); // ← CSSクラスで非表示
 			uploadArea.classList.remove('file-selected');
 		});
 	}
@@ -97,16 +124,30 @@ function initFileUpload() {
  * @param {File} file Selected file
  */
 function handleFileSelect(file) {
+	console.log('handleFileSelect() called with file:', file); // Debug log
+
 	const fileInfo = document.querySelector('#csv-file-info');
 	const uploadArea = document.querySelector('#csv-file-upload');
 	const fileName = document.querySelector('#csv-file-name');
 	const fileSize = document.querySelector('#csv-file-size');
 
+	console.log('handleFileSelect elements found:', {
+		// Debug log
+		fileInfo: !!fileInfo,
+		uploadArea: !!uploadArea,
+		fileName: !!fileName,
+		fileSize: !!fileSize,
+	});
+
 	if (fileInfo && uploadArea && fileName && fileSize) {
+		console.log('Setting file info...'); // Debug log
 		fileName.textContent = file.name;
 		fileSize.textContent = SwiftCSVCore.formatFileSize(file.size);
-		fileInfo.style.display = 'block';
+		fileInfo.classList.add('visible'); // ← CSSクラスで表示
 		uploadArea.classList.add('file-selected');
+		console.log('File info set successfully'); // Debug log
+	} else {
+		console.log('Missing elements for file display'); // Debug log
 	}
 }
 
@@ -125,12 +166,16 @@ function handleAjaxImport(e) {
 	const file = document.querySelector('#ajax_csv_file')?.files[0];
 	const postType = document.querySelector('#import_post_type')?.value || 'post';
 	const updateExisting = document.querySelector('#update_existing')?.checked ? '1' : '0';
-	const taxonomyFormat = document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name';
+	const taxonomyFormat =
+		document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name';
 	const dryRun = document.querySelector('#dry_run')?.checked ? '1' : '0';
 
 	// Log import settings
 	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.fileInfo + ' ' + file.name, 'debug');
-	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.fileSize + ' ' + SwiftCSVCore.formatFileSize(file.size), 'debug');
+	SwiftCSVCore.swiftCSVLog(
+		swiftCSV.messages.fileSize + ' ' + SwiftCSVCore.formatFileSize(file.size),
+		'debug'
+	);
 	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.postTypeInfo + ' ' + postType, 'debug');
 	addLogEntry(
 		swiftCSV.messages.updateExistingInfo +
@@ -210,7 +255,7 @@ function handleAjaxImport(e) {
 				if (data.success && data.continue) {
 					// Update progress
 					updateImportProgress(data, startTime);
-					
+
 					// Process next chunk
 					processImportChunk(
 						data.processed,
@@ -223,7 +268,11 @@ function handleAjaxImport(e) {
 					completeAjaxImport(data, importBtn, cancelBtn);
 				} else {
 					// Handle error
-					addLogEntry(swiftCSV.messages.importError + ' ' + data.error, 'error', 'import');
+					addLogEntry(
+						swiftCSV.messages.importError + ' ' + data.error,
+						'error',
+						'import'
+					);
 
 					if (importBtn) {
 						importBtn.disabled = false;
@@ -361,7 +410,7 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 		uploadArea.classList.remove('file-selected');
 	}
 	if (fileInfo) {
-		fileInfo.style.display = 'none';
+		fileInfo.classList.remove('visible'); // ← CSSクラスで非表示
 	}
 }
 
@@ -371,5 +420,5 @@ window.SwiftCSVImport = {
 	handleFileSelect,
 	handleAjaxImport,
 	updateImportProgress,
-	completeAjaxImport
+	completeAjaxImport,
 };

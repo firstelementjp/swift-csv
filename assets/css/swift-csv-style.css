@@ -367,6 +367,10 @@ a.nav-tab:last-of-type {
 	background-color: #e5f5ff;
 }
 
+.file-upload-area.file-selected {
+	display: none; /* ← ファイル選択時に非表示 */
+}
+
 .file-upload-content {
 	pointer-events: none;
 }
@@ -390,13 +394,18 @@ a.nav-tab:last-of-type {
 }
 
 .file-info {
-	display: flex;
+	display: none; /* ← デフォルトは非表示 */
 	align-items: center;
 	justify-content: space-between;
 	padding: 10px 15px;
 	background-color: #f0f6fc;
 	border: 1px solid #0073aa;
 	border-radius: 4px;
+	gap: 10px;
+}
+
+.file-info.visible {
+	display: flex; /* ← 表示時はflex */
 }
 
 .file-info .file-name {

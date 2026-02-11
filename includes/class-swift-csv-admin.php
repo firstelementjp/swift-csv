@@ -1089,8 +1089,9 @@ class Swift_CSV_Admin {
 								<input type="file" name="csv_file" id="ajax_csv_file" accept=".csv" style="display: none;">
 							</div>
 						</div>
-						<div class="file-info" id="csv-file-info" style="display: none;">
-							<span class="file-name"></span>
+						<div class="file-info" id="csv-file-info">
+							<span id="csv-file-name" class="file-name"></span>
+							<span id="csv-file-size" class="file-size"></span>
 							<button type="button" class="button button-secondary" id="remove-file-btn"><?php esc_html_e( 'Remove', 'swift-csv' ); ?></button>
 						</div>
 					</div>

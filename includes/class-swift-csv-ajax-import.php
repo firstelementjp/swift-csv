@@ -43,75 +43,37 @@ class Swift_CSV_Ajax_Import {
 	 */
 	public function upload_handler() {
 		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'swift_csv_ajax_nonce' ) ) {
-			wp_send_json(
-				[
-					'success' => false,
-					'error'   => 'Security check failed',
-				]
-			);
+		$nonce = $_POST['nonce'] ?? '';
+		if ( ! Swift_CSV_Helper::verify_nonce( $nonce ) ) {
+			Swift_CSV_Helper::send_security_error();
 			return;
 		}
 
-		if ( ! isset( $_FILES['csv_file'] ) ) {
-			wp_send_json(
-				[
-					'success' => false,
-					'error'   => 'No file uploaded',
-				]
-			);
+		// Validate uploaded file
+		$file_validation = Swift_CSV_Helper::validate_upload_file( $_FILES['csv_file'] ?? null );
+		if ( ! $file_validation['valid'] ) {
+			Swift_CSV_Helper::send_error_response( $file_validation['error'] );
 			return;
 		}
 
 		$file = $_FILES['csv_file'];
 
-		// Validate file
-		if ( $file['error'] !== UPLOAD_ERR_OK ) {
-			wp_send_json(
-				[
-					'success' => false,
-					'error'   => 'Upload error: ' . $file['error'],
-				]
-			);
+		// Validate file size
+		$size_validation = Swift_CSV_Helper::validate_file_size( $file );
+		if ( ! $size_validation['valid'] ) {
+			Swift_CSV_Helper::send_error_response( $size_validation['error'] );
 			return;
 		}
 
-		// Get actual PHP upload limits
-		$upload_max = ini_get( 'upload_max_filesize' );
-		$post_max   = ini_get( 'post_max_size' );
+		// Create temp directory and file path
+		$temp_dir  = Swift_CSV_Helper::create_temp_directory();
+		$temp_file = Swift_CSV_Helper::generate_temp_file_path( $temp_dir );
 
-		$upload_max_bytes = $this->parse_ini_size( $upload_max );
-		$post_max_bytes   = $this->parse_ini_size( $post_max );
-		$max_file_size    = min( $upload_max_bytes, $post_max_bytes );
-
-		if ( $file['size'] > $max_file_size ) {
-			wp_send_json(
-				[
-					'success' => false,
-					'error'   => 'File too large',
-				]
-			);
-			return;
-		}
-
-		// Create temp file
-		$upload_dir = wp_upload_dir();
-		$temp_dir   = $upload_dir['basedir'] . '/swift-csv-temp';
-		if ( ! file_exists( $temp_dir ) ) {
-			wp_mkdir_p( $temp_dir );
-		}
-
-		$temp_file = $temp_dir . '/ajax-import-' . time() . '.csv';
-
-		if ( move_uploaded_file( $file['tmp_name'], $temp_file ) ) {
+		// Save uploaded file
+		if ( Swift_CSV_Helper::save_uploaded_file( $file, $temp_file ) ) {
 			wp_send_json( [ 'file_path' => $temp_file ] );
 		} else {
-			wp_send_json(
-				[
-					'success' => false,
-					'error'   => 'Failed to save file',
-				]
-			);
+			Swift_CSV_Helper::send_error_response( 'Failed to save file' );
 		}
 	}
 
@@ -620,10 +582,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return string
 	 */
 	private function normalize_field_name( $name ) {
-		$name = trim( (string) $name );
-		$name = preg_replace( '/^\xEF\xBB\xBF/', '', $name );
-		$name = preg_replace( '/[\x00-\x1F\x7F]/', '', $name );
-		return trim( $name );
+		return Swift_CSV_Helper::normalize_field_name( $name );
 	}
 
 	/**
@@ -666,34 +625,16 @@ class Swift_CSV_Ajax_Import {
 
 						$meta_value = $row[ $j ] ?? '';
 						if ( $meta_value !== '' ) {
-							$term_values = array_map( 'trim', explode( ',', $meta_value ) );
-							$all_numeric = true;
-							$all_string  = true;
-							$mixed       = false;
+							$term_values     = array_map( 'trim', explode( ',', $meta_value ) );
+							$format_analysis = Swift_CSV_Helper::analyze_term_values_format( $term_values );
 
-							foreach ( $term_values as $term_val ) {
-								if ( $term_val === '' ) {
-									continue;
-								}
-
-								if ( is_numeric( $term_val ) ) {
-									$all_string = false;
-								} else {
-									$all_numeric = false;
-								}
-
-								if ( ! $all_numeric && ! $all_string ) {
-									$mixed = true;
-									break;
-								}
-							}
-
-							$taxonomy_format_validation[ $taxonomy_name ] = [
-								'all_numeric'   => $all_numeric,
-								'all_string'    => $all_string,
-								'mixed'         => $mixed,
-								'sample_values' => $term_values,
-							];
+							$taxonomy_format_validation[ $taxonomy_name ] = array_merge(
+								$format_analysis,
+								[
+									'sample_values' => $term_values,
+									'taxonomy_name' => $taxonomy_name,
+								]
+							);
 						}
 					}
 				}
@@ -703,42 +644,9 @@ class Swift_CSV_Ajax_Import {
 
 		// Validate format consistency
 		foreach ( $taxonomy_format_validation as $taxonomy_name => $validation ) {
-			// Check for format mismatches
-			if ( $taxonomy_format === 'name' && $validation['all_numeric'] ) {
-				// Cleanup file on error
-				if ( $file_path && file_exists( $file_path ) ) {
-					unlink( $file_path );
-				}
-				wp_send_json(
-					[
-						'success' => false,
-						'error'   => sprintf(
-							/* translators: 1: taxonomy name, 2: UI format, 3: sample values */
-							__( 'Format mismatch detected for taxonomy "%1$s". UI is set to "Names" but CSV contains only numeric values: %2$s. Please check your data format.', 'swift-csv' ),
-							$taxonomy_name,
-							implode( ', ', $validation['sample_values'] )
-						),
-					]
-				);
-				return null;
-			}
-
-			if ( $taxonomy_format === 'id' && $validation['all_string'] ) {
-				// Cleanup file on error
-				if ( $file_path && file_exists( $file_path ) ) {
-					unlink( $file_path );
-				}
-				wp_send_json(
-					[
-						'success' => false,
-						'error'   => sprintf(
-							/* translators: 1: taxonomy name, 2: UI format, 3: sample values */
-							__( 'Format mismatch detected for taxonomy "%1$s". UI is set to "Term IDs" but CSV contains only text values: %2$s. Please check your data format.', 'swift-csv' ),
-							$taxonomy_name,
-							implode( ', ', $validation['sample_values'] )
-						),
-					]
-				);
+			$consistency_result = Swift_CSV_Helper::validate_taxonomy_format_consistency( $taxonomy_format, $validation, $file_path );
+			if ( ! $consistency_result['valid'] ) {
+				Swift_CSV_Helper::send_error_response( $consistency_result['error'] );
 				return null;
 			}
 		}
@@ -781,23 +689,14 @@ class Swift_CSV_Ajax_Import {
 	 * @return int|null ID column index or null on error (sends JSON response).
 	 */
 	private function ensure_id_column_or_send_error_and_cleanup( $headers, $file_path ) {
-		$id_col = array_search( 'ID', $headers, true );
-		if ( $id_col !== false ) {
-			return $id_col;
+		$validation_result = Swift_CSV_Helper::validate_id_column( $headers, $file_path );
+
+		if ( ! $validation_result['valid'] ) {
+			Swift_CSV_Helper::send_error_response( $validation_result['error'] );
+			return null;
 		}
 
-		// Cleanup file on error
-		if ( $file_path && file_exists( $file_path ) ) {
-			unlink( $file_path );
-		}
-		wp_send_json(
-			[
-				'success' => false,
-				'error'   => 'Invalid CSV format: ID column is required',
-			]
-		);
-
-		return null;
+		return $validation_result['id_col'];
 	}
 
 	/**
@@ -808,13 +707,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return int
 	 */
 	private function count_total_rows( $lines ) {
-		$total_rows = 0;
-		foreach ( $lines as $line ) {
-			if ( ! empty( trim( $line ) ) ) {
-				++$total_rows;
-			}
-		}
-		return $total_rows;
+		return Swift_CSV_Helper::count_data_rows( $lines );
 	}
 
 	/**
@@ -844,7 +737,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array
 	 */
 	private function parse_csv_row( $line, $delimiter ) {
-		return str_getcsv( $line, $delimiter );
+		return Swift_CSV_Helper::parse_csv_row( $line, $delimiter );
 	}
 
 	/**
@@ -855,7 +748,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return bool
 	 */
 	private function is_empty_csv_line( $line ) {
-		return empty( trim( $line ) );
+		return Swift_CSV_Helper::is_empty_csv_line( $line );
 	}
 
 	/**
@@ -954,13 +847,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array<string, mixed>
 	 */
 	private function build_post_data_for_update( $post_fields_from_csv ) {
-		$post_data = [];
-		foreach ( $post_fields_from_csv as $key => $value ) {
-			$post_data[ $key ] = $value;
-		}
-		$post_data['post_modified']     = current_time( 'mysql' );
-		$post_data['post_modified_gmt'] = current_time( 'mysql', true );
-		return $post_data;
+		return Swift_CSV_Helper::build_post_data_for_update( $post_fields_from_csv );
 	}
 
 	/**
@@ -972,42 +859,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array<string, mixed>
 	 */
 	private function build_post_data_for_insert( $post_fields_from_csv, $post_type ) {
-		$post_author_id = 1;
-		if ( ! empty( $post_fields_from_csv['post_author'] ) ) {
-			$author_display_name = trim( $post_fields_from_csv['post_author'] );
-			if ( is_numeric( $author_display_name ) ) {
-				$post_author_id = (int) $author_display_name;
-			} else {
-				$author_user = get_user_by( 'display_name', $author_display_name );
-				if ( $author_user ) {
-					$post_author_id = $author_user->ID;
-				} elseif ( get_current_user_id() ) {
-					$post_author_id = get_current_user_id();
-				}
-			}
-		} elseif ( get_current_user_id() ) {
-			$post_author_id = get_current_user_id();
-		}
-
-		return [
-			'post_author'       => $post_author_id,
-			'post_date'         => $post_fields_from_csv['post_date'] ?? current_time( 'mysql' ),
-			'post_date_gmt'     => $post_fields_from_csv['post_date_gmt'] ?? current_time( 'mysql', true ),
-			'post_content'      => $post_fields_from_csv['post_content'] ?? '',
-			'post_title'        => $post_fields_from_csv['post_title'] ?? '',
-			'post_excerpt'      => $post_fields_from_csv['post_excerpt'] ?? '',
-			'post_status'       => $post_fields_from_csv['post_status'] ?? 'publish',
-			'post_name'         => $post_fields_from_csv['post_name'] ?? sanitize_title( (string) ( $post_fields_from_csv['post_title'] ?? '' ) ),
-			'post_type'         => $post_type,
-			'comment_status'    => $post_fields_from_csv['comment_status'] ?? 'closed',
-			'ping_status'       => $post_fields_from_csv['ping_status'] ?? 'closed',
-			'post_modified'     => current_time( 'mysql' ),
-			'post_modified_gmt' => current_time( 'mysql', true ),
-			'post_parent'       => (int) ( $post_fields_from_csv['post_parent'] ?? 0 ),
-			'menu_order'        => (int) ( $post_fields_from_csv['menu_order'] ?? 0 ),
-			'post_mime_type'    => '',
-			'comment_count'     => 0,
-		];
+		return Swift_CSV_Helper::build_post_data_for_insert( $post_fields_from_csv, $post_type );
 	}
 
 	/**
@@ -1316,62 +1168,11 @@ class Swift_CSV_Ajax_Import {
 	private function resolve_term_ids_for_term_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation ) {
 		error_log( "[Swift CSV] Processing term value: '{$term_value}' with format: {$taxonomy_format}" );
 
-		// Handle different taxonomy formats with mixed data support
-		if ( $taxonomy_format === 'id' ) {
-			// Handle term IDs
-			$term_id = intval( $term_value );
-			error_log( "[Swift CSV] Looking up term by ID: {$term_id}" );
+		$term_ids = Swift_CSV_Helper::resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
 
-			// Check if the term value is actually a valid ID
-			if ( $term_id === 0 ) {
-				// For mixed format, treat numeric values as names
-				if ( isset( $taxonomy_format_validation[ $taxonomy ] ) && $taxonomy_format_validation[ $taxonomy ]['mixed'] ) {
-					error_log( "[Swift CSV] Mixed format detected: treating '{$term_value}' as term name" );
-					$term = get_term_by( 'name', $term_value, $taxonomy );
-					if ( ! $term ) {
-						error_log( "[Swift CSV] Term not found, creating new term: '{$term_value}'" );
-						$created = wp_insert_term( $term_value, $taxonomy );
-						if ( is_wp_error( $created ) ) {
-							error_log( "Failed to create term '$term_value' in taxonomy '$taxonomy'" );
-							return [];
-						}
-						error_log( "[Swift CSV] Created new term: '{$term_value}' with ID: {$created['term_id']}" );
-						return [ (int) $created['term_id'] ];
-					}
-					error_log( "[Swift CSV] Found existing term by name: '{$term_value}' with ID: {$term->term_id}" );
-					return [ (int) $term->term_id ];
-				}
+		error_log( '[Swift CSV] Resolved ' . count( $term_ids ) . " term IDs for value '{$term_value}'" );
 
-				error_log( "[Swift CSV] ERROR: Term value '{$term_value}' is not a valid ID. Expected numeric ID when 'Term IDs' format is selected." );
-				// Skip this term as it's not a valid ID
-				return [];
-			}
-
-			// Valid ID, process normally
-			$term = get_term( $term_id, $taxonomy );
-			if ( $term && ! is_wp_error( $term ) ) {
-				error_log( "[Swift CSV] Found term by ID: {$term_id} -> {$term->name}" );
-				return [ $term_id ];
-			}
-			error_log( "[Swift CSV] Invalid term ID: {$term_id} in taxonomy '{$taxonomy}'" );
-			return [];
-		}
-
-		// Handle term names (default)
-		error_log( "[Swift CSV] Looking up term by name: '{$term_value}'" );
-		$term = get_term_by( 'name', $term_value, $taxonomy );
-		if ( ! $term ) {
-			error_log( "[Swift CSV] Term not found, creating new term: '{$term_value}'" );
-			$created = wp_insert_term( $term_value, $taxonomy );
-			if ( is_wp_error( $created ) ) {
-				error_log( "Failed to create term '$term_value' in taxonomy '$taxonomy'" );
-				return [];
-			}
-			error_log( "[Swift CSV] Created new term: '{$term_value}' with ID: {$created['term_id']}" );
-			return [ (int) $created['term_id'] ];
-		}
-		error_log( "[Swift CSV] Found existing term by name: '{$term_value}' with ID: {$term->term_id}" );
-		return [ (int) $term->term_id ];
+		return $term_ids;
 	}
 
 	/**

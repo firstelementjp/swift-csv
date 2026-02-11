@@ -1226,6 +1226,69 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
+	 * Resolve term IDs for a single taxonomy.
+	 *
+	 * @since 0.9.0
+	 * @param string $taxonomy Taxonomy name.
+	 * @param array  $terms Term values.
+	 * @param string $taxonomy_format Taxonomy format.
+	 * @param array  $taxonomy_format_validation Taxonomy format validation.
+	 * @return array<int, int>
+	 */
+	private function resolve_taxonomy_term_ids( $taxonomy, $terms, $taxonomy_format, $taxonomy_format_validation ) {
+		$term_ids = [];
+		foreach ( $terms as $term_value ) {
+			$term_value = trim( (string) $term_value );
+			if ( $term_value === '' ) {
+				continue;
+			}
+
+			$resolved_term_ids = $this->resolve_term_ids_for_term_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
+			foreach ( $resolved_term_ids as $resolved_term_id ) {
+				$term_ids[] = $resolved_term_id;
+			}
+		}
+		return $term_ids;
+	}
+
+	/**
+	 * Apply taxonomy terms to a post.
+	 *
+	 * @since 0.9.0
+	 * @param int    $post_id Post ID.
+	 * @param string $taxonomy Taxonomy name.
+	 * @param array  $term_ids Term IDs.
+	 * @param bool   $dry_run Dry run flag.
+	 * @param array  $dry_run_log Dry run log.
+	 * @return void
+	 */
+	private function apply_taxonomy_terms_to_post( $post_id, $taxonomy, $term_ids, $dry_run, &$dry_run_log ) {
+		if ( empty( $term_ids ) ) {
+			return;
+		}
+
+		if ( $dry_run ) {
+			error_log( "[Dry Run] Would set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
+			// Log each term for Dry Run
+			foreach ( $term_ids as $term_id ) {
+				$term = get_term( $term_id, $taxonomy );
+				if ( $term && ! is_wp_error( $term ) ) {
+					$dry_run_log[] = sprintf(
+						/* translators: 1: term name, 2: term ID, 3: taxonomy name */
+						__( 'Existing term: %1$s (ID: %2$s, taxonomy: %3$s)', 'swift-csv' ),
+						$term->name,
+						$term_id,
+						$taxonomy
+					);
+				}
+			}
+		} else {
+			wp_set_post_terms( $post_id, $term_ids, $taxonomy, false );
+			error_log( "[Swift CSV] Set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
+		}
+	}
+
+	/**
 	 * Apply taxonomy terms for a post.
 	 *
 	 * @since 0.9.0
@@ -1243,41 +1306,11 @@ class Swift_CSV_Ajax_Import {
 				// Debug log for taxonomy processing
 				error_log( "[Swift CSV] Processing taxonomy: {$taxonomy}, format: {$taxonomy_format}" );
 
-				// Use WordPress API to set term relationships (handles tt_id and counts)
-				$term_ids = [];
-				foreach ( $terms as $term_value ) {
-					$term_value = trim( (string) $term_value );
-					if ( $term_value === '' ) {
-						continue;
-					}
+				// Resolve term IDs for this taxonomy
+				$term_ids = $this->resolve_taxonomy_term_ids( $taxonomy, $terms, $taxonomy_format, $taxonomy_format_validation );
 
-					$resolved_term_ids = $this->resolve_term_ids_for_term_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
-					foreach ( $resolved_term_ids as $resolved_term_id ) {
-						$term_ids[] = $resolved_term_id;
-					}
-				}
-
-				if ( ! empty( $term_ids ) ) {
-					if ( $dry_run ) {
-						error_log( "[Dry Run] Would set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
-						// Log each term for Dry Run
-						foreach ( $term_ids as $term_id ) {
-							$term = get_term( $term_id, $taxonomy );
-							if ( $term && ! is_wp_error( $term ) ) {
-								$dry_run_log[] = sprintf(
-									/* translators: 1: term name, 2: term ID, 3: taxonomy name */
-									__( 'Existing term: %1$s (ID: %2$s, taxonomy: %3$s)', 'swift-csv' ),
-									$term->name,
-									$term_id,
-									$taxonomy
-								);
-							}
-						}
-					} else {
-						wp_set_post_terms( $post_id, $term_ids, $taxonomy, false );
-						error_log( "[Swift CSV] Set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
-					}
-				}
+				// Apply terms to post
+				$this->apply_taxonomy_terms_to_post( $post_id, $taxonomy, $term_ids, $dry_run, $dry_run_log );
 			}
 		}
 	}

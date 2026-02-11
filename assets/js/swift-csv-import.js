@@ -164,11 +164,22 @@ function handleAjaxImport(e) {
 	addLogEntry(swiftCSV.messages.startingImport, 'info', 'import');
 
 	const file = document.querySelector('#ajax_csv_file')?.files[0];
+
+	if (!file) {
+		addLogEntry('No file selected', 'error', 'import');
+		return;
+	}
+
 	const postType = document.querySelector('#import_post_type')?.value || 'post';
-	const updateExisting = document.querySelector('#update_existing')?.checked ? '1' : '0';
+	const updateExisting = document.querySelector('input[name="swift_csv_import_update_existing"]')
+		?.checked
+		? '1'
+		: '0';
 	const taxonomyFormat =
 		document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name';
-	const dryRun = document.querySelector('#dry_run')?.checked ? '1' : '0';
+	const dryRun = document.querySelector('input[name="swift_csv_import_dry_run"]')?.checked
+		? '1'
+		: '0';
 
 	// Log import settings
 	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.fileInfo + ' ' + file.name, 'debug');
@@ -193,7 +204,7 @@ function handleAjaxImport(e) {
 	// Update button states
 	if (importBtn) {
 		importBtn.disabled = true;
-		importBtn.textContent = swiftCSV.messages.importing;
+		importBtn.textContent = swiftCSV.messages.processing;
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'inline-block';
@@ -215,87 +226,112 @@ function handleAjaxImport(e) {
 		});
 	}
 
-	/**
-	 * Process import chunk
-	 *
-	 * @param {number} startRow Starting row
-	 * @param {number} cumulativeCreated Cumulative created count
-	 * @param {number} cumulativeUpdated Cumulative updated count
-	 * @param {number} cumulativeErrors Cumulative error count
-	 */
-	function processImportChunk(
-		startRow = 0,
-		cumulativeCreated = 0,
-		cumulativeUpdated = 0,
-		cumulativeErrors = 0
-	) {
-		if (isCancelled) return;
+	// Start with first chunk (original 1-stage approach)
+	processImportChunk(
+		0,
+		0,
+		0,
+		0,
+		file,
+		postType,
+		updateExisting,
+		taxonomyFormat,
+		dryRun,
+		importBtn,
+		cancelBtn,
+		startTime,
+		isCancelled
+	);
+}
 
-		SwiftCSVCore.swiftCSVLog(swiftCSV.messages.processingChunk + ' ' + startRow, 'debug');
+/**
+ * Process import chunk
+ *
+ * @param {number} startRow Starting row
+ * @param {number} cumulativeCreated Cumulative created count
+ * @param {number} cumulativeUpdated Cumulative updated count
+ * @param {number} cumulativeErrors Cumulative error count
+ * @param {File} file Selected file
+ * @param {string} postType Post type
+ * @param {string} updateExisting Update existing flag
+ * @param {string} taxonomyFormat Taxonomy format
+ * @param {string} dryRun Dry run flag
+ * @param {HTMLElement} importBtn Import button element
+ * @param {HTMLElement} cancelBtn Cancel button element
+ * @param {number} startTime Start time
+ * @param {boolean} isCancelled Cancel flag
+ */
+function processImportChunk(
+	startRow = 0,
+	cumulativeCreated = 0,
+	cumulativeUpdated = 0,
+	cumulativeErrors = 0,
+	file,
+	postType,
+	updateExisting,
+	taxonomyFormat,
+	dryRun,
+	importBtn,
+	cancelBtn,
+	startTime,
+	isCancelled
+) {
+	if (isCancelled) return;
 
-		const formData = new FormData();
-		formData.append('action', 'swift_csv_ajax_import');
-		formData.append('nonce', swiftCSV.nonce);
-		formData.append('csv_file', file);
-		formData.append('post_type', postType);
-		formData.append('update_existing', updateExisting);
-		formData.append('taxonomy_format', taxonomyFormat);
-		formData.append('dry_run', dryRun);
-		formData.append('start_row', startRow);
-		formData.append('cumulative_created', cumulativeCreated);
-		formData.append('cumulative_updated', cumulativeUpdated);
-		formData.append('cumulative_errors', cumulativeErrors);
+	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.processingChunk + ' ' + startRow, 'debug');
 
-		fetch(swiftCSV.ajaxUrl, {
-			method: 'POST',
-			body: formData,
-		})
-			.then(response => response.json())
-			.then(data => {
-				if (data.success && data.continue) {
-					// Update progress
-					updateImportProgress(data, startTime);
+	const formData = new FormData();
+	formData.append('action', 'swift_csv_ajax_import');
+	formData.append('nonce', swiftCSV.nonce);
+	formData.append('csv_file', file); // ← 直接ファイルを送信
+	formData.append('post_type', postType);
+	formData.append('update_existing', updateExisting);
+	formData.append('taxonomy_format', taxonomyFormat);
+	formData.append('dry_run', dryRun);
+	formData.append('start_row', startRow);
+	formData.append('cumulative_created', cumulativeCreated);
+	formData.append('cumulative_updated', cumulativeUpdated);
+	formData.append('cumulative_errors', cumulativeErrors);
 
-					// Process next chunk
-					processImportChunk(
-						data.processed,
-						data.cumulative_created,
-						data.cumulative_updated,
-						data.cumulative_errors
-					);
-				} else if (data.success) {
-					// Import completed
-					completeAjaxImport(data, importBtn, cancelBtn);
-				} else {
-					// Handle error
-					addLogEntry(
-						swiftCSV.messages.importError + ' ' + data.error,
-						'error',
-						'import'
-					);
+	fetch(swiftCSV.ajaxUrl, {
+		method: 'POST',
+		body: formData,
+	})
+		.then(response => response.json())
+		.then(data => {
+			// Debug: Log received data
+			console.log('Import data received:', data);
+			console.log('data.success:', data.success);
+			console.log('data.continue:', data.continue);
+			console.log('data.success && data.continue:', data.success && data.continue);
 
-					if (importBtn) {
-						importBtn.disabled = false;
-						importBtn.textContent = swiftCSV.messages.startImport;
-					}
-					if (cancelBtn) {
-						cancelBtn.style.display = 'none';
-					}
-				}
-			})
-			.catch(error => {
-				console.error('Import error:', error);
+			if (data.success && data.continue) {
+				// Update progress
+				updateImportProgress(data, startTime);
 
-				// Extract the actual error message
-				let errorMessage = error.message;
-				if (
-					errorMessage === 'Import failed' &&
-					error.message.includes('Format mismatch detected')
-				) {
-					errorMessage = error.message;
-				}
-
-				addLogEntry(swiftCSV.messages.importError + ' ' + errorMessage, 'error', 'import');
+				// Process next chunk
+				processImportChunk(
+					data.processed,
+					data.cumulative_created,
+					data.cumulative_updated,
+					data.cumulative_errors,
+					file, // ← ファイルを渡す
+					postType,
+					updateExisting,
+					taxonomyFormat,
+					dryRun,
+					importBtn,
+					cancelBtn,
+					startTime,
+					isCancelled
+				);
+			} else if (data.success) {
+				// Import completed - update progress one final time
+				updateImportProgress(data, startTime);
+				completeAjaxImport(data, importBtn, cancelBtn);
+			} else {
+				// Handle error
+				addLogEntry(swiftCSV.messages.importError + ' ' + data.error, 'error', 'import');
 
 				if (importBtn) {
 					importBtn.disabled = false;
@@ -304,11 +340,30 @@ function handleAjaxImport(e) {
 				if (cancelBtn) {
 					cancelBtn.style.display = 'none';
 				}
-			});
-	}
+			}
+		})
+		.catch(error => {
+			console.error('Import error:', error);
 
-	// Start processing
-	processImportChunk();
+			// Extract the actual error message
+			let errorMessage = error.message;
+			if (
+				errorMessage === 'Import failed' &&
+				error.message.includes('Format mismatch detected')
+			) {
+				errorMessage = error.message;
+			}
+
+			addLogEntry(swiftCSV.messages.importError + ' ' + errorMessage, 'error', 'import');
+
+			if (importBtn) {
+				importBtn.disabled = false;
+				importBtn.textContent = swiftCSV.messages.startImport;
+			}
+			if (cancelBtn) {
+				cancelBtn.style.display = 'none';
+			}
+		});
 }
 
 /**
@@ -318,6 +373,9 @@ function handleAjaxImport(e) {
  * @param {number} startTime Start time
  */
 function updateImportProgress(data, startTime) {
+	// Debug: Log progress update
+	console.log('Updating import progress:', data);
+
 	// Find progress elements in the new UI structure
 	const progressContainer = document.querySelector('.swift-csv-progress');
 	if (!progressContainer) {
@@ -325,10 +383,17 @@ function updateImportProgress(data, startTime) {
 		return;
 	}
 
+	console.log('Progress container found:', progressContainer);
+
 	const progressFill = progressContainer.querySelector('.progress-bar-fill');
 	const processedEl = progressContainer.querySelector('.processed-rows');
 	const totalEl = progressContainer.querySelector('.total-rows');
 	const percentageEl = progressContainer.querySelector('.percentage');
+
+	// Find detail count elements
+	const createdEl = progressContainer.querySelector('.created-count');
+	const updatedEl = progressContainer.querySelector('.updated-count');
+	const errorEl = progressContainer.querySelector('.error-count');
 
 	// Update progress bar
 	if (progressFill && data.progress !== undefined) {
@@ -344,6 +409,17 @@ function updateImportProgress(data, startTime) {
 	}
 	if (percentageEl && data.progress !== undefined) {
 		percentageEl.textContent = data.progress;
+	}
+
+	// Update detail counts
+	if (createdEl && data.created !== undefined) {
+		createdEl.textContent = data.created;
+	}
+	if (updatedEl && data.updated !== undefined) {
+		updatedEl.textContent = data.updated;
+	}
+	if (errorEl && data.errors !== undefined) {
+		errorEl.textContent = data.errors;
 	}
 }
 

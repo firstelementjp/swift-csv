@@ -109,20 +109,11 @@ class Swift_CSV_Ajax_Import {
 	public function import_handler() {
 		global $wpdb;
 
-		// Verify nonce
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'swift_csv_ajax_nonce' ) ) {
-			// Cleanup file on error
-			$file_path = sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) );
-			if ( $file_path && file_exists( $file_path ) ) {
-				unlink( $file_path );
-			}
-			wp_send_json( [ 'error' => 'Security check failed' ] );
+		if ( ! $this->verify_nonce_or_send_error_and_cleanup() ) {
 			return;
 		}
 
-		// Disable locks
-		$wpdb->query( 'SET SESSION autocommit = 1' );
-		$wpdb->query( 'SET SESSION innodb_lock_wait_timeout = 1' );
+		$this->setup_db_session( $wpdb );
 
 		$start_row       = intval( $_POST['start_row'] ?? 0 );
 		$batch_size      = 10;
@@ -144,248 +135,46 @@ class Swift_CSV_Ajax_Import {
 		$errors      = 0;
 		$dry_run_log = [];
 
-		// Handle file upload directly
-		if ( ! isset( $_FILES['csv_file'] ) ) {
-			// Cleanup file on error
-			if ( $file_path && file_exists( $file_path ) ) {
-				unlink( $file_path );
-			}
-			wp_send_json(
-				[
-					'success' => false,
-					'error'   => 'No file uploaded',
-				]
-			);
+		$csv_content = $this->read_uploaded_csv_content_or_send_error_and_cleanup( $file_path );
+		if ( null === $csv_content ) {
 			return;
 		}
 
-		$file = $_FILES['csv_file'];
+		$lines = $this->parse_csv_lines_preserving_quoted_newlines( $csv_content );
 
-		// Validate file
-		if ( $file['error'] !== UPLOAD_ERR_OK ) {
-			// Cleanup file on error
-			if ( $file_path && file_exists( $file_path ) ) {
-				unlink( $file_path );
-			}
-			wp_send_json(
-				[
-					'success' => false,
-					'error'   => 'Upload error: ' . $file['error'],
-				]
-			);
-			return;
-		}
-
-		// Read CSV directly from uploaded file
-		$csv_content = file_get_contents( $file['tmp_name'] );
-		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings
-
-		// Parse CSV line by line to handle quoted fields with newlines
-		$lines        = [];
-		$current_line = '';
-		$in_quotes    = false;
-
-		foreach ( explode( "\n", $csv_content ) as $line ) {
-			// Count quotes to determine if we're inside a quoted field
-			$quote_count = substr_count( $line, '"' );
-
-			if ( $in_quotes ) {
-				$current_line .= "\n" . $line;
-			} else {
-				$current_line = $line;
-			}
-
-			// Toggle quote state (odd number of quotes means we're inside quotes)
-			if ( $quote_count % 2 === 1 ) {
-				$in_quotes = ! $in_quotes;
-			}
-
-			// Only add line if we're not inside quotes
-			if ( ! $in_quotes ) {
-				$lines[]      = $current_line;
-				$current_line = '';
-			}
-		}
-
-		// Auto-detect delimiter
-		$first_line = $lines[0] ?? '';
-		$delimiters = [ ',', ';', "\t" ];
-		$delimiter  = ',';
-
-		foreach ( $delimiters as $delim ) {
-			if ( substr_count( $first_line, $delim ) > substr_count( $first_line, $delimiter ) ) {
-				$delimiter = $delim;
-			}
-		}
+		$delimiter = $this->detect_csv_delimiter( $lines );
 
 		$debug_logging = ( defined( 'SWIFT_CSV_DEBUG' ) && SWIFT_CSV_DEBUG ) || ( defined( 'WP_DEBUG' ) && WP_DEBUG );
 
-		$headers = str_getcsv( array_shift( $lines ), $delimiter );
-		// Normalize headers - remove BOM and control characters
-		$headers = array_map(
-			function ( $header ) {
-				// Remove BOM (UTF-8 BOM is \xEF\xBB\xBF)
-				$header = preg_replace( '/^\xEF\xBB\xBF/', '', $header );
-				// Remove other control characters
-				return preg_replace( '/[\x00-\x1F\x7F]/u', '', trim( $header ?? '' ) );
-			},
-			$headers
+		$headers = $this->read_and_normalize_headers( $lines, $delimiter );
+
+		$taxonomy_format_validation = $this->detect_taxonomy_format_validation_or_send_error_and_cleanup(
+			$lines,
+			$delimiter,
+			$headers,
+			$taxonomy_format,
+			$file_path
 		);
-
-		// Advanced taxonomy format detection and validation
-		$taxonomy_format_validation = [];
-		$first_row_processed        = false;
-
-		// Process first row for format detection
-		$data = [];
-		foreach ( $lines as $line ) {
-			$row = str_getcsv( $line, $delimiter );
-			if ( count( $row ) !== count( $headers ) ) {
-				continue; // Skip malformed rows
-			}
-			$data[] = $row;
-
-			// Process taxonomies for format detection on first data row only
-			if ( ! $first_row_processed ) {
-				foreach ( $headers as $j => $header_name ) {
-					$header_name_normalized = strtolower( trim( $header_name ) );
-
-					if ( strpos( $header_name_normalized, 'tax_' ) === 0 ) {
-						$taxonomy_name = substr( $header_name_normalized, 4 ); // Remove tax_
-
-						// Get taxonomy object to validate
-						$taxonomy_obj = get_taxonomy( $taxonomy_name );
-						if ( ! $taxonomy_obj ) {
-							continue; // Skip invalid taxonomy
-						}
-
-						$meta_value = $row[ $j ] ?? '';
-						if ( $meta_value !== '' ) {
-							$term_values = array_map( 'trim', explode( ',', $meta_value ) );
-							$all_numeric = true;
-							$all_string  = true;
-							$mixed       = false;
-
-							foreach ( $term_values as $term_val ) {
-								if ( $term_val === '' ) {
-									continue;
-								}
-
-								if ( is_numeric( $term_val ) ) {
-									$all_string = false;
-								} else {
-									$all_numeric = false;
-								}
-
-								if ( ! $all_numeric && ! $all_string ) {
-									$mixed = true;
-									break;
-								}
-							}
-
-							$taxonomy_format_validation[ $taxonomy_name ] = [
-								'all_numeric'   => $all_numeric,
-								'all_string'    => $all_string,
-								'mixed'         => $mixed,
-								'sample_values' => $term_values,
-							];
-						}
-					}
-				}
-				$first_row_processed = true;
-			}
-		}
-
-		// Validate format consistency
-		foreach ( $taxonomy_format_validation as $taxonomy_name => $validation ) {
-			// Check for format mismatches
-			if ( $taxonomy_format === 'name' && $validation['all_numeric'] ) {
-				// Cleanup file on error
-				if ( $file_path && file_exists( $file_path ) ) {
-					unlink( $file_path );
-				}
-				wp_send_json(
-					[
-						'success' => false,
-						'error'   => sprintf(
-							/* translators: 1: taxonomy name, 2: UI format, 3: sample values */
-							__( 'Format mismatch detected for taxonomy "%1$s". UI is set to "Names" but CSV contains only numeric values: %2$s. Please check your data format.', 'swift-csv' ),
-							$taxonomy_name,
-							implode( ', ', $validation['sample_values'] )
-						),
-					]
-				);
-				return;
-			}
-
-			if ( $taxonomy_format === 'id' && $validation['all_string'] ) {
-				// Cleanup file on error
-				if ( $file_path && file_exists( $file_path ) ) {
-					unlink( $file_path );
-				}
-				wp_send_json(
-					[
-						'success' => false,
-						'error'   => sprintf(
-							/* translators: 1: taxonomy name, 2: UI format, 3: sample values */
-							__( 'Format mismatch detected for taxonomy "%1$s". UI is set to "Term IDs" but CSV contains only text values: %2$s. Please check your data format.', 'swift-csv' ),
-							$taxonomy_name,
-							implode( ', ', $validation['sample_values'] )
-						),
-					]
-				);
-				return;
-			}
-		}
-
-		$allowed_post_fields = [
-			'post_title',
-			'post_content',
-			'post_excerpt',
-			'post_status',
-			'post_name',
-			'post_date',
-			'post_date_gmt',
-			'post_modified',
-			'post_modified_gmt',
-			'post_author',
-			'post_parent',
-			'menu_order',
-			'guid',
-			'comment_status',
-			'ping_status',
-		];
-
-		$id_col = array_search( 'ID', $headers, true );
-		if ( $id_col === false ) {
-			// Cleanup file on error
-			if ( $file_path && file_exists( $file_path ) ) {
-				unlink( $file_path );
-			}
-			wp_send_json(
-				[
-					'success' => false,
-					'error'   => 'Invalid CSV format: ID column is required',
-				]
-			);
+		if ( null === $taxonomy_format_validation ) {
 			return;
 		}
 
-		// Count actual data rows (exclude empty lines)
-		$total_rows = 0;
-		foreach ( $lines as $line ) {
-			if ( ! empty( trim( $line ) ) ) {
-				++$total_rows;
-			}
+		$allowed_post_fields = $this->get_allowed_post_fields();
+
+		$id_col = $this->ensure_id_column_or_send_error_and_cleanup( $headers, $file_path );
+		if ( null === $id_col ) {
+			return;
 		}
+
+		$total_rows = $this->count_total_rows( $lines );
 
 		$processed = 0;
 		$errors    = 0;
 
-		// Get cumulative counts from previous chunks
-		$previous_created = isset( $_POST['cumulative_created'] ) ? intval( $_POST['cumulative_created'] ) : 0;
-		$previous_updated = isset( $_POST['cumulative_updated'] ) ? intval( $_POST['cumulative_updated'] ) : 0;
-		$previous_errors  = isset( $_POST['cumulative_errors'] ) ? intval( $_POST['cumulative_errors'] ) : 0;
+		$cumulative_counts = $this->get_cumulative_counts();
+		$previous_created  = $cumulative_counts['created'];
+		$previous_updated  = $cumulative_counts['updated'];
+		$previous_errors   = $cumulative_counts['errors'];
 
 		$created = 0;
 		$updated = 0;
@@ -918,6 +707,377 @@ class Swift_CSV_Ajax_Import {
 				'dry_run_log'        => $dry_run_log,
 			]
 		);
+	}
+
+	/**
+	 * Verify nonce for AJAX request.
+	 *
+	 * @since 0.9.0
+	 * @return bool True if nonce is valid.
+	 */
+	private function verify_nonce_or_send_error_and_cleanup() {
+		if ( isset( $_POST['nonce'] ) && wp_verify_nonce( $_POST['nonce'], 'swift_csv_ajax_nonce' ) ) {
+			return true;
+		}
+
+		$file_path = sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) );
+		if ( $file_path && file_exists( $file_path ) ) {
+			unlink( $file_path );
+		}
+
+		wp_send_json( [ 'error' => 'Security check failed' ] );
+		return false;
+	}
+
+	/**
+	 * Read uploaded CSV content from request.
+	 *
+	 * @since 0.9.0
+	 * @param string $file_path Temporary file path for cleanup.
+	 * @return string|null CSV content or null on error (sends JSON response).
+	 */
+	private function read_uploaded_csv_content_or_send_error_and_cleanup( $file_path ) {
+		// Handle file upload directly
+		if ( ! isset( $_FILES['csv_file'] ) ) {
+			// Cleanup file on error
+			if ( $file_path && file_exists( $file_path ) ) {
+				unlink( $file_path );
+			}
+			wp_send_json(
+				[
+					'success' => false,
+					'error'   => 'No file uploaded',
+				]
+			);
+			return null;
+		}
+
+		$file = $_FILES['csv_file'];
+
+		// Validate file
+		if ( $file['error'] !== UPLOAD_ERR_OK ) {
+			// Cleanup file on error
+			if ( $file_path && file_exists( $file_path ) ) {
+				unlink( $file_path );
+			}
+			wp_send_json(
+				[
+					'success' => false,
+					'error'   => 'Upload error: ' . $file['error'],
+				]
+			);
+			return null;
+		}
+
+		// Read CSV directly from uploaded file
+		$csv_content = file_get_contents( $file['tmp_name'] );
+		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings
+
+		return $csv_content;
+	}
+
+	/**
+	 * Parse CSV content line by line to handle quoted fields with newlines.
+	 *
+	 * @since 0.9.0
+	 * @param string $csv_content CSV content.
+	 * @return array<int, string>
+	 */
+	private function parse_csv_lines_preserving_quoted_newlines( $csv_content ) {
+		$lines        = [];
+		$current_line = '';
+		$in_quotes    = false;
+
+		foreach ( explode( "\n", $csv_content ) as $line ) {
+			// Count quotes to determine if we're inside a quoted field
+			$quote_count = substr_count( $line, '"' );
+
+			if ( $in_quotes ) {
+				$current_line .= "\n" . $line;
+			} else {
+				$current_line = $line;
+			}
+
+			// Toggle quote state (odd number of quotes means we're inside quotes)
+			if ( $quote_count % 2 === 1 ) {
+				$in_quotes = ! $in_quotes;
+			}
+
+			// Only add line if we're not inside quotes
+			if ( ! $in_quotes ) {
+				$lines[]      = $current_line;
+				$current_line = '';
+			}
+		}
+
+		return $lines;
+	}
+
+	/**
+	 * Detect CSV delimiter from first line.
+	 *
+	 * @since 0.9.0
+	 * @param array<int, string> $lines CSV lines.
+	 * @return string
+	 */
+	private function detect_csv_delimiter( $lines ) {
+		$first_line = $lines[0] ?? '';
+		$delimiters = [ ',', ';', "\t" ];
+		$delimiter  = ',';
+
+		foreach ( $delimiters as $delim ) {
+			if ( substr_count( $first_line, $delim ) > substr_count( $first_line, $delimiter ) ) {
+				$delimiter = $delim;
+			}
+		}
+
+		return $delimiter;
+	}
+
+	/**
+	 * Read CSV header row and normalize it.
+	 *
+	 * @since 0.9.0
+	 * @param array<int, string> $lines CSV lines (will consume the first line).
+	 * @param string             $delimiter CSV delimiter.
+	 * @return array<int, string>
+	 */
+	private function read_and_normalize_headers( &$lines, $delimiter ) {
+		$headers = str_getcsv( array_shift( $lines ), $delimiter );
+		// Normalize headers - remove BOM and control characters
+		$headers = array_map(
+			function ( $header ) {
+				// Remove BOM (UTF-8 BOM is \xEF\xBB\xBF)
+				$header = preg_replace( '/^\xEF\xBB\xBF/', '', $header );
+				// Remove other control characters
+				return preg_replace( '/[\x00-\x1F\x7F]/u', '', trim( $header ?? '' ) );
+			},
+			$headers
+		);
+
+		return $headers;
+	}
+
+	/**
+	 * Detect taxonomy format from the first data row and validate UI format consistency.
+	 *
+	 * @since 0.9.0
+	 * @param array<int, string> $lines CSV lines.
+	 * @param string             $delimiter CSV delimiter.
+	 * @param array<int, string> $headers CSV headers.
+	 * @param string             $taxonomy_format Taxonomy format selected in UI.
+	 * @param string             $file_path Temporary file path for cleanup.
+	 * @return array<string, array>|null Taxonomy validation data or null on error (sends JSON response).
+	 */
+	private function detect_taxonomy_format_validation_or_send_error_and_cleanup( $lines, $delimiter, $headers, $taxonomy_format, $file_path ) {
+		$taxonomy_format_validation = [];
+		$first_row_processed        = false;
+
+		// Process first row for format detection
+		$data = [];
+		foreach ( $lines as $line ) {
+			$row = str_getcsv( $line, $delimiter );
+			if ( count( $row ) !== count( $headers ) ) {
+				continue; // Skip malformed rows
+			}
+			$data[] = $row;
+
+			// Process taxonomies for format detection on first data row only
+			if ( ! $first_row_processed ) {
+				foreach ( $headers as $j => $header_name ) {
+					$header_name_normalized = strtolower( trim( $header_name ) );
+
+					if ( strpos( $header_name_normalized, 'tax_' ) === 0 ) {
+						$taxonomy_name = substr( $header_name_normalized, 4 ); // Remove tax_
+
+						// Get taxonomy object to validate
+						$taxonomy_obj = get_taxonomy( $taxonomy_name );
+						if ( ! $taxonomy_obj ) {
+							continue; // Skip invalid taxonomy
+						}
+
+						$meta_value = $row[ $j ] ?? '';
+						if ( $meta_value !== '' ) {
+							$term_values = array_map( 'trim', explode( ',', $meta_value ) );
+							$all_numeric = true;
+							$all_string  = true;
+							$mixed       = false;
+
+							foreach ( $term_values as $term_val ) {
+								if ( $term_val === '' ) {
+									continue;
+								}
+
+								if ( is_numeric( $term_val ) ) {
+									$all_string = false;
+								} else {
+									$all_numeric = false;
+								}
+
+								if ( ! $all_numeric && ! $all_string ) {
+									$mixed = true;
+									break;
+								}
+							}
+
+							$taxonomy_format_validation[ $taxonomy_name ] = [
+								'all_numeric'   => $all_numeric,
+								'all_string'    => $all_string,
+								'mixed'         => $mixed,
+								'sample_values' => $term_values,
+							];
+						}
+					}
+				}
+				$first_row_processed = true;
+			}
+		}
+
+		// Validate format consistency
+		foreach ( $taxonomy_format_validation as $taxonomy_name => $validation ) {
+			// Check for format mismatches
+			if ( $taxonomy_format === 'name' && $validation['all_numeric'] ) {
+				// Cleanup file on error
+				if ( $file_path && file_exists( $file_path ) ) {
+					unlink( $file_path );
+				}
+				wp_send_json(
+					[
+						'success' => false,
+						'error'   => sprintf(
+							/* translators: 1: taxonomy name, 2: UI format, 3: sample values */
+							__( 'Format mismatch detected for taxonomy "%1$s". UI is set to "Names" but CSV contains only numeric values: %2$s. Please check your data format.', 'swift-csv' ),
+							$taxonomy_name,
+							implode( ', ', $validation['sample_values'] )
+						),
+					]
+				);
+				return null;
+			}
+
+			if ( $taxonomy_format === 'id' && $validation['all_string'] ) {
+				// Cleanup file on error
+				if ( $file_path && file_exists( $file_path ) ) {
+					unlink( $file_path );
+				}
+				wp_send_json(
+					[
+						'success' => false,
+						'error'   => sprintf(
+							/* translators: 1: taxonomy name, 2: UI format, 3: sample values */
+							__( 'Format mismatch detected for taxonomy "%1$s". UI is set to "Term IDs" but CSV contains only text values: %2$s. Please check your data format.', 'swift-csv' ),
+							$taxonomy_name,
+							implode( ', ', $validation['sample_values'] )
+						),
+					]
+				);
+				return null;
+			}
+		}
+
+		return $taxonomy_format_validation;
+	}
+
+	/**
+	 * Get allowed WP post fields that can be imported from CSV.
+	 *
+	 * @since 0.9.0
+	 * @return array<int, string>
+	 */
+	private function get_allowed_post_fields() {
+		return [
+			'post_title',
+			'post_content',
+			'post_excerpt',
+			'post_status',
+			'post_name',
+			'post_date',
+			'post_date_gmt',
+			'post_modified',
+			'post_modified_gmt',
+			'post_author',
+			'post_parent',
+			'menu_order',
+			'guid',
+			'comment_status',
+			'ping_status',
+		];
+	}
+
+	/**
+	 * Ensure CSV has the required ID column.
+	 *
+	 * @since 0.9.0
+	 * @param array<int, string> $headers CSV headers.
+	 * @param string             $file_path Temporary file path for cleanup.
+	 * @return int|null ID column index or null on error (sends JSON response).
+	 */
+	private function ensure_id_column_or_send_error_and_cleanup( $headers, $file_path ) {
+		$id_col = array_search( 'ID', $headers, true );
+		if ( $id_col !== false ) {
+			return $id_col;
+		}
+
+		// Cleanup file on error
+		if ( $file_path && file_exists( $file_path ) ) {
+			unlink( $file_path );
+		}
+		wp_send_json(
+			[
+				'success' => false,
+				'error'   => 'Invalid CSV format: ID column is required',
+			]
+		);
+
+		return null;
+	}
+
+	/**
+	 * Count actual data rows (exclude empty lines).
+	 *
+	 * @since 0.9.0
+	 * @param array<int, string> $lines CSV lines.
+	 * @return int
+	 */
+	private function count_total_rows( $lines ) {
+		$total_rows = 0;
+		foreach ( $lines as $line ) {
+			if ( ! empty( trim( $line ) ) ) {
+				++$total_rows;
+			}
+		}
+		return $total_rows;
+	}
+
+	/**
+	 * Get cumulative counts from previous chunks.
+	 *
+	 * @since 0.9.0
+	 * @return array{created:int,updated:int,errors:int}
+	 */
+	private function get_cumulative_counts() {
+		$previous_created = isset( $_POST['cumulative_created'] ) ? intval( $_POST['cumulative_created'] ) : 0;
+		$previous_updated = isset( $_POST['cumulative_updated'] ) ? intval( $_POST['cumulative_updated'] ) : 0;
+		$previous_errors  = isset( $_POST['cumulative_errors'] ) ? intval( $_POST['cumulative_errors'] ) : 0;
+
+		return [
+			'created' => $previous_created,
+			'updated' => $previous_updated,
+			'errors'  => $previous_errors,
+		];
+	}
+
+	/**
+	 * Setup DB session for import process.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb $wpdb WordPress DB instance.
+	 * @return void
+	 */
+	private function setup_db_session( $wpdb ) {
+		// Disable locks
+		$wpdb->query( 'SET SESSION autocommit = 1' );
+		$wpdb->query( 'SET SESSION innodb_lock_wait_timeout = 1' );
 	}
 
 	/**

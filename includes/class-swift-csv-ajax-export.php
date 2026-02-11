@@ -658,11 +658,14 @@ class Swift_CSV_Ajax_Export {
 					// Handle ID field
 					if ( $header === 'ID' ) {
 						$value = $post_id;
+
 					} elseif ( $header === 'post_author' ) {
 						$author = get_user_by( 'id', get_post_field( 'post_author', $post_id ) );
 						$value  = $author ? $author->display_name : '';
+
 					} elseif ( in_array( $header, $this->get_allowed_post_fields( 'basic' ), true ) ) {
 						$value = get_post_field( $header, $post_id );
+
 					} elseif ( str_starts_with( $header, 'tax_' ) ) {
 						$taxonomy_name = substr( $header, 4 );
 						$terms         = get_the_terms( $post_id, $taxonomy_name );
@@ -679,6 +682,7 @@ class Swift_CSV_Ajax_Export {
 						$clean_value = strip_tags( (string) $value );
 						$clean_value = $this->normalize_quotes( $clean_value );
 						$value       = $clean_value;
+
 					} elseif ( str_starts_with( $header, 'acf_' ) ) {
 						// Handle ACF fields - delegate to Pro version processing
 						$meta_key = substr( $header, 4 );
@@ -724,35 +728,32 @@ class Swift_CSV_Ajax_Export {
 						$clean_value = strip_tags( (string) $meta_value );
 						$clean_value = $this->normalize_quotes( $clean_value );
 						$value       = $clean_value;
+
 					} else {
-						// Try to get as post field first
-						$post_field_value = get_post_field( $header, $post_id );
-						if ( $post_field_value !== '' && $post_field_value !== null ) {
-							$value = $post_field_value;
-						} else {
-							// Try as meta field using bulk data
-							$meta_value = '';
-							if ( isset( $all_meta[ $header ] ) ) {
-								$meta_values = $all_meta[ $header ];
+						/**
+						 * Process custom header values for export
+						 *
+						 * Allows developers to process custom headers that don't fit
+						 * into standard categories (ID, post fields, taxonomies, ACF, custom fields).
+						 * This hook is ideal for plugin-specific fields or special data processing.
+						 *
+						 * @since 0.9.0
+						 * @param string $value Processed value (default: empty)
+						 * @param string $header Header name
+						 * @param int $post_id Post ID
+						 * @param array $args Processing arguments
+						 * @return string Processed value
+						 */
+						$custom_args = [
+							'post_type' => $post_type,
+							'context'   => 'export_data_processing',
+						];
 
-								if ( is_array( $meta_values ) ) {
-									if ( count( $meta_values ) > 1 ) {
-										$meta_value = implode( '|', $meta_values );
-									} else {
-										$meta_value = $meta_values[0] ?? '';
-									}
-								} else {
-									$meta_value = $meta_values; // String value
-								}
+						$value = apply_filters( 'swift_csv_process_custom_header', '', $header, $post_id, $custom_args );
 
-								if ( is_array( $meta_value ) ) {
-									$meta_value = implode( '|', $meta_value );
-								}
-							}
-
-							$clean_value = strip_tags( (string) $meta_value );
-							$clean_value = $this->normalize_quotes( $clean_value );
-							$value       = $clean_value;
+						// Fallback: simple field value if no hook implementation
+						if ( '' === $value ) {
+							$value = get_post_field( $header, $post_id ) ?? '';
 						}
 					}
 

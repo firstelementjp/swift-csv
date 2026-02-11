@@ -267,20 +267,69 @@ class Swift_CSV_Ajax_Import {
 			}
 		}
 
-		$this->send_import_progress_response_and_maybe_cleanup(
-			$start_row,
-			$processed,
-			$total_rows,
-			$file_path,
-			$errors,
-			$created,
-			$updated,
-			$previous_created,
-			$previous_updated,
-			$previous_errors,
-			$dry_run,
-			$dry_run_log
+		$next_row = $start_row + $processed; // Use actual processed count
+		$continue = $next_row < $total_rows;
+
+		// Cleanup temporary file when import is complete
+		$this->cleanup_temp_file_if_complete( $continue, $file_path );
+
+		$this->send_import_progress_response( $start_row, $processed, $total_rows, $errors, $created, $updated, $previous_created, $previous_updated, $previous_errors, $dry_run, $dry_run_log );
+	}
+
+	/**
+	 * Send import progress response.
+	 *
+	 * @since 0.9.0
+	 * @param int                $start_row Start row.
+	 * @param int                $processed Processed count.
+	 * @param int                $total_rows Total rows.
+	 * @param int                $errors Errors count.
+	 * @param int                $created Created count.
+	 * @param int                $updated Updated count.
+	 * @param int                $previous_created Previous cumulative created.
+	 * @param int                $previous_updated Previous cumulative updated.
+	 * @param int                $previous_errors Previous cumulative errors.
+	 * @param bool               $dry_run Dry run flag.
+	 * @param array<int, string> $dry_run_log Dry run log.
+	 * @return void
+	 */
+	private function send_import_progress_response( $start_row, $processed, $total_rows, $errors, $created, $updated, $previous_created, $previous_updated, $previous_errors, $dry_run, $dry_run_log ) {
+		$next_row = $start_row + $processed; // Use actual processed count
+		$continue = $next_row < $total_rows;
+
+		wp_send_json(
+			[
+				'success'            => true,
+				'processed'          => $next_row,
+				'total'              => $total_rows,
+				'batch_processed'    => $processed,
+				'batch_errors'       => $errors,
+				'created'            => $created,
+				'updated'            => $updated,
+				'errors'             => $errors,
+				'cumulative_created' => $previous_created + $created,
+				'cumulative_updated' => $previous_updated + $updated,
+				'cumulative_errors'  => $previous_errors + $errors,
+				'progress'           => round( ( $next_row / $total_rows ) * 100, 2 ),
+				'continue'           => $continue,
+				'dry_run'            => $dry_run,
+				'dry_run_log'        => $dry_run_log,
+			]
 		);
+	}
+
+	/**
+	 * Cleanup temporary file when import is complete.
+	 *
+	 * @since 0.9.0
+	 * @param bool   $continue Whether import continues.
+	 * @param string $file_path Temporary file path.
+	 * @return void
+	 */
+	private function cleanup_temp_file_if_complete( $continue, $file_path ) {
+		if ( ! $continue && $file_path && file_exists( $file_path ) ) {
+			unlink( $file_path );
+		}
 	}
 
 	/**
@@ -306,29 +355,9 @@ class Swift_CSV_Ajax_Import {
 		$continue = $next_row < $total_rows;
 
 		// Cleanup temporary file when import is complete
-		if ( ! $continue && $file_path && file_exists( $file_path ) ) {
-			unlink( $file_path );
-		}
+		$this->cleanup_temp_file_if_complete( $continue, $file_path );
 
-		wp_send_json(
-			[
-				'success'            => true,
-				'processed'          => $next_row,
-				'total'              => $total_rows,
-				'batch_processed'    => $processed,
-				'batch_errors'       => $errors,
-				'created'            => $created,
-				'updated'            => $updated,
-				'errors'             => $errors,
-				'cumulative_created' => $previous_created + $created,
-				'cumulative_updated' => $previous_updated + $updated,
-				'cumulative_errors'  => $previous_errors + $errors,
-				'progress'           => round( ( $next_row / $total_rows ) * 100, 2 ),
-				'continue'           => $continue,
-				'dry_run'            => $dry_run,
-				'dry_run_log'        => $dry_run_log,
-			]
-		);
+		$this->send_import_progress_response( $start_row, $processed, $total_rows, $errors, $created, $updated, $previous_created, $previous_updated, $previous_errors, $dry_run, $dry_run_log );
 	}
 
 	/**

@@ -639,6 +639,9 @@ class Swift_CSV_Ajax_Export {
 					return;
 				}
 
+				// Get all meta data at once for performance and to preserve serialized values
+				$all_meta = get_post_meta( $post_id );
+
 				$row = [];
 
 				// Pass taxonomy_format to inner scope
@@ -700,16 +703,24 @@ class Swift_CSV_Ajax_Export {
 						$value    = apply_filters( 'swift_csv_process_acf_field_value', '', $meta_key, $post_id, $acf_args );
 
 					} elseif ( str_starts_with( $header, 'cf_' ) ) {
-						$meta_key    = substr( $header, 3 );
-						$meta_values = get_post_meta( $post_id, $meta_key );
-						if ( $meta_values && ! is_wp_error( $meta_values ) ) {
-							// Handle multiple values - join with pipe separator
-							if ( count( $meta_values ) > 1 ) {
-								$meta_value = implode( '|', $meta_values );
+						$meta_key = substr( $header, 3 );
+
+						// Get meta values from bulk data to preserve serialized values
+						$meta_value = '';
+						if ( isset( $all_meta[ $meta_key ] ) ) {
+							$meta_values = $all_meta[ $meta_key ];
+
+							if ( is_array( $meta_values ) ) {
+								if ( count( $meta_values ) > 1 ) {
+									$meta_value = implode( '|', $meta_values );
+								} else {
+									$meta_value = $meta_values[0] ?? '';
+								}
 							} else {
-								$meta_value = $meta_values[0] ?? '';
+								$meta_value = $meta_values; // String value
 							}
 						}
+
 						$clean_value = strip_tags( (string) $meta_value );
 						$clean_value = $this->normalize_quotes( $clean_value );
 						$value       = $clean_value;
@@ -719,17 +730,29 @@ class Swift_CSV_Ajax_Export {
 						if ( $post_field_value !== '' && $post_field_value !== null ) {
 							$value = $post_field_value;
 						} else {
-							// Try as meta field
-							$meta_values = get_post_meta( $post_id, $header );
-							if ( $meta_values && ! is_wp_error( $meta_values ) ) {
-								$meta_value = $meta_values[0] ?? '';
+							// Try as meta field using bulk data
+							$meta_value = '';
+							if ( isset( $all_meta[ $header ] ) ) {
+								$meta_values = $all_meta[ $header ];
+
+								if ( is_array( $meta_values ) ) {
+									if ( count( $meta_values ) > 1 ) {
+										$meta_value = implode( '|', $meta_values );
+									} else {
+										$meta_value = $meta_values[0] ?? '';
+									}
+								} else {
+									$meta_value = $meta_values; // String value
+								}
+
 								if ( is_array( $meta_value ) ) {
 									$meta_value = implode( '|', $meta_value );
 								}
-								$clean_value = strip_tags( (string) $meta_value );
-								$clean_value = $this->normalize_quotes( $clean_value );
-								$value       = $clean_value;
 							}
+
+							$clean_value = strip_tags( (string) $meta_value );
+							$clean_value = $this->normalize_quotes( $clean_value );
+							$value       = $clean_value;
 						}
 					}
 

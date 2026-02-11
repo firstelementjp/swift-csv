@@ -496,8 +496,31 @@ function swift_csv_ajax_import_handler() {
 				$post_data['post_modified_gmt'] = current_time( 'mysql', true );
 			} else {
 				// Insert with defaults + provided values
+
+				// Handle post_author - convert display name to user ID
+				$post_author_id = 1; // Default to admin
+				if ( ! empty( $post_fields_from_csv['post_author'] ) ) {
+					$author_display_name = trim( $post_fields_from_csv['post_author'] );
+					if ( is_numeric( $author_display_name ) ) {
+						// If it's already a numeric ID, use it directly
+						$post_author_id = (int) $author_display_name;
+					} else {
+						// Try to find user by display name
+						$author_user = get_user_by( 'display_name', $author_display_name );
+						if ( $author_user ) {
+							$post_author_id = $author_user->ID;
+						}
+						// If not found, fallback to current user or admin
+						elseif ( get_current_user_id() ) {
+							$post_author_id = get_current_user_id();
+						}
+					}
+				} elseif ( get_current_user_id() ) {
+					$post_author_id = get_current_user_id();
+				}
+
 				$post_data = [
-					'post_author'       => (int) ( $post_fields_from_csv['post_author'] ?? ( get_current_user_id() ?: 1 ) ),
+					'post_author'       => $post_author_id,
 					'post_date'         => $post_fields_from_csv['post_date'] ?? current_time( 'mysql' ),
 					'post_date_gmt'     => $post_fields_from_csv['post_date_gmt'] ?? current_time( 'mysql', true ),
 					'post_content'      => $post_fields_from_csv['post_content'] ?? '',

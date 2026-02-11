@@ -550,6 +550,20 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
+	 * Normalize header/field name.
+	 *
+	 * @since 0.9.0
+	 * @param string $name Field name.
+	 * @return string
+	 */
+	private function normalize_field_name( $name ) {
+		$name = trim( (string) $name );
+		$name = preg_replace( '/^\xEF\xBB\xBF/', '', $name );
+		$name = preg_replace( '/[\x00-\x1F\x7F]/', '', $name );
+		return trim( $name );
+	}
+
+	/**
 	 * Detect taxonomy format from the first data row and validate UI format consistency.
 	 *
 	 * @since 0.9.0
@@ -1007,20 +1021,6 @@ class Swift_CSV_Ajax_Import {
 			$post_id = $wpdb->insert_id;
 		}
 		return $result;
-	}
-
-	/**
-	 * Normalize header/field name.
-	 *
-	 * @since 0.9.0
-	 * @param string $name Field name.
-	 * @return string
-	 */
-	private function normalize_field_name( $name ) {
-		$name = trim( (string) $name );
-		$name = preg_replace( '/^\xEF\xBB\xBF/', '', $name );
-		$name = preg_replace( '/[\x00-\x1F\x7F]/', '', $name );
-		return trim( $name );
 	}
 
 	/**

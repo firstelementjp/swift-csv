@@ -1365,6 +1365,19 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
+	 * Setup DB session for import process.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb $wpdb WordPress DB instance.
+	 * @return void
+	 */
+	private function setup_db_session( $wpdb ) {
+		// Disable locks
+		$wpdb->query( 'SET SESSION autocommit = 1' );
+		$wpdb->query( 'SET SESSION innodb_lock_wait_timeout = 1' );
+	}
+
+	/**
 	 * Update GUID for newly inserted posts.
 	 *
 	 * @since 0.9.0
@@ -1380,19 +1393,6 @@ class Swift_CSV_Ajax_Import {
 			[ '%s' ],
 			[ '%d' ]
 		);
-	}
-
-	/**
-	 * Setup DB session for import process.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb $wpdb WordPress DB instance.
-	 * @return void
-	 */
-	private function setup_db_session( $wpdb ) {
-		// Disable locks
-		$wpdb->query( 'SET SESSION autocommit = 1' );
-		$wpdb->query( 'SET SESSION innodb_lock_wait_timeout = 1' );
 	}
 
 	/**

@@ -116,52 +116,48 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Handle CSV import processing via AJAX.
+	 * Prepare import environment and validate parameters.
 	 *
 	 * @since 0.9.0
-	 * @return void Sends JSON response with import results
+	 * @return array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool}|null
 	 */
-	public function import_handler() {
+	private function prepare_import_environment() {
 		global $wpdb;
 
 		if ( ! $this->verify_nonce_or_send_error_and_cleanup() ) {
-			return;
+			return null;
 		}
 
 		$this->setup_db_session( $wpdb );
 
-		$start_row       = intval( $_POST['start_row'] ?? 0 );
-		$batch_size      = 10;
-		$post_type       = sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) );
-		$update_existing = sanitize_text_field( wp_unslash( $_POST['update_existing'] ?? '0' ) );
-		$taxonomy_format = sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) );
-		$dry_run         = sanitize_text_field( wp_unslash( $_POST['dry_run'] ?? '0' ) ) === '1';
+		return [
+			'file_path'       => sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) ),
+			'start_row'       => intval( $_POST['start_row'] ?? 0 ),
+			'batch_size'      => 10,
+			'post_type'       => sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) ),
+			'update_existing' => sanitize_text_field( wp_unslash( $_POST['update_existing'] ?? '0' ) ),
+			'taxonomy_format' => sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) ),
+			'dry_run'         => sanitize_text_field( wp_unslash( $_POST['dry_run'] ?? '0' ) ) === '1',
+		];
+	}
 
-		// Get file path for cleanup
-		$file_path = sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) );
-
-		// Advanced taxonomy format detection and validation
-		$taxonomy_format_validation = [];
-		$first_row_processed        = false;
-
-		// Initialize counters
-		$created     = 0;
-		$updated     = 0;
-		$errors      = 0;
-		$dry_run_log = [];
-
+	/**
+	 * Parse and validate CSV file.
+	 *
+	 * @since 0.9.0
+	 * @param string $file_path Temporary file path.
+	 * @param string $taxonomy_format Taxonomy format.
+	 * @return array{lines:array,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array}|null
+	 */
+	private function parse_and_validate_csv( $file_path, $taxonomy_format ) {
 		$csv_content = $this->read_uploaded_csv_content_or_send_error_and_cleanup( $file_path );
 		if ( null === $csv_content ) {
-			return;
+			return null;
 		}
 
-		$lines = $this->parse_csv_lines_preserving_quoted_newlines( $csv_content );
-
+		$lines     = $this->parse_csv_lines_preserving_quoted_newlines( $csv_content );
 		$delimiter = $this->detect_csv_delimiter( $lines );
-
-		$debug_logging = ( defined( 'SWIFT_CSV_DEBUG' ) && SWIFT_CSV_DEBUG ) || ( defined( 'WP_DEBUG' ) && WP_DEBUG );
-
-		$headers = $this->read_and_normalize_headers( $lines, $delimiter );
+		$headers   = $this->read_and_normalize_headers( $lines, $delimiter );
 
 		$taxonomy_format_validation = $this->detect_taxonomy_format_validation_or_send_error_and_cleanup(
 			$lines,
@@ -171,37 +167,49 @@ class Swift_CSV_Ajax_Import {
 			$file_path
 		);
 		if ( null === $taxonomy_format_validation ) {
-			return;
+			return null;
 		}
 
-		$allowed_post_fields = $this->get_allowed_post_fields();
+		return [
+			'lines'                      => $lines,
+			'delimiter'                  => $delimiter,
+			'headers'                    => $headers,
+			'taxonomy_format_validation' => $taxonomy_format_validation,
+		];
+	}
 
-		$id_col = $this->ensure_id_column_or_send_error_and_cleanup( $headers, $file_path );
+	/**
+	 * Process batch of CSV rows.
+	 *
+	 * @since 0.9.0
+	 * @param array $config Import configuration.
+	 * @param array $csv_data Parsed CSV data.
+	 * @param array $counters Counters (by reference).
+	 * @return void
+	 */
+	private function process_batch_import( $config, $csv_data, &$counters ) {
+		global $wpdb;
+
+		$allowed_post_fields = $this->get_allowed_post_fields();
+		$id_col              = $this->ensure_id_column_or_send_error_and_cleanup( $csv_data['headers'], $config['file_path'] );
 		if ( null === $id_col ) {
 			return;
 		}
 
-		$total_rows = $this->count_total_rows( $lines );
+		$processed   = &$counters['processed'];
+		$created     = &$counters['created'];
+		$updated     = &$counters['updated'];
+		$errors      = &$counters['errors'];
+		$dry_run_log = &$counters['dry_run_log'];
 
-		$processed = 0;
-		$errors    = 0;
-
-		$cumulative_counts = $this->get_cumulative_counts();
-		$previous_created  = $cumulative_counts['created'];
-		$previous_updated  = $cumulative_counts['updated'];
-		$previous_errors   = $cumulative_counts['errors'];
-
-		$created = 0;
-		$updated = 0;
-
-		for ( $i = $start_row; $i < min( $start_row + $batch_size, $total_rows ); $i++ ) {
+		for ( $i = $config['start_row']; $i < min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] ); $i++ ) {
 			// Skip empty lines only
-			if ( $this->is_empty_csv_line( $lines[ $i ] ) ) {
+			if ( $this->is_empty_csv_line( $csv_data['lines'][ $i ] ) ) {
 				++$processed; // Count empty lines as processed to avoid infinite loop
 				continue;
 			}
 
-			$data = $this->parse_csv_row( $lines[ $i ], $delimiter );
+			$data = $this->parse_csv_row( $csv_data['lines'][ $i ], $csv_data['delimiter'] );
 
 			// First check if this looks like an ID row (first column is numeric ID)
 			$first_col = $data[0] ?? '';
@@ -215,15 +223,15 @@ class Swift_CSV_Ajax_Import {
 			$post_id_from_csv = $first_col;
 
 			// Collect post fields from CSV (header-driven)
-			$post_fields_from_csv = $this->collect_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
+			$post_fields_from_csv = $this->collect_post_fields_from_csv_row( $csv_data['headers'], $data, $allowed_post_fields );
 
 			// Check for existing post by CSV ID (only if update_existing is checked)
-			$existing  = $this->find_existing_post_for_update( $wpdb, $update_existing, $post_type, $post_id_from_csv );
+			$existing  = $this->find_existing_post_for_update( $wpdb, $config['update_existing'], $config['post_type'], $post_id_from_csv );
 			$post_id   = $existing['post_id'];
 			$is_update = $existing['is_update'];
 
 			// Validation
-			if ( $this->should_skip_row_due_to_missing_title( $update_existing, $post_fields_from_csv ) ) {
+			if ( $this->should_skip_row_due_to_missing_title( $config['update_existing'], $post_fields_from_csv ) ) {
 				continue;
 			}
 
@@ -234,13 +242,13 @@ class Swift_CSV_Ajax_Import {
 				if ( $is_update ) {
 					$post_data = $this->build_post_data_for_update( $post_fields_from_csv );
 				} else {
-					$post_data = $this->build_post_data_for_insert( $post_fields_from_csv, $post_type );
+					$post_data = $this->build_post_data_for_insert( $post_fields_from_csv, $config['post_type'] );
 				}
 
 				if ( $is_update ) {
-					$result = $this->execute_post_update( $wpdb, $post_id, $post_data, $dry_run, $dry_run_log );
+					$result = $this->execute_post_update( $wpdb, $post_id, $post_data, $config['dry_run'], $dry_run_log );
 				} else {
-					$result = $this->execute_post_insert( $wpdb, $post_data, $dry_run, $dry_run_log, $post_id );
+					$result = $this->execute_post_insert( $wpdb, $post_data, $config['dry_run'], $dry_run_log, $post_id );
 				}
 
 				if ( $result !== false ) {
@@ -248,12 +256,12 @@ class Swift_CSV_Ajax_Import {
 						$wpdb,
 						$post_id,
 						$is_update,
-						$headers,
+						$csv_data['headers'],
 						$data,
 						$allowed_post_fields,
-						$taxonomy_format,
-						$taxonomy_format_validation,
-						$dry_run,
+						$config['taxonomy_format'],
+						$csv_data['taxonomy_format_validation'],
+						$config['dry_run'],
 						$dry_run_log,
 						$processed,
 						$created,
@@ -266,14 +274,63 @@ class Swift_CSV_Ajax_Import {
 				++$errors;
 			}
 		}
+	}
 
-		$next_row = $start_row + $processed; // Use actual processed count
+	/**
+	 * Handle CSV import processing via AJAX.
+	 *
+	 * @since 0.9.0
+	 * @return void Sends JSON response with import results
+	 */
+	public function import_handler() {
+		$config = $this->prepare_import_environment();
+		if ( null === $config ) {
+			return;
+		}
+
+		$csv_data = $this->parse_and_validate_csv( $config['file_path'], $config['taxonomy_format'] );
+		if ( null === $csv_data ) {
+			return;
+		}
+
+		$total_rows             = $this->count_total_rows( $csv_data['lines'] );
+		$csv_data['total_rows'] = $total_rows;
+
+		// Initialize counters
+		$counters = [
+			'processed'   => 0,
+			'created'     => 0,
+			'updated'     => 0,
+			'errors'      => 0,
+			'dry_run_log' => [],
+		];
+
+		$cumulative_counts = $this->get_cumulative_counts();
+		$previous_created  = $cumulative_counts['created'];
+		$previous_updated  = $cumulative_counts['updated'];
+		$previous_errors   = $cumulative_counts['errors'];
+
+		$this->process_batch_import( $config, $csv_data, $counters );
+
+		$next_row = $config['start_row'] + $counters['processed']; // Use actual processed count
 		$continue = $next_row < $total_rows;
 
 		// Cleanup temporary file when import is complete
-		$this->cleanup_temp_file_if_complete( $continue, $file_path );
+		$this->cleanup_temp_file_if_complete( $continue, $config['file_path'] );
 
-		$this->send_import_progress_response( $start_row, $processed, $total_rows, $errors, $created, $updated, $previous_created, $previous_updated, $previous_errors, $dry_run, $dry_run_log );
+		$this->send_import_progress_response(
+			$config['start_row'],
+			$counters['processed'],
+			$total_rows,
+			$counters['errors'],
+			$counters['created'],
+			$counters['updated'],
+			$previous_created,
+			$previous_updated,
+			$previous_errors,
+			$config['dry_run'],
+			$counters['dry_run_log']
+		);
 	}
 
 	/**

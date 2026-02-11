@@ -240,13 +240,7 @@ class Swift_CSV_Ajax_Import {
 
 					// Update GUID for new posts
 					if ( ! $is_update ) {
-						$wpdb->update(
-							$wpdb->posts,
-							[ 'guid' => get_permalink( $post_id ) ],
-							[ 'ID' => $post_id ],
-							[ '%s' ],
-							[ '%d' ]
-						);
+						$this->update_guid_for_new_post( $wpdb, $post_id );
 					}
 
 					// Process custom fields and taxonomies like original Swift CSV
@@ -260,81 +254,7 @@ class Swift_CSV_Ajax_Import {
 					$this->apply_taxonomies_for_post( $post_id, $taxonomies, $taxonomy_format, $taxonomy_format_validation, $dry_run, $dry_run_log );
 
 					// Process custom fields with multi-value support
-					foreach ( $meta_fields as $key => $value ) {
-						// Skip empty values
-						if ( $value === '' || $value === null ) {
-							continue;
-						}
-
-						if ( $dry_run ) {
-							error_log( "[Dry Run] Would process custom field: {$key} = {$value}" );
-
-							// Handle multi-value custom fields (pipe-separated)
-							if ( strpos( $value, '|' ) !== false ) {
-								// Add each value separately
-								$values = array_map( 'trim', explode( '|', $value ) );
-								foreach ( $values as $single_value ) {
-									if ( $single_value !== '' ) {
-										$dry_run_log[] = sprintf(
-											/* translators: 1: field name, 2: field value */
-											__( 'Custom field (multi-value): %1$s = %2$s', 'swift-csv' ),
-											$key,
-											$single_value
-										);
-									}
-								}
-							} else {
-								// Single value (including serialized strings)
-								$dry_run_log[] = sprintf(
-									/* translators: 1: field name, 2: field value */
-									__( 'Custom field: %1$s = %2$s', 'swift-csv' ),
-									$key,
-									$value
-								);
-							}
-						} else {
-							// Always replace existing meta for this key to ensure update works even if meta row doesn't exist.
-							$wpdb->query(
-								$wpdb->prepare(
-									"DELETE FROM {$wpdb->postmeta} 
-	                         WHERE post_id = %d 
-	                         AND meta_key = %s",
-									$post_id,
-									$key
-								)
-							);
-
-							// Handle multi-value custom fields (pipe-separated)
-							if ( strpos( $value, '|' ) !== false ) {
-								// Add each value separately
-								$values = array_map( 'trim', explode( '|', $value ) );
-								foreach ( $values as $single_value ) {
-									if ( $single_value !== '' ) {
-										$wpdb->insert(
-											$wpdb->postmeta,
-											[
-												'post_id'  => $post_id,
-												'meta_key' => $key,
-												'meta_value' => $single_value,
-											],
-											[ '%d', '%s', '%s' ]
-										);
-									}
-								}
-							} else {
-								// Single value (including serialized strings)
-								$wpdb->insert(
-									$wpdb->postmeta,
-									[
-										'post_id'    => $post_id,
-										'meta_key'   => $key,
-										'meta_value' => is_string( $value ) ? $value : maybe_serialize( $value ),
-									],
-									[ '%d', '%s', '%s' ]
-								);
-							}
-						}
-					}
+					$this->apply_meta_fields_for_post( $wpdb, $post_id, $meta_fields, $dry_run, $dry_run_log );
 
 					// Custom field processing hook for extensions
 					/**
@@ -1243,6 +1163,113 @@ class Swift_CSV_Ajax_Import {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Apply meta fields for a post.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb                  $wpdb WordPress DB instance.
+	 * @param int                   $post_id Post ID.
+	 * @param array<string, string> $meta_fields Meta fields.
+	 * @param bool                  $dry_run Dry run flag.
+	 * @param array<int, string>    $dry_run_log Dry run log.
+	 * @return void
+	 */
+	private function apply_meta_fields_for_post( $wpdb, $post_id, $meta_fields, $dry_run, &$dry_run_log ) {
+		foreach ( $meta_fields as $key => $value ) {
+			// Skip empty values
+			if ( $value === '' || $value === null ) {
+				continue;
+			}
+
+			if ( $dry_run ) {
+				error_log( "[Dry Run] Would process custom field: {$key} = {$value}" );
+
+				// Handle multi-value custom fields (pipe-separated)
+				if ( strpos( $value, '|' ) !== false ) {
+					// Add each value separately
+					$values = array_map( 'trim', explode( '|', $value ) );
+					foreach ( $values as $single_value ) {
+						if ( $single_value !== '' ) {
+							$dry_run_log[] = sprintf(
+								/* translators: 1: field name, 2: field value */
+								__( 'Custom field (multi-value): %1$s = %2$s', 'swift-csv' ),
+								$key,
+								$single_value
+							);
+						}
+					}
+				} else {
+					// Single value (including serialized strings)
+					$dry_run_log[] = sprintf(
+						/* translators: 1: field name, 2: field value */
+						__( 'Custom field: %1$s = %2$s', 'swift-csv' ),
+						$key,
+						$value
+					);
+				}
+			} else {
+				// Always replace existing meta for this key to ensure update works even if meta row doesn't exist.
+				$wpdb->query(
+					$wpdb->prepare(
+						"DELETE FROM {$wpdb->postmeta} 
+	                         WHERE post_id = %d 
+	                         AND meta_key = %s",
+						$post_id,
+						$key
+					)
+				);
+
+				// Handle multi-value custom fields (pipe-separated)
+				if ( strpos( $value, '|' ) !== false ) {
+					// Add each value separately
+					$values = array_map( 'trim', explode( '|', $value ) );
+					foreach ( $values as $single_value ) {
+						if ( $single_value !== '' ) {
+							$wpdb->insert(
+								$wpdb->postmeta,
+								[
+									'post_id'    => $post_id,
+									'meta_key'   => $key,
+									'meta_value' => $single_value,
+								],
+								[ '%d', '%s', '%s' ]
+							);
+						}
+					}
+				} else {
+					// Single value (including serialized strings)
+					$wpdb->insert(
+						$wpdb->postmeta,
+						[
+							'post_id'    => $post_id,
+							'meta_key'   => $key,
+							'meta_value' => is_string( $value ) ? $value : maybe_serialize( $value ),
+						],
+						[ '%d', '%s', '%s' ]
+					);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Update GUID for newly inserted posts.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb $wpdb WordPress DB instance.
+	 * @param int  $post_id Post ID.
+	 * @return void
+	 */
+	private function update_guid_for_new_post( $wpdb, $post_id ) {
+		$wpdb->update(
+			$wpdb->posts,
+			[ 'guid' => get_permalink( $post_id ) ],
+			[ 'ID' => $post_id ],
+			[ '%s' ],
+			[ '%d' ]
+		);
 	}
 
 	/**

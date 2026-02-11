@@ -217,108 +217,15 @@ class Swift_CSV_Ajax_Import {
 				$post_data = [];
 
 				if ( $is_update ) {
-					// Update only provided post fields
-					foreach ( $post_fields_from_csv as $key => $value ) {
-						$post_data[ $key ] = $value;
-					}
-					// Keep modification timestamps consistent
-					$post_data['post_modified']     = current_time( 'mysql' );
-					$post_data['post_modified_gmt'] = current_time( 'mysql', true );
+					$post_data = $this->build_post_data_for_update( $post_fields_from_csv );
 				} else {
-					// Insert with defaults + provided values
-
-					// Handle post_author - convert display name to user ID
-					$post_author_id = 1; // Default to admin
-					if ( ! empty( $post_fields_from_csv['post_author'] ) ) {
-						$author_display_name = trim( $post_fields_from_csv['post_author'] );
-						if ( is_numeric( $author_display_name ) ) {
-							// If it's already a numeric ID, use it directly
-							$post_author_id = (int) $author_display_name;
-						} else {
-							// Try to find user by display name
-							$author_user = get_user_by( 'display_name', $author_display_name );
-							if ( $author_user ) {
-								$post_author_id = $author_user->ID;
-							}
-							// If not found, fallback to current user or admin
-							elseif ( get_current_user_id() ) {
-								$post_author_id = get_current_user_id();
-							}
-						}
-					} elseif ( get_current_user_id() ) {
-						$post_author_id = get_current_user_id();
-					}
-
-					$post_data = [
-						'post_author'       => $post_author_id,
-						'post_date'         => $post_fields_from_csv['post_date'] ?? current_time( 'mysql' ),
-						'post_date_gmt'     => $post_fields_from_csv['post_date_gmt'] ?? current_time( 'mysql', true ),
-						'post_content'      => $post_fields_from_csv['post_content'] ?? '',
-						'post_title'        => $post_fields_from_csv['post_title'] ?? '',
-						'post_excerpt'      => $post_fields_from_csv['post_excerpt'] ?? '',
-						'post_status'       => $post_fields_from_csv['post_status'] ?? 'publish',
-						'post_name'         => $post_fields_from_csv['post_name'] ?? sanitize_title( (string) ( $post_fields_from_csv['post_title'] ?? '' ) ),
-						'post_type'         => $post_type,
-						'comment_status'    => $post_fields_from_csv['comment_status'] ?? 'closed',
-						'ping_status'       => $post_fields_from_csv['ping_status'] ?? 'closed',
-						'post_modified'     => current_time( 'mysql' ),
-						'post_modified_gmt' => current_time( 'mysql', true ),
-						'post_parent'       => (int) ( $post_fields_from_csv['post_parent'] ?? 0 ),
-						'menu_order'        => (int) ( $post_fields_from_csv['menu_order'] ?? 0 ),
-						'post_mime_type'    => '',
-						'comment_count'     => 0,
-					];
+					$post_data = $this->build_post_data_for_insert( $post_fields_from_csv, $post_type );
 				}
 
 				if ( $is_update ) {
-					if ( empty( $post_data ) ) {
-						$result = 0;
-					} else {
-						$post_data_formats = [];
-						foreach ( array_keys( $post_data ) as $key ) {
-							$post_data_formats[] = in_array( $key, [ 'post_author', 'post_parent', 'menu_order' ], true ) ? '%d' : '%s';
-						}
-
-						if ( $dry_run ) {
-							error_log( "[Dry Run] Would update post ID: {$post_id} with title: " . ( $post_data['post_title'] ?? 'Untitled' ) );
-							$dry_run_log[] = sprintf(
-								/* translators: 1: post ID, 2: post title */
-								__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ),
-								$post_id,
-								$post_data['post_title'] ?? 'Untitled'
-							);
-							$result = 1; // Simulate success for dry run
-						} else {
-							$result = $wpdb->update(
-								$wpdb->posts,
-								$post_data,
-								[ 'ID' => $post_id ],
-								$post_data_formats,
-								[ '%d' ]
-							);
-						}
-					}
+					$result = $this->execute_post_update( $wpdb, $post_id, $post_data, $dry_run, $dry_run_log );
 				} else {
-					$post_data_formats = [];
-					foreach ( array_keys( $post_data ) as $key ) {
-						$post_data_formats[] = in_array( $key, [ 'post_author', 'post_parent', 'menu_order' ], true ) ? '%d' : '%s';
-					}
-
-					if ( $dry_run ) {
-						error_log( '[Dry Run] Would create new post with title: ' . ( $post_data['post_title'] ?? 'Untitled' ) );
-						$dry_run_log[] = sprintf(
-							/* translators: 1: post title */
-							__( 'New post: title=%1$s', 'swift-csv' ),
-							$post_data['post_title'] ?? 'Untitled'
-						);
-						$result  = 1; // Simulate success for dry run
-						$post_id = 0; // Placeholder for dry run
-					} else {
-						$result = $wpdb->insert( $wpdb->posts, $post_data, $post_data_formats );
-						if ( $result !== false ) {
-							$post_id = $wpdb->insert_id;
-						}
-					}
+					$result = $this->execute_post_insert( $wpdb, $post_data, $dry_run, $dry_run_log, $post_id );
 				}
 
 				if ( $result !== false ) {
@@ -1135,6 +1042,146 @@ class Swift_CSV_Ajax_Import {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Build post data for update.
+	 *
+	 * @since 0.9.0
+	 * @param array<string, string> $post_fields_from_csv Post fields.
+	 * @return array<string, mixed>
+	 */
+	private function build_post_data_for_update( $post_fields_from_csv ) {
+		$post_data = [];
+		foreach ( $post_fields_from_csv as $key => $value ) {
+			$post_data[ $key ] = $value;
+		}
+		$post_data['post_modified']     = current_time( 'mysql' );
+		$post_data['post_modified_gmt'] = current_time( 'mysql', true );
+		return $post_data;
+	}
+
+	/**
+	 * Build post data for insert.
+	 *
+	 * @since 0.9.0
+	 * @param array<string, string> $post_fields_from_csv Post fields.
+	 * @param string                $post_type Post type.
+	 * @return array<string, mixed>
+	 */
+	private function build_post_data_for_insert( $post_fields_from_csv, $post_type ) {
+		$post_author_id = 1;
+		if ( ! empty( $post_fields_from_csv['post_author'] ) ) {
+			$author_display_name = trim( $post_fields_from_csv['post_author'] );
+			if ( is_numeric( $author_display_name ) ) {
+				$post_author_id = (int) $author_display_name;
+			} else {
+				$author_user = get_user_by( 'display_name', $author_display_name );
+				if ( $author_user ) {
+					$post_author_id = $author_user->ID;
+				} elseif ( get_current_user_id() ) {
+					$post_author_id = get_current_user_id();
+				}
+			}
+		} elseif ( get_current_user_id() ) {
+			$post_author_id = get_current_user_id();
+		}
+
+		return [
+			'post_author'       => $post_author_id,
+			'post_date'         => $post_fields_from_csv['post_date'] ?? current_time( 'mysql' ),
+			'post_date_gmt'     => $post_fields_from_csv['post_date_gmt'] ?? current_time( 'mysql', true ),
+			'post_content'      => $post_fields_from_csv['post_content'] ?? '',
+			'post_title'        => $post_fields_from_csv['post_title'] ?? '',
+			'post_excerpt'      => $post_fields_from_csv['post_excerpt'] ?? '',
+			'post_status'       => $post_fields_from_csv['post_status'] ?? 'publish',
+			'post_name'         => $post_fields_from_csv['post_name'] ?? sanitize_title( (string) ( $post_fields_from_csv['post_title'] ?? '' ) ),
+			'post_type'         => $post_type,
+			'comment_status'    => $post_fields_from_csv['comment_status'] ?? 'closed',
+			'ping_status'       => $post_fields_from_csv['ping_status'] ?? 'closed',
+			'post_modified'     => current_time( 'mysql' ),
+			'post_modified_gmt' => current_time( 'mysql', true ),
+			'post_parent'       => (int) ( $post_fields_from_csv['post_parent'] ?? 0 ),
+			'menu_order'        => (int) ( $post_fields_from_csv['menu_order'] ?? 0 ),
+			'post_mime_type'    => '',
+			'comment_count'     => 0,
+		];
+	}
+
+	/**
+	 * Execute post update.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb                 $wpdb WordPress DB instance.
+	 * @param int|null             $post_id Post ID.
+	 * @param array<string, mixed> $post_data Post data.
+	 * @param bool                 $dry_run Dry run flag.
+	 * @param array<int, string>   $dry_run_log Dry run log.
+	 * @return int|false
+	 */
+	private function execute_post_update( $wpdb, $post_id, $post_data, $dry_run, &$dry_run_log ) {
+		if ( empty( $post_data ) ) {
+			return 0;
+		}
+
+		$post_data_formats = [];
+		foreach ( array_keys( $post_data ) as $key ) {
+			$post_data_formats[] = in_array( $key, [ 'post_author', 'post_parent', 'menu_order' ], true ) ? '%d' : '%s';
+		}
+
+		if ( $dry_run ) {
+			error_log( "[Dry Run] Would update post ID: {$post_id} with title: " . ( $post_data['post_title'] ?? 'Untitled' ) );
+			$dry_run_log[] = sprintf(
+				/* translators: 1: post ID, 2: post title */
+				__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ),
+				$post_id,
+				$post_data['post_title'] ?? 'Untitled'
+			);
+			return 1;
+		}
+
+		return $wpdb->update(
+			$wpdb->posts,
+			$post_data,
+			[ 'ID' => $post_id ],
+			$post_data_formats,
+			[ '%d' ]
+		);
+	}
+
+	/**
+	 * Execute post insert.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb                 $wpdb WordPress DB instance.
+	 * @param array<string, mixed> $post_data Post data.
+	 * @param bool                 $dry_run Dry run flag.
+	 * @param array<int, string>   $dry_run_log Dry run log.
+	 * @param int|null             $post_id Post ID.
+	 * @return int|false
+	 */
+	private function execute_post_insert( $wpdb, $post_data, $dry_run, &$dry_run_log, &$post_id ) {
+		$post_data_formats = [];
+		foreach ( array_keys( $post_data ) as $key ) {
+			$post_data_formats[] = in_array( $key, [ 'post_author', 'post_parent', 'menu_order' ], true ) ? '%d' : '%s';
+		}
+
+		if ( $dry_run ) {
+			error_log( '[Dry Run] Would create new post with title: ' . ( $post_data['post_title'] ?? 'Untitled' ) );
+			$dry_run_log[] = sprintf(
+				/* translators: 1: post title */
+				__( 'New post: title=%1$s', 'swift-csv' ),
+				$post_data['post_title'] ?? 'Untitled'
+			);
+			$post_id = 0;
+			return 1;
+		}
+
+		$result = $wpdb->insert( $wpdb->posts, $post_data, $post_data_formats );
+		if ( $result !== false ) {
+			$post_id = $wpdb->insert_id;
+		}
+		return $result;
 	}
 
 	/**

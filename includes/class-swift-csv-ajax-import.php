@@ -333,32 +333,20 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Handle successful row import.
+	 * Process meta fields and taxonomies for a successful row import.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb               $wpdb WordPress DB instance.
 	 * @param int                $post_id Post ID.
-	 * @param bool               $is_update Whether this row updated an existing post.
 	 * @param array<int, string> $headers CSV headers.
-	 * @param array              $data CSV row.
+	 * @param array              $data CSV row data.
 	 * @param array<int, string> $allowed_post_fields Allowed post fields.
 	 * @param string             $taxonomy_format Taxonomy format.
 	 * @param array              $taxonomy_format_validation Taxonomy format validation.
 	 * @param bool               $dry_run Dry run flag.
 	 * @param array<int, string> $dry_run_log Dry run log.
-	 * @param int                $processed Processed count (by reference).
-	 * @param int                $created Created count (by reference).
-	 * @param int                $updated Updated count (by reference).
-	 * @return void
+	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>}
 	 */
-	private function handle_successful_row_import( $wpdb, $post_id, $is_update, $headers, $data, $allowed_post_fields, $taxonomy_format, $taxonomy_format_validation, $dry_run, &$dry_run_log, &$processed, &$created, &$updated ) {
-		$this->increment_row_counters_on_success( $is_update, $processed, $created, $updated );
-
-		// Update GUID for new posts
-		if ( ! $is_update ) {
-			$this->update_guid_for_new_post( $wpdb, $post_id );
-		}
-
+	private function process_meta_and_taxonomies_for_row( $post_id, $headers, $data, $allowed_post_fields, $taxonomy_format, $taxonomy_format_validation, $dry_run, &$dry_run_log ) {
 		// Process custom fields and taxonomies like original Swift CSV
 		$collected_fields = $this->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
 		/**
@@ -382,7 +370,54 @@ class Swift_CSV_Ajax_Import {
 		$this->apply_taxonomies_for_post( $post_id, $taxonomies, $taxonomy_format, $taxonomy_format_validation, $dry_run, $dry_run_log );
 
 		// Process custom fields with multi-value support
-		$this->apply_meta_fields_for_post( $wpdb, $post_id, $meta_fields, $dry_run, $dry_run_log );
+		$this->apply_meta_fields_for_post( $this->get_wpdb(), $post_id, $meta_fields, $dry_run, $dry_run_log );
+
+		return [
+			'meta_fields' => $meta_fields,
+			'taxonomies'  => $taxonomies,
+		];
+	}
+
+	/**
+	 * Get WordPress database instance.
+	 *
+	 * @since 0.9.0
+	 * @return wpdb
+	 */
+	private function get_wpdb() {
+		global $wpdb;
+		return $wpdb;
+	}
+
+	/**
+	 * Handle successful row import.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb               $wpdb WordPress DB instance.
+	 * @param int                $post_id Post ID.
+	 * @param bool               $is_update Whether this row updated an existing post.
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array              $data CSV row data.
+	 * @param array<int, string> $allowed_post_fields Allowed post fields.
+	 * @param string             $taxonomy_format Taxonomy format.
+	 * @param array              $taxonomy_format_validation Taxonomy format validation.
+	 * @param bool               $dry_run Dry run flag.
+	 * @param array<int, string> $dry_run_log Dry run log.
+	 * @param int                $processed Processed count (by reference).
+	 * @param int                $created Created count (by reference).
+	 * @param int                $updated Updated count (by reference).
+	 * @return void
+	 */
+	private function handle_successful_row_import( $wpdb, $post_id, $is_update, $headers, $data, $allowed_post_fields, $taxonomy_format, $taxonomy_format_validation, $dry_run, &$dry_run_log, &$processed, &$created, &$updated ) {
+		$this->increment_row_counters_on_success( $is_update, $processed, $created, $updated );
+
+		// Update GUID for new posts
+		if ( ! $is_update ) {
+			$this->update_guid_for_new_post( $wpdb, $post_id );
+		}
+
+		// Process meta fields and taxonomies
+		$result = $this->process_meta_and_taxonomies_for_row( $post_id, $headers, $data, $allowed_post_fields, $taxonomy_format, $taxonomy_format_validation, $dry_run, $dry_run_log );
 
 		// Custom field processing hook for extensions
 		/**
@@ -395,7 +430,7 @@ class Swift_CSV_Ajax_Import {
 		 * @param int $post_id The ID of the created/updated post
 		 * @param array $meta_fields Array of meta fields to process
 		 */
-		$this->run_custom_field_processing_hook( $post_id, $meta_fields );
+		$this->run_custom_field_processing_hook( $post_id, $result['meta_fields'] );
 	}
 
 	/**

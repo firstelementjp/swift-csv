@@ -360,6 +360,20 @@ class Swift_CSV_Ajax_Import {
 
 		// Process custom fields and taxonomies like original Swift CSV
 		$collected_fields = $this->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
+		/**
+		 * Filter collected fields before processing.
+		 *
+		 * Allows extensions to process custom columns (e.g., acf_, custom_) before they are saved.
+		 * This hook is called after basic field collection but before database operations.
+		 *
+		 * @since 0.9.0
+		 * @param array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>} $collected_fields Collected fields.
+		 * @param array<int, string> $headers CSV headers.
+		 * @param array $data CSV row data.
+		 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
+		 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>} Modified collected fields.
+		 */
+		$collected_fields = apply_filters( 'swift_csv_filter_collected_fields', $collected_fields, $headers, $data, $allowed_post_fields );
 		$taxonomies       = $collected_fields['taxonomies'];
 		$meta_fields      = $collected_fields['meta_fields'];
 

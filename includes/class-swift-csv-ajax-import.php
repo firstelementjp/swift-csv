@@ -336,14 +336,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return void
 	 */
 	private function handle_successful_row_import( $wpdb, $post_id, $is_update, $headers, $data, $allowed_post_fields, $taxonomy_format, $taxonomy_format_validation, $dry_run, &$dry_run_log, &$processed, &$created, &$updated ) {
-		++$processed;
-
-		// Count created vs updated
-		if ( $is_update ) {
-			++$updated;
-		} else {
-			++$created;
-		}
+		$this->increment_row_counters_on_success( $is_update, $processed, $created, $updated );
 
 		// Update GUID for new posts
 		if ( ! $is_update ) {
@@ -386,6 +379,25 @@ class Swift_CSV_Ajax_Import {
 	 */
 	private function run_custom_field_processing_hook( $post_id, $meta_fields ) {
 		do_action( 'swift_csv_process_custom_fields', $post_id, $meta_fields );
+	}
+
+	/**
+	 * Increment counters on successful row import.
+	 *
+	 * @since 0.9.0
+	 * @param bool $is_update Whether this row updated an existing post.
+	 * @param int  $processed Processed count (by reference).
+	 * @param int  $created Created count (by reference).
+	 * @param int  $updated Updated count (by reference).
+	 * @return void
+	 */
+	private function increment_row_counters_on_success( $is_update, &$processed, &$created, &$updated ) {
+		++$processed;
+		if ( $is_update ) {
+			++$updated;
+		} else {
+			++$created;
+		}
 	}
 
 	/**
@@ -1161,65 +1173,9 @@ class Swift_CSV_Ajax_Import {
 						continue;
 					}
 
-					error_log( "[Swift CSV] Processing term value: '{$term_value}' with format: {$taxonomy_format}" );
-
-					// Handle different taxonomy formats with mixed data support
-					if ( $taxonomy_format === 'id' ) {
-						// Handle term IDs
-						$term_id = intval( $term_value );
-						error_log( "[Swift CSV] Looking up term by ID: {$term_id}" );
-
-						// Check if the term value is actually a valid ID
-						if ( $term_id === 0 ) {
-							// For mixed format, treat numeric values as names
-							if ( isset( $taxonomy_format_validation[ $taxonomy ] ) && $taxonomy_format_validation[ $taxonomy ]['mixed'] ) {
-								error_log( "[Swift CSV] Mixed format detected: treating '{$term_value}' as term name" );
-								$term = get_term_by( 'name', $term_value, $taxonomy );
-								if ( ! $term ) {
-									error_log( "[Swift CSV] Term not found, creating new term: '{$term_value}'" );
-									$created = wp_insert_term( $term_value, $taxonomy );
-									if ( is_wp_error( $created ) ) {
-										error_log( "Failed to create term '$term_value' in taxonomy '$taxonomy'" );
-										continue;
-									}
-									$term_ids[] = (int) $created['term_id'];
-									error_log( "[Swift CSV] Created new term: '{$term_value}' with ID: {$created['term_id']}" );
-								} else {
-									$term_ids[] = (int) $term->term_id;
-									error_log( "[Swift CSV] Found existing term by name: '{$term_value}' with ID: {$term->term_id}" );
-								}
-							} else {
-								error_log( "[Swift CSV] ERROR: Term value '{$term_value}' is not a valid ID. Expected numeric ID when 'Term IDs' format is selected." );
-								// Skip this term as it's not a valid ID
-								continue;
-							}
-						} else {
-							// Valid ID, process normally
-							$term = get_term( $term_id, $taxonomy );
-							if ( $term && ! is_wp_error( $term ) ) {
-								$term_ids[] = $term_id;
-								error_log( "[Swift CSV] Found term by ID: {$term_id} -> {$term->name}" );
-							} else {
-								error_log( "[Swift CSV] Invalid term ID: {$term_id} in taxonomy '{$taxonomy}'" );
-							}
-						}
-					} else {
-						// Handle term names (default)
-						error_log( "[Swift CSV] Looking up term by name: '{$term_value}'" );
-						$term = get_term_by( 'name', $term_value, $taxonomy );
-						if ( ! $term ) {
-							error_log( "[Swift CSV] Term not found, creating new term: '{$term_value}'" );
-							$created = wp_insert_term( $term_value, $taxonomy );
-							if ( is_wp_error( $created ) ) {
-								error_log( "Failed to create term '$term_value' in taxonomy '$taxonomy'" );
-								continue;
-							}
-							$term_ids[] = (int) $created['term_id'];
-							error_log( "[Swift CSV] Created new term: '{$term_value}' with ID: {$created['term_id']}" );
-						} else {
-							$term_ids[] = (int) $term->term_id;
-							error_log( "[Swift CSV] Found existing term by name: '{$term_value}' with ID: {$term->term_id}" );
-						}
+					$resolved_term_ids = $this->resolve_term_ids_for_term_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
+					foreach ( $resolved_term_ids as $resolved_term_id ) {
+						$term_ids[] = $resolved_term_id;
 					}
 				}
 
@@ -1246,6 +1202,77 @@ class Swift_CSV_Ajax_Import {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Resolve term IDs from a term value.
+	 *
+	 * @since 0.9.0
+	 * @param string $taxonomy Taxonomy name.
+	 * @param string $term_value Term value.
+	 * @param string $taxonomy_format Taxonomy format.
+	 * @param array  $taxonomy_format_validation Taxonomy format validation.
+	 * @return array<int, int>
+	 */
+	private function resolve_term_ids_for_term_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation ) {
+		error_log( "[Swift CSV] Processing term value: '{$term_value}' with format: {$taxonomy_format}" );
+
+		// Handle different taxonomy formats with mixed data support
+		if ( $taxonomy_format === 'id' ) {
+			// Handle term IDs
+			$term_id = intval( $term_value );
+			error_log( "[Swift CSV] Looking up term by ID: {$term_id}" );
+
+			// Check if the term value is actually a valid ID
+			if ( $term_id === 0 ) {
+				// For mixed format, treat numeric values as names
+				if ( isset( $taxonomy_format_validation[ $taxonomy ] ) && $taxonomy_format_validation[ $taxonomy ]['mixed'] ) {
+					error_log( "[Swift CSV] Mixed format detected: treating '{$term_value}' as term name" );
+					$term = get_term_by( 'name', $term_value, $taxonomy );
+					if ( ! $term ) {
+						error_log( "[Swift CSV] Term not found, creating new term: '{$term_value}'" );
+						$created = wp_insert_term( $term_value, $taxonomy );
+						if ( is_wp_error( $created ) ) {
+							error_log( "Failed to create term '$term_value' in taxonomy '$taxonomy'" );
+							return [];
+						}
+						error_log( "[Swift CSV] Created new term: '{$term_value}' with ID: {$created['term_id']}" );
+						return [ (int) $created['term_id'] ];
+					}
+					error_log( "[Swift CSV] Found existing term by name: '{$term_value}' with ID: {$term->term_id}" );
+					return [ (int) $term->term_id ];
+				}
+
+				error_log( "[Swift CSV] ERROR: Term value '{$term_value}' is not a valid ID. Expected numeric ID when 'Term IDs' format is selected." );
+				// Skip this term as it's not a valid ID
+				return [];
+			}
+
+			// Valid ID, process normally
+			$term = get_term( $term_id, $taxonomy );
+			if ( $term && ! is_wp_error( $term ) ) {
+				error_log( "[Swift CSV] Found term by ID: {$term_id} -> {$term->name}" );
+				return [ $term_id ];
+			}
+			error_log( "[Swift CSV] Invalid term ID: {$term_id} in taxonomy '{$taxonomy}'" );
+			return [];
+		}
+
+		// Handle term names (default)
+		error_log( "[Swift CSV] Looking up term by name: '{$term_value}'" );
+		$term = get_term_by( 'name', $term_value, $taxonomy );
+		if ( ! $term ) {
+			error_log( "[Swift CSV] Term not found, creating new term: '{$term_value}'" );
+			$created = wp_insert_term( $term_value, $taxonomy );
+			if ( is_wp_error( $created ) ) {
+				error_log( "Failed to create term '$term_value' in taxonomy '$taxonomy'" );
+				return [];
+			}
+			error_log( "[Swift CSV] Created new term: '{$term_value}' with ID: {$created['term_id']}" );
+			return [ (int) $created['term_id'] ];
+		}
+		error_log( "[Swift CSV] Found existing term by name: '{$term_value}' with ID: {$term->term_id}" );
+		return [ (int) $term->term_id ];
 	}
 
 	/**

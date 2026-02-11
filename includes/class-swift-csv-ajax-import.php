@@ -229,45 +229,21 @@ class Swift_CSV_Ajax_Import {
 				}
 
 				if ( $result !== false ) {
-					++$processed;
-
-					// Count created vs updated
-					if ( $is_update ) {
-						++$updated;
-					} else {
-						++$created;
-					}
-
-					// Update GUID for new posts
-					if ( ! $is_update ) {
-						$this->update_guid_for_new_post( $wpdb, $post_id );
-					}
-
-					// Process custom fields and taxonomies like original Swift CSV
-					$meta_fields       = $this->collect_acf_field_keys_from_row( $headers, $data, $allowed_post_fields );
-					$collected_fields  = $this->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
-					$taxonomies        = $collected_fields['taxonomies'];
-					$taxonomy_term_ids = $collected_fields['taxonomy_term_ids']; // Store term_ids for reuse
-					$meta_fields       = array_merge( $meta_fields, $collected_fields['meta_fields'] );
-
-					// Process taxonomies
-					$this->apply_taxonomies_for_post( $post_id, $taxonomies, $taxonomy_format, $taxonomy_format_validation, $dry_run, $dry_run_log );
-
-					// Process custom fields with multi-value support
-					$this->apply_meta_fields_for_post( $wpdb, $post_id, $meta_fields, $dry_run, $dry_run_log );
-
-					// Custom field processing hook for extensions
-					/**
-					 * Action for processing custom fields during import
-					 *
-					 * Allows extensions to process custom fields with their own logic.
-					 * This hook is called after basic field processing is complete.
-					 *
-					 * @since 0.9.0
-					 * @param int $post_id The ID of the created/updated post
-					 * @param array $meta_fields Array of meta fields to process
-					 */
-					do_action( 'swift_csv_process_custom_fields', $post_id, $meta_fields );
+					$this->handle_successful_row_import(
+						$wpdb,
+						$post_id,
+						$is_update,
+						$headers,
+						$data,
+						$allowed_post_fields,
+						$taxonomy_format,
+						$taxonomy_format_validation,
+						$dry_run,
+						$dry_run_log,
+						$processed,
+						$created,
+						$updated
+					);
 				} else {
 					++$errors;
 				}
@@ -276,6 +252,41 @@ class Swift_CSV_Ajax_Import {
 			}
 		}
 
+		$this->send_import_progress_response_and_maybe_cleanup(
+			$start_row,
+			$processed,
+			$total_rows,
+			$file_path,
+			$errors,
+			$created,
+			$updated,
+			$previous_created,
+			$previous_updated,
+			$previous_errors,
+			$dry_run,
+			$dry_run_log
+		);
+	}
+
+	/**
+	 * Send import progress response and cleanup temporary file if needed.
+	 *
+	 * @since 0.9.0
+	 * @param int                $start_row Start row.
+	 * @param int                $processed Processed count.
+	 * @param int                $total_rows Total rows.
+	 * @param string             $file_path Temporary file path.
+	 * @param int                $errors Errors count.
+	 * @param int                $created Created count.
+	 * @param int                $updated Updated count.
+	 * @param int                $previous_created Previous cumulative created.
+	 * @param int                $previous_updated Previous cumulative updated.
+	 * @param int                $previous_errors Previous cumulative errors.
+	 * @param bool               $dry_run Dry run flag.
+	 * @param array<int, string> $dry_run_log Dry run log.
+	 * @return void
+	 */
+	private function send_import_progress_response_and_maybe_cleanup( $start_row, $processed, $total_rows, $file_path, $errors, $created, $updated, $previous_created, $previous_updated, $previous_errors, $dry_run, $dry_run_log ) {
 		$next_row = $start_row + $processed; // Use actual processed count
 		$continue = $next_row < $total_rows;
 
@@ -303,6 +314,78 @@ class Swift_CSV_Ajax_Import {
 				'dry_run_log'        => $dry_run_log,
 			]
 		);
+	}
+
+	/**
+	 * Handle successful row import.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb               $wpdb WordPress DB instance.
+	 * @param int                $post_id Post ID.
+	 * @param bool               $is_update Whether this row updated an existing post.
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array              $data CSV row.
+	 * @param array<int, string> $allowed_post_fields Allowed post fields.
+	 * @param string             $taxonomy_format Taxonomy format.
+	 * @param array              $taxonomy_format_validation Taxonomy format validation.
+	 * @param bool               $dry_run Dry run flag.
+	 * @param array<int, string> $dry_run_log Dry run log.
+	 * @param int                $processed Processed count (by reference).
+	 * @param int                $created Created count (by reference).
+	 * @param int                $updated Updated count (by reference).
+	 * @return void
+	 */
+	private function handle_successful_row_import( $wpdb, $post_id, $is_update, $headers, $data, $allowed_post_fields, $taxonomy_format, $taxonomy_format_validation, $dry_run, &$dry_run_log, &$processed, &$created, &$updated ) {
+		++$processed;
+
+		// Count created vs updated
+		if ( $is_update ) {
+			++$updated;
+		} else {
+			++$created;
+		}
+
+		// Update GUID for new posts
+		if ( ! $is_update ) {
+			$this->update_guid_for_new_post( $wpdb, $post_id );
+		}
+
+		// Process custom fields and taxonomies like original Swift CSV
+		$meta_fields      = $this->collect_acf_field_keys_from_row( $headers, $data, $allowed_post_fields );
+		$collected_fields = $this->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
+		$taxonomies       = $collected_fields['taxonomies'];
+		$meta_fields      = array_merge( $meta_fields, $collected_fields['meta_fields'] );
+
+		// Process taxonomies
+		$this->apply_taxonomies_for_post( $post_id, $taxonomies, $taxonomy_format, $taxonomy_format_validation, $dry_run, $dry_run_log );
+
+		// Process custom fields with multi-value support
+		$this->apply_meta_fields_for_post( $wpdb, $post_id, $meta_fields, $dry_run, $dry_run_log );
+
+		// Custom field processing hook for extensions
+		/**
+		 * Action for processing custom fields during import
+		 *
+		 * Allows extensions to process custom fields with their own logic.
+		 * This hook is called after basic field processing is complete.
+		 *
+		 * @since 0.9.0
+		 * @param int $post_id The ID of the created/updated post
+		 * @param array $meta_fields Array of meta fields to process
+		 */
+		$this->run_custom_field_processing_hook( $post_id, $meta_fields );
+	}
+
+	/**
+	 * Run custom field processing hook for extensions.
+	 *
+	 * @since 0.9.0
+	 * @param int                   $post_id Post ID.
+	 * @param array<string, string> $meta_fields Meta fields.
+	 * @return void
+	 */
+	private function run_custom_field_processing_hook( $post_id, $meta_fields ) {
+		do_action( 'swift_csv_process_custom_fields', $post_id, $meta_fields );
 	}
 
 	/**

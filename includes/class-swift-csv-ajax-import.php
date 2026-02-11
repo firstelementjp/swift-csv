@@ -9,10 +9,18 @@
  * @package Swift_CSV
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
- * Ajax Import handler.
+ * Handles CSV import operations via AJAX requests.
+ *
+ * This class processes CSV file uploads and chunked imports,
+ * supporting custom post types, taxonomies, and meta fields.
  *
  * @since 0.9.0
+ * @package Swift_CSV
  */
 class Swift_CSV_Ajax_Import {
 	/**

@@ -1575,38 +1575,3 @@ class Swift_CSV_Ajax_Import {
 		}
 	}
 }
-
-/**
- * Get Ajax import singleton instance.
- *
- * @since 0.9.0
- * @return Swift_CSV_Ajax_Import
- */
-function swift_csv_ajax_import_instance() {
-	static $instance = null;
-	if ( null === $instance ) {
-		$instance = new Swift_CSV_Ajax_Import();
-	}
-	return $instance;
-}
-
-/**
- * Handle CSV file upload via AJAX
- *
- * @since 0.9.0
- * @return void Sends JSON response
- */
-function swift_csv_ajax_upload_handler() {
-	swift_csv_ajax_import_instance()->upload_handler();
-}
-
-/**
- * Handle CSV import processing via AJAX
- *
- * @since 0.9.0
- * @return void Sends JSON response with import results
- */
-function swift_csv_ajax_import_handler() {
-	swift_csv_ajax_import_instance()->import_handler();
-	return;
-}

@@ -9,17 +9,24 @@
  * @package Swift_CSV
  */
 
-add_action( 'wp_ajax_swift_csv_ajax_import', 'swift_csv_ajax_import_handler' );
-add_action( 'wp_ajax_nopriv_swift_csv_ajax_import', 'swift_csv_ajax_import_handler' );
-add_action( 'wp_ajax_swift_csv_ajax_upload', 'swift_csv_ajax_upload_handler' );
-add_action( 'wp_ajax_nopriv_swift_csv_ajax_upload', 'swift_csv_ajax_upload_handler' );
-
 /**
  * Ajax Import handler.
  *
  * @since 0.9.0
  */
 class Swift_CSV_Ajax_Import {
+	/**
+	 * Constructor: Register AJAX hooks.
+	 *
+	 * @since 0.9.0
+	 */
+	public function __construct() {
+		add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'import_handler' ] );
+		add_action( 'wp_ajax_nopriv_swift_csv_ajax_import', [ $this, 'import_handler' ] );
+		add_action( 'wp_ajax_swift_csv_ajax_upload', [ $this, 'upload_handler' ] );
+		add_action( 'wp_ajax_nopriv_swift_csv_ajax_upload', [ $this, 'upload_handler' ] );
+	}
+
 	/**
 	 * Handle CSV file upload via AJAX.
 	 *

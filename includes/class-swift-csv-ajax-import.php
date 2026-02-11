@@ -1145,22 +1145,83 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Collect taxonomies and meta fields from a CSV row.
+	 * Collect taxonomy fields from a CSV row.
 	 *
 	 * @since 0.9.0
 	 * @param array<int, string> $headers CSV headers.
 	 * @param array              $data CSV row data.
-	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
-	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
+	 * @return array{taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
 	 */
-	private function collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields ) {
-		$meta_fields       = [];
+	private function collect_taxonomy_fields_from_row( $headers, $data ) {
 		$taxonomies        = [];
 		$taxonomy_term_ids = [];
 
 		for ( $j = 0; $j < count( $headers ); $j++ ) {
 			$header_name            = $headers[ $j ] ?? '';
 			$header_name_normalized = $this->normalize_field_name( $header_name );
+
+			// Skip empty headers and non-taxonomy fields
+			if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
+				continue;
+			}
+			if ( strpos( $header_name_normalized, 'tax_' ) !== 0 ) {
+				continue;
+			}
+
+			if ( empty( trim( $data[ $j ] ?? '' ) ) ) {
+				continue; // Skip empty fields
+			}
+
+			$meta_value = $data[ $j ];
+
+			// Handle taxonomy (pipe-separated) - this is for article-taxonomy relationship
+			$terms = array_map( 'trim', explode( '|', $meta_value ) );
+			// Store by actual taxonomy name (without tax_ prefix)
+			$taxonomy_name                = substr( $header_name_normalized, 4 ); // Remove 'tax_'
+			$taxonomies[ $taxonomy_name ] = $terms;
+
+			// Extract taxonomy name from header (remove tax_ prefix)
+			if ( taxonomy_exists( $taxonomy_name ) ) {
+				// Get term_ids for reuse
+				$term_ids = [];
+				foreach ( $terms as $term_name ) {
+					if ( ! empty( $term_name ) ) {
+						// Find existing term by name in the specific taxonomy
+						$term = get_term_by( 'name', $term_name, $taxonomy_name );
+						if ( $term ) {
+							$term_ids[] = $term->term_id;
+						}
+					}
+				}
+				if ( ! empty( $term_ids ) ) {
+					$taxonomy_term_ids[ $taxonomy_name ] = $term_ids;
+				}
+			}
+		}
+
+		return [
+			'taxonomies'        => $taxonomies,
+			'taxonomy_term_ids' => $taxonomy_term_ids,
+		];
+	}
+
+	/**
+	 * Collect meta fields from a CSV row.
+	 *
+	 * @since 0.9.0
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array              $data CSV row data.
+	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
+	 * @return array<string, string>
+	 */
+	private function collect_meta_fields_from_row( $headers, $data, $allowed_post_fields ) {
+		$meta_fields = [];
+
+		for ( $j = 0; $j < count( $headers ); $j++ ) {
+			$header_name            = $headers[ $j ] ?? '';
+			$header_name_normalized = $this->normalize_field_name( $header_name );
+
+			// Skip empty headers and post fields
 			if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
 				continue;
 			}
@@ -1174,54 +1235,39 @@ class Swift_CSV_Ajax_Import {
 
 			$meta_value = $data[ $j ];
 
-			// Do not store post fields as meta
-			if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
-				continue;
+			// Handle regular custom fields (cf_<field> => <field>) ONLY
+			// Skip all other fields - only process cf_ prefixed fields
+			if ( strpos( $header_name_normalized, 'cf_' ) !== 0 ) {
+				continue; // Skip non-cf_ fields
 			}
 
-			// Check if this is a taxonomy field (tax_ prefix ONLY, not cf_ fields)
-			if ( strpos( $header_name_normalized, 'tax_' ) === 0 ) {
-				// Handle taxonomy (pipe-separated) - this is for article-taxonomy relationship
-				$terms = array_map( 'trim', explode( '|', $meta_value ) );
-				// Store by actual taxonomy name (without tax_ prefix)
-				$taxonomy_name                = substr( $header_name_normalized, 4 ); // Remove 'tax_'
-				$taxonomies[ $taxonomy_name ] = $terms;
-
-				// Extract taxonomy name from header (remove tax_ prefix)
-				if ( taxonomy_exists( $taxonomy_name ) ) {
-					// Get term_ids for reuse
-					$term_ids = [];
-					foreach ( $terms as $term_name ) {
-						if ( ! empty( $term_name ) ) {
-							// Find existing term by name in the specific taxonomy
-							$term = get_term_by( 'name', $term_name, $taxonomy_name );
-							if ( $term ) {
-								$term_ids[] = $term->term_id;
-							} else {
-							}
-						}
-					}
-					if ( ! empty( $term_ids ) ) {
-						$taxonomy_term_ids[ $taxonomy_name ] = $term_ids;
-					}
-				} else {
-				}
-			} else {
-				// Handle regular custom fields (cf_<field> => <field>) ONLY
-				// Skip all other fields - only process cf_ prefixed fields
-				if ( strpos( $header_name_normalized, 'cf_' ) !== 0 ) {
-					continue; // Skip non-cf_ fields
-				}
-
-				$clean_field_name                 = substr( $header_name_normalized, 3 ); // Remove cf_
-				$meta_fields[ $clean_field_name ] = (string) $meta_value;
-			}
+			$clean_field_name                 = substr( $header_name_normalized, 3 ); // Remove cf_
+			$meta_fields[ $clean_field_name ] = (string) $meta_value;
 		}
+
+		return $meta_fields;
+	}
+
+	/**
+	 * Collect taxonomies and meta fields from a CSV row.
+	 *
+	 * @since 0.9.0
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array              $data CSV row data.
+	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
+	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
+	 */
+	private function collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields ) {
+		// Collect taxonomy fields
+		$taxonomy_data = $this->collect_taxonomy_fields_from_row( $headers, $data );
+
+		// Collect meta fields
+		$meta_fields = $this->collect_meta_fields_from_row( $headers, $data, $allowed_post_fields );
 
 		return [
 			'meta_fields'       => $meta_fields,
-			'taxonomies'        => $taxonomies,
-			'taxonomy_term_ids' => $taxonomy_term_ids,
+			'taxonomies'        => $taxonomy_data['taxonomies'],
+			'taxonomy_term_ids' => $taxonomy_data['taxonomy_term_ids'],
 		];
 	}
 

@@ -166,7 +166,7 @@ function handleAjaxImport(e) {
 	const file = document.querySelector('#ajax_csv_file')?.files[0];
 
 	if (!file) {
-		addLogEntry('No file selected', 'error', 'import');
+		addLogEntry(swiftCSV.messages.noFileSelected, 'error', 'import');
 		return;
 	}
 

@@ -185,7 +185,6 @@ class Swift_CSV_Admin {
 						'errorsInfo'            => esc_html__( 'Errors:', 'swift-csv' ),
 						'importCompleted'       => esc_html__( 'Import completed!', 'swift-csv' ),
 						'totalUpdated'          => esc_html__( 'Total updated:', 'swift-csv' ),
-						'totalErrors'           => esc_html__( 'Total errors:', 'swift-csv' ),
 						'importCancelledByUser' => esc_html__( 'Import cancelled by user', 'swift-csv' ),
 						'importError'           => esc_html__( 'Import error:', 'swift-csv' ),
 						// Dry Run messages
@@ -212,12 +211,15 @@ class Swift_CSV_Admin {
 						'no'                    => esc_html__( 'No', 'swift-csv' ),
 						'noLimit'               => esc_html__( 'No limit', 'swift-csv' ),
 						'errorOccurred'         => esc_html__( 'An error occurred. Please try again.', 'swift-csv' ),
-						'totalImported'         => esc_html__( 'Total imported:', 'swift-csv' ),
+						'totalImported'         => esc_html__( 'Imported', 'swift-csv' ),
+						'totalUpdated'          => esc_html__( 'Updated', 'swift-csv' ),
+						'totalErrors'           => esc_html__( 'Errors', 'swift-csv' ),
 						// File operation messages
 						'fileRemoved'           => esc_html__( 'File removed', 'swift-csv' ),
 						'selectCsvFile'         => esc_html__( 'Please select a CSV file', 'swift-csv' ),
 						'fileSizeExceedsLimit'  => esc_html__( 'File size exceeds 10MB limit', 'swift-csv' ),
 						'fileSelected'          => esc_html__( 'File selected:', 'swift-csv' ),
+						'noFileSelected'        => esc_html__( 'No file selected', 'swift-csv' ),
 						'removeFile'            => esc_html__( 'Remove', 'swift-csv' ),
 						// Export scope mappings
 						'exportScopeBasic'      => esc_html__( 'Basic Fields', 'swift-csv' ),
@@ -575,7 +577,7 @@ class Swift_CSV_Admin {
 			</dt>
 			<dd>
 				<label>
-					<input type="checkbox" name="swift_csv_import_dry_run" value="1">
+					<input type="checkbox" id="dry_run" name="swift_csv_import_dry_run" value="1">
 					<?php esc_html_e( 'Test import without creating posts', 'swift-csv' ); ?>
 				</label>
 				<p class="description"><?php esc_html_e( 'Run a test import to preview changes without modifying your data.', 'swift-csv' ); ?></p>

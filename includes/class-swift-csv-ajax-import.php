@@ -359,10 +359,9 @@ class Swift_CSV_Ajax_Import {
 		}
 
 		// Process custom fields and taxonomies like original Swift CSV
-		$meta_fields      = $this->collect_acf_field_keys_from_row( $headers, $data, $allowed_post_fields );
 		$collected_fields = $this->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
 		$taxonomies       = $collected_fields['taxonomies'];
-		$meta_fields      = array_merge( $meta_fields, $collected_fields['meta_fields'] );
+		$meta_fields      = $collected_fields['meta_fields'];
 
 		// Process taxonomies
 		$this->apply_taxonomies_for_post( $post_id, $taxonomies, $taxonomy_format, $taxonomy_format_validation, $dry_run, $dry_run_log );
@@ -1036,49 +1035,6 @@ class Swift_CSV_Ajax_Import {
 			$post_id = $wpdb->insert_id;
 		}
 		return $result;
-	}
-
-	/**
-	 * Collect ACF field keys from a CSV row.
-	 *
-	 * @since 0.9.0
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array              $data CSV row data.
-	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
-	 * @return array<string, string>
-	 */
-	private function collect_acf_field_keys_from_row( $headers, $data, $allowed_post_fields ) {
-		$meta_fields = [];
-		for ( $j = 0; $j < count( $headers ); $j++ ) {
-			$header_name            = $headers[ $j ] ?? '';
-			$header_name_normalized = $this->normalize_field_name( $header_name );
-			if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
-				continue;
-			}
-			if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
-				continue;
-			}
-			if ( empty( trim( $data[ $j ] ?? '' ) ) ) {
-				continue;
-			}
-			$meta_value = $data[ $j ];
-			if ( strpos( $header_name_normalized, 'cf__' ) === 0 ) {
-				$field_name = $this->normalize_field_name( substr( $header_name_normalized, 4 ) );
-				$field_key  = trim( (string) $meta_value );
-				if ( str_starts_with( $field_key, '"' ) && str_ends_with( $field_key, '"' ) ) {
-					$field_key = substr( $field_key, 1, -1 );
-				} elseif ( str_starts_with( $field_key, "'" ) && str_ends_with( $field_key, "'" ) ) {
-					$field_key = substr( $field_key, 1, -1 );
-				}
-				$field_key = preg_replace( '/[\x00-\x1F\x7F]/', '', $field_key );
-				$field_key = trim( $field_key );
-
-				if ( $field_name !== '' && strpos( $field_key, 'field_' ) === 0 ) {
-					$meta_fields[ '_' . $field_name ] = $field_key;
-				}
-			}
-		}
-		return $meta_fields;
 	}
 
 	/**

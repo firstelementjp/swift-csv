@@ -250,105 +250,11 @@ class Swift_CSV_Ajax_Import {
 					}
 
 					// Process custom fields and taxonomies like original Swift CSV
-					$meta_fields          = [];
-					$taxonomies           = [];
-					$taxonomy_term_ids    = []; // Store term_ids for reuse
-					$normalize_field_name = function ( $name ) {
-						$name = trim( (string) $name );
-						$name = preg_replace( '/^\xEF\xBB\xBF/', '', $name );
-						$name = preg_replace( '/[\x00-\x1F\x7F]/', '', $name );
-						return trim( $name );
-					};
-
-					for ( $j = 0; $j < count( $headers ); $j++ ) {
-						$header_name            = $headers[ $j ] ?? '';
-						$header_name_normalized = $normalize_field_name( $header_name );
-						if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
-							continue;
-						}
-						if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
-							continue;
-						}
-						if ( empty( trim( $data[ $j ] ?? '' ) ) ) {
-							continue;
-						}
-						$meta_value = $data[ $j ];
-						if ( strpos( $header_name_normalized, 'cf__' ) === 0 ) {
-							$field_name = $normalize_field_name( substr( $header_name_normalized, 4 ) );
-							$field_key  = trim( (string) $meta_value );
-							if ( str_starts_with( $field_key, '"' ) && str_ends_with( $field_key, '"' ) ) {
-								$field_key = substr( $field_key, 1, -1 );
-							} elseif ( str_starts_with( $field_key, "'" ) && str_ends_with( $field_key, "'" ) ) {
-								$field_key = substr( $field_key, 1, -1 );
-							}
-							$field_key = preg_replace( '/[\x00-\x1F\x7F]/', '', $field_key );
-							$field_key = trim( $field_key );
-
-							if ( $field_name !== '' && strpos( $field_key, 'field_' ) === 0 ) {
-								$meta_fields[ '_' . $field_name ] = $field_key;
-							}
-						}
-					}
-
-					for ( $j = 0; $j < count( $headers ); $j++ ) {
-						$header_name            = $headers[ $j ] ?? '';
-						$header_name_normalized = $normalize_field_name( $header_name );
-						if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
-							continue;
-						}
-						if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
-							continue;
-						}
-
-						if ( empty( trim( $data[ $j ] ?? '' ) ) ) {
-							continue; // Skip empty fields
-						}
-
-						$meta_value = $data[ $j ];
-
-						// Do not store post fields as meta
-						if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
-							continue;
-						}
-
-						// Check if this is a taxonomy field (tax_ prefix ONLY, not cf_ fields)
-						if ( strpos( $header_name_normalized, 'tax_' ) === 0 ) {
-							// Handle taxonomy (pipe-separated) - this is for article-taxonomy relationship
-							$terms = array_map( 'trim', explode( '|', $meta_value ) );
-							// Store by actual taxonomy name (without tax_ prefix)
-							$taxonomy_name                = substr( $header_name_normalized, 4 ); // Remove 'tax_'
-							$taxonomies[ $taxonomy_name ] = $terms;
-
-							// Extract taxonomy name from header (remove tax_ prefix)
-							if ( taxonomy_exists( $taxonomy_name ) ) {
-								// Get term_ids for reuse
-								$term_ids = [];
-								foreach ( $terms as $term_name ) {
-									if ( ! empty( $term_name ) ) {
-										// Find existing term by name in the specific taxonomy
-										$term = get_term_by( 'name', $term_name, $taxonomy_name );
-										if ( $term ) {
-											$term_ids[] = $term->term_id;
-										} else {
-										}
-									}
-								}
-								if ( ! empty( $term_ids ) ) {
-									$taxonomy_term_ids[ $taxonomy_name ] = $term_ids;
-								}
-							} else {
-							}
-						} else {
-							// Handle regular custom fields (cf_<field> => <field>) ONLY
-							// Skip all other fields - only process cf_ prefixed fields
-							if ( strpos( $header_name_normalized, 'cf_' ) !== 0 ) {
-								continue; // Skip non-cf_ fields
-							}
-
-							$clean_field_name                 = substr( $header_name_normalized, 3 ); // Remove cf_
-							$meta_fields[ $clean_field_name ] = (string) $meta_value;
-						}
-					}
+					$meta_fields       = $this->collect_acf_field_keys_from_row( $headers, $data, $allowed_post_fields );
+					$collected_fields  = $this->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
+					$taxonomies        = $collected_fields['taxonomies'];
+					$taxonomy_term_ids = $collected_fields['taxonomy_term_ids']; // Store term_ids for reuse
+					$meta_fields       = array_merge( $meta_fields, $collected_fields['meta_fields'] );
 
 					// Process taxonomies
 					foreach ( $taxonomies as $taxonomy => $terms ) {
@@ -1182,6 +1088,144 @@ class Swift_CSV_Ajax_Import {
 			$post_id = $wpdb->insert_id;
 		}
 		return $result;
+	}
+
+	/**
+	 * Normalize header/field name.
+	 *
+	 * @since 0.9.0
+	 * @param string $name Field name.
+	 * @return string
+	 */
+	private function normalize_field_name( $name ) {
+		$name = trim( (string) $name );
+		$name = preg_replace( '/^\xEF\xBB\xBF/', '', $name );
+		$name = preg_replace( '/[\x00-\x1F\x7F]/', '', $name );
+		return trim( $name );
+	}
+
+	/**
+	 * Collect ACF field keys from a CSV row.
+	 *
+	 * @since 0.9.0
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array              $data CSV row data.
+	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
+	 * @return array<string, string>
+	 */
+	private function collect_acf_field_keys_from_row( $headers, $data, $allowed_post_fields ) {
+		$meta_fields = [];
+		for ( $j = 0; $j < count( $headers ); $j++ ) {
+			$header_name            = $headers[ $j ] ?? '';
+			$header_name_normalized = $this->normalize_field_name( $header_name );
+			if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
+				continue;
+			}
+			if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
+				continue;
+			}
+			if ( empty( trim( $data[ $j ] ?? '' ) ) ) {
+				continue;
+			}
+			$meta_value = $data[ $j ];
+			if ( strpos( $header_name_normalized, 'cf__' ) === 0 ) {
+				$field_name = $this->normalize_field_name( substr( $header_name_normalized, 4 ) );
+				$field_key  = trim( (string) $meta_value );
+				if ( str_starts_with( $field_key, '"' ) && str_ends_with( $field_key, '"' ) ) {
+					$field_key = substr( $field_key, 1, -1 );
+				} elseif ( str_starts_with( $field_key, "'" ) && str_ends_with( $field_key, "'" ) ) {
+					$field_key = substr( $field_key, 1, -1 );
+				}
+				$field_key = preg_replace( '/[\x00-\x1F\x7F]/', '', $field_key );
+				$field_key = trim( $field_key );
+
+				if ( $field_name !== '' && strpos( $field_key, 'field_' ) === 0 ) {
+					$meta_fields[ '_' . $field_name ] = $field_key;
+				}
+			}
+		}
+		return $meta_fields;
+	}
+
+	/**
+	 * Collect taxonomies and meta fields from a CSV row.
+	 *
+	 * @since 0.9.0
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array              $data CSV row data.
+	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
+	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
+	 */
+	private function collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields ) {
+		$meta_fields       = [];
+		$taxonomies        = [];
+		$taxonomy_term_ids = [];
+
+		for ( $j = 0; $j < count( $headers ); $j++ ) {
+			$header_name            = $headers[ $j ] ?? '';
+			$header_name_normalized = $this->normalize_field_name( $header_name );
+			if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
+				continue;
+			}
+			if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
+				continue;
+			}
+
+			if ( empty( trim( $data[ $j ] ?? '' ) ) ) {
+				continue; // Skip empty fields
+			}
+
+			$meta_value = $data[ $j ];
+
+			// Do not store post fields as meta
+			if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
+				continue;
+			}
+
+			// Check if this is a taxonomy field (tax_ prefix ONLY, not cf_ fields)
+			if ( strpos( $header_name_normalized, 'tax_' ) === 0 ) {
+				// Handle taxonomy (pipe-separated) - this is for article-taxonomy relationship
+				$terms = array_map( 'trim', explode( '|', $meta_value ) );
+				// Store by actual taxonomy name (without tax_ prefix)
+				$taxonomy_name                = substr( $header_name_normalized, 4 ); // Remove 'tax_'
+				$taxonomies[ $taxonomy_name ] = $terms;
+
+				// Extract taxonomy name from header (remove tax_ prefix)
+				if ( taxonomy_exists( $taxonomy_name ) ) {
+					// Get term_ids for reuse
+					$term_ids = [];
+					foreach ( $terms as $term_name ) {
+						if ( ! empty( $term_name ) ) {
+							// Find existing term by name in the specific taxonomy
+							$term = get_term_by( 'name', $term_name, $taxonomy_name );
+							if ( $term ) {
+								$term_ids[] = $term->term_id;
+							} else {
+							}
+						}
+					}
+					if ( ! empty( $term_ids ) ) {
+						$taxonomy_term_ids[ $taxonomy_name ] = $term_ids;
+					}
+				} else {
+				}
+			} else {
+				// Handle regular custom fields (cf_<field> => <field>) ONLY
+				// Skip all other fields - only process cf_ prefixed fields
+				if ( strpos( $header_name_normalized, 'cf_' ) !== 0 ) {
+					continue; // Skip non-cf_ fields
+				}
+
+				$clean_field_name                 = substr( $header_name_normalized, 3 ); // Remove cf_
+				$meta_fields[ $clean_field_name ] = (string) $meta_value;
+			}
+		}
+
+		return [
+			'meta_fields'       => $meta_fields,
+			'taxonomies'        => $taxonomies,
+			'taxonomy_term_ids' => $taxonomy_term_ids,
+		];
 	}
 
 	/**

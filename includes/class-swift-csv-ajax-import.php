@@ -528,17 +528,15 @@ class Swift_CSV_Ajax_Import {
 	 * @return bool True if nonce is valid.
 	 */
 	private function verify_nonce_or_send_error_and_cleanup() {
-		if ( isset( $_POST['nonce'] ) && wp_verify_nonce( $_POST['nonce'], 'swift_csv_ajax_nonce' ) ) {
-			return true;
-		}
-
+		$nonce     = $_POST['nonce'] ?? '';
 		$file_path = sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) );
-		if ( $file_path && file_exists( $file_path ) ) {
-			unlink( $file_path );
+
+		if ( ! Swift_CSV_Helper::verify_nonce( $nonce ) ) {
+			Swift_CSV_Helper::send_security_error( $file_path );
+			return false;
 		}
 
-		wp_send_json( [ 'error' => 'Security check failed' ] );
-		return false;
+		return true;
 	}
 
 	/**
@@ -551,34 +549,14 @@ class Swift_CSV_Ajax_Import {
 	private function read_uploaded_csv_content_or_send_error_and_cleanup( $file_path ) {
 		// Handle file upload directly
 		if ( ! isset( $_FILES['csv_file'] ) ) {
-			// Cleanup file on error
-			if ( $file_path && file_exists( $file_path ) ) {
-				unlink( $file_path );
-			}
-			wp_send_json(
-				[
-					'success' => false,
-					'error'   => 'No file uploaded',
-				]
-			);
-			return null;
+			return Swift_CSV_Helper::send_error_response_and_return_null( 'No file uploaded', $file_path );
 		}
 
 		$file = $_FILES['csv_file'];
 
 		// Validate file
 		if ( $file['error'] !== UPLOAD_ERR_OK ) {
-			// Cleanup file on error
-			if ( $file_path && file_exists( $file_path ) ) {
-				unlink( $file_path );
-			}
-			wp_send_json(
-				[
-					'success' => false,
-					'error'   => 'Upload error: ' . $file['error'],
-				]
-			);
-			return null;
+			return Swift_CSV_Helper::send_error_response_and_return_null( 'Upload error: ' . $file['error'], $file_path );
 		}
 
 		// Read CSV directly from uploaded file
@@ -596,33 +574,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array<int, string>
 	 */
 	private function parse_csv_lines_preserving_quoted_newlines( $csv_content ) {
-		$lines        = [];
-		$current_line = '';
-		$in_quotes    = false;
-
-		foreach ( explode( "\n", $csv_content ) as $line ) {
-			// Count quotes to determine if we're inside a quoted field
-			$quote_count = substr_count( $line, '"' );
-
-			if ( $in_quotes ) {
-				$current_line .= "\n" . $line;
-			} else {
-				$current_line = $line;
-			}
-
-			// Toggle quote state (odd number of quotes means we're inside quotes)
-			if ( $quote_count % 2 === 1 ) {
-				$in_quotes = ! $in_quotes;
-			}
-
-			// Only add line if we're not inside quotes
-			if ( ! $in_quotes ) {
-				$lines[]      = $current_line;
-				$current_line = '';
-			}
-		}
-
-		return $lines;
+		return Swift_CSV_Helper::parse_csv_lines_preserving_quoted_newlines( $csv_content );
 	}
 
 	/**
@@ -633,17 +585,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return string
 	 */
 	private function detect_csv_delimiter( $lines ) {
-		$first_line = $lines[0] ?? '';
-		$delimiters = [ ',', ';', "\t" ];
-		$delimiter  = ',';
-
-		foreach ( $delimiters as $delim ) {
-			if ( substr_count( $first_line, $delim ) > substr_count( $first_line, $delimiter ) ) {
-				$delimiter = $delim;
-			}
-		}
-
-		return $delimiter;
+		return Swift_CSV_Helper::detect_csv_delimiter( $lines );
 	}
 
 	/**

@@ -333,34 +333,6 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Send import progress response and cleanup temporary file if needed.
-	 *
-	 * @since 0.9.0
-	 * @param int                $start_row Start row.
-	 * @param int                $processed Processed count.
-	 * @param int                $total_rows Total rows.
-	 * @param string             $file_path Temporary file path.
-	 * @param int                $errors Errors count.
-	 * @param int                $created Created count.
-	 * @param int                $updated Updated count.
-	 * @param int                $previous_created Previous cumulative created.
-	 * @param int                $previous_updated Previous cumulative updated.
-	 * @param int                $previous_errors Previous cumulative errors.
-	 * @param bool               $dry_run Dry run flag.
-	 * @param array<int, string> $dry_run_log Dry run log.
-	 * @return void
-	 */
-	private function send_import_progress_response_and_maybe_cleanup( $start_row, $processed, $total_rows, $file_path, $errors, $created, $updated, $previous_created, $previous_updated, $previous_errors, $dry_run, $dry_run_log ) {
-		$next_row = $start_row + $processed; // Use actual processed count
-		$continue = $next_row < $total_rows;
-
-		// Cleanup temporary file when import is complete
-		$this->cleanup_temp_file_if_complete( $continue, $file_path );
-
-		$this->send_import_progress_response( $start_row, $processed, $total_rows, $errors, $created, $updated, $previous_created, $previous_updated, $previous_errors, $dry_run, $dry_run_log );
-	}
-
-	/**
 	 * Handle successful row import.
 	 *
 	 * @since 0.9.0

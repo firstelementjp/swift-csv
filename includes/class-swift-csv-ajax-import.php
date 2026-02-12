@@ -175,7 +175,7 @@ class Swift_CSV_Ajax_Import {
 			$post_id_from_csv = $this->get_post_id_from_csv_row( $data );
 
 			// Collect post fields from CSV (header-driven)
-			$post_fields_from_csv = $this->collect_post_fields_from_csv_row( $csv_data['headers'], $data, $allowed_post_fields );
+			$post_fields_from_csv = $this->get_post_fields_from_csv_row( $csv_data['headers'], $data, $allowed_post_fields );
 
 			// Check for existing post by CSV ID (only if update_existing is checked)
 			$existing  = $this->resolve_existing_post_for_import( $wpdb, $config['update_existing'], $config['post_type'], $post_id_from_csv );
@@ -256,6 +256,19 @@ class Swift_CSV_Ajax_Import {
 	 */
 	private function should_skip_import_row( string $update_existing, array $post_fields_from_csv ): bool {
 		return $this->should_skip_row_due_to_missing_title( $update_existing, $post_fields_from_csv );
+	}
+
+	/**
+	 * Get post fields array from a parsed CSV row.
+	 *
+	 * @since 0.9.0
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array              $data Parsed CSV row data.
+	 * @param array<int, string> $allowed_post_fields Allowed post fields.
+	 * @return array<string, mixed> Collected post fields.
+	 */
+	private function get_post_fields_from_csv_row( array $headers, array $data, array $allowed_post_fields ): array {
+		return $this->collect_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
 	}
 
 	/**

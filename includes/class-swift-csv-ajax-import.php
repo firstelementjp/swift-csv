@@ -200,12 +200,7 @@ class Swift_CSV_Ajax_Import {
 			try {
 				// Direct SQL insert or update (update only fields provided by CSV)
 				$post_data = $this->build_post_data_for_import( $is_update, $post_fields_from_csv, $config['post_type'] );
-
-				if ( $is_update ) {
-					$result = $this->execute_post_update( $wpdb, $post_id, $post_data, $config['dry_run'], $dry_run_log );
-				} else {
-					$result = $this->execute_post_insert( $wpdb, $post_data, $config['dry_run'], $dry_run_log, $post_id );
-				}
+				$result    = $this->execute_post_db_operation( $wpdb, $is_update, $post_id, $post_data, $config['dry_run'], $dry_run_log );
 
 				if ( $result !== false ) {
 					$this->handle_successful_row_import(
@@ -247,6 +242,26 @@ class Swift_CSV_Ajax_Import {
 		}
 
 		return $this->build_post_data_for_insert( $post_fields_from_csv, $post_type );
+	}
+
+	/**
+	 * Execute post insert/update operation during import.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb               $wpdb WordPress database handler.
+	 * @param bool               $is_update Whether this row updates an existing post.
+	 * @param int                $post_id Target post ID.
+	 * @param array              $post_data Post data array for wp_posts insert/update.
+	 * @param bool               $dry_run Whether this is a dry run.
+	 * @param array<int, string> $dry_run_log Dry run log (by reference).
+	 * @return int|false Result of DB operation (post ID on insert, rows affected on update, or false on failure).
+	 */
+	private function execute_post_db_operation( wpdb $wpdb, bool $is_update, &$post_id, array $post_data, bool $dry_run, array &$dry_run_log ) {
+		if ( $is_update ) {
+			return $this->execute_post_update( $wpdb, $post_id, $post_data, $dry_run, $dry_run_log );
+		}
+
+		return $this->execute_post_insert( $wpdb, $post_data, $dry_run, $dry_run_log, $post_id );
 	}
 
 	/**

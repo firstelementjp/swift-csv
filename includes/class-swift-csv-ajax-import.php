@@ -64,6 +64,14 @@ class Swift_CSV_Ajax_Import {
 	private $orchestrator_util;
 
 	/**
+	 * Row processor utility instance.
+	 *
+	 * @since 0.9.0
+	 * @var Swift_CSV_Import_Row_Processor|null
+	 */
+	private $row_processor_util;
+
+	/**
 	 * Constructor: Register AJAX hooks.
 	 *
 	 * @since 0.9.0
@@ -138,6 +146,19 @@ class Swift_CSV_Ajax_Import {
 			$this->orchestrator_util = new Swift_CSV_Import_Orchestrator();
 		}
 		return $this->orchestrator_util;
+	}
+
+	/**
+	 * Get row processor instance.
+	 *
+	 * @since 0.9.0
+	 * @return Swift_CSV_Import_Row_Processor
+	 */
+	private function get_row_processor_util(): Swift_CSV_Import_Row_Processor {
+		if ( null === $this->row_processor_util ) {
+			$this->row_processor_util = new Swift_CSV_Import_Row_Processor();
+		}
+		return $this->row_processor_util;
 	}
 
 	/**
@@ -389,26 +410,14 @@ class Swift_CSV_Ajax_Import {
 		array $context,
 		array &$counters
 	) {
-		$data                 = $row_context['data'];
-		$post_fields_from_csv = $row_context['post_fields_from_csv'];
-		$post_id              = $row_context['post_id'];
-		$is_update            = $row_context['is_update'];
-
-		$processed                  = &$counters['processed'];
-		$created                    = &$counters['created'];
-		$updated                    = &$counters['updated'];
-		$errors                     = &$counters['errors'];
-		$dry_run_log                = &$counters['dry_run_log'];
-		$single_row_context         = $context;
-		$single_row_context['data'] = $data;
-
-		$this->process_single_import_row(
+		$this->get_row_processor_util()->process_row_context(
 			$wpdb,
-			$is_update,
-			$post_id,
-			$post_fields_from_csv,
-			$single_row_context,
-			$counters
+			$row_context,
+			$context,
+			$counters,
+			function ( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, array $single_row_context, array &$counters ): void {
+				$this->process_single_import_row( $wpdb, $is_update, $post_id, $post_fields_from_csv, $single_row_context, $counters );
+			}
 		);
 	}
 
@@ -598,34 +607,20 @@ class Swift_CSV_Ajax_Import {
 		array $context,
 		array &$counters
 	) {
-		$processed   = &$counters['processed'];
-		$created     = &$counters['created'];
-		$updated     = &$counters['updated'];
-		$errors      = &$counters['errors'];
-		$dry_run_log = &$counters['dry_run_log'];
-
-		$post_type                  = $context['post_type'];
-		$dry_run                    = $context['dry_run'];
-		$headers                    = $context['headers'];
-		$data                       = $context['data'];
-		$allowed_post_fields        = $context['allowed_post_fields'];
-		$taxonomy_format            = $context['taxonomy_format'];
-		$taxonomy_format_validation = $context['taxonomy_format_validation'];
-
-		try {
-			// Direct SQL insert or update (update only fields provided by CSV)
-			$result = $this->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
-			$this->handle_row_result_after_persist(
-				$result,
-				$wpdb,
-				$is_update,
-				(int) $post_id,
-				$context,
-				$counters
-			);
-		} catch ( Exception $e ) {
-			++$errors;
-		}
+		$this->get_row_processor_util()->process_single_import_row(
+			$wpdb,
+			$is_update,
+			$post_id,
+			$post_fields_from_csv,
+			$context,
+			$counters,
+			function ( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, string $post_type, bool $dry_run, array &$dry_run_log ) {
+				return $this->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
+			},
+			function ( $result, wpdb $wpdb, bool $is_update, int $post_id, array $context, array &$counters ): void {
+				$this->handle_row_result_after_persist( $result, $wpdb, $is_update, $post_id, $context, $counters );
+			}
+		);
 	}
 
 	/**

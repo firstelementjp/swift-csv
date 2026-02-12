@@ -445,7 +445,12 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	if (data.cumulative_created !== undefined) {
 		const createdMessage = isDryRun
 			? '[Dry Run] ' + swiftCSV.messages.dryRunCreated + ' '
-			: swiftCSV.messages.totalImported + ' ';
+			: (
+					swiftCSV.messages.dryRunCreated ||
+					swiftCSV.messages.createdInfo ||
+					swiftCSV.messages.totalImported ||
+					''
+				).replace(/:\s*$/, '') + ' ';
 		addLogEntry(createdMessage + data.cumulative_created, 'success', 'import');
 	}
 	if (data.cumulative_updated !== undefined) {

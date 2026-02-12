@@ -482,7 +482,23 @@ class Swift_CSV_Ajax_Import {
 	 * @return bool True if the row should be skipped.
 	 */
 	private function should_skip_import_row( string $update_existing, array $post_fields_from_csv ): bool {
-		return $this->should_skip_row_due_to_missing_title( $update_existing, $post_fields_from_csv );
+		return null !== $this->get_skip_reason_for_import_row( $update_existing, $post_fields_from_csv );
+	}
+
+	/**
+	 * Get skip reason for import row.
+	 *
+	 * @since 0.9.0
+	 * @param string $update_existing Update flag from request.
+	 * @param array  $post_fields_from_csv Post fields collected from CSV.
+	 * @return string|null Null means do not skip.
+	 */
+	private function get_skip_reason_for_import_row( string $update_existing, array $post_fields_from_csv ): ?string {
+		if ( $this->should_skip_row_due_to_missing_title( $update_existing, $post_fields_from_csv ) ) {
+			return 'missing_title';
+		}
+
+		return null;
 	}
 
 	/**

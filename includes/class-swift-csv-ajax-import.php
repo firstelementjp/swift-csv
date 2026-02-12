@@ -171,18 +171,8 @@ class Swift_CSV_Ajax_Import {
 				continue;
 			}
 
-			$data = $this->parse_csv_row( $csv_data['lines'][ $i ], $csv_data['delimiter'] );
-
-			// First check if this looks like an ID row (first column is numeric ID)
-			$first_col = $data[0] ?? '';
-			if ( is_numeric( $first_col ) && strlen( $first_col ) <= 6 ) {
-				// This is normal - most rows have ID in first column
-				// Don't skip - process the actual data
-			} else {
-				// Continue processing anyway
-			}
-
-			$post_id_from_csv = $first_col;
+			$data             = $this->parse_csv_row( $csv_data['lines'][ $i ], $csv_data['delimiter'] );
+			$post_id_from_csv = $this->get_post_id_from_csv_row( $data );
 
 			// Collect post fields from CSV (header-driven)
 			$post_fields_from_csv = $this->collect_post_fields_from_csv_row( $csv_data['headers'], $data, $allowed_post_fields );
@@ -216,6 +206,30 @@ class Swift_CSV_Ajax_Import {
 				$errors
 			);
 		}
+	}
+
+	/**
+	 * Get post ID value from parsed CSV row.
+	 *
+	 * Note: This method intentionally preserves the current behavior.
+	 * It performs a lightweight sanity check but does not skip rows.
+	 *
+	 * @since 0.9.0
+	 * @param array $data Parsed CSV row.
+	 * @return string Post ID value from CSV (may be empty).
+	 */
+	private function get_post_id_from_csv_row( array $data ): string {
+		$first_col = $data[0] ?? '';
+
+		// First check if this looks like an ID row (first column is numeric ID)
+		if ( is_numeric( $first_col ) && strlen( (string) $first_col ) <= 6 ) {
+			// This is normal - most rows have ID in first column
+			// Don't skip - process the actual data
+		} else {
+			// Continue processing anyway
+		}
+
+		return (string) $first_col;
 	}
 
 	/**

@@ -294,17 +294,20 @@ class Swift_CSV_Ajax_Import {
 		int $index,
 		array &$counters
 	) {
-		$processed = &$counters['processed'];
-
-		$line      = $csv_data['lines'][ $index ] ?? '';
-		$delimiter = $csv_data['delimiter'] ?? ',';
-		$headers   = $csv_data['headers'] ?? [];
-
-		if ( $this->maybe_skip_empty_csv_line( $line, $processed ) ) {
-			return;
-		}
-
-		$this->process_row_if_possible( $wpdb, $config, $csv_data, $allowed_post_fields, $line, $delimiter, $headers, $counters );
+		$this->get_orchestrator_util()->run_process_import_loop_iteration(
+			$wpdb,
+			$config,
+			$csv_data,
+			$allowed_post_fields,
+			$index,
+			$counters,
+			function ( string $line, int &$processed ): bool {
+				return $this->maybe_skip_empty_csv_line( $line, $processed );
+			},
+			function ( wpdb $wpdb, array $config, array $csv_data, array $allowed_post_fields, string $line, string $delimiter, array $headers, array &$counters ): void {
+				$this->process_row_if_possible( $wpdb, $config, $csv_data, $allowed_post_fields, $line, $delimiter, $headers, $counters );
+			}
+		);
 	}
 
 	/**

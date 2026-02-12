@@ -22,6 +22,44 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Import_Orchestrator {
 	/**
+	 * Run one import loop iteration.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param wpdb                                                                                                                                                                     $wpdb WordPress database handler.
+	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool}                                         $config Import configuration.
+	 * @param array{lines:array<int,string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array,total_rows:int}                                                $csv_data Parsed CSV data.
+	 * @param array<int, string>                                                                                                                                                       $allowed_post_fields Allowed post fields.
+	 * @param int                                                                                                                                                                      $index Row index.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                    $counters Counters (by reference).
+	 * @param callable(string,int&): bool                                                                                                                                              $maybe_skip_empty_csv_line Decide whether to skip an empty CSV line.
+	 * @param callable(wpdb,array,array,array<int,string>,string,string,array<int,string>,array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}): void $process_row_if_possible Process a row if possible.
+	 *
+	 * @return void
+	 */
+	public function run_process_import_loop_iteration(
+		wpdb $wpdb,
+		array $config,
+		array $csv_data,
+		array $allowed_post_fields,
+		int $index,
+		array &$counters,
+		callable $maybe_skip_empty_csv_line,
+		callable $process_row_if_possible
+	): void {
+		$line      = $csv_data['lines'][ $index ] ?? '';
+		$delimiter = $csv_data['delimiter'] ?? ',';
+		$headers   = $csv_data['headers'] ?? [];
+
+		$processed = &$counters['processed'];
+		if ( $maybe_skip_empty_csv_line( $line, $processed ) ) {
+			return;
+		}
+
+		$process_row_if_possible( $wpdb, $config, $csv_data, $allowed_post_fields, $line, $delimiter, $headers, $counters );
+	}
+
+	/**
 	 * Run the batch import loop.
 	 *
 	 * @since 0.9.0

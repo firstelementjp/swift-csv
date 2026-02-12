@@ -165,9 +165,7 @@ class Swift_CSV_Ajax_Import {
 		$dry_run_log = &$counters['dry_run_log'];
 
 		for ( $i = $config['start_row']; $i < min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] ); $i++ ) {
-			// Skip empty lines only
-			if ( $this->is_empty_csv_line( $csv_data['lines'][ $i ] ) ) {
-				++$processed; // Count empty lines as processed to avoid infinite loop
+			if ( $this->maybe_skip_empty_csv_line( $csv_data['lines'][ $i ], $processed ) ) {
 				continue;
 			}
 
@@ -230,6 +228,24 @@ class Swift_CSV_Ajax_Import {
 		}
 
 		return (string) $first_col;
+	}
+
+	/**
+	 * Skip empty CSV line and update processed counter.
+	 *
+	 * @since 0.9.0
+	 * @param string $line Raw CSV line.
+	 * @param int    $processed Processed count (by reference).
+	 * @return bool True if the line was skipped.
+	 */
+	private function maybe_skip_empty_csv_line( string $line, int &$processed ): bool {
+		// Skip empty lines only
+		if ( ! $this->is_empty_csv_line( $line ) ) {
+			return false;
+		}
+
+		++$processed; // Count empty lines as processed to avoid infinite loop
+		return true;
 	}
 
 	/**

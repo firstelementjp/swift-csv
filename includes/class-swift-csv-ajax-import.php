@@ -197,29 +197,89 @@ class Swift_CSV_Ajax_Import {
 				continue;
 			}
 
-			try {
-				// Direct SQL insert or update (update only fields provided by CSV)
-				$result = $this->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $config['post_type'], $config['dry_run'], $dry_run_log );
-				$this->handle_row_result_after_persist(
-					$result,
-					$wpdb,
-					$post_id,
-					$is_update,
-					$csv_data['headers'],
-					$data,
-					$allowed_post_fields,
-					$config['taxonomy_format'],
-					$csv_data['taxonomy_format_validation'],
-					$config['dry_run'],
-					$dry_run_log,
-					$processed,
-					$created,
-					$updated,
-					$errors
-				);
-			} catch ( Exception $e ) {
-				++$errors;
-			}
+			$this->process_single_import_row(
+				$wpdb,
+				$is_update,
+				$post_id,
+				$post_fields_from_csv,
+				$config['post_type'],
+				$config['dry_run'],
+				$dry_run_log,
+				$csv_data['headers'],
+				$data,
+				$allowed_post_fields,
+				$config['taxonomy_format'],
+				$csv_data['taxonomy_format_validation'],
+				$processed,
+				$created,
+				$updated,
+				$errors
+			);
+		}
+	}
+
+	/**
+	 * Process one import row including DB persist and success/error handling.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb               $wpdb WordPress database handler.
+	 * @param bool               $is_update Whether this row updates an existing post.
+	 * @param int|null           $post_id Post ID (by reference, updated on insert).
+	 * @param array              $post_fields_from_csv Post fields collected from CSV.
+	 * @param string             $post_type Post type.
+	 * @param bool               $dry_run Whether this is a dry run.
+	 * @param array<int, string> $dry_run_log Dry run log (by reference).
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array              $data CSV row data.
+	 * @param array<int, string> $allowed_post_fields Allowed post fields.
+	 * @param string             $taxonomy_format Taxonomy format.
+	 * @param array              $taxonomy_format_validation Taxonomy format validation.
+	 * @param int                $processed Processed count (by reference).
+	 * @param int                $created Created count (by reference).
+	 * @param int                $updated Updated count (by reference).
+	 * @param int                $errors Error count (by reference).
+	 * @return void
+	 */
+	private function process_single_import_row(
+		wpdb $wpdb,
+		bool $is_update,
+		&$post_id,
+		array $post_fields_from_csv,
+		string $post_type,
+		bool $dry_run,
+		array &$dry_run_log,
+		array $headers,
+		array $data,
+		array $allowed_post_fields,
+		string $taxonomy_format,
+		$taxonomy_format_validation,
+		int &$processed,
+		int &$created,
+		int &$updated,
+		int &$errors
+	) {
+		try {
+			// Direct SQL insert or update (update only fields provided by CSV)
+			$result = $this->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
+			$this->handle_row_result_after_persist(
+				$result,
+				$wpdb,
+				$post_id,
+				$is_update,
+				$headers,
+				$data,
+				$allowed_post_fields,
+				$taxonomy_format,
+				$taxonomy_format_validation,
+				$dry_run,
+				$dry_run_log,
+				$processed,
+				$created,
+				$updated,
+				$errors
+			);
+		} catch ( Exception $e ) {
+			++$errors;
 		}
 	}
 

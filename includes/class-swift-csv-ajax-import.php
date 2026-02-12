@@ -1544,14 +1544,14 @@ class Swift_CSV_Ajax_Import {
 	 * Apply taxonomy terms to a post.
 	 *
 	 * @since 0.9.0
-	 * @param int    $post_id Post ID.
-	 * @param string $taxonomy Taxonomy name.
-	 * @param array  $term_ids Term IDs.
-	 * @param bool   $dry_run Dry run flag.
-	 * @param array  $dry_run_log Dry run log.
+	 * @param int                $post_id Post ID.
+	 * @param string             $taxonomy Taxonomy name.
+	 * @param array<int, int>    $term_ids Term IDs.
+	 * @param bool               $dry_run Dry run flag.
+	 * @param array<int, string> $dry_run_log Dry run log.
 	 * @return void
 	 */
-	private function apply_taxonomy_terms_to_post( $post_id, $taxonomy, $term_ids, $dry_run, &$dry_run_log ) {
+	private function apply_taxonomy_terms_to_post( int $post_id, string $taxonomy, array $term_ids, bool $dry_run, array &$dry_run_log ): void {
 		if ( empty( $term_ids ) ) {
 			return;
 		}

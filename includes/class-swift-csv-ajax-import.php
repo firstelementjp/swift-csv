@@ -171,12 +171,7 @@ class Swift_CSV_Ajax_Import {
 				$csv_data,
 				$allowed_post_fields,
 				$i,
-				$processed,
-				$created,
-				$updated,
-				$errors,
-				$counters,
-				$dry_run_log
+				$counters
 			);
 		}
 	}
@@ -185,17 +180,12 @@ class Swift_CSV_Ajax_Import {
 	 * Process one import loop iteration.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb               $wpdb WordPress database handler.
-	 * @param array              $config Import configuration.
-	 * @param array              $csv_data Parsed CSV data.
-	 * @param array<int, string> $allowed_post_fields Allowed post fields.
-	 * @param int                $index Row index.
-	 * @param int                $processed Processed count (by reference).
-	 * @param int                $created Created count (by reference).
-	 * @param int                $updated Updated count (by reference).
-	 * @param int                $errors Error count (by reference).
-	 * @param array              $counters Counters (by reference).
-	 * @param array<int, string> $dry_run_log Dry run log (by reference).
+	 * @param wpdb                                                                      $wpdb WordPress database handler.
+	 * @param array                                                                     $config Import configuration.
+	 * @param array                                                                     $csv_data Parsed CSV data.
+	 * @param array<int, string>                                                        $allowed_post_fields Allowed post fields.
+	 * @param int                                                                       $index Row index.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array} $counters Counters (by reference).
 	 * @return void
 	 */
 	private function process_import_loop_iteration(
@@ -204,13 +194,11 @@ class Swift_CSV_Ajax_Import {
 		array $csv_data,
 		array $allowed_post_fields,
 		int $index,
-		int &$processed,
-		int &$created,
-		int &$updated,
-		int &$errors,
-		array &$counters,
-		array &$dry_run_log
+		array &$counters
 	) {
+		$processed   = &$counters['processed'];
+		$dry_run_log = &$counters['dry_run_log'];
+
 		$line      = $csv_data['lines'][ $index ] ?? '';
 		$delimiter = $csv_data['delimiter'] ?? ',';
 		$headers   = $csv_data['headers'] ?? [];

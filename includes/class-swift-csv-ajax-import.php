@@ -834,10 +834,10 @@ class Swift_CSV_Ajax_Import {
 		$meta_fields      = $collected_fields['meta_fields'];
 
 		// Process taxonomies
-		$this->apply_taxonomies_for_post( $post_id, $taxonomies, $taxonomy_format, $taxonomy_format_validation, $dry_run, $dry_run_log );
+		$this->apply_taxonomies_for_post( $post_id, $taxonomies, $context, $dry_run_log );
 
 		// Process custom fields with multi-value support
-		$this->apply_meta_fields_for_post( $this->get_wpdb(), $post_id, $meta_fields, $dry_run, $dry_run_log );
+		$this->apply_meta_fields_for_post( $this->get_wpdb(), $post_id, $meta_fields, $context, $dry_run_log );
 
 		return [
 			'meta_fields' => $meta_fields,
@@ -1581,15 +1581,17 @@ class Swift_CSV_Ajax_Import {
 	 * Apply taxonomy terms for a post.
 	 *
 	 * @since 0.9.0
-	 * @param int                  $post_id Post ID.
-	 * @param array<string, array> $taxonomies Taxonomy terms map.
-	 * @param string               $taxonomy_format Taxonomy format.
-	 * @param array                $taxonomy_format_validation Validation result.
-	 * @param bool                 $dry_run Dry run flag.
-	 * @param array<int, string>   $dry_run_log Dry run log.
+	 * @param int                                                                                                                                                                     $post_id Post ID.
+	 * @param array<string, array>                                                                                                                                                    $taxonomies Taxonomy terms map.
+	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
+	 * @param array<int, string>                                                                                                                                                      $dry_run_log Dry run log.
 	 * @return void
 	 */
-	private function apply_taxonomies_for_post( $post_id, $taxonomies, $taxonomy_format, $taxonomy_format_validation, $dry_run, &$dry_run_log ) {
+	private function apply_taxonomies_for_post( int $post_id, array $taxonomies, array $context, array &$dry_run_log ): void {
+		$taxonomy_format            = $context['taxonomy_format'];
+		$taxonomy_format_validation = $context['taxonomy_format_validation'];
+		$dry_run                    = $context['dry_run'];
+
 		foreach ( $taxonomies as $taxonomy => $terms ) {
 			if ( ! empty( $terms ) ) {
 				// Debug log for taxonomy processing
@@ -1628,14 +1630,16 @@ class Swift_CSV_Ajax_Import {
 	 * Apply meta fields for a post.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb                  $wpdb WordPress DB instance.
-	 * @param int                   $post_id Post ID.
-	 * @param array<string, string> $meta_fields Meta fields.
-	 * @param bool                  $dry_run Dry run flag.
-	 * @param array<int, string>    $dry_run_log Dry run log.
+	 * @param wpdb                                                                                                                                                                    $wpdb WordPress DB instance.
+	 * @param int                                                                                                                                                                     $post_id Post ID.
+	 * @param array<string, string>                                                                                                                                                   $meta_fields Meta fields.
+	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
+	 * @param array<int, string>                                                                                                                                                      $dry_run_log Dry run log.
 	 * @return void
 	 */
-	private function apply_meta_fields_for_post( $wpdb, $post_id, $meta_fields, $dry_run, &$dry_run_log ) {
+	private function apply_meta_fields_for_post( wpdb $wpdb, int $post_id, array $meta_fields, array $context, array &$dry_run_log ): void {
+		$dry_run = $context['dry_run'];
+
 		foreach ( $meta_fields as $key => $value ) {
 			// Skip empty values
 			if ( $value === '' || $value === null ) {

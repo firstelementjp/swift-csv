@@ -802,12 +802,13 @@ class Swift_CSV_Ajax_Import {
 	 * Process meta fields and taxonomies for a post.
 	 *
 	 * @since 0.9.0
-	 * @param int                                                                                                                                                                     $post_id Post ID.
-	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array<int, string>                                                                                                                                                      $dry_run_log Dry run log.
+	 * @param array{post_id:int,post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                               $counters Counters (by reference).
 	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>}
 	 */
-	private function process_meta_and_taxonomies_for_row( int $post_id, array $context, array &$dry_run_log ): array {
+	private function process_meta_and_taxonomies_for_row( array $context, array &$counters ): array {
+		$post_id                    = $context['post_id'];
+		$dry_run_log                = &$counters['dry_run_log'];
 		$headers                    = $context['headers'];
 		$data                       = $context['data'];
 		$allowed_post_fields        = $context['allowed_post_fields'];
@@ -889,7 +890,9 @@ class Swift_CSV_Ajax_Import {
 		}
 
 		// Process meta fields and taxonomies
-		$result = $this->process_meta_and_taxonomies_for_row( $post_id, $context, $dry_run_log );
+		$meta_context            = $context;
+		$meta_context['post_id'] = $post_id;
+		$result                  = $this->process_meta_and_taxonomies_for_row( $meta_context, $counters );
 
 		// Custom field processing hook for extensions
 		/**

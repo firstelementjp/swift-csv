@@ -791,7 +791,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param string $file_path Temporary file path.
 	 * @return void
 	 */
-	private function cleanup_temp_file_if_complete( $continue, $file_path ) {
+	private function cleanup_temp_file_if_complete( bool $continue, string $file_path ): void {
 		if ( ! $continue && $file_path && file_exists( $file_path ) ) {
 			unlink( $file_path );
 		}
@@ -908,11 +908,11 @@ class Swift_CSV_Ajax_Import {
 	 * Run custom field processing hook for extensions.
 	 *
 	 * @since 0.9.0
-	 * @param int                   $post_id Post ID.
-	 * @param array<string, string> $meta_fields Meta fields.
+	 * @param int                  $post_id Post ID.
+	 * @param array<string, mixed> $meta_fields Meta fields.
 	 * @return void
 	 */
-	private function run_custom_field_processing_hook( $post_id, $meta_fields ) {
+	private function run_custom_field_processing_hook( int $post_id, array $meta_fields ): void {
 		do_action( 'swift_csv_process_custom_fields', $post_id, $meta_fields );
 	}
 
@@ -926,7 +926,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param int  $updated Updated count (by reference).
 	 * @return void
 	 */
-	private function increment_row_counters_on_success( $is_update, &$processed, &$created, &$updated ) {
+	private function increment_row_counters_on_success( bool $is_update, int &$processed, int &$created, int &$updated ): void {
 		++$processed;
 		if ( $is_update ) {
 			++$updated;

@@ -167,20 +167,15 @@ class Swift_CSV_Ajax_Import {
 		for ( $i = $config['start_row']; $i < min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] ); $i++ ) {
 			$this->process_import_loop_iteration(
 				$wpdb,
-				$csv_data['lines'][ $i ],
-				$csv_data['delimiter'],
-				$csv_data['headers'],
+				$config,
+				$csv_data,
 				$allowed_post_fields,
-				$config['update_existing'],
-				$config['post_type'],
-				$config['dry_run'],
-				$dry_run_log,
-				$config['taxonomy_format'],
-				$csv_data['taxonomy_format_validation'],
+				$i,
 				$processed,
 				$created,
 				$updated,
-				$errors
+				$errors,
+				$dry_run_log
 			);
 		}
 	}
@@ -190,39 +185,33 @@ class Swift_CSV_Ajax_Import {
 	 *
 	 * @since 0.9.0
 	 * @param wpdb               $wpdb WordPress database handler.
-	 * @param string             $line Raw CSV line.
-	 * @param string             $delimiter CSV delimiter.
-	 * @param array<int, string> $headers CSV headers.
+	 * @param array              $config Import configuration.
+	 * @param array              $csv_data Parsed CSV data.
 	 * @param array<int, string> $allowed_post_fields Allowed post fields.
-	 * @param string             $update_existing Update flag from request.
-	 * @param string             $post_type Post type.
-	 * @param bool               $dry_run Whether this is a dry run.
-	 * @param array<int, string> $dry_run_log Dry run log (by reference).
-	 * @param string             $taxonomy_format Taxonomy format.
-	 * @param array              $taxonomy_format_validation Taxonomy format validation.
+	 * @param int                $index Row index.
 	 * @param int                $processed Processed count (by reference).
 	 * @param int                $created Created count (by reference).
 	 * @param int                $updated Updated count (by reference).
 	 * @param int                $errors Error count (by reference).
+	 * @param array<int, string> $dry_run_log Dry run log (by reference).
 	 * @return void
 	 */
 	private function process_import_loop_iteration(
 		wpdb $wpdb,
-		string $line,
-		string $delimiter,
-		array $headers,
+		array $config,
+		array $csv_data,
 		array $allowed_post_fields,
-		string $update_existing,
-		string $post_type,
-		bool $dry_run,
-		array &$dry_run_log,
-		string $taxonomy_format,
-		$taxonomy_format_validation,
+		int $index,
 		int &$processed,
 		int &$created,
 		int &$updated,
-		int &$errors
+		int &$errors,
+		array &$dry_run_log
 	) {
+		$line      = $csv_data['lines'][ $index ] ?? '';
+		$delimiter = $csv_data['delimiter'] ?? ',';
+		$headers   = $csv_data['headers'] ?? [];
+
 		if ( $this->maybe_skip_empty_csv_line( $line, $processed ) ) {
 			return;
 		}
@@ -233,8 +222,8 @@ class Swift_CSV_Ajax_Import {
 			$delimiter,
 			$headers,
 			$allowed_post_fields,
-			$update_existing,
-			$post_type
+			(string) ( $config['update_existing'] ?? '0' ),
+			(string) ( $config['post_type'] ?? 'post' )
 		);
 		if ( null === $row_context ) {
 			return;
@@ -243,13 +232,13 @@ class Swift_CSV_Ajax_Import {
 		$this->process_row_context(
 			$wpdb,
 			$row_context,
-			$post_type,
-			$dry_run,
+			(string) ( $config['post_type'] ?? 'post' ),
+			(bool) ( $config['dry_run'] ?? false ),
 			$dry_run_log,
 			$headers,
 			$allowed_post_fields,
-			$taxonomy_format,
-			$taxonomy_format_validation,
+			(string) ( $config['taxonomy_format'] ?? 'name' ),
+			$csv_data['taxonomy_format_validation'] ?? [],
 			$processed,
 			$created,
 			$updated,

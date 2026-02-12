@@ -941,8 +941,8 @@ class Swift_CSV_Ajax_Import {
 	 * @since 0.9.0
 	 * @return bool True if nonce is valid.
 	 */
-	private function verify_nonce_or_send_error_and_cleanup() {
-		$nonce     = $_POST['nonce'] ?? '';
+	private function verify_nonce_or_send_error_and_cleanup(): bool {
+		$nonce     = (string) ( $_POST['nonce'] ?? '' );
 		$file_path = sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) );
 
 		if ( ! Swift_CSV_Helper::verify_nonce( $nonce ) ) {
@@ -960,7 +960,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param string $file_path Temporary file path for cleanup.
 	 * @return string|null CSV content or null on error (sends JSON response).
 	 */
-	private function read_uploaded_csv_content_or_send_error_and_cleanup( $file_path ) {
+	private function read_uploaded_csv_content_or_send_error_and_cleanup( string $file_path ): ?string {
 		// Handle file upload directly
 		if ( ! isset( $_FILES['csv_file'] ) ) {
 			return Swift_CSV_Helper::send_error_response_and_return_null( 'No file uploaded', $file_path );
@@ -974,7 +974,7 @@ class Swift_CSV_Ajax_Import {
 		}
 
 		// Read CSV directly from uploaded file
-		$csv_content = file_get_contents( $file['tmp_name'] );
+		$csv_content = (string) file_get_contents( $file['tmp_name'] );
 		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings
 
 		return $csv_content;

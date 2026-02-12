@@ -165,30 +165,16 @@ class Swift_CSV_Ajax_Import {
 		$dry_run_log = &$counters['dry_run_log'];
 
 		for ( $i = $config['start_row']; $i < min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] ); $i++ ) {
-			if ( $this->maybe_skip_empty_csv_line( $csv_data['lines'][ $i ], $processed ) ) {
-				continue;
-			}
-
-			$row_context = $this->build_import_row_context(
+			$this->process_import_loop_iteration(
 				$wpdb,
 				$csv_data['lines'][ $i ],
 				$csv_data['delimiter'],
 				$csv_data['headers'],
 				$allowed_post_fields,
 				$config['update_existing'],
-				$config['post_type']
-			);
-			if ( null === $row_context ) {
-				continue;
-			}
-			$this->process_row_context(
-				$wpdb,
-				$row_context,
 				$config['post_type'],
 				$config['dry_run'],
 				$dry_run_log,
-				$csv_data['headers'],
-				$allowed_post_fields,
 				$config['taxonomy_format'],
 				$csv_data['taxonomy_format_validation'],
 				$processed,
@@ -197,6 +183,78 @@ class Swift_CSV_Ajax_Import {
 				$errors
 			);
 		}
+	}
+
+	/**
+	 * Process one import loop iteration.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb               $wpdb WordPress database handler.
+	 * @param string             $line Raw CSV line.
+	 * @param string             $delimiter CSV delimiter.
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array<int, string> $allowed_post_fields Allowed post fields.
+	 * @param string             $update_existing Update flag from request.
+	 * @param string             $post_type Post type.
+	 * @param bool               $dry_run Whether this is a dry run.
+	 * @param array<int, string> $dry_run_log Dry run log (by reference).
+	 * @param string             $taxonomy_format Taxonomy format.
+	 * @param array              $taxonomy_format_validation Taxonomy format validation.
+	 * @param int                $processed Processed count (by reference).
+	 * @param int                $created Created count (by reference).
+	 * @param int                $updated Updated count (by reference).
+	 * @param int                $errors Error count (by reference).
+	 * @return void
+	 */
+	private function process_import_loop_iteration(
+		wpdb $wpdb,
+		string $line,
+		string $delimiter,
+		array $headers,
+		array $allowed_post_fields,
+		string $update_existing,
+		string $post_type,
+		bool $dry_run,
+		array &$dry_run_log,
+		string $taxonomy_format,
+		$taxonomy_format_validation,
+		int &$processed,
+		int &$created,
+		int &$updated,
+		int &$errors
+	) {
+		if ( $this->maybe_skip_empty_csv_line( $line, $processed ) ) {
+			return;
+		}
+
+		$row_context = $this->build_import_row_context(
+			$wpdb,
+			$line,
+			$delimiter,
+			$headers,
+			$allowed_post_fields,
+			$update_existing,
+			$post_type
+		);
+		if ( null === $row_context ) {
+			return;
+		}
+
+		$this->process_row_context(
+			$wpdb,
+			$row_context,
+			$post_type,
+			$dry_run,
+			$dry_run_log,
+			$headers,
+			$allowed_post_fields,
+			$taxonomy_format,
+			$taxonomy_format_validation,
+			$processed,
+			$created,
+			$updated,
+			$errors
+		);
 	}
 
 	/**

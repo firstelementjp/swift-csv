@@ -287,10 +287,10 @@ class Swift_CSV_Ajax_Import {
 	 * Process an import row context by running per-row import logic.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb                                                                                                                                                         $wpdb WordPress database handler.
-	 * @param array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int,is_update:bool}                                                                        $row_context Row context.
-	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array}                                                                                    $counters Counters (by reference).
+	 * @param wpdb                                                                                                                                                                                $wpdb WordPress database handler.
+	 * @param array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}                                                                              $row_context Row context.
+	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                               $counters Counters (by reference).
 	 * @return void
 	 */
 	private function process_row_context(
@@ -537,12 +537,12 @@ class Swift_CSV_Ajax_Import {
 	 * Process one import row including DB persist and success/error handling.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb                                                                                                                                                                    $wpdb WordPress database handler.
-	 * @param bool                                                                                                                                                                    $is_update Whether this row updates an existing post.
-	 * @param int|null                                                                                                                                                                $post_id Post ID (by reference, updated on insert).
-	 * @param array                                                                                                                                                                   $post_fields_from_csv Post fields collected from CSV.
-	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array}                                                                                               $counters Counters (by reference).
+	 * @param wpdb                                                                                                                                                                                $wpdb WordPress database handler.
+	 * @param bool                                                                                                                                                                                $is_update Whether this row updates an existing post.
+	 * @param int|null                                                                                                                                                                            $post_id Post ID (by reference, updated on insert).
+	 * @param array<string,mixed>                                                                                                                                                                 $post_fields_from_csv Post fields collected from CSV.
+	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                               $counters Counters (by reference).
 	 * @return void
 	 */
 	private function process_single_import_row(
@@ -587,12 +587,12 @@ class Swift_CSV_Ajax_Import {
 	 * Handle row result after persisting wp_posts data.
 	 *
 	 * @since 0.9.0
-	 * @param int|false                                                                                                                                                               $result DB result.
-	 * @param wpdb                                                                                                                                                                    $wpdb WordPress database handler.
-	 * @param bool                                                                                                                                                                    $is_update Whether this row updates an existing post.
-	 * @param int                                                                                                                                                                     $post_id Post ID.
-	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array}                                                                                               $counters Counters (by reference).
+	 * @param int|false                                                                                                                                                                           $result DB result.
+	 * @param wpdb                                                                                                                                                                                $wpdb WordPress database handler.
+	 * @param bool                                                                                                                                                                                $is_update Whether this row updates an existing post.
+	 * @param int                                                                                                                                                                                 $post_id Post ID.
+	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                               $counters Counters (by reference).
 	 * @return void
 	 */
 	private function handle_row_result_after_persist(

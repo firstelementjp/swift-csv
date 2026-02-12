@@ -467,7 +467,7 @@ class Swift_CSV_Ajax_Import {
 			$context,
 			$counters,
 			function ( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, string $post_type, bool $dry_run, array &$dry_run_log ) {
-				return $this->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
+				return $this->get_persister_util()->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
 			},
 			function ( $result, wpdb $wpdb, bool $is_update, int $post_id, array $context, array &$counters ): void {
 				$this->handle_row_result_after_persist( $result, $wpdb, $is_update, $post_id, $context, $counters );
@@ -506,52 +506,6 @@ class Swift_CSV_Ajax_Import {
 				$this->handle_successful_row_import( $wpdb, $post_id, $is_update, $context, $counters );
 			}
 		);
-	}
-
-	/**
-	 * Build post data array for insert/update during import.
-	 *
-	 * @since 0.9.0
-	 * @param bool   $is_update Whether this row updates an existing post.
-	 * @param array  $post_fields_from_csv Post fields collected from CSV.
-	 * @param string $post_type Post type.
-	 * @return array Post data array for wp_posts insert/update.
-	 */
-	private function build_post_data_for_import( bool $is_update, array $post_fields_from_csv, string $post_type ): array {
-		return $this->get_persister_util()->build_post_data_for_import( $is_update, $post_fields_from_csv, $post_type );
-	}
-
-	/**
-	 * Persist one CSV row into wp_posts (insert/update).
-	 *
-	 * @since 0.9.0
-	 * @param wpdb               $wpdb WordPress database handler.
-	 * @param bool               $is_update Whether this row updates an existing post.
-	 * @param int|null           $post_id Target post ID (by reference, updated on insert).
-	 * @param array              $post_fields_from_csv Post fields collected from CSV.
-	 * @param string             $post_type Post type.
-	 * @param bool               $dry_run Whether this is a dry run.
-	 * @param array<int, string> $dry_run_log Dry run log (by reference).
-	 * @return int|false Result of DB operation (post ID on insert, rows affected on update, or false on failure).
-	 */
-	private function persist_post_row_from_csv( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, string $post_type, bool $dry_run, array &$dry_run_log ) {
-		return $this->get_persister_util()->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
-	}
-
-	/**
-	 * Execute post insert/update operation during import.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb               $wpdb WordPress database handler.
-	 * @param bool               $is_update Whether this row updates an existing post.
-	 * @param int                $post_id Target post ID.
-	 * @param array              $post_data Post data array for wp_posts insert/update.
-	 * @param bool               $dry_run Whether this is a dry run.
-	 * @param array<int, string> $dry_run_log Dry run log (by reference).
-	 * @return int|false Result of DB operation (post ID on insert, rows affected on update, or false on failure).
-	 */
-	private function execute_post_db_operation( wpdb $wpdb, bool $is_update, &$post_id, array $post_data, bool $dry_run, array &$dry_run_log ) {
-		return $this->get_persister_util()->execute_post_db_operation( $wpdb, $is_update, $post_id, $post_data, $dry_run, $dry_run_log );
 	}
 
 	/**
@@ -643,29 +597,6 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Process meta fields and taxonomies for a post.
-	 *
-	 * @since 0.9.0
-	 * @param array{post_id:int,post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                                           $counters Counters (by reference).
-	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>}
-	 */
-	private function process_meta_and_taxonomies_for_row( array $context, array &$counters ): array {
-		return $this->get_meta_tax_util()->process_meta_and_taxonomies_for_row( $this->get_wpdb(), $context, $counters );
-	}
-
-	/**
-	 * Get WordPress database instance.
-	 *
-	 * @since 0.9.0
-	 * @return wpdb
-	 */
-	private function get_wpdb() {
-		global $wpdb;
-		return $wpdb;
-	}
-
-	/**
 	 * Handle successful row import.
 	 *
 	 * @since 0.9.0
@@ -702,7 +633,7 @@ class Swift_CSV_Ajax_Import {
 		// Process meta fields and taxonomies
 		$meta_context            = $context;
 		$meta_context['post_id'] = $post_id;
-		$result                  = $this->process_meta_and_taxonomies_for_row( $meta_context, $counters );
+		$result                  = $this->get_meta_tax_util()->process_meta_and_taxonomies_for_row( $wpdb, $meta_context, $counters );
 
 		// Custom field processing hook for extensions
 		/**
@@ -1175,116 +1106,6 @@ class Swift_CSV_Ajax_Import {
 			$post_id = $wpdb->insert_id;
 		}
 		return $result;
-	}
-
-	/**
-	 * Collect taxonomy fields from a CSV row.
-	 *
-	 * @since 0.9.0
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array<int, string> $data CSV row data.
-	 * @return array{taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
-	 */
-	private function collect_taxonomy_fields_from_row( array $headers, array $data ): array {
-		return $this->get_meta_tax_util()->collect_taxonomy_fields_from_row( $headers, $data );
-	}
-
-	/**
-	 * Collect meta fields from a CSV row.
-	 *
-	 * @since 0.9.0
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array<int, string> $data CSV row data.
-	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
-	 * @return array<string, string>
-	 */
-	private function collect_meta_fields_from_row( array $headers, array $data, array $allowed_post_fields ): array {
-		return $this->get_meta_tax_util()->collect_meta_fields_from_row( $headers, $data, $allowed_post_fields );
-	}
-
-	/**
-	 * Collect taxonomies and meta fields from a CSV row.
-	 *
-	 * @since 0.9.0
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array<int, string> $data CSV row data.
-	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
-	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
-	 */
-	private function collect_taxonomies_and_meta_fields_from_row( array $headers, array $data, array $allowed_post_fields ): array {
-		return $this->get_meta_tax_util()->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
-	}
-
-	/**
-	 * Resolve term IDs for a single taxonomy.
-	 *
-	 * @since 0.9.0
-	 * @param string             $taxonomy Taxonomy name.
-	 * @param array<int, string> $terms Term values.
-	 * @param string             $taxonomy_format Taxonomy format.
-	 * @param array              $taxonomy_format_validation Taxonomy format validation.
-	 * @return array<int, int>
-	 */
-	private function resolve_taxonomy_term_ids( string $taxonomy, array $terms, string $taxonomy_format, array $taxonomy_format_validation ): array {
-		return $this->get_meta_tax_util()->resolve_taxonomy_term_ids( $taxonomy, $terms, $taxonomy_format, $taxonomy_format_validation );
-	}
-
-	/**
-	 * Apply taxonomy terms to a post.
-	 *
-	 * @since 0.9.0
-	 * @param int                $post_id Post ID.
-	 * @param string             $taxonomy Taxonomy name.
-	 * @param array<int, int>    $term_ids Term IDs.
-	 * @param bool               $dry_run Dry run flag.
-	 * @param array<int, string> $dry_run_log Dry run log.
-	 * @return void
-	 */
-	private function apply_taxonomy_terms_to_post( int $post_id, string $taxonomy, array $term_ids, bool $dry_run, array &$dry_run_log ): void {
-		$this->get_meta_tax_util()->apply_taxonomy_terms_to_post( $post_id, $taxonomy, $term_ids, $dry_run, $dry_run_log );
-	}
-
-	/**
-	 * Apply taxonomy terms for a post.
-	 *
-	 * @since 0.9.0
-	 * @param int                                                                                                                                                                     $post_id Post ID.
-	 * @param array<string, array<int, string>>                                                                                                                                       $taxonomies Taxonomy terms map.
-	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array<int, string>                                                                                                                                                      $dry_run_log Dry run log.
-	 * @return void
-	 */
-	private function apply_taxonomies_for_post( int $post_id, array $taxonomies, array $context, array &$dry_run_log ): void {
-		$this->get_meta_tax_util()->apply_taxonomies_for_post( $post_id, $taxonomies, $context, $dry_run_log );
-	}
-
-	/**
-	 * Resolve term IDs from a term value.
-	 *
-	 * @since 0.9.0
-	 * @param string $taxonomy Taxonomy name.
-	 * @param string $term_value Term value.
-	 * @param string $taxonomy_format Taxonomy format.
-	 * @param array  $taxonomy_format_validation Taxonomy format validation.
-	 * @return array<int, int>
-	 */
-	private function resolve_term_ids_for_term_value( string $taxonomy, string $term_value, string $taxonomy_format, array $taxonomy_format_validation ): array {
-		return $this->get_meta_tax_util()->resolve_term_ids_for_term_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
-	}
-
-	/**
-	 * Apply meta fields for a post.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb                                                                                                                                                                    $wpdb WordPress DB instance.
-	 * @param int                                                                                                                                                                     $post_id Post ID.
-	 * @param array<string, mixed>                                                                                                                                                    $meta_fields Meta fields.
-	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array<int, string>                                                                                                                                                      $dry_run_log Dry run log.
-	 * @return void
-	 */
-	private function apply_meta_fields_for_post( wpdb $wpdb, int $post_id, array $meta_fields, array $context, array &$dry_run_log ): void {
-		$this->get_meta_tax_util()->apply_meta_fields_for_post( $wpdb, $post_id, $meta_fields, $context, $dry_run_log );
 	}
 
 	/**

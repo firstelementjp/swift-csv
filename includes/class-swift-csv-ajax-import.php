@@ -224,15 +224,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return void
 	 */
 	private function process_row_if_possible( wpdb $wpdb, array $config, array $csv_data, array $allowed_post_fields, string $line, string $delimiter, array $headers, array &$counters ): void {
-		$row_context = $this->build_import_row_context(
-			$wpdb,
-			$line,
-			$delimiter,
-			$headers,
-			$allowed_post_fields,
-			(string) ( $config['update_existing'] ?? '0' ),
-			(string) ( $config['post_type'] ?? 'post' )
-		);
+		$row_context = $this->build_import_row_context_from_config( $wpdb, $config, $line, $delimiter, $headers, $allowed_post_fields );
 		if ( null === $row_context ) {
 			return;
 		}
@@ -242,6 +234,30 @@ class Swift_CSV_Ajax_Import {
 			$row_context,
 			$this->build_row_processing_context( $config, $csv_data, $headers, $allowed_post_fields ),
 			$counters
+		);
+	}
+
+	/**
+	 * Build per-row import context using config values.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb               $wpdb WordPress database handler.
+	 * @param array              $config Import configuration.
+	 * @param string             $line Raw CSV line.
+	 * @param string             $delimiter CSV delimiter.
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array<int, string> $allowed_post_fields Allowed post fields.
+	 * @return array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int,is_update:bool}|null Null means skip this row.
+	 */
+	private function build_import_row_context_from_config( wpdb $wpdb, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ) {
+		return $this->build_import_row_context(
+			$wpdb,
+			$line,
+			$delimiter,
+			$headers,
+			$allowed_post_fields,
+			(string) ( $config['update_existing'] ?? '0' ),
+			(string) ( $config['post_type'] ?? 'post' )
 		);
 	}
 

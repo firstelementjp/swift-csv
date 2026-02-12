@@ -191,7 +191,7 @@ function handleAjaxImport(e) {
 	addLogEntry(
 		swiftCSV.messages.updateExistingInfo +
 			' ' +
-			(updateExisting ? swiftCSV.messages.yes : swiftCSV.messages.no),
+			(updateExisting === '1' ? swiftCSV.messages.yes : swiftCSV.messages.no),
 		'debug',
 		'import'
 	);

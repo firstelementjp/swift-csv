@@ -340,7 +340,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param array<int, string> $allowed_post_fields Allowed post fields.
 	 * @param string             $update_existing Update flag from request.
 	 * @param string             $post_type Post type.
-	 * @return array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int,is_update:bool}|null Null means skip this row.
+	 * @return array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}|null Null means skip this row.
 	 */
 	private function build_import_row_context( wpdb $wpdb, string $line, string $delimiter, array $headers, array $allowed_post_fields, string $update_existing, string $post_type ) {
 		$parsed               = $this->parse_row_and_collect_post_fields( $line, $delimiter, $headers, $allowed_post_fields );
@@ -356,6 +356,20 @@ class Swift_CSV_Ajax_Import {
 			return null;
 		}
 
+		return $this->build_import_row_context_array( $data, $post_fields_from_csv, $post_id, $is_update );
+	}
+
+	/**
+	 * Build the import row context array.
+	 *
+	 * @since 0.9.0
+	 * @param array<string, mixed> $data Parsed CSV row data.
+	 * @param array<string, mixed> $post_fields_from_csv Post fields collected from CSV.
+	 * @param int|null             $post_id Resolved target post ID.
+	 * @param bool                 $is_update Whether this row is an update.
+	 * @return array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}
+	 */
+	private function build_import_row_context_array( array $data, array $post_fields_from_csv, ?int $post_id, bool $is_update ): array {
 		return [
 			'data'                 => $data,
 			'post_fields_from_csv' => $post_fields_from_csv,

@@ -48,6 +48,14 @@ class Swift_CSV_Ajax_Import {
 	private $meta_tax_util;
 
 	/**
+	 * Persister utility instance.
+	 *
+	 * @since 0.9.0
+	 * @var Swift_CSV_Import_Persister|null
+	 */
+	private $persister_util;
+
+	/**
 	 * Constructor: Register AJAX hooks.
 	 *
 	 * @since 0.9.0
@@ -96,6 +104,19 @@ class Swift_CSV_Ajax_Import {
 			$this->meta_tax_util = new Swift_CSV_Import_Meta_Tax();
 		}
 		return $this->meta_tax_util;
+	}
+
+	/**
+	 * Get persister utility instance.
+	 *
+	 * @since 0.9.0
+	 * @return Swift_CSV_Import_Persister
+	 */
+	private function get_persister_util(): Swift_CSV_Import_Persister {
+		if ( null === $this->persister_util ) {
+			$this->persister_util = new Swift_CSV_Import_Persister();
+		}
+		return $this->persister_util;
 	}
 
 	/**
@@ -650,11 +671,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array Post data array for wp_posts insert/update.
 	 */
 	private function build_post_data_for_import( bool $is_update, array $post_fields_from_csv, string $post_type ): array {
-		if ( $is_update ) {
-			return $this->build_post_data_for_update( $post_fields_from_csv );
-		}
-
-		return $this->build_post_data_for_insert( $post_fields_from_csv, $post_type );
+		return $this->get_persister_util()->build_post_data_for_import( $is_update, $post_fields_from_csv, $post_type );
 	}
 
 	/**
@@ -671,8 +688,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return int|false Result of DB operation (post ID on insert, rows affected on update, or false on failure).
 	 */
 	private function persist_post_row_from_csv( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, string $post_type, bool $dry_run, array &$dry_run_log ) {
-		$post_data = $this->build_post_data_for_import( $is_update, $post_fields_from_csv, $post_type );
-		return $this->execute_post_db_operation( $wpdb, $is_update, $post_id, $post_data, $dry_run, $dry_run_log );
+		return $this->get_persister_util()->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
 	}
 
 	/**
@@ -688,11 +704,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return int|false Result of DB operation (post ID on insert, rows affected on update, or false on failure).
 	 */
 	private function execute_post_db_operation( wpdb $wpdb, bool $is_update, &$post_id, array $post_data, bool $dry_run, array &$dry_run_log ) {
-		if ( $is_update ) {
-			return $this->execute_post_update( $wpdb, $post_id, $post_data, $dry_run, $dry_run_log );
-		}
-
-		return $this->execute_post_insert( $wpdb, $post_data, $dry_run, $dry_run_log, $post_id );
+		return $this->get_persister_util()->execute_post_db_operation( $wpdb, $is_update, $post_id, $post_data, $dry_run, $dry_run_log );
 	}
 
 	/**

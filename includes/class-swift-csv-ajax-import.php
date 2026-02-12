@@ -265,17 +265,18 @@ class Swift_CSV_Ajax_Import {
 	 * Build the per-row processing context.
 	 *
 	 * @since 0.9.0
-	 * @param array              $config Import configuration.
-	 * @param array              $csv_data Parsed CSV data.
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array<int, string> $allowed_post_fields Allowed post fields.
-	 * @return array{post_type:string,dry_run:bool,headers:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array}
+	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool} $config Import configuration.
+	 * @param array{lines:array<int,string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array,total_rows:int}        $csv_data Parsed CSV data.
+	 * @param array<int, string>                                                                                                               $headers CSV headers.
+	 * @param array<int, string>                                                                                                               $allowed_post_fields Allowed post fields.
+	 * @return array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array}
 	 */
 	private function build_row_processing_context( array $config, array $csv_data, array $headers, array $allowed_post_fields ): array {
 		return [
 			'post_type'                  => (string) ( $config['post_type'] ?? 'post' ),
 			'dry_run'                    => (bool) ( $config['dry_run'] ?? false ),
 			'headers'                    => $headers,
+			'data'                       => [],
 			'allowed_post_fields'        => $allowed_post_fields,
 			'taxonomy_format'            => (string) ( $config['taxonomy_format'] ?? 'name' ),
 			'taxonomy_format_validation' => $csv_data['taxonomy_format_validation'] ?? [],

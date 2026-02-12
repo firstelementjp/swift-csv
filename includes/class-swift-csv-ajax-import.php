@@ -169,21 +169,23 @@ class Swift_CSV_Ajax_Import {
 				continue;
 			}
 
-			$data             = $this->get_parsed_csv_row( $csv_data['lines'][ $i ], $csv_data['delimiter'] );
-			$post_id_from_csv = $this->get_post_id_from_csv_row( $data );
-
-			// Collect post fields from CSV (header-driven)
-			$post_fields_from_csv = $this->get_post_fields_from_csv_row( $csv_data['headers'], $data, $allowed_post_fields );
-
-			// Check for existing post by CSV ID (only if update_existing is checked)
-			$existing  = $this->resolve_existing_post_for_import( $wpdb, $config['update_existing'], $config['post_type'], $post_id_from_csv );
-			$post_id   = $existing['post_id'];
-			$is_update = $existing['is_update'];
-
-			// Validation
-			if ( $this->should_skip_import_row( $config['update_existing'], $post_fields_from_csv ) ) {
+			$row_context = $this->build_import_row_context(
+				$wpdb,
+				$csv_data['lines'][ $i ],
+				$csv_data['delimiter'],
+				$csv_data['headers'],
+				$allowed_post_fields,
+				$config['update_existing'],
+				$config['post_type']
+			);
+			if ( null === $row_context ) {
 				continue;
 			}
+
+			$data                 = $row_context['data'];
+			$post_fields_from_csv = $row_context['post_fields_from_csv'];
+			$post_id              = $row_context['post_id'];
+			$is_update            = $row_context['is_update'];
 
 			$this->process_single_import_row(
 				$wpdb,
@@ -204,6 +206,41 @@ class Swift_CSV_Ajax_Import {
 				$errors
 			);
 		}
+	}
+
+	/**
+	 * Build per-row import context (parse row, collect fields, resolve existing post, validate).
+	 *
+	 * @since 0.9.0
+	 * @param wpdb               $wpdb WordPress database handler.
+	 * @param string             $line Raw CSV line.
+	 * @param string             $delimiter CSV delimiter.
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array<int, string> $allowed_post_fields Allowed post fields.
+	 * @param string             $update_existing Update flag from request.
+	 * @param string             $post_type Post type.
+	 * @return array{data:array,post_fields_from_csv:array,post_id:int,is_update:bool}|null Null means skip this row.
+	 */
+	private function build_import_row_context( wpdb $wpdb, string $line, string $delimiter, array $headers, array $allowed_post_fields, string $update_existing, string $post_type ) {
+		$data             = $this->get_parsed_csv_row( $line, $delimiter );
+		$post_id_from_csv = $this->get_post_id_from_csv_row( $data );
+
+		$post_fields_from_csv = $this->get_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
+
+		$existing  = $this->resolve_existing_post_for_import( $wpdb, $update_existing, $post_type, $post_id_from_csv );
+		$post_id   = $existing['post_id'];
+		$is_update = $existing['is_update'];
+
+		if ( $this->should_skip_import_row( $update_existing, $post_fields_from_csv ) ) {
+			return null;
+		}
+
+		return [
+			'data'                 => $data,
+			'post_fields_from_csv' => $post_fields_from_csv,
+			'post_id'              => $post_id,
+			'is_update'            => $is_update,
+		];
 	}
 
 	/**

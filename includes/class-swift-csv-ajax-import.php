@@ -180,12 +180,12 @@ class Swift_CSV_Ajax_Import {
 	 * Process one import loop iteration.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb                                                                      $wpdb WordPress database handler.
-	 * @param array                                                                     $config Import configuration.
-	 * @param array                                                                     $csv_data Parsed CSV data.
-	 * @param array<int, string>                                                        $allowed_post_fields Allowed post fields.
-	 * @param int                                                                       $index Row index.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array} $counters Counters (by reference).
+	 * @param wpdb                                                                                                                             $wpdb WordPress database handler.
+	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool} $config Import configuration.
+	 * @param array{lines:array<int,string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array,total_rows:int}        $csv_data Parsed CSV data.
+	 * @param array<int, string>                                                                                                               $allowed_post_fields Allowed post fields.
+	 * @param int                                                                                                                              $index Row index.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                            $counters Counters (by reference).
 	 * @return void
 	 */
 	private function process_import_loop_iteration(
@@ -213,14 +213,14 @@ class Swift_CSV_Ajax_Import {
 	 * Process one CSV row if it can be converted to a valid row context.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb                                                                      $wpdb WordPress database handler.
-	 * @param array                                                                     $config Import configuration.
-	 * @param array                                                                     $csv_data Parsed CSV data.
-	 * @param array<int, string>                                                        $allowed_post_fields Allowed post fields.
-	 * @param string                                                                    $line Raw CSV line.
-	 * @param string                                                                    $delimiter CSV delimiter.
-	 * @param array<int, string>                                                        $headers CSV headers.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array} $counters Counters (by reference).
+	 * @param wpdb                                                                                                                             $wpdb WordPress database handler.
+	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool} $config Import configuration.
+	 * @param array{lines:array<int,string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array,total_rows:int}        $csv_data Parsed CSV data.
+	 * @param array<int, string>                                                                                                               $allowed_post_fields Allowed post fields.
+	 * @param string                                                                                                                           $line Raw CSV line.
+	 * @param string                                                                                                                           $delimiter CSV delimiter.
+	 * @param array<int, string>                                                                                                               $headers CSV headers.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                            $counters Counters (by reference).
 	 * @return void
 	 */
 	private function process_row_if_possible( wpdb $wpdb, array $config, array $csv_data, array $allowed_post_fields, string $line, string $delimiter, array $headers, array &$counters ): void {
@@ -241,15 +241,15 @@ class Swift_CSV_Ajax_Import {
 	 * Build per-row import context using config values.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb               $wpdb WordPress database handler.
-	 * @param array              $config Import configuration.
-	 * @param string             $line Raw CSV line.
-	 * @param string             $delimiter CSV delimiter.
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array<int, string> $allowed_post_fields Allowed post fields.
+	 * @param wpdb                                                                                                                             $wpdb WordPress database handler.
+	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool} $config Import configuration.
+	 * @param string                                                                                                                           $line Raw CSV line.
+	 * @param string                                                                                                                           $delimiter CSV delimiter.
+	 * @param array<int, string>                                                                                                               $headers CSV headers.
+	 * @param array<int, string>                                                                                                               $allowed_post_fields Allowed post fields.
 	 * @return array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int,is_update:bool}|null Null means skip this row.
 	 */
-	private function build_import_row_context_from_config( wpdb $wpdb, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ) {
+	private function build_import_row_context_from_config( wpdb $wpdb, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
 		return $this->build_import_row_context(
 			$wpdb,
 			$line,

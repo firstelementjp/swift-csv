@@ -343,10 +343,10 @@ class Swift_CSV_Ajax_Import {
 	 * @return array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int,is_update:bool}|null Null means skip this row.
 	 */
 	private function build_import_row_context( wpdb $wpdb, string $line, string $delimiter, array $headers, array $allowed_post_fields, string $update_existing, string $post_type ) {
-		$data             = $this->get_parsed_csv_row( $line, $delimiter );
-		$post_id_from_csv = $this->get_post_id_from_csv_row( $data );
-
-		$post_fields_from_csv = $this->get_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
+		$parsed               = $this->parse_row_and_collect_post_fields( $line, $delimiter, $headers, $allowed_post_fields );
+		$data                 = $parsed['data'];
+		$post_id_from_csv     = $parsed['post_id_from_csv'];
+		$post_fields_from_csv = $parsed['post_fields_from_csv'];
 
 		$existing  = $this->resolve_existing_post_for_import( $wpdb, $update_existing, $post_type, $post_id_from_csv );
 		$post_id   = $existing['post_id'];
@@ -361,6 +361,28 @@ class Swift_CSV_Ajax_Import {
 			'post_fields_from_csv' => $post_fields_from_csv,
 			'post_id'              => $post_id,
 			'is_update'            => $is_update,
+		];
+	}
+
+	/**
+	 * Parse a CSV line and collect post fields.
+	 *
+	 * @since 0.9.0
+	 * @param string             $line Raw CSV line.
+	 * @param string             $delimiter CSV delimiter.
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array<int, string> $allowed_post_fields Allowed post fields.
+	 * @return array{data:array,post_id_from_csv:int,post_fields_from_csv:array<string,mixed>}
+	 */
+	private function parse_row_and_collect_post_fields( string $line, string $delimiter, array $headers, array $allowed_post_fields ): array {
+		$data                 = $this->get_parsed_csv_row( $line, $delimiter );
+		$post_id_from_csv     = $this->get_post_id_from_csv_row( $data );
+		$post_fields_from_csv = $this->get_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
+
+		return [
+			'data'                 => $data,
+			'post_id_from_csv'     => $post_id_from_csv,
+			'post_fields_from_csv' => $post_fields_from_csv,
 		];
 	}
 

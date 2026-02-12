@@ -1392,10 +1392,10 @@ class Swift_CSV_Ajax_Import {
 	 *
 	 * @since 0.9.0
 	 * @param array<int, string> $headers CSV headers.
-	 * @param array              $data CSV row data.
+	 * @param array<int, string> $data CSV row data.
 	 * @return array{taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
 	 */
-	private function collect_taxonomy_fields_from_row( $headers, $data ) {
+	private function collect_taxonomy_fields_from_row( array $headers, array $data ): array {
 		$taxonomies        = [];
 		$taxonomy_term_ids = [];
 
@@ -1453,11 +1453,11 @@ class Swift_CSV_Ajax_Import {
 	 *
 	 * @since 0.9.0
 	 * @param array<int, string> $headers CSV headers.
-	 * @param array              $data CSV row data.
+	 * @param array<int, string> $data CSV row data.
 	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
 	 * @return array<string, string>
 	 */
-	private function collect_meta_fields_from_row( $headers, $data, $allowed_post_fields ) {
+	private function collect_meta_fields_from_row( array $headers, array $data, array $allowed_post_fields ): array {
 		$meta_fields = [];
 
 		for ( $j = 0; $j < count( $headers ); $j++ ) {
@@ -1496,11 +1496,11 @@ class Swift_CSV_Ajax_Import {
 	 *
 	 * @since 0.9.0
 	 * @param array<int, string> $headers CSV headers.
-	 * @param array              $data CSV row data.
+	 * @param array<int, string> $data CSV row data.
 	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
 	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
 	 */
-	private function collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields ) {
+	private function collect_taxonomies_and_meta_fields_from_row( array $headers, array $data, array $allowed_post_fields ): array {
 		// Collect taxonomy fields
 		$taxonomy_data = $this->collect_taxonomy_fields_from_row( $headers, $data );
 

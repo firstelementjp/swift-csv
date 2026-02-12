@@ -40,6 +40,14 @@ class Swift_CSV_Ajax_Import {
 	private $row_context_util;
 
 	/**
+	 * Meta/taxonomy utility instance.
+	 *
+	 * @since 0.9.0
+	 * @var Swift_CSV_Import_Meta_Tax|null
+	 */
+	private $meta_tax_util;
+
+	/**
 	 * Constructor: Register AJAX hooks.
 	 *
 	 * @since 0.9.0
@@ -75,6 +83,19 @@ class Swift_CSV_Ajax_Import {
 			$this->row_context_util = new Swift_CSV_Import_Row_Context( $this->get_csv_util() );
 		}
 		return $this->row_context_util;
+	}
+
+	/**
+	 * Get meta/taxonomy utility instance.
+	 *
+	 * @since 0.9.0
+	 * @return Swift_CSV_Import_Meta_Tax
+	 */
+	private function get_meta_tax_util(): Swift_CSV_Import_Meta_Tax {
+		if ( null === $this->meta_tax_util ) {
+			$this->meta_tax_util = new Swift_CSV_Import_Meta_Tax();
+		}
+		return $this->meta_tax_util;
 	}
 
 	/**
@@ -791,49 +812,12 @@ class Swift_CSV_Ajax_Import {
 	 * Process meta fields and taxonomies for a post.
 	 *
 	 * @since 0.9.0
-	 * @param array{post_id:int,post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                               $counters Counters (by reference).
+	 * @param array{post_id:int,post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                                           $counters Counters (by reference).
 	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>}
 	 */
 	private function process_meta_and_taxonomies_for_row( array $context, array &$counters ): array {
-		$post_id                    = $context['post_id'];
-		$dry_run_log                = &$counters['dry_run_log'];
-		$headers                    = $context['headers'];
-		$data                       = $context['data'];
-		$allowed_post_fields        = $context['allowed_post_fields'];
-		$taxonomy_format            = $context['taxonomy_format'];
-		$taxonomy_format_validation = $context['taxonomy_format_validation'];
-		$dry_run                    = $context['dry_run'];
-
-		// Process custom fields and taxonomies like original Swift CSV
-		$collected_fields = $this->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
-		/**
-		 * Filter collected fields before processing.
-		 *
-		 * Allows extensions to process custom columns (e.g., acf_, custom_) before they are saved.
-		 * This hook is called after basic field collection but before database operations.
-		 *
-		 * @since 0.9.0
-		 * @param array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>} $collected_fields Collected fields.
-		 * @param array<int, string> $headers CSV headers.
-		 * @param array $data CSV row data.
-		 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
-		 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>} Modified collected fields.
-		 */
-		$collected_fields = apply_filters( 'swift_csv_filter_collected_fields', $collected_fields, $headers, $data, $allowed_post_fields );
-		$taxonomies       = $collected_fields['taxonomies'];
-		$meta_fields      = $collected_fields['meta_fields'];
-
-		// Process taxonomies
-		$this->apply_taxonomies_for_post( $post_id, $taxonomies, $context, $dry_run_log );
-
-		// Process custom fields with multi-value support
-		$this->apply_meta_fields_for_post( $this->get_wpdb(), $post_id, $meta_fields, $context, $dry_run_log );
-
-		return [
-			'meta_fields' => $meta_fields,
-			'taxonomies'  => $taxonomies,
-		];
+		return $this->get_meta_tax_util()->process_meta_and_taxonomies_for_row( $this->get_wpdb(), $context, $counters );
 	}
 
 	/**
@@ -1377,56 +1361,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array{taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
 	 */
 	private function collect_taxonomy_fields_from_row( array $headers, array $data ): array {
-		$taxonomies        = [];
-		$taxonomy_term_ids = [];
-
-		for ( $j = 0; $j < count( $headers ); $j++ ) {
-			$header_name            = $headers[ $j ] ?? '';
-			$header_name_normalized = $this->normalize_field_name( $header_name );
-
-			// Skip empty headers and non-taxonomy fields
-			if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
-				continue;
-			}
-			if ( strpos( $header_name_normalized, 'tax_' ) !== 0 ) {
-				continue;
-			}
-
-			if ( empty( trim( $data[ $j ] ?? '' ) ) ) {
-				continue; // Skip empty fields
-			}
-
-			$meta_value = (string) ( $data[ $j ] ?? '' );
-
-			// Handle taxonomy (pipe-separated) - this is for article-taxonomy relationship
-			$terms = array_values( array_filter( array_map( 'trim', explode( '|', $meta_value ) ), 'strlen' ) );
-			// Store by actual taxonomy name (without tax_ prefix)
-			$taxonomy_name                = substr( $header_name_normalized, 4 ); // Remove 'tax_'
-			$taxonomies[ $taxonomy_name ] = $terms;
-
-			// Extract taxonomy name from header (remove tax_ prefix)
-			if ( taxonomy_exists( $taxonomy_name ) ) {
-				// Get term_ids for reuse
-				$term_ids = [];
-				foreach ( $terms as $term_name ) {
-					if ( ! empty( $term_name ) ) {
-						// Find existing term by name in the specific taxonomy
-						$term = get_term_by( 'name', $term_name, $taxonomy_name );
-						if ( $term ) {
-							$term_ids[] = $term->term_id;
-						}
-					}
-				}
-				if ( ! empty( $term_ids ) ) {
-					$taxonomy_term_ids[ $taxonomy_name ] = $term_ids;
-				}
-			}
-		}
-
-		return [
-			'taxonomies'        => $taxonomies,
-			'taxonomy_term_ids' => $taxonomy_term_ids,
-		];
+		return $this->get_meta_tax_util()->collect_taxonomy_fields_from_row( $headers, $data );
 	}
 
 	/**
@@ -1439,37 +1374,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array<string, string>
 	 */
 	private function collect_meta_fields_from_row( array $headers, array $data, array $allowed_post_fields ): array {
-		$meta_fields = [];
-
-		for ( $j = 0; $j < count( $headers ); $j++ ) {
-			$header_name            = $headers[ $j ] ?? '';
-			$header_name_normalized = $this->normalize_field_name( $header_name );
-
-			// Skip empty headers and post fields
-			if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
-				continue;
-			}
-			if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
-				continue;
-			}
-
-			if ( empty( trim( $data[ $j ] ?? '' ) ) ) {
-				continue; // Skip empty fields
-			}
-
-			$meta_value = (string) ( $data[ $j ] ?? '' );
-
-			// Handle regular custom fields (cf_<field> => <field>) ONLY
-			// Skip all other fields - only process cf_ prefixed fields
-			if ( strpos( $header_name_normalized, 'cf_' ) !== 0 ) {
-				continue; // Skip non-cf_ fields
-			}
-
-			$clean_field_name                 = substr( $header_name_normalized, 3 ); // Remove cf_
-			$meta_fields[ $clean_field_name ] = (string) $meta_value;
-		}
-
-		return $meta_fields;
+		return $this->get_meta_tax_util()->collect_meta_fields_from_row( $headers, $data, $allowed_post_fields );
 	}
 
 	/**
@@ -1482,17 +1387,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
 	 */
 	private function collect_taxonomies_and_meta_fields_from_row( array $headers, array $data, array $allowed_post_fields ): array {
-		// Collect taxonomy fields
-		$taxonomy_data = $this->collect_taxonomy_fields_from_row( $headers, $data );
-
-		// Collect meta fields
-		$meta_fields = $this->collect_meta_fields_from_row( $headers, $data, $allowed_post_fields );
-
-		return [
-			'meta_fields'       => $meta_fields,
-			'taxonomies'        => $taxonomy_data['taxonomies'],
-			'taxonomy_term_ids' => $taxonomy_data['taxonomy_term_ids'],
-		];
+		return $this->get_meta_tax_util()->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
 	}
 
 	/**
@@ -1506,19 +1401,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array<int, int>
 	 */
 	private function resolve_taxonomy_term_ids( string $taxonomy, array $terms, string $taxonomy_format, array $taxonomy_format_validation ): array {
-		$term_ids = [];
-		foreach ( $terms as $term_value ) {
-			$term_value = trim( (string) $term_value );
-			if ( $term_value === '' ) {
-				continue;
-			}
-
-			$resolved_term_ids = $this->resolve_term_ids_for_term_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
-			foreach ( $resolved_term_ids as $resolved_term_id ) {
-				$term_ids[] = $resolved_term_id;
-			}
-		}
-		return $term_ids;
+		return $this->get_meta_tax_util()->resolve_taxonomy_term_ids( $taxonomy, $terms, $taxonomy_format, $taxonomy_format_validation );
 	}
 
 	/**
@@ -1533,29 +1416,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return void
 	 */
 	private function apply_taxonomy_terms_to_post( int $post_id, string $taxonomy, array $term_ids, bool $dry_run, array &$dry_run_log ): void {
-		if ( empty( $term_ids ) ) {
-			return;
-		}
-
-		if ( $dry_run ) {
-			error_log( "[Dry Run] Would set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
-			// Log each term for Dry Run
-			foreach ( $term_ids as $term_id ) {
-				$term = get_term( $term_id, $taxonomy );
-				if ( $term && ! is_wp_error( $term ) ) {
-					$dry_run_log[] = sprintf(
-						/* translators: 1: term name, 2: term ID, 3: taxonomy name */
-						__( 'Existing term: %1$s (ID: %2$s, taxonomy: %3$s)', 'swift-csv' ),
-						$term->name,
-						$term_id,
-						$taxonomy
-					);
-				}
-			}
-		} else {
-			wp_set_post_terms( $post_id, $term_ids, $taxonomy, false );
-			error_log( "[Swift CSV] Set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
-		}
+		$this->get_meta_tax_util()->apply_taxonomy_terms_to_post( $post_id, $taxonomy, $term_ids, $dry_run, $dry_run_log );
 	}
 
 	/**
@@ -1569,26 +1430,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return void
 	 */
 	private function apply_taxonomies_for_post( int $post_id, array $taxonomies, array $context, array &$dry_run_log ): void {
-		$taxonomy_format            = $context['taxonomy_format'];
-		$taxonomy_format_validation = $context['taxonomy_format_validation'];
-		$dry_run                    = $context['dry_run'];
-
-		foreach ( $taxonomies as $taxonomy => $terms ) {
-			if ( ! is_string( $taxonomy ) || ! is_array( $terms ) || empty( $terms ) ) {
-				continue;
-			}
-
-			if ( ! empty( $terms ) ) {
-				// Debug log for taxonomy processing
-				error_log( "[Swift CSV] Processing taxonomy: {$taxonomy}, format: {$taxonomy_format}" );
-
-				// Resolve term IDs for this taxonomy
-				$term_ids = $this->resolve_taxonomy_term_ids( $taxonomy, $terms, $taxonomy_format, $taxonomy_format_validation );
-
-				// Apply terms to post
-				$this->apply_taxonomy_terms_to_post( $post_id, $taxonomy, $term_ids, $dry_run, $dry_run_log );
-			}
-		}
+		$this->get_meta_tax_util()->apply_taxonomies_for_post( $post_id, $taxonomies, $context, $dry_run_log );
 	}
 
 	/**
@@ -1602,13 +1444,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array<int, int>
 	 */
 	private function resolve_term_ids_for_term_value( string $taxonomy, string $term_value, string $taxonomy_format, array $taxonomy_format_validation ): array {
-		error_log( "[Swift CSV] Processing term value: '{$term_value}' with format: {$taxonomy_format}" );
-
-		$term_ids = Swift_CSV_Helper::resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
-
-		error_log( '[Swift CSV] Resolved ' . count( $term_ids ) . " term IDs for value '{$term_value}'" );
-
-		return $term_ids;
+		return $this->get_meta_tax_util()->resolve_term_ids_for_term_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
 	}
 
 	/**
@@ -1623,87 +1459,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return void
 	 */
 	private function apply_meta_fields_for_post( wpdb $wpdb, int $post_id, array $meta_fields, array $context, array &$dry_run_log ): void {
-		$dry_run = $context['dry_run'];
-
-		foreach ( $meta_fields as $key => $value ) {
-			// Skip empty values
-			if ( $value === '' || $value === null ) {
-				continue;
-			}
-
-			if ( ! is_string( $value ) ) {
-				$value = maybe_serialize( $value );
-			}
-
-			if ( $dry_run ) {
-				error_log( "[Dry Run] Would process custom field: {$key} = {$value}" );
-
-				// Handle multi-value custom fields (pipe-separated)
-				if ( strpos( $value, '|' ) !== false ) {
-					// Add each value separately
-					$values = array_map( 'trim', explode( '|', $value ) );
-					foreach ( $values as $single_value ) {
-						if ( $single_value !== '' ) {
-							$dry_run_log[] = sprintf(
-								/* translators: 1: field name, 2: field value */
-								__( 'Custom field (multi-value): %1$s = %2$s', 'swift-csv' ),
-								$key,
-								$single_value
-							);
-						}
-					}
-				} else {
-					// Single value (including serialized strings)
-					$dry_run_log[] = sprintf(
-						/* translators: 1: field name, 2: field value */
-						__( 'Custom field: %1$s = %2$s', 'swift-csv' ),
-						$key,
-						$value
-					);
-				}
-			} else {
-				// Always replace existing meta for this key to ensure update works even if meta row doesn't exist.
-				$wpdb->query(
-					$wpdb->prepare(
-						"DELETE FROM {$wpdb->postmeta} 
-	                         WHERE post_id = %d 
-	                         AND meta_key = %s",
-						$post_id,
-						$key
-					)
-				);
-
-				// Handle multi-value custom fields (pipe-separated)
-				if ( strpos( $value, '|' ) !== false ) {
-					// Add each value separately
-					$values = array_map( 'trim', explode( '|', $value ) );
-					foreach ( $values as $single_value ) {
-						if ( $single_value !== '' ) {
-							$wpdb->insert(
-								$wpdb->postmeta,
-								[
-									'post_id'    => $post_id,
-									'meta_key'   => $key,
-									'meta_value' => $single_value,
-								],
-								[ '%d', '%s', '%s' ]
-							);
-						}
-					}
-				} else {
-					// Single value (including serialized strings)
-					$wpdb->insert(
-						$wpdb->postmeta,
-						[
-							'post_id'    => $post_id,
-							'meta_key'   => $key,
-							'meta_value' => is_string( $value ) ? $value : maybe_serialize( $value ),
-						],
-						[ '%d', '%s', '%s' ]
-					);
-				}
-			}
-		}
+		$this->get_meta_tax_util()->apply_meta_fields_for_post( $wpdb, $post_id, $meta_fields, $context, $dry_run_log );
 	}
 
 	/**

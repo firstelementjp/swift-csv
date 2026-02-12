@@ -1033,7 +1033,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param string $name Field name.
 	 * @return string
 	 */
-	private function normalize_field_name( $name ) {
+	private function normalize_field_name( string $name ): string {
 		return Swift_CSV_Helper::normalize_field_name( $name );
 	}
 
@@ -1415,10 +1415,10 @@ class Swift_CSV_Ajax_Import {
 				continue; // Skip empty fields
 			}
 
-			$meta_value = $data[ $j ];
+			$meta_value = (string) ( $data[ $j ] ?? '' );
 
 			// Handle taxonomy (pipe-separated) - this is for article-taxonomy relationship
-			$terms = array_map( 'trim', explode( '|', $meta_value ) );
+			$terms = array_values( array_filter( array_map( 'trim', explode( '|', $meta_value ) ), 'strlen' ) );
 			// Store by actual taxonomy name (without tax_ prefix)
 			$taxonomy_name                = substr( $header_name_normalized, 4 ); // Remove 'tax_'
 			$taxonomies[ $taxonomy_name ] = $terms;

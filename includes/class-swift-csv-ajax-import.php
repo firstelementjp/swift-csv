@@ -987,7 +987,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param string $csv_content CSV content.
 	 * @return array<int, string>
 	 */
-	private function parse_csv_lines_preserving_quoted_newlines( $csv_content ) {
+	private function parse_csv_lines_preserving_quoted_newlines( string $csv_content ): array {
 		return Swift_CSV_Helper::parse_csv_lines_preserving_quoted_newlines( $csv_content );
 	}
 
@@ -998,7 +998,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param array<int, string> $lines CSV lines.
 	 * @return string
 	 */
-	private function detect_csv_delimiter( $lines ) {
+	private function detect_csv_delimiter( array $lines ): string {
 		return Swift_CSV_Helper::detect_csv_delimiter( $lines );
 	}
 
@@ -1010,11 +1010,12 @@ class Swift_CSV_Ajax_Import {
 	 * @param string             $delimiter CSV delimiter.
 	 * @return array<int, string>
 	 */
-	private function read_and_normalize_headers( &$lines, $delimiter ) {
+	private function read_and_normalize_headers( array &$lines, string $delimiter ): array {
 		$headers = str_getcsv( array_shift( $lines ), $delimiter );
 		// Normalize headers - remove BOM and control characters
 		$headers = array_map(
-			function ( $header ) {
+			function ( $header ): string {
+				$header = (string) $header;
 				// Remove BOM (UTF-8 BOM is \xEF\xBB\xBF)
 				$header = preg_replace( '/^\xEF\xBB\xBF/', '', $header );
 				// Remove other control characters

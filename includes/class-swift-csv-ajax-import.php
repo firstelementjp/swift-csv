@@ -1582,7 +1582,7 @@ class Swift_CSV_Ajax_Import {
 	 *
 	 * @since 0.9.0
 	 * @param int                                                                                                                                                                     $post_id Post ID.
-	 * @param array<string, array>                                                                                                                                                    $taxonomies Taxonomy terms map.
+	 * @param array<string, array<int, string>>                                                                                                                                       $taxonomies Taxonomy terms map.
 	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
 	 * @param array<int, string>                                                                                                                                                      $dry_run_log Dry run log.
 	 * @return void
@@ -1593,6 +1593,10 @@ class Swift_CSV_Ajax_Import {
 		$dry_run                    = $context['dry_run'];
 
 		foreach ( $taxonomies as $taxonomy => $terms ) {
+			if ( ! is_string( $taxonomy ) || ! is_array( $terms ) || empty( $terms ) ) {
+				continue;
+			}
+
 			if ( ! empty( $terms ) ) {
 				// Debug log for taxonomy processing
 				error_log( "[Swift CSV] Processing taxonomy: {$taxonomy}, format: {$taxonomy_format}" );
@@ -1632,7 +1636,7 @@ class Swift_CSV_Ajax_Import {
 	 * @since 0.9.0
 	 * @param wpdb                                                                                                                                                                    $wpdb WordPress DB instance.
 	 * @param int                                                                                                                                                                     $post_id Post ID.
-	 * @param array<string, string>                                                                                                                                                   $meta_fields Meta fields.
+	 * @param array<string, mixed>                                                                                                                                                    $meta_fields Meta fields.
 	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
 	 * @param array<int, string>                                                                                                                                                      $dry_run_log Dry run log.
 	 * @return void
@@ -1644,6 +1648,10 @@ class Swift_CSV_Ajax_Import {
 			// Skip empty values
 			if ( $value === '' || $value === null ) {
 				continue;
+			}
+
+			if ( ! is_string( $value ) ) {
+				$value = maybe_serialize( $value );
 			}
 
 			if ( $dry_run ) {

@@ -183,7 +183,7 @@ class Swift_CSV_Ajax_Import {
 			$is_update = $existing['is_update'];
 
 			// Validation
-			if ( $this->should_skip_row_due_to_missing_title( $config['update_existing'], $post_fields_from_csv ) ) {
+			if ( $this->should_skip_import_row( $config['update_existing'], $post_fields_from_csv ) ) {
 				continue;
 			}
 
@@ -244,6 +244,18 @@ class Swift_CSV_Ajax_Import {
 	 */
 	private function resolve_existing_post_for_import( wpdb $wpdb, string $update_existing, string $post_type, string $post_id_from_csv ): array {
 		return $this->find_existing_post_for_update( $wpdb, $update_existing, $post_type, $post_id_from_csv );
+	}
+
+	/**
+	 * Determine whether the current CSV row should be skipped during import.
+	 *
+	 * @since 0.9.0
+	 * @param string $update_existing Update flag from request.
+	 * @param array  $post_fields_from_csv Post fields collected from CSV.
+	 * @return bool True if the row should be skipped.
+	 */
+	private function should_skip_import_row( string $update_existing, array $post_fields_from_csv ): bool {
+		return $this->should_skip_row_due_to_missing_title( $update_existing, $post_fields_from_csv );
 	}
 
 	/**

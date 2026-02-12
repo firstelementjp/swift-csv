@@ -1760,10 +1760,11 @@ class Swift_CSV_Ajax_Import {
 	 * Parse PHP ini size string to bytes.
 	 *
 	 * @since 0.9.0
-	 * @param string $size The size string (e.g., '10M', '1G')
+	 * @param string|int $size The size string (e.g., '10M', '1G')
 	 * @return int Size in bytes
 	 */
-	private function parse_ini_size( $size ) {
+	private function parse_ini_size( $size ): int {
+		$size  = (string) $size;
 		$unit  = strtoupper( substr( $size, -1 ) );
 		$value = (int) substr( $size, 0, -1 );
 

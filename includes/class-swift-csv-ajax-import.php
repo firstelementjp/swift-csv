@@ -643,31 +643,17 @@ class Swift_CSV_Ajax_Import {
 		array $context,
 		array &$counters
 	) {
-		$processed   = &$counters['processed'];
-		$created     = &$counters['created'];
-		$updated     = &$counters['updated'];
-		$errors      = &$counters['errors'];
-		$dry_run_log = &$counters['dry_run_log'];
-
-		$headers                    = $context['headers'];
-		$data                       = $context['data'];
-		$allowed_post_fields        = $context['allowed_post_fields'];
-		$taxonomy_format            = $context['taxonomy_format'];
-		$taxonomy_format_validation = $context['taxonomy_format_validation'];
-		$dry_run                    = $context['dry_run'];
-
-		if ( $result !== false ) {
-			$this->handle_successful_row_import(
-				$wpdb,
-				$post_id,
-				$is_update,
-				$context,
-				$counters
-			);
-			return;
-		}
-
-		++$errors;
+		$this->get_row_processor_util()->handle_row_result_after_persist(
+			$result,
+			$wpdb,
+			$is_update,
+			$post_id,
+			$context,
+			$counters,
+			function ( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters ): void {
+				$this->handle_successful_row_import( $wpdb, $post_id, $is_update, $context, $counters );
+			}
+		);
 	}
 
 	/**

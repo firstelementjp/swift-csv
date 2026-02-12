@@ -1518,13 +1518,13 @@ class Swift_CSV_Ajax_Import {
 	 * Resolve term IDs for a single taxonomy.
 	 *
 	 * @since 0.9.0
-	 * @param string $taxonomy Taxonomy name.
-	 * @param array  $terms Term values.
-	 * @param string $taxonomy_format Taxonomy format.
-	 * @param array  $taxonomy_format_validation Taxonomy format validation.
+	 * @param string             $taxonomy Taxonomy name.
+	 * @param array<int, string> $terms Term values.
+	 * @param string             $taxonomy_format Taxonomy format.
+	 * @param array              $taxonomy_format_validation Taxonomy format validation.
 	 * @return array<int, int>
 	 */
-	private function resolve_taxonomy_term_ids( $taxonomy, $terms, $taxonomy_format, $taxonomy_format_validation ) {
+	private function resolve_taxonomy_term_ids( string $taxonomy, array $terms, string $taxonomy_format, array $taxonomy_format_validation ): array {
 		$term_ids = [];
 		foreach ( $terms as $term_value ) {
 			$term_value = trim( (string) $term_value );
@@ -1616,7 +1616,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param array  $taxonomy_format_validation Taxonomy format validation.
 	 * @return array<int, int>
 	 */
-	private function resolve_term_ids_for_term_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation ) {
+	private function resolve_term_ids_for_term_value( string $taxonomy, string $term_value, string $taxonomy_format, array $taxonomy_format_validation ): array {
 		error_log( "[Swift CSV] Processing term value: '{$term_value}' with format: {$taxonomy_format}" );
 
 		$term_ids = Swift_CSV_Helper::resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );

@@ -181,22 +181,13 @@ class Swift_CSV_Ajax_Import {
 			if ( null === $row_context ) {
 				continue;
 			}
-
-			$data                 = $row_context['data'];
-			$post_fields_from_csv = $row_context['post_fields_from_csv'];
-			$post_id              = $row_context['post_id'];
-			$is_update            = $row_context['is_update'];
-
-			$this->process_single_import_row(
+			$this->process_row_context(
 				$wpdb,
-				$is_update,
-				$post_id,
-				$post_fields_from_csv,
+				$row_context,
 				$config['post_type'],
 				$config['dry_run'],
 				$dry_run_log,
 				$csv_data['headers'],
-				$data,
 				$allowed_post_fields,
 				$config['taxonomy_format'],
 				$csv_data['taxonomy_format_validation'],
@@ -206,6 +197,65 @@ class Swift_CSV_Ajax_Import {
 				$errors
 			);
 		}
+	}
+
+	/**
+	 * Process an import row context by running per-row import logic.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb                                                                    $wpdb WordPress database handler.
+	 * @param array{data:array,post_fields_from_csv:array,post_id:int,is_update:bool} $row_context Row context.
+	 * @param string                                                                  $post_type Post type.
+	 * @param bool                                                                    $dry_run Whether this is a dry run.
+	 * @param array<int, string>                                                      $dry_run_log Dry run log (by reference).
+	 * @param array<int, string>                                                      $headers CSV headers.
+	 * @param array<int, string>                                                      $allowed_post_fields Allowed post fields.
+	 * @param string                                                                  $taxonomy_format Taxonomy format.
+	 * @param array                                                                   $taxonomy_format_validation Taxonomy format validation.
+	 * @param int                                                                     $processed Processed count (by reference).
+	 * @param int                                                                     $created Created count (by reference).
+	 * @param int                                                                     $updated Updated count (by reference).
+	 * @param int                                                                     $errors Error count (by reference).
+	 * @return void
+	 */
+	private function process_row_context(
+		wpdb $wpdb,
+		array $row_context,
+		string $post_type,
+		bool $dry_run,
+		array &$dry_run_log,
+		array $headers,
+		array $allowed_post_fields,
+		string $taxonomy_format,
+		$taxonomy_format_validation,
+		int &$processed,
+		int &$created,
+		int &$updated,
+		int &$errors
+	) {
+		$data                 = $row_context['data'];
+		$post_fields_from_csv = $row_context['post_fields_from_csv'];
+		$post_id              = $row_context['post_id'];
+		$is_update            = $row_context['is_update'];
+
+		$this->process_single_import_row(
+			$wpdb,
+			$is_update,
+			$post_id,
+			$post_fields_from_csv,
+			$post_type,
+			$dry_run,
+			$dry_run_log,
+			$headers,
+			$data,
+			$allowed_post_fields,
+			$taxonomy_format,
+			$taxonomy_format_validation,
+			$processed,
+			$created,
+			$updated,
+			$errors
+		);
 	}
 
 	/**

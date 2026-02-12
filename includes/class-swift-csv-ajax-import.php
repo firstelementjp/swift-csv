@@ -206,6 +206,24 @@ class Swift_CSV_Ajax_Import {
 			return;
 		}
 
+		$this->process_row_if_possible( $wpdb, $config, $csv_data, $allowed_post_fields, $line, $delimiter, $headers, $counters );
+	}
+
+	/**
+	 * Process one CSV row if it can be converted to a valid row context.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb                                                                      $wpdb WordPress database handler.
+	 * @param array                                                                     $config Import configuration.
+	 * @param array                                                                     $csv_data Parsed CSV data.
+	 * @param array<int, string>                                                        $allowed_post_fields Allowed post fields.
+	 * @param string                                                                    $line Raw CSV line.
+	 * @param string                                                                    $delimiter CSV delimiter.
+	 * @param array<int, string>                                                        $headers CSV headers.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array} $counters Counters (by reference).
+	 * @return void
+	 */
+	private function process_row_if_possible( wpdb $wpdb, array $config, array $csv_data, array $allowed_post_fields, string $line, string $delimiter, array $headers, array &$counters ): void {
 		$row_context = $this->build_import_row_context(
 			$wpdb,
 			$line,

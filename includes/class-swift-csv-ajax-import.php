@@ -325,16 +325,21 @@ class Swift_CSV_Ajax_Import {
 	 * @return void
 	 */
 	private function process_row_if_possible( wpdb $wpdb, array $config, array $csv_data, array $allowed_post_fields, string $line, string $delimiter, array $headers, array &$counters ): void {
-		$row_context = $this->build_import_row_context_from_config( $wpdb, $config, $line, $delimiter, $headers, $allowed_post_fields );
-		if ( null === $row_context ) {
-			return;
-		}
-
-		$this->process_row_context(
+		$this->get_orchestrator_util()->run_process_row_if_possible(
 			$wpdb,
-			$row_context,
-			$this->build_row_processing_context( $config, $csv_data, $headers, $allowed_post_fields ),
-			$counters
+			$config,
+			$csv_data,
+			$allowed_post_fields,
+			$line,
+			$delimiter,
+			$headers,
+			$counters,
+			function ( wpdb $wpdb, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
+				return $this->build_import_row_context_from_config( $wpdb, $config, $line, $delimiter, $headers, $allowed_post_fields );
+			},
+			function ( wpdb $wpdb, array $row_context, array $context, array &$counters ): void {
+				$this->process_row_context( $wpdb, $row_context, $context, $counters );
+			}
 		);
 	}
 
@@ -365,15 +370,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array}
 	 */
 	private function build_row_processing_context( array $config, array $csv_data, array $headers, array $allowed_post_fields ): array {
-		return [
-			'post_type'                  => (string) ( $config['post_type'] ?? 'post' ),
-			'dry_run'                    => (bool) ( $config['dry_run'] ?? false ),
-			'headers'                    => $headers,
-			'data'                       => [],
-			'allowed_post_fields'        => $allowed_post_fields,
-			'taxonomy_format'            => (string) ( $config['taxonomy_format'] ?? 'name' ),
-			'taxonomy_format_validation' => $csv_data['taxonomy_format_validation'] ?? [],
-		];
+		return $this->get_orchestrator_util()->run_build_row_processing_context( $config, $csv_data, $headers, $allowed_post_fields );
 	}
 
 	/**

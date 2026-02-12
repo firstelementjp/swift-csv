@@ -1732,7 +1732,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param wpdb $wpdb WordPress DB instance.
 	 * @return void
 	 */
-	private function setup_db_session( $wpdb ) {
+	private function setup_db_session( wpdb $wpdb ): void {
 		// Disable locks
 		$wpdb->query( 'SET SESSION autocommit = 1' );
 		$wpdb->query( 'SET SESSION innodb_lock_wait_timeout = 1' );
@@ -1746,7 +1746,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param int  $post_id Post ID.
 	 * @return void
 	 */
-	private function update_guid_for_new_post( $wpdb, $post_id ) {
+	private function update_guid_for_new_post( wpdb $wpdb, int $post_id ): void {
 		$wpdb->update(
 			$wpdb->posts,
 			[ 'guid' => get_permalink( $post_id ) ],

@@ -269,7 +269,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param array{lines:array<int,string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array,total_rows:int}        $csv_data Parsed CSV data.
 	 * @param array<int, string>                                                                                                               $headers CSV headers.
 	 * @param array<int, string>                                                                                                               $allowed_post_fields Allowed post fields.
-	 * @return array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array}
+	 * @return array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array}
 	 */
 	private function build_row_processing_context( array $config, array $csv_data, array $headers, array $allowed_post_fields ): array {
 		return [
@@ -335,7 +335,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param string             $post_type Post type.
 	 * @return array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}|null Null means skip this row.
 	 */
-	private function build_import_row_context( wpdb $wpdb, string $line, string $delimiter, array $headers, array $allowed_post_fields, string $update_existing, string $post_type ) {
+	private function build_import_row_context( wpdb $wpdb, string $line, string $delimiter, array $headers, array $allowed_post_fields, string $update_existing, string $post_type ): ?array {
 		$parsed               = $this->parse_row_and_collect_post_fields( $line, $delimiter, $headers, $allowed_post_fields );
 		$data                 = $parsed['data'];
 		$post_id_from_csv     = $parsed['post_id_from_csv'];

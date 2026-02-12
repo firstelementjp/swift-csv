@@ -825,9 +825,6 @@ class Swift_CSV_Ajax_Import {
 	 * @return void
 	 */
 	private function handle_successful_row_import( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters ) {
-		$processed   = &$counters['processed'];
-		$created     = &$counters['created'];
-		$updated     = &$counters['updated'];
 		$dry_run_log = &$counters['dry_run_log'];
 
 		$headers                    = $context['headers'];
@@ -837,12 +834,18 @@ class Swift_CSV_Ajax_Import {
 		$taxonomy_format_validation = $context['taxonomy_format_validation'];
 		$dry_run                    = $context['dry_run'];
 
-		$this->increment_row_counters_on_success( $is_update, $processed, $created, $updated );
-
-		// Update GUID for new posts
-		if ( ! $is_update ) {
-			$this->update_guid_for_new_post( $wpdb, $post_id );
-		}
+		$this->get_row_processor_util()->apply_success_counters_and_guid(
+			$wpdb,
+			$post_id,
+			$is_update,
+			$counters,
+			function ( bool $is_update, int &$processed, int &$created, int &$updated ): void {
+				$this->increment_row_counters_on_success( $is_update, $processed, $created, $updated );
+			},
+			function ( wpdb $wpdb, int $post_id ): void {
+				$this->update_guid_for_new_post( $wpdb, $post_id );
+			}
+		);
 
 		// Process meta fields and taxonomies
 		$meta_context            = $context;

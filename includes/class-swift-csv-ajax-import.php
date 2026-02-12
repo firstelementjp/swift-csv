@@ -572,19 +572,10 @@ class Swift_CSV_Ajax_Import {
 			$this->handle_row_result_after_persist(
 				$result,
 				$wpdb,
-				$post_id,
 				$is_update,
-				$headers,
-				$data,
-				$allowed_post_fields,
-				$taxonomy_format,
-				$taxonomy_format_validation,
-				$dry_run,
-				$dry_run_log,
-				$processed,
-				$created,
-				$updated,
-				$errors
+				(int) $post_id,
+				$context,
+				$counters
 			);
 		} catch ( Exception $e ) {
 			++$errors;
@@ -595,40 +586,35 @@ class Swift_CSV_Ajax_Import {
 	 * Handle row result after persisting wp_posts data.
 	 *
 	 * @since 0.9.0
-	 * @param int|false          $result DB result.
-	 * @param wpdb               $wpdb WordPress database handler.
-	 * @param int                $post_id Post ID.
-	 * @param bool               $is_update Whether this row updates an existing post.
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array              $data CSV row data.
-	 * @param array<int, string> $allowed_post_fields Allowed post fields.
-	 * @param string             $taxonomy_format Taxonomy format.
-	 * @param array              $taxonomy_format_validation Taxonomy format validation.
-	 * @param bool               $dry_run Whether this is a dry run.
-	 * @param array<int, string> $dry_run_log Dry run log (by reference).
-	 * @param int                $processed Processed count (by reference).
-	 * @param int                $created Created count (by reference).
-	 * @param int                $updated Updated count (by reference).
-	 * @param int                $errors Error count (by reference).
+	 * @param int|false                                                                                                                                                               $result DB result.
+	 * @param wpdb                                                                                                                                                                    $wpdb WordPress database handler.
+	 * @param bool                                                                                                                                                                    $is_update Whether this row updates an existing post.
+	 * @param int                                                                                                                                                                     $post_id Post ID.
+	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array}                                                                                               $counters Counters (by reference).
 	 * @return void
 	 */
 	private function handle_row_result_after_persist(
 		$result,
 		wpdb $wpdb,
-		int $post_id,
 		bool $is_update,
-		array $headers,
-		array $data,
-		array $allowed_post_fields,
-		string $taxonomy_format,
-		$taxonomy_format_validation,
-		bool $dry_run,
-		array &$dry_run_log,
-		int &$processed,
-		int &$created,
-		int &$updated,
-		int &$errors
+		int $post_id,
+		array $context,
+		array &$counters
 	) {
+		$processed   = &$counters['processed'];
+		$created     = &$counters['created'];
+		$updated     = &$counters['updated'];
+		$errors      = &$counters['errors'];
+		$dry_run_log = &$counters['dry_run_log'];
+
+		$headers                    = $context['headers'];
+		$data                       = $context['data'];
+		$allowed_post_fields        = $context['allowed_post_fields'];
+		$taxonomy_format            = $context['taxonomy_format'];
+		$taxonomy_format_validation = $context['taxonomy_format_validation'];
+		$dry_run                    = $context['dry_run'];
+
 		if ( $result !== false ) {
 			$this->handle_successful_row_import(
 				$wpdb,

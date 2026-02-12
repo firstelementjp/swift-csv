@@ -352,7 +352,7 @@ class Swift_CSV_Ajax_Import {
 		$post_id   = $existing['post_id'];
 		$is_update = $existing['is_update'];
 
-		if ( $this->should_skip_import_row( $update_existing, $post_fields_from_csv ) ) {
+		if ( $this->maybe_skip_import_row_context( $update_existing, $post_fields_from_csv ) ) {
 			return null;
 		}
 
@@ -513,6 +513,18 @@ class Swift_CSV_Ajax_Import {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Determine whether the import row context should be skipped.
+	 *
+	 * @since 0.9.0
+	 * @param string $update_existing Update flag from request.
+	 * @param array  $post_fields_from_csv Post fields collected from CSV.
+	 * @return bool True if the row context should be skipped.
+	 */
+	private function maybe_skip_import_row_context( string $update_existing, array $post_fields_from_csv ): bool {
+		return null !== $this->get_skip_reason_for_import_row( $update_existing, $post_fields_from_csv );
 	}
 
 	/**

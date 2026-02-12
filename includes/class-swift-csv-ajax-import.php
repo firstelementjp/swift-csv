@@ -196,8 +196,7 @@ class Swift_CSV_Ajax_Import {
 		int $index,
 		array &$counters
 	) {
-		$processed   = &$counters['processed'];
-		$dry_run_log = &$counters['dry_run_log'];
+		$processed = &$counters['processed'];
 
 		$line      = $csv_data['lines'][ $index ] ?? '';
 		$delimiter = $csv_data['delimiter'] ?? ',';

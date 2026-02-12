@@ -200,30 +200,87 @@ class Swift_CSV_Ajax_Import {
 			try {
 				// Direct SQL insert or update (update only fields provided by CSV)
 				$result = $this->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $config['post_type'], $config['dry_run'], $dry_run_log );
-
-				if ( $result !== false ) {
-					$this->handle_successful_row_import(
-						$wpdb,
-						$post_id,
-						$is_update,
-						$csv_data['headers'],
-						$data,
-						$allowed_post_fields,
-						$config['taxonomy_format'],
-						$csv_data['taxonomy_format_validation'],
-						$config['dry_run'],
-						$dry_run_log,
-						$processed,
-						$created,
-						$updated
-					);
-				} else {
-					++$errors;
-				}
+				$this->handle_row_result_after_persist(
+					$result,
+					$wpdb,
+					$post_id,
+					$is_update,
+					$csv_data['headers'],
+					$data,
+					$allowed_post_fields,
+					$config['taxonomy_format'],
+					$csv_data['taxonomy_format_validation'],
+					$config['dry_run'],
+					$dry_run_log,
+					$processed,
+					$created,
+					$updated,
+					$errors
+				);
 			} catch ( Exception $e ) {
 				++$errors;
 			}
 		}
+	}
+
+	/**
+	 * Handle row result after persisting wp_posts data.
+	 *
+	 * @since 0.9.0
+	 * @param int|false          $result DB result.
+	 * @param wpdb               $wpdb WordPress database handler.
+	 * @param int                $post_id Post ID.
+	 * @param bool               $is_update Whether this row updates an existing post.
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array              $data CSV row data.
+	 * @param array<int, string> $allowed_post_fields Allowed post fields.
+	 * @param string             $taxonomy_format Taxonomy format.
+	 * @param array              $taxonomy_format_validation Taxonomy format validation.
+	 * @param bool               $dry_run Whether this is a dry run.
+	 * @param array<int, string> $dry_run_log Dry run log (by reference).
+	 * @param int                $processed Processed count (by reference).
+	 * @param int                $created Created count (by reference).
+	 * @param int                $updated Updated count (by reference).
+	 * @param int                $errors Error count (by reference).
+	 * @return void
+	 */
+	private function handle_row_result_after_persist(
+		$result,
+		wpdb $wpdb,
+		int $post_id,
+		bool $is_update,
+		array $headers,
+		array $data,
+		array $allowed_post_fields,
+		string $taxonomy_format,
+		$taxonomy_format_validation,
+		bool $dry_run,
+		array &$dry_run_log,
+		int &$processed,
+		int &$created,
+		int &$updated,
+		int &$errors
+	) {
+		if ( $result !== false ) {
+			$this->handle_successful_row_import(
+				$wpdb,
+				$post_id,
+				$is_update,
+				$headers,
+				$data,
+				$allowed_post_fields,
+				$taxonomy_format,
+				$taxonomy_format_validation,
+				$dry_run,
+				$dry_run_log,
+				$processed,
+				$created,
+				$updated
+			);
+			return;
+		}
+
+		++$errors;
 	}
 
 	/**

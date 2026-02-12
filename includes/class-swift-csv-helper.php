@@ -131,6 +131,37 @@ class Swift_CSV_Helper {
 	}
 
 	/**
+	 * Setup DB session for import process.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb $wpdb WordPress DB instance.
+	 * @return void
+	 */
+	public static function setup_db_session( wpdb $wpdb ): void {
+		// Disable locks
+		$wpdb->query( 'SET SESSION autocommit = 1' );
+		$wpdb->query( 'SET SESSION innodb_lock_wait_timeout = 1' );
+	}
+
+	/**
+	 * Update GUID for newly inserted posts.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb $wpdb WordPress DB instance.
+	 * @param int  $post_id Post ID.
+	 * @return void
+	 */
+	public static function update_guid_for_new_post( wpdb $wpdb, int $post_id ): void {
+		$wpdb->update(
+			$wpdb->posts,
+			[ 'guid' => get_permalink( $post_id ) ],
+			[ 'ID' => $post_id ],
+			[ '%s' ],
+			[ '%d' ]
+		);
+	}
+
+	/**
 	 * Send JSON error response with optional file cleanup.
 	 *
 	 * @since 0.9.0

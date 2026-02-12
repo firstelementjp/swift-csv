@@ -216,7 +216,7 @@ class Swift_CSV_Ajax_Import {
 			return null;
 		}
 
-		$this->setup_db_session( $wpdb );
+		Swift_CSV_Helper::setup_db_session( $wpdb );
 
 		return [
 			'file_path'       => sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) ),
@@ -626,7 +626,7 @@ class Swift_CSV_Ajax_Import {
 				$this->increment_row_counters_on_success( $is_update, $processed, $created, $updated );
 			},
 			function ( wpdb $wpdb, int $post_id ): void {
-				$this->update_guid_for_new_post( $wpdb, $post_id );
+				Swift_CSV_Helper::update_guid_for_new_post( $wpdb, $post_id );
 			}
 		);
 
@@ -1106,60 +1106,5 @@ class Swift_CSV_Ajax_Import {
 			$post_id = $wpdb->insert_id;
 		}
 		return $result;
-	}
-
-	/**
-	 * Setup DB session for import process.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb $wpdb WordPress DB instance.
-	 * @return void
-	 */
-	private function setup_db_session( wpdb $wpdb ): void {
-		// Disable locks
-		$wpdb->query( 'SET SESSION autocommit = 1' );
-		$wpdb->query( 'SET SESSION innodb_lock_wait_timeout = 1' );
-	}
-
-	/**
-	 * Update GUID for newly inserted posts.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb $wpdb WordPress DB instance.
-	 * @param int  $post_id Post ID.
-	 * @return void
-	 */
-	private function update_guid_for_new_post( wpdb $wpdb, int $post_id ): void {
-		$wpdb->update(
-			$wpdb->posts,
-			[ 'guid' => get_permalink( $post_id ) ],
-			[ 'ID' => $post_id ],
-			[ '%s' ],
-			[ '%d' ]
-		);
-	}
-
-	/**
-	 * Parse PHP ini size string to bytes.
-	 *
-	 * @since 0.9.0
-	 * @param string|int $size The size string (e.g., '10M', '1G')
-	 * @return int Size in bytes
-	 */
-	private function parse_ini_size( $size ): int {
-		$size  = (string) $size;
-		$unit  = strtoupper( substr( $size, -1 ) );
-		$value = (int) substr( $size, 0, -1 );
-
-		switch ( $unit ) {
-			case 'G':
-				return $value * 1024 * 1024 * 1024;
-			case 'M':
-				return $value * 1024 * 1024;
-			case 'K':
-				return $value * 1024;
-			default:
-				return (int) $size;
-		}
 	}
 }

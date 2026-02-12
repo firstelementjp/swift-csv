@@ -199,13 +199,7 @@ class Swift_CSV_Ajax_Import {
 
 			try {
 				// Direct SQL insert or update (update only fields provided by CSV)
-				$post_data = [];
-
-				if ( $is_update ) {
-					$post_data = $this->build_post_data_for_update( $post_fields_from_csv );
-				} else {
-					$post_data = $this->build_post_data_for_insert( $post_fields_from_csv, $config['post_type'] );
-				}
+				$post_data = $this->build_post_data_for_import( $is_update, $post_fields_from_csv, $config['post_type'] );
 
 				if ( $is_update ) {
 					$result = $this->execute_post_update( $wpdb, $post_id, $post_data, $config['dry_run'], $dry_run_log );
@@ -236,6 +230,23 @@ class Swift_CSV_Ajax_Import {
 				++$errors;
 			}
 		}
+	}
+
+	/**
+	 * Build post data array for insert/update during import.
+	 *
+	 * @since 0.9.0
+	 * @param bool   $is_update Whether this row updates an existing post.
+	 * @param array  $post_fields_from_csv Post fields collected from CSV.
+	 * @param string $post_type Post type.
+	 * @return array Post data array for wp_posts insert/update.
+	 */
+	private function build_post_data_for_import( bool $is_update, array $post_fields_from_csv, string $post_type ): array {
+		if ( $is_update ) {
+			return $this->build_post_data_for_update( $post_fields_from_csv );
+		}
+
+		return $this->build_post_data_for_insert( $post_fields_from_csv, $post_type );
 	}
 
 	/**

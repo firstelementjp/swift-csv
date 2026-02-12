@@ -169,7 +169,7 @@ class Swift_CSV_Ajax_Import {
 				continue;
 			}
 
-			$data             = $this->parse_csv_row( $csv_data['lines'][ $i ], $csv_data['delimiter'] );
+			$data             = $this->get_parsed_csv_row( $csv_data['lines'][ $i ], $csv_data['delimiter'] );
 			$post_id_from_csv = $this->get_post_id_from_csv_row( $data );
 
 			// Collect post fields from CSV (header-driven)
@@ -246,6 +246,18 @@ class Swift_CSV_Ajax_Import {
 
 		++$processed; // Count empty lines as processed to avoid infinite loop
 		return true;
+	}
+
+	/**
+	 * Parse one CSV row string into an array.
+	 *
+	 * @since 0.9.0
+	 * @param string $line Raw CSV line.
+	 * @param string $delimiter CSV delimiter.
+	 * @return array Parsed row data.
+	 */
+	private function get_parsed_csv_row( string $line, string $delimiter ): array {
+		return $this->parse_csv_row( $line, $delimiter );
 	}
 
 	/**

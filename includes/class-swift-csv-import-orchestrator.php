@@ -22,17 +22,52 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Import_Orchestrator {
 	/**
+	 * Run the batch import loop.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param wpdb                                                                                                                                         $wpdb WordPress database handler.
+	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool}             $config Import configuration.
+	 * @param array{lines:array<int,string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array,total_rows:int}                    $csv_data Parsed CSV data.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                        $counters Counters (by reference).
+	 * @param callable(): array<int,string>                                                                                                                $get_allowed_post_fields Get allowed post fields.
+	 * @param callable(array<int,string>,string): (int|null)                                                                                               $ensure_id_column_or_send_error_and_cleanup Ensure ID column exists.
+	 * @param callable(wpdb,array,array,array<int,string>,int,array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}): void $process_import_loop_iteration Process one loop iteration.
+	 *
+	 * @return void
+	 */
+	public function run_process_batch_import(
+		wpdb $wpdb,
+		array $config,
+		array $csv_data,
+		array &$counters,
+		callable $get_allowed_post_fields,
+		callable $ensure_id_column_or_send_error_and_cleanup,
+		callable $process_import_loop_iteration
+	): void {
+		$allowed_post_fields = $get_allowed_post_fields();
+		$id_col              = $ensure_id_column_or_send_error_and_cleanup( $csv_data['headers'], $config['file_path'] );
+		if ( null === $id_col ) {
+			return;
+		}
+
+		for ( $i = $config['start_row']; $i < min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] ); $i++ ) {
+			$process_import_loop_iteration( $wpdb, $config, $csv_data, $allowed_post_fields, $i, $counters );
+		}
+	}
+
+	/**
 	 * Run the import handler flow.
 	 *
 	 * @since 0.9.0
 	 *
-	 * @param callable(): (array{nonce:string,file_path:string,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool,start_row:int,cumulative_created:int,cumulative_updated:int,cumulative_errors:int}|null) $prepare_import_environment Prepare environment and return config.
-	 * @param callable(string,string): (array{headers:array<int,string>,lines:array<int,string>,taxonomy_format:string,total_rows?:int}|null)                                                     $parse_and_validate_csv Parse CSV data.
-	 * @param callable(array<int,string>): int                                                                                                                                            $count_total_rows Count total rows.
-	 * @param callable(): array{created:int,updated:int,errors:int}                                                                                                                       $get_cumulative_counts Get previous cumulative counts.
+	 * @param callable(): (array{nonce:string,file_path:string,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool,start_row:int,cumulative_created:int,cumulative_updated:int,cumulative_errors:int}|null)                                                                                                                                                                                     $prepare_import_environment Prepare environment and return config.
+	 * @param callable(string,string): (array{headers:array<int,string>,lines:array<int,string>,taxonomy_format:string,total_rows?:int}|null)                                                                                                                                                                                                                                                                           $parse_and_validate_csv Parse CSV data.
+	 * @param callable(array<int,string>): int                                                                                                                                                                                                                                                                                                                                                                          $count_total_rows Count total rows.
+	 * @param callable(): array{created:int,updated:int,errors:int}                                                                                                                                                                                                                                                                                                                                                     $get_cumulative_counts Get previous cumulative counts.
 	 * @param callable(array{nonce:string,file_path:string,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool,start_row:int,cumulative_created:int,cumulative_updated:int,cumulative_errors:int}, array{headers:array<int,string>,lines:array<int,string>,taxonomy_format:string,total_rows:int}, array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}): void $process_batch_import Process a batch.
-	 * @param callable(bool,string): void                                                                                                                                                  $cleanup_temp_file_if_complete Cleanup temp file.
-	 * @param callable(int,int,int,int,int,int,int,int,int,bool,array<int,string>): void                                                                                                   $send_import_progress_response Send JSON response.
+	 * @param callable(bool,string): void                                                                                                                                                                                                                                                                                                                                                                               $cleanup_temp_file_if_complete Cleanup temp file.
+	 * @param callable(int,int,int,int,int,int,int,int,int,bool,array<int,string>): void                                                                                                                                                                                                                                                                                                                                $send_import_progress_response Send JSON response.
 	 *
 	 * @return void
 	 */

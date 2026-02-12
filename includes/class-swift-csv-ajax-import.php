@@ -32,6 +32,14 @@ class Swift_CSV_Ajax_Import {
 	private $csv_util;
 
 	/**
+	 * Row context utility instance.
+	 *
+	 * @since 0.9.0
+	 * @var Swift_CSV_Import_Row_Context|null
+	 */
+	private $row_context_util;
+
+	/**
 	 * Constructor: Register AJAX hooks.
 	 *
 	 * @since 0.9.0
@@ -54,6 +62,19 @@ class Swift_CSV_Ajax_Import {
 			$this->csv_util = new Swift_CSV_Import_Csv();
 		}
 		return $this->csv_util;
+	}
+
+	/**
+	 * Get row context utility instance.
+	 *
+	 * @since 0.9.0
+	 * @return Swift_CSV_Import_Row_Context
+	 */
+	private function get_row_context_util(): Swift_CSV_Import_Row_Context {
+		if ( null === $this->row_context_util ) {
+			$this->row_context_util = new Swift_CSV_Import_Row_Context( $this->get_csv_util() );
+		}
+		return $this->row_context_util;
 	}
 
 	/**
@@ -271,15 +292,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int,is_update:bool}|null Null means skip this row.
 	 */
 	private function build_import_row_context_from_config( wpdb $wpdb, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
-		return $this->build_import_row_context(
-			$wpdb,
-			$line,
-			$delimiter,
-			$headers,
-			$allowed_post_fields,
-			(string) ( $config['update_existing'] ?? '0' ),
-			(string) ( $config['post_type'] ?? 'post' )
-		);
+		return $this->get_row_context_util()->build_import_row_context_from_config( $wpdb, $config, $line, $delimiter, $headers, $allowed_post_fields );
 	}
 
 	/**
@@ -357,20 +370,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}|null Null means skip this row.
 	 */
 	private function build_import_row_context( wpdb $wpdb, string $line, string $delimiter, array $headers, array $allowed_post_fields, string $update_existing, string $post_type ): ?array {
-		$parsed               = $this->parse_row_and_collect_post_fields( $line, $delimiter, $headers, $allowed_post_fields );
-		$data                 = $parsed['data'];
-		$post_id_from_csv     = $parsed['post_id_from_csv'];
-		$post_fields_from_csv = $parsed['post_fields_from_csv'];
-
-		$existing  = $this->resolve_post_id_and_update_flag( $wpdb, $update_existing, $post_type, $post_id_from_csv );
-		$post_id   = $existing['post_id'];
-		$is_update = $existing['is_update'];
-
-		if ( $this->maybe_skip_import_row_context( $update_existing, $post_fields_from_csv ) ) {
-			return null;
-		}
-
-		return $this->build_import_row_context_array( $data, $post_fields_from_csv, $post_id, $is_update );
+		return $this->get_row_context_util()->build_import_row_context( $wpdb, $line, $delimiter, $headers, $allowed_post_fields, $update_existing, $post_type );
 	}
 
 	/**
@@ -384,12 +384,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}
 	 */
 	private function build_import_row_context_array( array $data, array $post_fields_from_csv, ?int $post_id, bool $is_update ): array {
-		return [
-			'data'                 => $data,
-			'post_fields_from_csv' => $post_fields_from_csv,
-			'post_id'              => $post_id,
-			'is_update'            => $is_update,
-		];
+		return $this->get_row_context_util()->build_import_row_context_array( $data, $post_fields_from_csv, $post_id, $is_update );
 	}
 
 	/**
@@ -403,12 +398,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array{post_id:int,is_update:bool}
 	 */
 	private function resolve_post_id_and_update_flag( wpdb $wpdb, string $update_existing, string $post_type, int $post_id_from_csv ): array {
-		$existing = $this->resolve_existing_post_for_import( $wpdb, $update_existing, $post_type, $post_id_from_csv );
-
-		return [
-			'post_id'   => $existing['post_id'],
-			'is_update' => $existing['is_update'],
-		];
+		return $this->get_row_context_util()->resolve_post_id_and_update_flag( $wpdb, $update_existing, $post_type, $post_id_from_csv );
 	}
 
 	/**
@@ -422,15 +412,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array{data:array<int,string>,post_id_from_csv:int,post_fields_from_csv:array<string,mixed>}
 	 */
 	private function parse_row_and_collect_post_fields( string $line, string $delimiter, array $headers, array $allowed_post_fields ): array {
-		$data                 = $this->get_parsed_csv_row( $line, $delimiter );
-		$post_id_from_csv     = $this->get_post_id_from_csv_row( $data );
-		$post_fields_from_csv = $this->get_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
-
-		return [
-			'data'                 => $data,
-			'post_id_from_csv'     => $post_id_from_csv,
-			'post_fields_from_csv' => $post_fields_from_csv,
-		];
+		return $this->get_row_context_util()->parse_row_and_collect_post_fields( $line, $delimiter, $headers, $allowed_post_fields );
 	}
 
 	/**
@@ -444,17 +426,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return string Post ID value from CSV (may be empty).
 	 */
 	private function get_post_id_from_csv_row( array $data ): string {
-		$first_col = $data[0] ?? '';
-
-		// First check if this looks like an ID row (first column is numeric ID)
-		if ( is_numeric( $first_col ) && strlen( (string) $first_col ) <= 6 ) {
-			// This is normal - most rows have ID in first column
-			// Don't skip - process the actual data
-		} else {
-			// Continue processing anyway
-		}
-
-		return (string) $first_col;
+		return $this->get_row_context_util()->get_post_id_from_csv_row( $data );
 	}
 
 	/**
@@ -484,7 +456,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array Parsed row data.
 	 */
 	private function get_parsed_csv_row( string $line, string $delimiter ): array {
-		return $this->parse_csv_row( $line, $delimiter );
+		return $this->get_row_context_util()->get_parsed_csv_row( $line, $delimiter );
 	}
 
 	/**
@@ -498,7 +470,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array{post_id:int,is_update:bool}
 	 */
 	private function resolve_existing_post_for_import( wpdb $wpdb, string $update_existing, string $post_type, string $post_id_from_csv ): array {
-		return $this->find_existing_post_for_update( $wpdb, $update_existing, $post_type, $post_id_from_csv );
+		return $this->get_row_context_util()->resolve_existing_post_for_import( $wpdb, $update_existing, $post_type, $post_id_from_csv );
 	}
 
 	/**
@@ -510,7 +482,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return bool True if the row should be skipped.
 	 */
 	private function should_skip_import_row( string $update_existing, array $post_fields_from_csv ): bool {
-		return null !== $this->get_skip_reason_for_import_row( $update_existing, $post_fields_from_csv );
+		return $this->get_row_context_util()->should_skip_import_row( $update_existing, $post_fields_from_csv );
 	}
 
 	/**
@@ -522,11 +494,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return string|null Null means do not skip.
 	 */
 	private function get_skip_reason_for_import_row( string $update_existing, array $post_fields_from_csv ): ?string {
-		if ( $this->should_skip_row_due_to_missing_title( $update_existing, $post_fields_from_csv ) ) {
-			return 'missing_title';
-		}
-
-		return null;
+		return $this->get_row_context_util()->get_skip_reason_for_import_row( $update_existing, $post_fields_from_csv );
 	}
 
 	/**
@@ -538,7 +506,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return bool True if the row context should be skipped.
 	 */
 	private function maybe_skip_import_row_context( string $update_existing, array $post_fields_from_csv ): bool {
-		return null !== $this->get_skip_reason_for_import_row( $update_existing, $post_fields_from_csv );
+		return $this->get_row_context_util()->maybe_skip_import_row_context( $update_existing, $post_fields_from_csv );
 	}
 
 	/**
@@ -551,7 +519,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array<string, mixed> Collected post fields.
 	 */
 	private function get_post_fields_from_csv_row( array $headers, array $data, array $allowed_post_fields ): array {
-		return $this->collect_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
+		return $this->get_row_context_util()->get_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
 	}
 
 	/**
@@ -1298,7 +1266,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return bool
 	 */
 	private function should_skip_row_due_to_missing_title( string $update_existing, array $post_fields_from_csv ): bool {
-		return $update_existing !== '1' && empty( $post_fields_from_csv['post_title'] );
+		return $this->get_row_context_util()->should_skip_row_due_to_missing_title( $update_existing, $post_fields_from_csv );
 	}
 
 	/**

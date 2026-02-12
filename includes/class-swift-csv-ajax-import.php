@@ -798,20 +798,22 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Process meta fields and taxonomies for a successful row import.
+	 * Process meta fields and taxonomies for a post.
 	 *
 	 * @since 0.9.0
-	 * @param int                $post_id Post ID.
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array              $data CSV row data.
-	 * @param array<int, string> $allowed_post_fields Allowed post fields.
-	 * @param string             $taxonomy_format Taxonomy format.
-	 * @param array              $taxonomy_format_validation Taxonomy format validation.
-	 * @param bool               $dry_run Dry run flag.
-	 * @param array<int, string> $dry_run_log Dry run log.
+	 * @param int                                                                                                                                                                     $post_id Post ID.
+	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
+	 * @param array<int, string>                                                                                                                                                      $dry_run_log Dry run log.
 	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>}
 	 */
-	private function process_meta_and_taxonomies_for_row( $post_id, $headers, $data, $allowed_post_fields, $taxonomy_format, $taxonomy_format_validation, $dry_run, &$dry_run_log ) {
+	private function process_meta_and_taxonomies_for_row( int $post_id, array $context, array &$dry_run_log ): array {
+		$headers                    = $context['headers'];
+		$data                       = $context['data'];
+		$allowed_post_fields        = $context['allowed_post_fields'];
+		$taxonomy_format            = $context['taxonomy_format'];
+		$taxonomy_format_validation = $context['taxonomy_format_validation'];
+		$dry_run                    = $context['dry_run'];
+
 		// Process custom fields and taxonomies like original Swift CSV
 		$collected_fields = $this->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
 		/**
@@ -886,7 +888,7 @@ class Swift_CSV_Ajax_Import {
 		}
 
 		// Process meta fields and taxonomies
-		$result = $this->process_meta_and_taxonomies_for_row( $post_id, $headers, $data, $allowed_post_fields, $taxonomy_format, $taxonomy_format_validation, $dry_run, $dry_run_log );
+		$result = $this->process_meta_and_taxonomies_for_row( $post_id, $context, $dry_run_log );
 
 		// Custom field processing hook for extensions
 		/**

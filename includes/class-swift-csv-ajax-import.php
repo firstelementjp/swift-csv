@@ -24,6 +24,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Ajax_Import {
 	/**
+	 * CSV utility instance.
+	 *
+	 * @since 0.9.0
+	 * @var Swift_CSV_Import_Csv|null
+	 */
+	private $csv_util;
+
+	/**
 	 * Constructor: Register AJAX hooks.
 	 *
 	 * @since 0.9.0
@@ -33,6 +41,19 @@ class Swift_CSV_Ajax_Import {
 		add_action( 'wp_ajax_nopriv_swift_csv_ajax_import', [ $this, 'import_handler' ] );
 		add_action( 'wp_ajax_swift_csv_ajax_upload', [ $this, 'upload_handler' ] );
 		add_action( 'wp_ajax_nopriv_swift_csv_ajax_upload', [ $this, 'upload_handler' ] );
+	}
+
+	/**
+	 * Get CSV utility instance.
+	 *
+	 * @since 0.9.0
+	 * @return Swift_CSV_Import_Csv
+	 */
+	private function get_csv_util(): Swift_CSV_Import_Csv {
+		if ( null === $this->csv_util ) {
+			$this->csv_util = new Swift_CSV_Import_Csv();
+		}
+		return $this->csv_util;
 	}
 
 	/**
@@ -247,7 +268,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param string                                                                                                                           $delimiter CSV delimiter.
 	 * @param array<int, string>                                                                                                               $headers CSV headers.
 	 * @param array<int, string>                                                                                                               $allowed_post_fields Allowed post fields.
-	 * @return array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int,is_update:bool}|null Null means skip this row.
+	 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int,is_update:bool}|null Null means skip this row.
 	 */
 	private function build_import_row_context_from_config( wpdb $wpdb, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
 		return $this->build_import_row_context(
@@ -333,7 +354,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param array<int, string> $allowed_post_fields Allowed post fields.
 	 * @param string             $update_existing Update flag from request.
 	 * @param string             $post_type Post type.
-	 * @return array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}|null Null means skip this row.
+	 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}|null Null means skip this row.
 	 */
 	private function build_import_row_context( wpdb $wpdb, string $line, string $delimiter, array $headers, array $allowed_post_fields, string $update_existing, string $post_type ): ?array {
 		$parsed               = $this->parse_row_and_collect_post_fields( $line, $delimiter, $headers, $allowed_post_fields );
@@ -356,11 +377,11 @@ class Swift_CSV_Ajax_Import {
 	 * Build the import row context array.
 	 *
 	 * @since 0.9.0
-	 * @param array<string, mixed> $data Parsed CSV row data.
+	 * @param array<int, string>   $data Parsed CSV row data.
 	 * @param array<string, mixed> $post_fields_from_csv Post fields collected from CSV.
 	 * @param int|null             $post_id Resolved target post ID.
 	 * @param bool                 $is_update Whether this row is an update.
-	 * @return array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}
+	 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}
 	 */
 	private function build_import_row_context_array( array $data, array $post_fields_from_csv, ?int $post_id, bool $is_update ): array {
 		return [
@@ -398,7 +419,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param string             $delimiter CSV delimiter.
 	 * @param array<int, string> $headers CSV headers.
 	 * @param array<int, string> $allowed_post_fields Allowed post fields.
-	 * @return array{data:array,post_id_from_csv:int,post_fields_from_csv:array<string,mixed>}
+	 * @return array{data:array<int,string>,post_id_from_csv:int,post_fields_from_csv:array<string,mixed>}
 	 */
 	private function parse_row_and_collect_post_fields( string $line, string $delimiter, array $headers, array $allowed_post_fields ): array {
 		$data                 = $this->get_parsed_csv_row( $line, $delimiter );
@@ -992,7 +1013,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array<int, string>
 	 */
 	private function parse_csv_lines_preserving_quoted_newlines( string $csv_content ): array {
-		return Swift_CSV_Helper::parse_csv_lines_preserving_quoted_newlines( $csv_content );
+		return $this->get_csv_util()->parse_csv_lines_preserving_quoted_newlines( $csv_content );
 	}
 
 	/**
@@ -1003,7 +1024,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return string
 	 */
 	private function detect_csv_delimiter( array $lines ): string {
-		return Swift_CSV_Helper::detect_csv_delimiter( $lines );
+		return $this->get_csv_util()->detect_csv_delimiter( $lines );
 	}
 
 	/**
@@ -1015,20 +1036,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array<int, string>
 	 */
 	private function read_and_normalize_headers( array &$lines, string $delimiter ): array {
-		$headers = str_getcsv( array_shift( $lines ), $delimiter );
-		// Normalize headers - remove BOM and control characters
-		$headers = array_map(
-			function ( $header ): string {
-				$header = (string) $header;
-				// Remove BOM (UTF-8 BOM is \xEF\xBB\xBF)
-				$header = preg_replace( '/^\xEF\xBB\xBF/', '', $header );
-				// Remove other control characters
-				return preg_replace( '/[\x00-\x1F\x7F]/u', '', trim( $header ?? '' ) );
-			},
-			$headers
-		);
-
-		return $headers;
+		return $this->get_csv_util()->read_and_normalize_headers( $lines, $delimiter );
 	}
 
 	/**
@@ -1164,7 +1172,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return int
 	 */
 	private function count_total_rows( array $lines ): int {
-		return Swift_CSV_Helper::count_data_rows( $lines );
+		return $this->get_csv_util()->count_total_rows( $lines );
 	}
 
 	/**
@@ -1194,7 +1202,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return array<int, string>
 	 */
 	private function parse_csv_row( string $line, string $delimiter ): array {
-		return Swift_CSV_Helper::parse_csv_row( $line, $delimiter );
+		return $this->get_csv_util()->parse_csv_row( $line, $delimiter );
 	}
 
 	/**
@@ -1205,7 +1213,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return bool
 	 */
 	private function is_empty_csv_line( string $line ): bool {
-		return Swift_CSV_Helper::is_empty_csv_line( $line );
+		return $this->get_csv_util()->is_empty_csv_line( $line );
 	}
 
 	/**

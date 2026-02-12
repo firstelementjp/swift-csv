@@ -235,17 +235,31 @@ class Swift_CSV_Ajax_Import {
 		$this->process_row_context(
 			$wpdb,
 			$row_context,
-			[
-				'post_type'                  => (string) ( $config['post_type'] ?? 'post' ),
-				'dry_run'                    => (bool) ( $config['dry_run'] ?? false ),
-				'headers'                    => $headers,
-				'allowed_post_fields'        => $allowed_post_fields,
-				'taxonomy_format'            => (string) ( $config['taxonomy_format'] ?? 'name' ),
-				'taxonomy_format_validation' => $csv_data['taxonomy_format_validation'] ?? [],
-			],
+			$this->build_row_processing_context( $config, $csv_data, $headers, $allowed_post_fields ),
 			$dry_run_log,
 			$counters
 		);
+	}
+
+	/**
+	 * Build the per-row processing context.
+	 *
+	 * @since 0.9.0
+	 * @param array              $config Import configuration.
+	 * @param array              $csv_data Parsed CSV data.
+	 * @param array<int, string> $headers CSV headers.
+	 * @param array<int, string> $allowed_post_fields Allowed post fields.
+	 * @return array{post_type:string,dry_run:bool,headers:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array}
+	 */
+	private function build_row_processing_context( array $config, array $csv_data, array $headers, array $allowed_post_fields ): array {
+		return [
+			'post_type'                  => (string) ( $config['post_type'] ?? 'post' ),
+			'dry_run'                    => (bool) ( $config['dry_run'] ?? false ),
+			'headers'                    => $headers,
+			'allowed_post_fields'        => $allowed_post_fields,
+			'taxonomy_format'            => (string) ( $config['taxonomy_format'] ?? 'name' ),
+			'taxonomy_format_validation' => $csv_data['taxonomy_format_validation'] ?? [],
+		];
 	}
 
 	/**

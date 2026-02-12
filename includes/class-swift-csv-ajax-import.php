@@ -422,79 +422,6 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Build per-row import context (parse row, collect fields, resolve existing post, validate).
-	 *
-	 * @since 0.9.0
-	 * @param wpdb               $wpdb WordPress database handler.
-	 * @param string             $line Raw CSV line.
-	 * @param string             $delimiter CSV delimiter.
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array<int, string> $allowed_post_fields Allowed post fields.
-	 * @param string             $update_existing Update flag from request.
-	 * @param string             $post_type Post type.
-	 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}|null Null means skip this row.
-	 */
-	private function build_import_row_context( wpdb $wpdb, string $line, string $delimiter, array $headers, array $allowed_post_fields, string $update_existing, string $post_type ): ?array {
-		return $this->get_row_context_util()->build_import_row_context( $wpdb, $line, $delimiter, $headers, $allowed_post_fields, $update_existing, $post_type );
-	}
-
-	/**
-	 * Build the import row context array.
-	 *
-	 * @since 0.9.0
-	 * @param array<int, string>   $data Parsed CSV row data.
-	 * @param array<string, mixed> $post_fields_from_csv Post fields collected from CSV.
-	 * @param int|null             $post_id Resolved target post ID.
-	 * @param bool                 $is_update Whether this row is an update.
-	 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}
-	 */
-	private function build_import_row_context_array( array $data, array $post_fields_from_csv, ?int $post_id, bool $is_update ): array {
-		return $this->get_row_context_util()->build_import_row_context_array( $data, $post_fields_from_csv, $post_id, $is_update );
-	}
-
-	/**
-	 * Resolve target post ID and whether the row should be treated as an update.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb   $wpdb WordPress database handler.
-	 * @param string $update_existing Update flag from request.
-	 * @param string $post_type Post type.
-	 * @param int    $post_id_from_csv Post ID value from CSV.
-	 * @return array{post_id:int,is_update:bool}
-	 */
-	private function resolve_post_id_and_update_flag( wpdb $wpdb, string $update_existing, string $post_type, int $post_id_from_csv ): array {
-		return $this->get_row_context_util()->resolve_post_id_and_update_flag( $wpdb, $update_existing, $post_type, $post_id_from_csv );
-	}
-
-	/**
-	 * Parse a CSV line and collect post fields.
-	 *
-	 * @since 0.9.0
-	 * @param string             $line Raw CSV line.
-	 * @param string             $delimiter CSV delimiter.
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array<int, string> $allowed_post_fields Allowed post fields.
-	 * @return array{data:array<int,string>,post_id_from_csv:int,post_fields_from_csv:array<string,mixed>}
-	 */
-	private function parse_row_and_collect_post_fields( string $line, string $delimiter, array $headers, array $allowed_post_fields ): array {
-		return $this->get_row_context_util()->parse_row_and_collect_post_fields( $line, $delimiter, $headers, $allowed_post_fields );
-	}
-
-	/**
-	 * Get post ID value from parsed CSV row.
-	 *
-	 * Note: This method intentionally preserves the current behavior.
-	 * It performs a lightweight sanity check but does not skip rows.
-	 *
-	 * @since 0.9.0
-	 * @param array $data Parsed CSV row.
-	 * @return string Post ID value from CSV (may be empty).
-	 */
-	private function get_post_id_from_csv_row( array $data ): string {
-		return $this->get_row_context_util()->get_post_id_from_csv_row( $data );
-	}
-
-	/**
 	 * Skip empty CSV line and update processed counter.
 	 *
 	 * @since 0.9.0
@@ -510,81 +437,6 @@ class Swift_CSV_Ajax_Import {
 
 		++$processed; // Count empty lines as processed to avoid infinite loop
 		return true;
-	}
-
-	/**
-	 * Parse one CSV row string into an array.
-	 *
-	 * @since 0.9.0
-	 * @param string $line Raw CSV line.
-	 * @param string $delimiter CSV delimiter.
-	 * @return array Parsed row data.
-	 */
-	private function get_parsed_csv_row( string $line, string $delimiter ): array {
-		return $this->get_row_context_util()->get_parsed_csv_row( $line, $delimiter );
-	}
-
-	/**
-	 * Resolve whether a CSV row should update an existing post.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb   $wpdb WordPress database handler.
-	 * @param string $update_existing Update flag from request.
-	 * @param string $post_type Post type.
-	 * @param string $post_id_from_csv Post ID from CSV (first column).
-	 * @return array{post_id:int,is_update:bool}
-	 */
-	private function resolve_existing_post_for_import( wpdb $wpdb, string $update_existing, string $post_type, string $post_id_from_csv ): array {
-		return $this->get_row_context_util()->resolve_existing_post_for_import( $wpdb, $update_existing, $post_type, $post_id_from_csv );
-	}
-
-	/**
-	 * Determine whether the current CSV row should be skipped during import.
-	 *
-	 * @since 0.9.0
-	 * @param string $update_existing Update flag from request.
-	 * @param array  $post_fields_from_csv Post fields collected from CSV.
-	 * @return bool True if the row should be skipped.
-	 */
-	private function should_skip_import_row( string $update_existing, array $post_fields_from_csv ): bool {
-		return $this->get_row_context_util()->should_skip_import_row( $update_existing, $post_fields_from_csv );
-	}
-
-	/**
-	 * Get skip reason for import row.
-	 *
-	 * @since 0.9.0
-	 * @param string $update_existing Update flag from request.
-	 * @param array  $post_fields_from_csv Post fields collected from CSV.
-	 * @return string|null Null means do not skip.
-	 */
-	private function get_skip_reason_for_import_row( string $update_existing, array $post_fields_from_csv ): ?string {
-		return $this->get_row_context_util()->get_skip_reason_for_import_row( $update_existing, $post_fields_from_csv );
-	}
-
-	/**
-	 * Determine whether the import row context should be skipped.
-	 *
-	 * @since 0.9.0
-	 * @param string $update_existing Update flag from request.
-	 * @param array  $post_fields_from_csv Post fields collected from CSV.
-	 * @return bool True if the row context should be skipped.
-	 */
-	private function maybe_skip_import_row_context( string $update_existing, array $post_fields_from_csv ): bool {
-		return $this->get_row_context_util()->maybe_skip_import_row_context( $update_existing, $post_fields_from_csv );
-	}
-
-	/**
-	 * Get post fields array from a parsed CSV row.
-	 *
-	 * @since 0.9.0
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array              $data Parsed CSV row data.
-	 * @param array<int, string> $allowed_post_fields Allowed post fields.
-	 * @return array<string, mixed> Collected post fields.
-	 */
-	private function get_post_fields_from_csv_row( array $headers, array $data, array $allowed_post_fields ): array {
-		return $this->get_row_context_util()->get_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
 	}
 
 	/**
@@ -1224,18 +1076,6 @@ class Swift_CSV_Ajax_Import {
 			'post_id'   => $post_id,
 			'is_update' => $is_update,
 		];
-	}
-
-	/**
-	 * Determine whether to skip row due to missing title.
-	 *
-	 * @since 0.9.0
-	 * @param string                $update_existing Update flag.
-	 * @param array<string, string> $post_fields_from_csv Post fields.
-	 * @return bool
-	 */
-	private function should_skip_row_due_to_missing_title( string $update_existing, array $post_fields_from_csv ): bool {
-		return $this->get_row_context_util()->should_skip_row_due_to_missing_title( $update_existing, $post_fields_from_csv );
 	}
 
 	/**

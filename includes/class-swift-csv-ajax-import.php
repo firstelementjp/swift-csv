@@ -250,19 +250,19 @@ class Swift_CSV_Ajax_Import {
 	 * Process an import row context by running per-row import logic.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb                                                                    $wpdb WordPress database handler.
-	 * @param array{data:array,post_fields_from_csv:array,post_id:int,is_update:bool} $row_context Row context.
-	 * @param string                                                                  $post_type Post type.
-	 * @param bool                                                                    $dry_run Whether this is a dry run.
-	 * @param array<int, string>                                                      $dry_run_log Dry run log (by reference).
-	 * @param array<int, string>                                                      $headers CSV headers.
-	 * @param array<int, string>                                                      $allowed_post_fields Allowed post fields.
-	 * @param string                                                                  $taxonomy_format Taxonomy format.
-	 * @param array                                                                   $taxonomy_format_validation Taxonomy format validation.
-	 * @param int                                                                     $processed Processed count (by reference).
-	 * @param int                                                                     $created Created count (by reference).
-	 * @param int                                                                     $updated Updated count (by reference).
-	 * @param int                                                                     $errors Error count (by reference).
+	 * @param wpdb                                                                                  $wpdb WordPress database handler.
+	 * @param array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int,is_update:bool} $row_context Row context.
+	 * @param string                                                                                $post_type Post type.
+	 * @param bool                                                                                  $dry_run Whether this is a dry run.
+	 * @param array<int, string>                                                                    $dry_run_log Dry run log (by reference).
+	 * @param array<int, string>                                                                    $headers CSV headers.
+	 * @param array<int, string>                                                                    $allowed_post_fields Allowed post fields.
+	 * @param string                                                                                $taxonomy_format Taxonomy format.
+	 * @param array                                                                                 $taxonomy_format_validation Taxonomy format validation.
+	 * @param int                                                                                   $processed Processed count (by reference).
+	 * @param int                                                                                   $created Created count (by reference).
+	 * @param int                                                                                   $updated Updated count (by reference).
+	 * @param int                                                                                   $errors Error count (by reference).
 	 * @return void
 	 */
 	private function process_row_context(
@@ -274,7 +274,7 @@ class Swift_CSV_Ajax_Import {
 		array $headers,
 		array $allowed_post_fields,
 		string $taxonomy_format,
-		$taxonomy_format_validation,
+		array $taxonomy_format_validation,
 		int &$processed,
 		int &$created,
 		int &$updated,
@@ -316,7 +316,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param array<int, string> $allowed_post_fields Allowed post fields.
 	 * @param string             $update_existing Update flag from request.
 	 * @param string             $post_type Post type.
-	 * @return array{data:array,post_fields_from_csv:array,post_id:int,is_update:bool}|null Null means skip this row.
+	 * @return array{data:array,post_fields_from_csv:array<string,mixed>,post_id:int,is_update:bool}|null Null means skip this row.
 	 */
 	private function build_import_row_context( wpdb $wpdb, string $line, string $delimiter, array $headers, array $allowed_post_fields, string $update_existing, string $post_type ) {
 		$data             = $this->get_parsed_csv_row( $line, $delimiter );

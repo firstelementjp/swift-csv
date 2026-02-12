@@ -107,11 +107,11 @@ class Swift_CSV_Ajax_Import {
 	 * Parse and validate CSV file.
 	 *
 	 * @since 0.9.0
-	 * @param string $file_path Temporary file path.
+	 * @param string $file_path Temporary file path for cleanup.
 	 * @param string $taxonomy_format Taxonomy format.
 	 * @return array{lines:array,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array}|null
 	 */
-	private function parse_and_validate_csv( $file_path, $taxonomy_format ) {
+	private function parse_and_validate_csv( string $file_path, string $taxonomy_format ): ?array {
 		$csv_content = $this->read_uploaded_csv_content_or_send_error_and_cleanup( $file_path );
 		if ( null === $csv_content ) {
 			return null;
@@ -144,12 +144,12 @@ class Swift_CSV_Ajax_Import {
 	 * Process batch of CSV rows.
 	 *
 	 * @since 0.9.0
-	 * @param array $config Import configuration.
-	 * @param array $csv_data Parsed CSV data.
-	 * @param array $counters Counters (by reference).
+	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool} $config Import configuration.
+	 * @param array{lines:array<int,string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array,total_rows:int}        $csv_data Parsed CSV data.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                            $counters Counters (by reference).
 	 * @return void
 	 */
-	private function process_batch_import( $config, $csv_data, &$counters ) {
+	private function process_batch_import( array $config, array $csv_data, array &$counters ): void {
 		global $wpdb;
 
 		$allowed_post_fields = $this->get_allowed_post_fields();
@@ -1159,7 +1159,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param array<int, string> $lines CSV lines.
 	 * @return int
 	 */
-	private function count_total_rows( $lines ) {
+	private function count_total_rows( array $lines ): int {
 		return Swift_CSV_Helper::count_data_rows( $lines );
 	}
 
@@ -1187,9 +1187,9 @@ class Swift_CSV_Ajax_Import {
 	 * @since 0.9.0
 	 * @param string $line CSV line.
 	 * @param string $delimiter CSV delimiter.
-	 * @return array
+	 * @return array<int, string>
 	 */
-	private function parse_csv_row( $line, $delimiter ) {
+	private function parse_csv_row( string $line, string $delimiter ): array {
 		return Swift_CSV_Helper::parse_csv_row( $line, $delimiter );
 	}
 
@@ -1200,7 +1200,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param string $line CSV line.
 	 * @return bool
 	 */
-	private function is_empty_csv_line( $line ) {
+	private function is_empty_csv_line( string $line ): bool {
 		return Swift_CSV_Helper::is_empty_csv_line( $line );
 	}
 

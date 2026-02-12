@@ -742,13 +742,13 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Send import progress response.
+	 * Send JSON response for import progress.
 	 *
 	 * @since 0.9.0
 	 * @param int                $start_row Start row.
 	 * @param int                $processed Processed count.
 	 * @param int                $total_rows Total rows.
-	 * @param int                $errors Errors count.
+	 * @param int                $errors Error count.
 	 * @param int                $created Created count.
 	 * @param int                $updated Updated count.
 	 * @param int                $previous_created Previous cumulative created.
@@ -758,7 +758,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param array<int, string> $dry_run_log Dry run log.
 	 * @return void
 	 */
-	private function send_import_progress_response( $start_row, $processed, $total_rows, $errors, $created, $updated, $previous_created, $previous_updated, $previous_errors, $dry_run, $dry_run_log ) {
+	private function send_import_progress_response( int $start_row, int $processed, int $total_rows, int $errors, int $created, int $updated, int $previous_created, int $previous_updated, int $previous_errors, bool $dry_run, array $dry_run_log ): void {
 		$next_row = $start_row + $processed; // Use actual processed count
 		$continue = $next_row < $total_rows;
 

@@ -1272,11 +1272,8 @@ class Swift_CSV_Ajax_Import {
 	 * @param array<string, string> $post_fields_from_csv Post fields.
 	 * @return bool
 	 */
-	private function should_skip_row_due_to_missing_title( $update_existing, $post_fields_from_csv ) {
-		if ( $update_existing !== '1' && empty( $post_fields_from_csv['post_title'] ) ) {
-			return true;
-		}
-		return false;
+	private function should_skip_row_due_to_missing_title( string $update_existing, array $post_fields_from_csv ): bool {
+		return $update_existing !== '1' && empty( $post_fields_from_csv['post_title'] );
 	}
 
 	/**

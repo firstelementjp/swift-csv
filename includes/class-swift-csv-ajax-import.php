@@ -178,7 +178,7 @@ class Swift_CSV_Ajax_Import {
 			$post_fields_from_csv = $this->collect_post_fields_from_csv_row( $csv_data['headers'], $data, $allowed_post_fields );
 
 			// Check for existing post by CSV ID (only if update_existing is checked)
-			$existing  = $this->find_existing_post_for_update( $wpdb, $config['update_existing'], $config['post_type'], $post_id_from_csv );
+			$existing  = $this->resolve_existing_post_for_import( $wpdb, $config['update_existing'], $config['post_type'], $post_id_from_csv );
 			$post_id   = $existing['post_id'];
 			$is_update = $existing['is_update'];
 
@@ -230,6 +230,20 @@ class Swift_CSV_Ajax_Import {
 		}
 
 		return (string) $first_col;
+	}
+
+	/**
+	 * Resolve whether a CSV row should update an existing post.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb   $wpdb WordPress database handler.
+	 * @param string $update_existing Update flag from request.
+	 * @param string $post_type Post type.
+	 * @param string $post_id_from_csv Post ID from CSV (first column).
+	 * @return array{post_id:int,is_update:bool}
+	 */
+	private function resolve_existing_post_for_import( wpdb $wpdb, string $update_existing, string $post_type, string $post_id_from_csv ): array {
+		return $this->find_existing_post_for_update( $wpdb, $update_existing, $post_type, $post_id_from_csv );
 	}
 
 	/**

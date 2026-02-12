@@ -1476,7 +1476,7 @@ class Swift_CSV_Ajax_Import {
 				continue; // Skip empty fields
 			}
 
-			$meta_value = $data[ $j ];
+			$meta_value = (string) ( $data[ $j ] ?? '' );
 
 			// Handle regular custom fields (cf_<field> => <field>) ONLY
 			// Skip all other fields - only process cf_ prefixed fields

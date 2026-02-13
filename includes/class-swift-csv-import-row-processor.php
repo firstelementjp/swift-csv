@@ -21,6 +21,30 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Import_Row_Processor {
 	/**
+	 * Apply success side effects for a row (counters and GUID update) without callbacks.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb                                                                                  $wpdb WordPress database handler.
+	 * @param int                                                                                   $post_id Post ID.
+	 * @param bool                                                                                  $is_update Whether this row updated an existing post.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>} $counters Counters (by reference).
+	 * @return void
+	 */
+	public function apply_success_counters_and_guid_without_callbacks( wpdb $wpdb, int $post_id, bool $is_update, array &$counters ): void {
+		$processed = &$counters['processed'];
+		$created   = &$counters['created'];
+		$updated   = &$counters['updated'];
+
+		++$processed;
+		if ( $is_update ) {
+			++$updated;
+		} else {
+			++$created;
+			Swift_CSV_Helper::update_guid_for_new_post( $wpdb, $post_id );
+		}
+	}
+
+	/**
 	 * Apply success side effects for a row (counters and GUID update).
 	 *
 	 * @since 0.9.0

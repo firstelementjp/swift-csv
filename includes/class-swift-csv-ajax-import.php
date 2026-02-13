@@ -555,17 +555,11 @@ class Swift_CSV_Ajax_Import {
 		$taxonomy_format_validation = $context['taxonomy_format_validation'];
 		$dry_run                    = $context['dry_run'];
 
-		$this->get_row_processor_util()->apply_success_counters_and_guid(
+		$this->get_row_processor_util()->apply_success_counters_and_guid_without_callbacks(
 			$wpdb,
 			$post_id,
 			$is_update,
-			$counters,
-			function ( bool $is_update, int &$processed, int &$created, int &$updated ): void {
-				$this->increment_row_counters_on_success( $is_update, $processed, $created, $updated );
-			},
-			function ( wpdb $wpdb, int $post_id ): void {
-				Swift_CSV_Helper::update_guid_for_new_post( $wpdb, $post_id );
-			}
+			$counters
 		);
 
 		// Process meta fields and taxonomies
@@ -597,25 +591,6 @@ class Swift_CSV_Ajax_Import {
 	 */
 	private function run_custom_field_processing_hook( int $post_id, array $meta_fields ): void {
 		do_action( 'swift_csv_process_custom_fields', $post_id, $meta_fields );
-	}
-
-	/**
-	 * Increment counters on successful row import.
-	 *
-	 * @since 0.9.0
-	 * @param bool $is_update Whether this row updated an existing post.
-	 * @param int  $processed Processed count (by reference).
-	 * @param int  $created Created count (by reference).
-	 * @param int  $updated Updated count (by reference).
-	 * @return void
-	 */
-	private function increment_row_counters_on_success( bool $is_update, int &$processed, int &$created, int &$updated ): void {
-		++$processed;
-		if ( $is_update ) {
-			++$updated;
-		} else {
-			++$created;
-		}
 	}
 
 	/**

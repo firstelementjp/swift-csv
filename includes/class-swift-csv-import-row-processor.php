@@ -77,6 +77,27 @@ class Swift_CSV_Import_Row_Processor {
 	}
 
 	/**
+	 * Handle row result after persisting wp_posts data without callbacks.
+	 *
+	 * This method returns whether the persist step succeeded, and increments the
+	 * error counter on failure.
+	 *
+	 * @since 0.9.0
+	 * @param int|false                                                                             $result DB result.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>} $counters Counters (by reference).
+	 * @return bool True if persist succeeded.
+	 */
+	public function handle_row_result_after_persist_without_callbacks( $result, array &$counters ): bool {
+		$errors = &$counters['errors'];
+		if ( $result !== false ) {
+			return true;
+		}
+
+		++$errors;
+		return false;
+	}
+
+	/**
 	 * Process an import row context by running per-row import logic.
 	 *
 	 * @since 0.9.0
@@ -198,7 +219,10 @@ class Swift_CSV_Import_Row_Processor {
 				return $persister->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
 			},
 			function ( $result, wpdb $wpdb, bool $is_update, int $post_id, array $context, array &$counters ) use ( $handle_successful_row_import ): void {
-				$this->handle_row_result_after_persist( $result, $wpdb, $is_update, $post_id, $context, $counters, $handle_successful_row_import );
+				if ( ! $this->handle_row_result_after_persist_without_callbacks( $result, $counters ) ) {
+					return;
+				}
+				$handle_successful_row_import( $wpdb, $post_id, $is_update, $context, $counters );
 			}
 		);
 	}

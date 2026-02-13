@@ -45,38 +45,6 @@ class Swift_CSV_Import_Row_Processor {
 	}
 
 	/**
-	 * Handle row result after persisting wp_posts data.
-	 *
-	 * @since 0.9.0
-	 * @param int|false                                                                                                                                                                                                                                                                                               $result DB result.
-	 * @param wpdb                                                                                                                                                                                                                                                                                                    $wpdb WordPress database handler.
-	 * @param bool                                                                                                                                                                                                                                                                                                    $is_update Whether this row updates an existing post.
-	 * @param int                                                                                                                                                                                                                                                                                                     $post_id Post ID.
-	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array}                                                                                                                     $context Context values for row processing.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                                                                                                                                                   $counters Counters (by reference).
-	 * @param callable(wpdb,int,bool,array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array},array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}): void $handle_successful_row_import Success handler.
-	 * @return void
-	 */
-	public function handle_row_result_after_persist(
-		$result,
-		wpdb $wpdb,
-		bool $is_update,
-		int $post_id,
-		array $context,
-		array &$counters,
-		callable $handle_successful_row_import
-	): void {
-		$errors = &$counters['errors'];
-
-		if ( $result !== false ) {
-			$handle_successful_row_import( $wpdb, $post_id, $is_update, $context, $counters );
-			return;
-		}
-
-		++$errors;
-	}
-
-	/**
 	 * Handle row result after persisting wp_posts data without callbacks.
 	 *
 	 * This method returns whether the persist step succeeded, and increments the

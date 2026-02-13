@@ -1028,78 +1028,17 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Execute post update.
+	 * Handle error and cleanup.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb                 $wpdb WordPress DB instance.
-	 * @param int|null             $post_id Post ID.
-	 * @param array<string, mixed> $post_data Post data.
-	 * @param bool                 $dry_run Dry run flag.
-	 * @param array<int, string>   $dry_run_log Dry run log.
-	 * @return int|false
+	 * @param string $error_message Error message.
+	 * @param string $file_path     Temporary file path for cleanup.
+	 * @return void
 	 */
-	private function execute_post_update( $wpdb, $post_id, $post_data, $dry_run, &$dry_run_log ) {
-		if ( empty( $post_data ) ) {
-			return 0;
+	private function handle_error_and_cleanup( string $error_message, string $file_path = '' ): void {
+		if ( ! empty( $file_path ) ) {
+			@unlink( $file_path );
 		}
-
-		$post_data_formats = [];
-		foreach ( array_keys( $post_data ) as $key ) {
-			$post_data_formats[] = in_array( $key, [ 'post_author', 'post_parent', 'menu_order' ], true ) ? '%d' : '%s';
-		}
-
-		if ( $dry_run ) {
-			error_log( "[Dry Run] Would update post ID: {$post_id} with title: " . ( $post_data['post_title'] ?? 'Untitled' ) );
-			$dry_run_log[] = sprintf(
-				/* translators: 1: post ID, 2: post title */
-				__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ),
-				$post_id,
-				$post_data['post_title'] ?? 'Untitled'
-			);
-			return 1;
-		}
-
-		return $wpdb->update(
-			$wpdb->posts,
-			$post_data,
-			[ 'ID' => $post_id ],
-			$post_data_formats,
-			[ '%d' ]
-		);
-	}
-
-	/**
-	 * Execute post insert.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb                 $wpdb WordPress DB instance.
-	 * @param array<string, mixed> $post_data Post data.
-	 * @param bool                 $dry_run Dry run flag.
-	 * @param array<int, string>   $dry_run_log Dry run log.
-	 * @param int|null             $post_id Post ID.
-	 * @return int|false
-	 */
-	private function execute_post_insert( $wpdb, $post_data, $dry_run, &$dry_run_log, &$post_id ) {
-		$post_data_formats = [];
-		foreach ( array_keys( $post_data ) as $key ) {
-			$post_data_formats[] = in_array( $key, [ 'post_author', 'post_parent', 'menu_order' ], true ) ? '%d' : '%s';
-		}
-
-		if ( $dry_run ) {
-			error_log( '[Dry Run] Would create new post with title: ' . ( $post_data['post_title'] ?? 'Untitled' ) );
-			$dry_run_log[] = sprintf(
-				/* translators: 1: post title */
-				__( 'New post: title=%1$s', 'swift-csv' ),
-				$post_data['post_title'] ?? 'Untitled'
-			);
-			$post_id = 0;
-			return 1;
-		}
-
-		$result = $wpdb->insert( $wpdb->posts, $post_data, $post_data_formats );
-		if ( $result !== false ) {
-			$post_id = $wpdb->insert_id;
-		}
-		return $result;
+		Swift_CSV_Helper::send_error_response( $error_message );
 	}
 }

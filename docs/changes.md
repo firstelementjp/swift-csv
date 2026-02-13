@@ -1,5 +1,17 @@
 # 📋 Changelog
 
+## [0.9.6] - 2026-02-13
+
+### Improvements
+
+- **Import refactoring** - Split responsibilities into utility classes for better maintainability
+
+### Technical Debt
+
+- **Release cleanup** - Removed unconditional server/client debug logs for normal usage
+
+---
+
 ## [0.9.5] - 2026-02-08
 
 ### Improvements

@@ -252,7 +252,6 @@ class Swift_CSV_Import_Meta_Tax {
 		}
 
 		if ( $dry_run ) {
-			error_log( "[Dry Run] Would set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
 			foreach ( $term_ids as $term_id ) {
 				$term = get_term( $term_id, $taxonomy );
 				if ( $term && ! is_wp_error( $term ) ) {
@@ -269,7 +268,6 @@ class Swift_CSV_Import_Meta_Tax {
 		}
 
 		wp_set_post_terms( $post_id, $term_ids, $taxonomy, false );
-		error_log( "[Swift CSV] Set terms for post {$post_id}: " . implode( ', ', $term_ids ) );
 	}
 
 	/**
@@ -293,8 +291,6 @@ class Swift_CSV_Import_Meta_Tax {
 			}
 
 			if ( ! empty( $terms ) ) {
-				error_log( "[Swift CSV] Processing taxonomy: {$taxonomy}, format: {$taxonomy_format}" );
-
 				$term_ids = $this->resolve_taxonomy_term_ids( $taxonomy, $terms, $taxonomy_format, $taxonomy_format_validation );
 				$this->apply_taxonomy_terms_to_post( $post_id, $taxonomy, $term_ids, $dry_run, $dry_run_log );
 			}
@@ -312,11 +308,7 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @return array<int, int>
 	 */
 	public function resolve_term_ids_for_term_value( string $taxonomy, string $term_value, string $taxonomy_format, array $taxonomy_format_validation ): array {
-		error_log( "[Swift CSV] Processing term value: '{$term_value}' with format: {$taxonomy_format}" );
-
 		$term_ids = Swift_CSV_Helper::resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
-
-		error_log( '[Swift CSV] Resolved ' . count( $term_ids ) . " term IDs for value '{$term_value}'" );
 
 		return $term_ids;
 	}
@@ -346,8 +338,6 @@ class Swift_CSV_Import_Meta_Tax {
 			}
 
 			if ( $dry_run ) {
-				error_log( "[Dry Run] Would process custom field: {$key} = {$value}" );
-
 				// Handle multi-value custom fields (pipe-separated)
 				if ( strpos( $value, '|' ) !== false ) {
 					$values = array_map( 'trim', explode( '|', $value ) );

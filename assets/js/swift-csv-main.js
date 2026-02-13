@@ -34,19 +34,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	// Initialize modules when available
 	const initializeModules = () => {
-		console.log('initializeModules() called'); // Debug log
-
 		// Wait for all modules to be loaded
 		const checkModules = () => {
-			console.log('checkModules() called'); // Debug log
-			console.log('Available modules:', {
-				// Debug log
-				SwiftCSVCore: !!window.SwiftCSVCore,
-				SwiftCSVExport: !!window.SwiftCSVExport,
-				SwiftCSVImport: !!window.SwiftCSVImport,
-				SwiftCSVLicense: !!window.SwiftCSVLicense,
-			});
-
 			if (
 				window.SwiftCSVCore &&
 				window.SwiftCSVExport &&
@@ -54,13 +43,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				window.SwiftCSVLicense
 			) {
 				// All modules are available, initialize them
-				console.log('All modules available, initializing...'); // Debug log
-
 				if (window.SwiftCSVImport) {
-					console.log('Calling SwiftCSVImport.initFileUpload()'); // Debug log
 					window.SwiftCSVImport.initFileUpload();
-				} else {
-					console.log('SwiftCSVImport module not found'); // Debug log
 				}
 
 				// Ajax export functionality
@@ -101,15 +85,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	};
 
 	// Wait for modules to be loaded
-	console.log('Setting up module initialization...'); // Debug log
-	console.log('Document readyState:', document.readyState); // Debug log
-
 	if (document.readyState === 'loading') {
-		console.log('Document is loading, waiting for DOMContentLoaded'); // Debug log
 		document.addEventListener('DOMContentLoaded', initializeModules);
 	} else {
 		// Fallback: try immediately
-		console.log('Document already loaded, calling initializeModules immediately'); // Debug log
 		setTimeout(initializeModules, 100);
 	}
 });

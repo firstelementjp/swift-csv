@@ -3,8 +3,8 @@
 ![Swift CSV Banner](https://github.com/firstelementjp/swift-csv/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
 
 [![License](https://img.shields.io/badge/license-GPL--2.0%2B-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.9.5-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
-[![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
+[![Version](https://img.shields.io/badge/version-0.9.6-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
+[![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org/)
 
 <!-- WordPress.org badges - Uncomment when plugin is accepted to official directory -->
 <!-- [![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/swift-csv.svg?style=flat-square)](https://wordpress.org/plugins/swift-csv/) -->
@@ -37,7 +37,7 @@ A lightweight and simple CSV import/export plugin for WordPress. Full support fo
 
 ### Manual Installation
 
-1. [Download swift-csv-v0.9.5.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.5/swift-csv-v0.9.5.zip) ⭐ **Recommended**
+1. [Download swift-csv-v0.9.6.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.6/swift-csv-v0.9.6.zip) ⭐ **Recommended**
 2. Extract the ZIP file to get `swift-csv/` folder
 3. Upload to `/wp-content/plugins/` directory
 4. Activate the plugin from admin dashboard

@@ -40,7 +40,7 @@ function swiftCSVLog(message, type = 'info') {
 				console.error(logMessage, timestamp);
 				break;
 			default:
-				console.log(logMessage, timestamp);
+				console.info(logMessage, timestamp);
 		}
 	}
 }
@@ -961,8 +961,6 @@ document.body.addEventListener('click', async e => {
 		return;
 	}
 
-	console.log('License button clicked:', action);
-
 	const licenseKeyInput = document.getElementById('swift_csv_pro_license_key_input');
 	const licenseKey = licenseKeyInput ? licenseKeyInput.value : '';
 	const spinner = button.closest('div') ? button.closest('div').querySelector('.spinner') : null;
@@ -971,11 +969,6 @@ document.body.addEventListener('click', async e => {
 		alert(__('Please enter a license key.', 'swift-csv-pro'));
 		return;
 	}
-
-	console.log('Sending license request:', {
-		action,
-		licenseKey: licenseKey.substring(0, 10) + '...',
-	});
 
 	button.disabled = true;
 	if (spinner) {
@@ -989,8 +982,6 @@ document.body.addEventListener('click', async e => {
 			license_key: licenseKey,
 			license_action: action,
 		});
-
-		console.log('License response:', response);
 
 		if (!response.success) {
 			// Throw an error so that the catch block can show the backend message.

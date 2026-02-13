@@ -42,7 +42,7 @@ function swiftCSVLog(message, type = 'info') {
 				console.error(logMessage, timestamp);
 				break;
 			default:
-				console.log(logMessage, timestamp);
+				console.info(logMessage, timestamp);
 		}
 	}
 }

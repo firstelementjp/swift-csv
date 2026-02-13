@@ -17,7 +17,9 @@ function initLicense() {
 		licenseToggle.addEventListener('click', () => {
 			const isPassword = licenseInput.type === 'password';
 			licenseInput.type = isPassword ? 'text' : 'password';
-			licenseToggle.textContent = isPassword ? swiftCSV.messages.hide : swiftCSV.messages.show;
+			licenseToggle.textContent = isPassword
+				? swiftCSV.messages.hide
+				: swiftCSV.messages.show;
 		});
 	}
 
@@ -31,25 +33,19 @@ function initLicense() {
 
 		const action = button.dataset.action;
 		if (!action) {
-			console.error('No action found on button:', button);
 			return;
 		}
 
-		console.log('License button clicked:', action);
-
 		const licenseKeyInput = document.getElementById('swift_csv_pro_license_key_input');
 		const licenseKey = licenseKeyInput ? licenseKeyInput.value : '';
-		const spinner = button.closest('div') ? button.closest('div').querySelector('.spinner') : null;
+		const spinner = button.closest('div')
+			? button.closest('div').querySelector('.spinner')
+			: null;
 
 		if (!licenseKey && action === 'activate') {
 			alert(SwiftCSVCore.__('Please enter a license key.', 'swift-csv-pro'));
 			return;
 		}
-
-		console.log('Sending license request:', {
-			action,
-			licenseKey: licenseKey.substring(0, 10) + '...',
-		});
 
 		button.disabled = true;
 		if (spinner) {
@@ -64,12 +60,11 @@ function initLicense() {
 				license_action: action,
 			});
 
-			console.log('License response:', response);
-
 			if (!response.success) {
 				// Throw an error so that the catch block can show the backend message.
 				throw new Error(
-					response.data?.message || SwiftCSVCore.__('License operation failed.', 'swift-csv-pro')
+					response.data?.message ||
+						SwiftCSVCore.__('License operation failed.', 'swift-csv-pro')
 				);
 			}
 
@@ -96,5 +91,5 @@ function initLicense() {
 
 // Export for use in main script
 window.SwiftCSVLicense = {
-	initLicense
+	initLicense,
 };

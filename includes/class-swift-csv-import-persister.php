@@ -148,7 +148,6 @@ class Swift_CSV_Import_Persister {
 		}
 
 		if ( $dry_run ) {
-			error_log( "[Dry Run] Would update post ID: {$post_id} with title: " . ( $post_data['post_title'] ?? 'Untitled' ) );
 			$dry_run_log[] = sprintf(
 				/* translators: 1: post ID, 2: post title */
 				__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ),
@@ -185,7 +184,6 @@ class Swift_CSV_Import_Persister {
 		}
 
 		if ( $dry_run ) {
-			error_log( '[Dry Run] Would create new post with title: ' . ( $post_data['post_title'] ?? 'Untitled' ) );
 			$dry_run_log[] = sprintf(
 				/* translators: 1: post title */
 				__( 'New post: title=%1$s', 'swift-csv' ),

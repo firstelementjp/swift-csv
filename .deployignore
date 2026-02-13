@@ -37,3 +37,10 @@ init.sh
 README.en.md
 CONTRIBUTING.md
 debug.php.example
+
+# Development files
+.github/
+assets/src/
+*.map
+package-lock.json
+composer.lock

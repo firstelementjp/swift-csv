@@ -38,7 +38,6 @@ require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-csv.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-row-context.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-meta-tax.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-persister.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-orchestrator.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-row-processor.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-import.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';

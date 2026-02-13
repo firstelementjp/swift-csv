@@ -113,13 +113,13 @@ class Swift_CSV_Import_Row_Processor {
 		$dry_run   = $context['dry_run'];
 
 		try {
-			$result = $persister->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
+			$persist_result = $persister->persist_post_row_from_csv_with_result( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
 		} catch ( Exception $e ) {
 			++$errors;
 			return;
 		}
 
-		if ( ! $this->handle_row_result_after_persist_without_callbacks( $result, $counters ) ) {
+		if ( ! $this->handle_row_result_after_persist_without_callbacks( $persist_result['db_result'], $counters ) ) {
 			return;
 		}
 

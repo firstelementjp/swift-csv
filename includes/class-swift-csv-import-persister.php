@@ -21,6 +21,34 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Import_Persister {
 	/**
+	 * Persist one CSV row into wp_posts (insert/update) and return a structured result.
+	 *
+	 * This method makes the return value semantics explicit, avoiding ambiguity
+	 * between insert/update operations.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb               $wpdb WordPress database handler.
+	 * @param bool               $is_update Whether this row updates an existing post.
+	 * @param int|null           $post_id Target post ID (by reference, updated on insert).
+	 * @param array              $post_fields_from_csv Post fields collected from CSV.
+	 * @param string             $post_type Post type.
+	 * @param bool               $dry_run Whether this is a dry run.
+	 * @param array<int, string> $dry_run_log Dry run log (by reference).
+	 * @return array{success:bool,operation:string,post_id:int|null,db_result:int|false}
+	 */
+	public function persist_post_row_from_csv_with_result( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, string $post_type, bool $dry_run, array &$dry_run_log ): array {
+		$post_data = $this->build_post_data_for_import( $is_update, $post_fields_from_csv, $post_type );
+		$result    = $this->execute_post_db_operation( $wpdb, $is_update, $post_id, $post_data, $dry_run, $dry_run_log );
+
+		return [
+			'success'   => ( $result !== false ),
+			'operation' => $is_update ? 'update' : 'insert',
+			'post_id'   => $post_id === null ? null : (int) $post_id,
+			'db_result' => $result,
+		];
+	}
+
+	/**
 	 * Build post data array for insert/update during import.
 	 *
 	 * @since 0.9.0
@@ -51,8 +79,8 @@ class Swift_CSV_Import_Persister {
 	 * @return int|false Result of DB operation (post ID on insert, rows affected on update, or false on failure).
 	 */
 	public function persist_post_row_from_csv( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, string $post_type, bool $dry_run, array &$dry_run_log ) {
-		$post_data = $this->build_post_data_for_import( $is_update, $post_fields_from_csv, $post_type );
-		return $this->execute_post_db_operation( $wpdb, $is_update, $post_id, $post_data, $dry_run, $dry_run_log );
+		$result = $this->persist_post_row_from_csv_with_result( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
+		return $result['db_result'];
 	}
 
 	/**

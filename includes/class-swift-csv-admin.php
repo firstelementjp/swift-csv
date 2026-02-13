@@ -810,6 +810,11 @@ class Swift_CSV_Admin {
 					title="<?php esc_attr_e( 'Go to the instruction manual', 'swift-csv' ); ?>">
 					<?php esc_html_e( 'Documentation', 'swift-csv' ); ?>
 				</a>
+				<a href="<?php echo esc_url( SWIFT_CSV_DEEPWIKI_URL ); ?>"
+					target="_blank"
+					title="<?php esc_attr_e( 'Go to DeepWiki documentation', 'swift-csv' ); ?>">
+					<?php esc_html_e( 'DeepWiki', 'swift-csv' ); ?>
+				</a>
 				<a href="https://github.com/firstelementjp/swift-csv"
 					target="_blank"
 					title="<?php esc_attr_e( 'Go to GitHub repository', 'swift-csv' ); ?>"

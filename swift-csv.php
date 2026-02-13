@@ -24,6 +24,7 @@ define( 'SWIFT_CSV_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );
 define( 'SWIFT_CSV_PRO_URL', 'https://www.firstelement.co.jp/swift-csv/pro/' );
 define( 'SWIFT_CSV_DOCS_URL', 'https://firstelementjp.github.io/swift-csv/#/' );
+define( 'SWIFT_CSV_DEEPWIKI_URL', 'https://deepwiki.com/firstelementjp/swift-csv' );
 
 // Include required files.
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-admin.php';

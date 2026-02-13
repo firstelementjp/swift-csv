@@ -92,7 +92,13 @@ function handleAjaxExport(e) {
 
 		exportCancelHandler = function () {
 			isCancelled = true;
-			addLogEntry(swiftCSV.messages.exportCancelledByUser, 'warning', 'export');
+			if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
+				window.SwiftCSVUtils.addLogEntry(
+					swiftCSV.messages.exportCancelledByUser,
+					'warning',
+					'export'
+				);
+			}
 
 			if (currentExportAbortController) {
 				currentExportAbortController.abort();
@@ -156,19 +162,27 @@ function handleAjaxExport(e) {
 			body: formData,
 			signal: currentExportAbortController.signal,
 		})
-			.then(response => response.json())
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				return response.json();
+			})
 			.then(data => {
 				if (data.success && data.continue) {
 					// Append CSV chunk
 					csvContent += data.csv_chunk;
-					
+
 					// Update progress
 					updateAjaxProgress(data, startTime);
-					
+
 					// Process next chunk
 					processChunk(data.processed);
 				} else if (data.success) {
-					// Export completed
+					// Export completed - update progress one final time
+					updateAjaxProgress(data, startTime);
+
+					// Append final CSV chunk
 					csvContent += data.csv_chunk;
 					completeAjaxExport(csvContent, exportBtn, cancelBtn, postType);
 				} else {
@@ -177,7 +191,13 @@ function handleAjaxExport(e) {
 						return;
 					}
 					console.error('Export error:', error);
-					addLogEntry(swiftCSV.messages.exportError + ' ' + error.message, 'error', 'export');
+					if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
+						window.SwiftCSVUtils.addLogEntry(
+							swiftCSV.messages.exportError + ' ' + error.message,
+							'error',
+							'export'
+						);
+					}
 
 					if (exportBtn) {
 						exportBtn.disabled = false;
@@ -193,7 +213,13 @@ function handleAjaxExport(e) {
 					return;
 				}
 				console.error('Export error:', error);
-				addLogEntry(swiftCSV.messages.exportError + ' ' + error.message, 'error', 'export');
+				if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
+					window.SwiftCSVUtils.addLogEntry(
+						swiftCSV.messages.exportError + ' ' + error.message,
+						'error',
+						'export'
+					);
+				}
 
 				if (exportBtn) {
 					exportBtn.disabled = false;
@@ -219,7 +245,9 @@ function updateAjaxProgress(data, startTime) {
 	// Find progress elements in the new UI structure
 	const progressContainer = document.querySelector('.swift-csv-progress');
 	if (!progressContainer) {
-		SwiftCSVCore.swiftCSVLog('Progress container not found');
+		if (window.SwiftCSVCore && window.SwiftCSVCore.swiftCSVLog) {
+			window.SwiftCSVCore.swiftCSVLog('Progress container not found');
+		}
 		return;
 	}
 
@@ -254,7 +282,9 @@ function updateAjaxProgress(data, startTime) {
  * @param {string} postType Post type
  */
 function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
-	addLogEntry(swiftCSV.messages.exportCompleted, 'success', 'export');
+	if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
+		window.SwiftCSVUtils.addLogEntry(swiftCSV.messages.exportCompleted, 'success', 'export');
+	}
 
 	// Create download link
 	const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -294,12 +324,18 @@ function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
 		cancelBtn.style.display = 'none';
 	}
 
-	addLogEntry(swiftCSV.messages.downloadReady + ' ' + filename, 'info', 'export');
+	if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
+		window.SwiftCSVUtils.addLogEntry(
+			swiftCSV.messages.downloadReady + ' ' + filename,
+			'info',
+			'export'
+		);
+	}
 }
 
 // Export for use in main script
 window.SwiftCSVExport = {
 	handleAjaxExport,
 	updateAjaxProgress,
-	completeAjaxExport
+	completeAjaxExport,
 };

@@ -36,12 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	const initializeModules = () => {
 		// Wait for all modules to be loaded
 		const checkModules = () => {
-			if (
-				window.SwiftCSVCore &&
-				window.SwiftCSVExport &&
-				window.SwiftCSVImport &&
-				window.SwiftCSVLicense
-			) {
+			if (window.SwiftCSVCore && window.SwiftCSVExport && window.SwiftCSVImport) {
 				// All modules are available, initialize them
 				if (window.SwiftCSVImport) {
 					window.SwiftCSVImport.initFileUpload();
@@ -71,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					);
 				}
 
-				// License functionality
+				// License functionality (optional)
 				if (window.SwiftCSVLicense) {
 					window.SwiftCSVLicense.initLicense();
 				}

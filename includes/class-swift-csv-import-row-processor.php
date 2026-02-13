@@ -116,9 +116,44 @@ class Swift_CSV_Import_Row_Processor {
 			$context,
 			$counters,
 			function ( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, array $single_row_context, array &$counters ) use ( $persister, $handle_successful_row_import ): void {
-				$this->process_single_import_row_with_persister( $wpdb, $is_update, $post_id, $post_fields_from_csv, $single_row_context, $counters, $persister, $handle_successful_row_import );
+				$this->process_single_import_row_with_persister_without_callbacks( $wpdb, $is_update, $post_id, $post_fields_from_csv, $single_row_context, $counters, $persister, $handle_successful_row_import );
 			}
 		);
+	}
+
+	/**
+	 * Process one import row using a persister instance without injecting callables.
+	 *
+	 * @since 0.9.0
+	 * @param wpdb                                                                                                                                                                                                                                                                                                    $wpdb WordPress database handler.
+	 * @param bool                                                                                                                                                                                                                                                                                                    $is_update Whether this row updates an existing post.
+	 * @param int|null                                                                                                                                                                                                                                                                                                $post_id Post ID (by reference, updated on insert).
+	 * @param array<string,mixed>                                                                                                                                                                                                                                                                                     $post_fields_from_csv Post fields collected from CSV.
+	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array}                                                                                                                     $context Context values for row processing.
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                                                                                                                                                   $counters Counters (by reference).
+	 * @param Swift_CSV_Import_Persister                                                                                                                                                                                                                                                                              $persister Persister utility.
+	 * @param callable(wpdb,int,bool,array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array},array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}): void $handle_successful_row_import Success handler.
+	 * @return void
+	 */
+	public function process_single_import_row_with_persister_without_callbacks( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, array $context, array &$counters, Swift_CSV_Import_Persister $persister, callable $handle_successful_row_import ): void {
+		$errors      = &$counters['errors'];
+		$dry_run_log = &$counters['dry_run_log'];
+
+		$post_type = $context['post_type'];
+		$dry_run   = $context['dry_run'];
+
+		try {
+			$result = $persister->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
+		} catch ( Exception $e ) {
+			++$errors;
+			return;
+		}
+
+		if ( ! $this->handle_row_result_after_persist_without_callbacks( $result, $counters ) ) {
+			return;
+		}
+
+		$handle_successful_row_import( $wpdb, (int) $post_id, $is_update, $context, $counters );
 	}
 
 	/**
@@ -157,41 +192,5 @@ class Swift_CSV_Import_Row_Processor {
 		} catch ( Exception $e ) {
 			++$errors;
 		}
-	}
-
-	/**
-	 * Process one import row using a persister instance.
-	 *
-	 * This is a simplified API that avoids injecting the persisting callable.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb                                                                                                                                                                                                                                                                                                    $wpdb WordPress database handler.
-	 * @param bool                                                                                                                                                                                                                                                                                                    $is_update Whether this row updates an existing post.
-	 * @param int|null                                                                                                                                                                                                                                                                                                $post_id Post ID (by reference, updated on insert).
-	 * @param array<string,mixed>                                                                                                                                                                                                                                                                                     $post_fields_from_csv Post fields collected from CSV.
-	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array}                                                                                                                     $context Context values for row processing.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                                                                                                                                                   $counters Counters (by reference).
-	 * @param Swift_CSV_Import_Persister                                                                                                                                                                                                                                                                              $persister Persister utility.
-	 * @param callable(wpdb,int,bool,array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array},array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}): void $handle_successful_row_import Success handler.
-	 * @return void
-	 */
-	public function process_single_import_row_with_persister( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, array $context, array &$counters, Swift_CSV_Import_Persister $persister, callable $handle_successful_row_import ): void {
-		$this->process_single_import_row(
-			$wpdb,
-			$is_update,
-			$post_id,
-			$post_fields_from_csv,
-			$context,
-			$counters,
-			function ( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, string $post_type, bool $dry_run, array &$dry_run_log ) use ( $persister ) {
-				return $persister->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
-			},
-			function ( $result, wpdb $wpdb, bool $is_update, int $post_id, array $context, array &$counters ) use ( $handle_successful_row_import ): void {
-				if ( ! $this->handle_row_result_after_persist_without_callbacks( $result, $counters ) ) {
-					return;
-				}
-				$handle_successful_row_import( $wpdb, $post_id, $is_update, $context, $counters );
-			}
-		);
 	}
 }

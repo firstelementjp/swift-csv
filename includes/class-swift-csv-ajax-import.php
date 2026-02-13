@@ -515,28 +515,51 @@ class Swift_CSV_Ajax_Import {
 	 * @return void Sends JSON response with import results
 	 */
 	public function import_handler() {
-		$this->get_orchestrator_util()->run_import_handler(
-			function () {
-				return $this->prepare_import_environment();
-			},
-			function ( string $file_path, string $taxonomy_format ) {
-				return $this->parse_and_validate_csv( $file_path, $taxonomy_format );
-			},
-			function ( array $lines ): int {
-				return $this->count_total_rows( $lines );
-			},
-			function (): array {
-				return $this->get_cumulative_counts();
-			},
-			function ( array $config, array $csv_data, array &$counters ): void {
-				$this->process_batch_import( $config, $csv_data, $counters );
-			},
-			function ( bool $continue, string $file_path ): void {
-				$this->cleanup_temp_file_if_complete( $continue, $file_path );
-			},
-			function ( int $start_row, int $processed, int $total_rows, int $errors, int $created, int $updated, int $previous_created, int $previous_updated, int $previous_errors, bool $dry_run, array $dry_run_log ): void {
-				$this->send_import_progress_response( $start_row, $processed, $total_rows, $errors, $created, $updated, $previous_created, $previous_updated, $previous_errors, $dry_run, $dry_run_log );
-			}
+		$config = $this->prepare_import_environment();
+		if ( null === $config ) {
+			return;
+		}
+
+		$csv_data = $this->parse_and_validate_csv( $config['file_path'], $config['taxonomy_format'] );
+		if ( null === $csv_data ) {
+			return;
+		}
+
+		$total_rows             = $this->count_total_rows( $csv_data['lines'] );
+		$csv_data['total_rows'] = $total_rows;
+
+		$counters = [
+			'processed'   => 0,
+			'created'     => 0,
+			'updated'     => 0,
+			'errors'      => 0,
+			'dry_run_log' => [],
+		];
+
+		$cumulative_counts = $this->get_cumulative_counts();
+		$previous_created  = $cumulative_counts['created'];
+		$previous_updated  = $cumulative_counts['updated'];
+		$previous_errors   = $cumulative_counts['errors'];
+
+		$this->process_batch_import( $config, $csv_data, $counters );
+
+		$next_row = $config['start_row'] + $counters['processed'];
+		$continue = $next_row < $total_rows;
+
+		$this->cleanup_temp_file_if_complete( $continue, $config['file_path'] );
+
+		$this->send_import_progress_response(
+			$config['start_row'],
+			$counters['processed'],
+			$total_rows,
+			$counters['errors'],
+			$counters['created'],
+			$counters['updated'],
+			$previous_created,
+			$previous_updated,
+			$previous_errors,
+			$config['dry_run'],
+			$counters['dry_run_log']
 		);
 	}
 

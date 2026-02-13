@@ -25,14 +25,14 @@ Swift CSV is a lightweight plugin for easily importing and exporting CSV files o
 - 🌐 **Multilingual Support** - English and Japanese support
 - 🔒 **Secure** - WordPress security standards compliant
 
-## � Requirements
+## 📋 Requirements
 
 - **WordPress**: 6.0 or higher
 - **PHP**: 8.0 or higher
 - **Memory**: 128MB+ (for large CSV processing)
 - **Extensions**: `mbstring`, `zip` (for file handling)
 
-## �🚀 Download
+## 📥 Download
 
 [Download swift-csv-v0.9.6.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.6/swift-csv-v0.9.6.zip){: .download-btn }
 

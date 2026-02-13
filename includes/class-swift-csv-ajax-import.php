@@ -539,9 +539,17 @@ class Swift_CSV_Ajax_Import {
 		);
 
 		// Process meta fields and taxonomies
-		$meta_context            = $context;
-		$meta_context['post_id'] = $post_id;
-		$result                  = $this->get_meta_tax_util()->process_meta_and_taxonomies_for_row( $wpdb, $meta_context, $counters );
+		$result = $this->get_meta_tax_util()->process_meta_and_taxonomies_for_row_with_args(
+			$wpdb,
+			$post_id,
+			$headers,
+			$data,
+			$allowed_post_fields,
+			$taxonomy_format,
+			$taxonomy_format_validation,
+			$dry_run,
+			$counters
+		);
 
 		// Custom field processing hook for extensions
 		/**

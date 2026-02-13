@@ -320,11 +320,15 @@ class Swift_CSV_Ajax_Import {
 			return;
 		}
 
-		$this->process_row_context(
+		$this->get_row_processor_util()->process_row_context_with_persister(
 			$wpdb,
 			$row_context,
 			$this->build_row_processing_context( $config, $csv_data, $headers, $allowed_post_fields ),
-			$counters
+			$counters,
+			$this->get_persister_util(),
+			function ( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters ): void {
+				$this->handle_successful_row_import( $wpdb, $post_id, $is_update, $context, $counters );
+			}
 		);
 	}
 
@@ -364,34 +368,6 @@ class Swift_CSV_Ajax_Import {
 			'taxonomy_format'            => (string) ( $config['taxonomy_format'] ?? 'name' ),
 			'taxonomy_format_validation' => $csv_data['taxonomy_format_validation'] ?? [],
 		];
-	}
-
-	/**
-	 * Process an import row context by running per-row import logic.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb                                                                                                                                                                                $wpdb WordPress database handler.
-	 * @param array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}                                                                              $row_context Row context.
-	 * @param array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                               $counters Counters (by reference).
-	 * @return void
-	 */
-	private function process_row_context(
-		wpdb $wpdb,
-		array $row_context,
-		array $context,
-		array &$counters
-	) {
-		$this->get_row_processor_util()->process_row_context_with_persister(
-			$wpdb,
-			$row_context,
-			$context,
-			$counters,
-			$this->get_persister_util(),
-			function ( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters ): void {
-				$this->handle_successful_row_import( $wpdb, $post_id, $is_update, $context, $counters );
-			}
-		);
 	}
 
 	/**

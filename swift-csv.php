@@ -3,7 +3,7 @@
  * Plugin Name:       Swift CSV
  * Plugin URI:        https://github.com/firstelementjp/swift-csv
  * Description:       Lightweight and simple CSV import/export plugin. Supports custom post types, custom taxonomies, and custom fields.
- * Version:           0.9.5
+ * Version:           0.9.6
  * Author:            FirstElement, Inc.
  * Author URI:        https://www.firstelement.co.jp/
  * License:           GPL-2.0+
@@ -23,7 +23,7 @@ if ( defined( 'WP_DEBUG' ) && WP_DEBUG && file_exists( __DIR__ . '/debug.php' ) 
 }
 
 // Define plugin constants.
-define( 'SWIFT_CSV_VERSION', '0.9.5' );
+define( 'SWIFT_CSV_VERSION', '0.9.6' );
 define( 'SWIFT_CSV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SWIFT_CSV_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );

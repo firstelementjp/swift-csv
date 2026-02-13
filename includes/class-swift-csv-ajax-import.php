@@ -755,17 +755,6 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Normalize header/field name.
-	 *
-	 * @since 0.9.0
-	 * @param string $name Field name.
-	 * @return string
-	 */
-	private function normalize_field_name( string $name ): string {
-		return Swift_CSV_Helper::normalize_field_name( $name );
-	}
-
-	/**
 	 * Detect taxonomy format from the first data row and validate UI format consistency.
 	 *
 	 * @since 0.9.0
@@ -905,102 +894,6 @@ class Swift_CSV_Ajax_Import {
 			'created' => $previous_created,
 			'updated' => $previous_updated,
 			'errors'  => $previous_errors,
-		];
-	}
-
-	/**
-	 * Parse a CSV row.
-	 *
-	 * @since 0.9.0
-	 * @param string $line CSV line.
-	 * @param string $delimiter CSV delimiter.
-	 * @return array<int, string>
-	 */
-	private function parse_csv_row( string $line, string $delimiter ): array {
-		return $this->get_csv_util()->parse_csv_row( $line, $delimiter );
-	}
-
-	/**
-	 * Check if a CSV line is empty.
-	 *
-	 * @since 0.9.0
-	 * @param string $line CSV line.
-	 * @return bool
-	 */
-	private function is_empty_csv_line( string $line ): bool {
-		return $this->get_csv_util()->is_empty_csv_line( $line );
-	}
-
-	/**
-	 * Collect allowed post fields from a CSV row (header-driven).
-	 *
-	 * @since 0.9.0
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array              $data CSV row data.
-	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
-	 * @return array<string, string>
-	 */
-	private function collect_post_fields_from_csv_row( $headers, $data, $allowed_post_fields ) {
-		$post_fields_from_csv = [];
-		for ( $j = 0; $j < count( $headers ); $j++ ) {
-			$header = trim( (string) $headers[ $j ] );
-			if ( $header === '' || $header === 'ID' ) {
-				continue;
-			}
-			if ( ! in_array( $header, $allowed_post_fields, true ) ) {
-				continue;
-			}
-			if ( ! array_key_exists( $j, $data ) ) {
-				continue;
-			}
-			$value = (string) $data[ $j ];
-			if ( $value === '' ) {
-				continue;
-			}
-			if ( str_starts_with( $value, '"' ) && str_ends_with( $value, '"' ) ) {
-				$value = substr( $value, 1, -1 );
-				$value = str_replace( '""', '"', $value );
-			}
-			$post_fields_from_csv[ $header ] = $value;
-		}
-		return $post_fields_from_csv;
-	}
-
-	/**
-	 * Find existing post ID for update.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb   $wpdb WordPress DB instance.
-	 * @param string $update_existing Update flag.
-	 * @param string $post_type Post type.
-	 * @param string $post_id_from_csv Post ID from CSV.
-	 * @return array{post_id:int|null,is_update:bool}
-	 */
-	private function find_existing_post_for_update( $wpdb, $update_existing, $post_type, $post_id_from_csv ) {
-		$post_id   = null;
-		$is_update = false;
-
-		if ( $update_existing === '1' && ! empty( $post_id_from_csv ) ) {
-			$existing_post_id = $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT ID FROM {$wpdb->posts} 
-                 WHERE post_type = %s 
-                 AND ID = %d 
-                 LIMIT 1",
-					$post_type,
-					$post_id_from_csv
-				)
-			);
-
-			if ( $existing_post_id ) {
-				$post_id   = (int) $existing_post_id;
-				$is_update = true;
-			}
-		}
-
-		return [
-			'post_id'   => $post_id,
-			'is_update' => $is_update,
 		];
 	}
 

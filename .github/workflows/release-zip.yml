@@ -3,6 +3,8 @@ name: Create Release ZIP
 on:
     push:
         tags: ['v*']
+    release:
+        types: [published]
 
 jobs:
     create-zip:

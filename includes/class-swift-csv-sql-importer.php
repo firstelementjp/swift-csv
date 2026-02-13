@@ -19,8 +19,7 @@ class Swift_CSV_SQL_Importer {
 	 * @param bool   $update_existing Whether to update existing posts
 	 * @return array Import results
 	 */
-	public function import_posts_sql( $csv_data, $mapping, $post_type, $update_existing ) 
-    {
+	public function import_posts_sql( $csv_data, $mapping, $post_type, $update_existing ) {
 		global $wpdb;
 
 		$imported = 0;

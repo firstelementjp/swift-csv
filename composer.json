@@ -1,5 +1,6 @@
 {
 	"name": "firstelementjp/swift-csv",
+	"version": "0.9.5",
 	"description": "Swift CSV - Simple CSV Management Without the Complexity.",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0+",
@@ -17,8 +18,8 @@
 		"phpcsstandards/phpcsextra": "^1.5"
 	},
 	"scripts": {
-		"phpcs": "phpcs --standard=phpcs.xml.dist",
-		"phpcbf": "phpcbf --standard=phpcs.xml.dist"
+		"phpcs": "phpcs",
+		"phpcbf": "phpcbf"
 	},
 	"config": {
 		"allow-plugins": {

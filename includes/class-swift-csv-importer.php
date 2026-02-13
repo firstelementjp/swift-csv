@@ -23,8 +23,8 @@ class Swift_CSV_Importer {
 	 * @return void
 	 */
 	public function __construct() {
-		add_action( 'admin_post_swift_csv_import', array( $this, 'handle_import' ) );
-		add_action( 'admin_post_swift_csv_import_batch', array( $this, 'handle_batch_import' ) );
+		add_action( 'admin_post_swift_csv_import', [ $this, 'handle_import' ] );
+		add_action( 'admin_post_swift_csv_import_batch', [ $this, 'handle_batch_import' ] );
 	}
 
 	/**
@@ -60,7 +60,7 @@ class Swift_CSV_Importer {
 		}
 
 		// Set memory limit for large CSV processing
-		$memory_limit = apply_filters( 'swift_csv_import_memory_limit', '1G' );
+		$memory_limit  = apply_filters( 'swift_csv_import_memory_limit', '1G' );
 		$current_limit = ini_get( 'memory_limit' );
 		if ( $this->parse_memory_limit( $memory_limit ) > $this->parse_memory_limit( $current_limit ) ) {
 			@ini_set( 'memory_limit', $memory_limit );
@@ -70,7 +70,7 @@ class Swift_CSV_Importer {
 		$file_check = wp_check_filetype_and_ext(
 			$_FILES['csv_file']['tmp_name'],
 			$_FILES['csv_file']['name'],
-			array( 'csv' => 'text/csv' )
+			[ 'csv' => 'text/csv' ]
 		);
 		if ( empty( $file_check['ext'] ) || $file_check['ext'] !== 'csv' ) {
 			wp_die( esc_html__( 'Only CSV files can be uploaded.', 'swift-csv' ) );
@@ -93,9 +93,9 @@ class Swift_CSV_Importer {
 
 		// Check file size and row count to determine processing method
 		$file_size = $_FILES['csv_file']['size'];
-		$this->_debugLog( 'Memory usage before CSV read: ' . memory_get_usage(true) / 1024 / 1024 . 'MB' );
-		$csv_data  = $this->read_csv_file( $_FILES['csv_file']['tmp_name'] );
-		$this->_debugLog( 'Memory usage after CSV read: ' . memory_get_usage(true) / 1024 / 1024 . 'MB' );
+		$this->_debugLog( 'Memory usage before CSV read: ' . memory_get_usage( true ) / 1024 / 1024 . 'MB' );
+		$csv_data = $this->read_csv_file( $_FILES['csv_file']['tmp_name'] );
+		$this->_debugLog( 'Memory usage after CSV read: ' . memory_get_usage( true ) / 1024 / 1024 . 'MB' );
 		$row_count = count( $csv_data ) - 1; // Exclude header
 		$this->_debugLog( 'CSV rows count: ' . $row_count );
 
@@ -130,15 +130,15 @@ class Swift_CSV_Importer {
 
 		// Redirect to batch progress page
 		// Fire after import hook
-		$results = array(
+		$results = [
 			'imported' => 0,
 			'updated'  => 0,
-			'errors'   => 0
-		);
-		$args = array(
-			'post_type' => $post_type,
-			'update_existing' => $update_existing
-		);
+			'errors'   => 0,
+		];
+		$args    = [
+			'post_type'       => $post_type,
+			'update_existing' => $update_existing,
+		];
 		do_action( 'swift_csv_after_import', $file_path, $results, $args );
 
 		wp_redirect( admin_url( 'admin.php?page=swift-csv&tab=import&batch=' . $batch_id ) );
@@ -191,7 +191,7 @@ class Swift_CSV_Importer {
 		// Initialize counters
 		$imported = 0;
 		$updated  = 0;
-		$errors   = array();
+		$errors   = [];
 
 		// Process each data row
 		foreach ( $csv_data as $row_index => $row ) {
@@ -204,11 +204,11 @@ class Swift_CSV_Importer {
 				$result = $this->process_row( $row, $mapping, $post_type, $update_existing );
 
 				// Fire after process row hook
-				$args = array(
-					'post_type' => $post_type,
+				$args = [
+					'post_type'       => $post_type,
 					'update_existing' => $update_existing,
-					'row_index' => $row_index
-				);
+					'row_index'       => $row_index,
+				];
 				do_action( 'swift_csv_after_process_row', $row, $row_index, $result, $args );
 
 				if ( isset( $result['created'] ) && $result['created'] ) {
@@ -224,11 +224,11 @@ class Swift_CSV_Importer {
 
 		// Redirect back to import page with results
 		$query_args = [
-			'page' => 'swift-csv',
-			'tab' => 'import',
+			'page'     => 'swift-csv',
+			'tab'      => 'import',
 			'imported' => $imported,
-			'updated' => $updated,
-			'errors' => count( $errors ),
+			'updated'  => $updated,
+			'errors'   => count( $errors ),
 		];
 
 		if ( ! empty( $errors ) ) {
@@ -236,11 +236,11 @@ class Swift_CSV_Importer {
 		}
 
 		// Fire after import hook
-		$results = array(
-		'imported' => $imported,
-		'updated'  => $updated,
-		'errors'   => $errors
-		);
+		$results = [
+			'imported' => $imported,
+			'updated'  => $updated,
+			'errors'   => $errors,
+		];
 		do_action( 'swift_csv_after_import', $file_path, $results, $args );
 
 		wp_redirect( add_query_arg( $query_args, admin_url( 'admin.php' ) ) );
@@ -260,9 +260,9 @@ class Swift_CSV_Importer {
 	 */
 	private function import_csv( $file_path, $post_type, $update_existing ) {
 		$args = [
-			'file_path' => $file_path,
-			'post_type' => $post_type,
-			'update_existing' => $update_existing
+			'file_path'       => $file_path,
+			'post_type'       => $post_type,
+			'update_existing' => $update_existing,
 		];
 
 		// Fire before import hook
@@ -283,7 +283,7 @@ class Swift_CSV_Importer {
 		// Initialize counters
 		$imported = 0;
 		$updated  = 0;
-		$errors   = array();
+		$errors   = [];
 
 		// Process each data row
 		foreach ( $csv_data as $row_index => $row ) {
@@ -316,11 +316,11 @@ class Swift_CSV_Importer {
 
 		// Redirect back to import page with results
 		$query_args = [
-			'page' => 'swift-csv',
-			'tab' => 'import',
+			'page'     => 'swift-csv',
+			'tab'      => 'import',
 			'imported' => $imported,
-			'updated' => $updated,
-			'errors' => count( $errors ),
+			'updated'  => $updated,
+			'errors'   => count( $errors ),
 		];
 
 		if ( ! empty( $errors ) ) {
@@ -328,11 +328,11 @@ class Swift_CSV_Importer {
 		}
 
 		// Fire after import hook
-		$results = array(
+		$results = [
 			'imported' => $imported,
 			'updated'  => $updated,
-			'errors'   => $errors
-		);
+			'errors'   => $errors,
+		];
 		do_action( 'swift_csv_after_import', $file_path, $results, $args );
 
 		// Restore WordPress optimization
@@ -377,11 +377,11 @@ class Swift_CSV_Importer {
 
 		// Redirect back to import page with results
 		$query_args = [
-			'page' => 'swift-csv',
-			'tab' => 'import',
+			'page'     => 'swift-csv',
+			'tab'      => 'import',
 			'imported' => $results['imported'],
-			'updated' => $results['updated'],
-			'errors' => count( $results['errors'] ),
+			'updated'  => $results['updated'],
+			'errors'   => count( $results['errors'] ),
 		];
 
 		if ( ! empty( $results['errors'] ) ) {
@@ -389,10 +389,10 @@ class Swift_CSV_Importer {
 		}
 
 		// Fire after import hook
-		$args = array(
-			'post_type' => $post_type,
-			'update_existing' => $update_existing
-		);
+		$args = [
+			'post_type'       => $post_type,
+			'update_existing' => $update_existing,
+		];
 		do_action( 'swift_csv_after_import', $file_path, $results, $args );
 
 		// Redirect to admin page to avoid theme errors
@@ -415,15 +415,15 @@ class Swift_CSV_Importer {
 		$content = mb_convert_encoding( $content, 'UTF-8', 'UTF-8, SJIS, EUC-JP, JIS' );
 
 		// Use standard PHP CSV parsing to preserve serialized data
-		$csv_data = array();
-		$lines = explode( "\n", $content );
-		
+		$csv_data = [];
+		$lines    = explode( "\n", $content );
+
 		foreach ( $lines as $line ) {
 			$line = trim( $line );
 			if ( empty( $line ) ) {
 				continue;
 			}
-			
+
 			// Use str_getcsv for proper CSV parsing
 			$row = str_getcsv( $line );
 			if ( ! empty( array_filter( $row ) ) ) {
@@ -439,7 +439,7 @@ class Swift_CSV_Importer {
 	 * Create field mapping from CSV headers
 	 */
 	private function create_mapping( $headers ) {
-		$mapping = array();
+		$mapping = [];
 
 		$this->_debugLog( 'CSV Headers: ' . print_r( $headers, true ) );
 
@@ -447,37 +447,37 @@ class Swift_CSV_Importer {
 			$header = trim( $header );
 
 			// Basic post fields
-			if ( in_array( $header, array( 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date' ) ) ) {
-				$mapping[ $index ] = array(
+			if ( in_array( $header, [ 'ID', 'post_title', 'post_content', 'post_excerpt', 'post_status', 'post_name', 'post_date' ] ) ) {
+				$mapping[ $index ] = [
 					'type'  => 'post_field',
 					'field' => $header,
-				);
+				];
 				$this->_debugLog( "Mapped column $index to post_field: $header" );
 			}
 			// Taxonomy fields (tax_ prefix)
 			elseif ( str_starts_with( $header, 'tax_' ) ) {
 				$taxonomy          = substr( $header, 4 );
-				$mapping[ $index ] = array(
+				$mapping[ $index ] = [
 					'type'     => 'taxonomy',
 					'taxonomy' => $taxonomy,
-				);
+				];
 				$this->_debugLog( "Mapped column $index to taxonomy: $taxonomy" );
 			}
 			// Custom fields (cf_ prefix)
 			elseif ( str_starts_with( $header, 'cf_' ) ) {
 				$meta_key          = substr( $header, 3 );
-				$mapping[ $index ] = array(
+				$mapping[ $index ] = [
 					'type'     => 'meta_field',
 					'meta_key' => $meta_key,
-				);
+				];
 				$this->_debugLog( "Mapped column $index to meta_field: $meta_key" );
 			}
 			// Unknown field
 			else {
-				$mapping[ $index ] = array(
+				$mapping[ $index ] = [
 					'type'  => 'unknown',
 					'field' => $header,
-				);
+				];
 				$this->_debugLog( "Mapped column $index to unknown: $header" );
 			}
 		}
@@ -491,13 +491,13 @@ class Swift_CSV_Importer {
 	 * Process single CSV row
 	 */
 	private function process_row( $row, $mapping, $post_type, $update_existing ) {
-		$post_data = array(
+		$post_data = [
 			'post_type'   => $post_type,
 			'post_status' => 'publish',
-		);
+		];
 
-		$taxonomies  = array();
-		$meta_fields = array();
+		$taxonomies  = [];
+		$meta_fields = [];
 		$post_id     = null;
 		$is_update   = false;
 
@@ -527,7 +527,7 @@ class Swift_CSV_Importer {
 						}
 					} elseif ( $map['field'] === 'post_status' ) {
 						// Validate post status
-						$valid_statuses = array( 'publish', 'draft', 'private', 'pending', 'trash' );
+						$valid_statuses = [ 'publish', 'draft', 'private', 'pending', 'trash' ];
 						if ( in_array( $value, $valid_statuses ) ) {
 							$post_data[ $map['field'] ] = $value;
 						}
@@ -573,18 +573,18 @@ class Swift_CSV_Importer {
 						if ( str_starts_with( $map['meta_key'], 'acf_' ) ) {
 							$field_name = substr( $map['meta_key'], 4 );
 							$this->_debugLog( '[ACF Import] Processing ACF field: ' . $field_name . ' with value: ' . $value );
-							
+
 							// Check if this is an ACF taxonomy field
 							if ( function_exists( 'get_field_object' ) ) {
 								$field_object = get_field_object( $field_name );
 								$this->_debugLog( '[ACF Import] Field object: ' . print_r( $field_object, true ) );
-								
+
 								if ( $field_object && $field_object['type'] === 'taxonomy' ) {
 									$this->_debugLog( '[ACF Import] Processing taxonomy field' );
 									// ACF taxonomy field - convert term names back to term IDs
 									$term_names = array_map( 'trim', explode( '|', $value ) );
-									$term_ids = array();
-									
+									$term_ids   = [];
+
 									foreach ( $term_names as $term_name ) {
 										if ( ! empty( $term_name ) ) {
 											$term = get_term_by( 'name', $term_name, $field_object['taxonomy'] );
@@ -596,7 +596,7 @@ class Swift_CSV_Importer {
 											}
 										}
 									}
-									
+
 									// Save as ACF taxonomy field (term IDs)
 									if ( ! empty( $term_ids ) ) {
 										$this->_debugLog( '[ACF Import] Saving taxonomy field with term IDs: ' . implode( ',', $term_ids ) );
@@ -604,21 +604,21 @@ class Swift_CSV_Importer {
 									} else {
 										$this->_debugLog( '[ACF Import] No valid term IDs found' );
 									}
-								} elseif ( $field_object && in_array( $field_object['type'], ['checkbox', 'select', 'relationship', 'post_object', 'user', 'google_map', 'date_picker', 'date_time_picker', 'time_picker', 'color_picker', 'file', 'image', 'gallery', 'oembed', 'wysiwyg', 'textarea', 'text', 'number', 'email', 'url', 'password'] ) ) {
+								} elseif ( $field_object && in_array( $field_object['type'], [ 'checkbox', 'select', 'relationship', 'post_object', 'user', 'google_map', 'date_picker', 'date_time_picker', 'time_picker', 'color_picker', 'file', 'image', 'gallery', 'oembed', 'wysiwyg', 'textarea', 'text', 'number', 'email', 'url', 'password' ] ) ) {
 									$this->_debugLog( '[ACF Import] Processing field type: ' . $field_object['type'] );
 									// Handle other ACF field types that might have array values
 									$processed_value = $value;
-									
+
 									// For fields that should be arrays
-									if ( in_array( $field_object['type'], ['checkbox', 'select', 'relationship', 'post_object', 'user', 'gallery'] ) ) {
+									if ( in_array( $field_object['type'], [ 'checkbox', 'select', 'relationship', 'post_object', 'user', 'gallery' ] ) ) {
 										if ( strpos( $value, '|' ) !== false ) {
 											$processed_value = array_map( 'trim', explode( '|', $value ) );
 											$this->_debugLog( '[ACF Import] Converted to array: ' . print_r( $processed_value, true ) );
 										}
 									}
-									
+
 									// For text fields with quotes, remove quotes
-									if ( in_array( $field_object['type'], ['text', 'textarea', 'wysiwyg'] ) ) {
+									if ( in_array( $field_object['type'], [ 'text', 'textarea', 'wysiwyg' ] ) ) {
 										if ( str_starts_with( $value, '"' ) && str_ends_with( $value, '"' ) ) {
 											$processed_value = substr( $value, 1, -1 );
 											// Unescape double quotes
@@ -626,7 +626,7 @@ class Swift_CSV_Importer {
 											$this->_debugLog( '[ACF Import] Removed quotes: ' . $processed_value );
 										}
 									}
-									
+
 									$this->_debugLog( '[ACF Import] Saving field with value: ' . print_r( $processed_value, true ) );
 									update_field( $field_name, $processed_value, $post_id );
 								} else {
@@ -673,7 +673,7 @@ class Swift_CSV_Importer {
 
 		// Set taxonomies with hierarchical support
 		foreach ( $taxonomies as $taxonomy => $terms ) {
-			$processed_terms = array();
+			$processed_terms = [];
 
 			foreach ( $terms as $term ) {
 				// Handle hierarchical terms (e.g., "Parent > Child" or "Parent>Child")
@@ -707,7 +707,7 @@ class Swift_CSV_Importer {
 			if ( $value === '' || $value === null ) {
 				continue;
 			}
-			
+
 			$this->_debugLog( '[Meta Import] Processing meta field: ' . $key . ' with value: ' . $value );
 
 			// Handle multi-value custom fields (pipe-separated)
@@ -730,10 +730,10 @@ class Swift_CSV_Importer {
 			}
 		}
 
-		return array(
+		return [
 			'updated' => $is_update,
 			'post_id' => $post_id,
-		);
+		];
 	}
 
 	/**
@@ -758,9 +758,9 @@ class Swift_CSV_Importer {
 		$result = wp_insert_term(
 			$term_name,
 			$taxonomy,
-			array(
+			[
 				'parent' => $parent_id,
-			)
+			]
 		);
 
 		if ( is_wp_error( $result ) ) {
@@ -784,7 +784,7 @@ class Swift_CSV_Importer {
 		$value = $this->remove_excel_formatting( $value );
 
 		// Only remove HTML tags from non-content fields to preserve block editor
-		if ( ! in_array( $field, array( 'post_content', 'post_excerpt' ) ) ) {
+		if ( ! in_array( $field, [ 'post_content', 'post_excerpt' ] ) ) {
 			$value = strip_tags( $value );
 		}
 
@@ -807,7 +807,7 @@ class Swift_CSV_Importer {
 		if ( $type === 'post_field' ) {
 			switch ( $field ) {
 				case 'post_status':
-					$value = in_array( $value, array( 'publish', 'draft', 'private', 'pending' ) ) ? $value : 'publish';
+					$value = in_array( $value, [ 'publish', 'draft', 'private', 'pending' ] ) ? $value : 'publish';
 					break;
 				case 'post_title':
 					$value = substr( $value, 0, 200 );
@@ -834,7 +834,7 @@ class Swift_CSV_Importer {
 		$value = preg_replace( '/style="[^"]*"/i', '', $value );
 
 		// Remove Excel-specific formatting
-		$patterns = array(
+		$patterns = [
 			'/td\s*{\s*border:\s*[^}]*}/i',
 			'/br\s*{\s*mso-data-placement:\s*[^}]*}/i',
 			'/mso-data-placement:\s*[^;]*;?/i',
@@ -847,7 +847,7 @@ class Swift_CSV_Importer {
 			'/data-sheets-userformat="[^"]*"/i',
 			'/<span[^>]*data-sheets[^>]*>/i',
 			'/<\/span>/i',
-		);
+		];
 
 		foreach ( $patterns as $pattern ) {
 			$value = preg_replace( $pattern, '', $value );
@@ -911,25 +911,25 @@ class Swift_CSV_Importer {
 	private function _make_slug_unique( $slug, $post_type, $exclude_id = null ) {
 		// Check if slug already exists
 		$existing_post = get_page_by_path( $slug, OBJECT, $post_type );
-		
+
 		// If no duplicate or it's the same post being updated, return as-is
 		if ( ! $existing_post || ( $exclude_id && $existing_post->ID === $exclude_id ) ) {
 			return $slug;
 		}
-		
+
 		// Add suffix to make unique
-		$suffix = 2;
+		$suffix        = 2;
 		$original_slug = $slug;
-		
+
 		do {
-			$new_slug = $original_slug . '-' . $suffix;
+			$new_slug      = $original_slug . '-' . $suffix;
 			$existing_post = get_page_by_path( $new_slug, OBJECT, $post_type );
-			$suffix++;
+			++$suffix;
 		} while ( $existing_post && ( ! $exclude_id || $existing_post->ID !== $exclude_id ) );
-		
+
 		return $new_slug;
 	}
-	
+
 	/**
 	 * Parse memory limit string to bytes
 	 *
@@ -941,9 +941,9 @@ class Swift_CSV_Importer {
 	 */
 	private function parse_memory_limit( $limit ) {
 		$limit = trim( $limit );
-		$unit = strtoupper( substr( $limit, -1 ) );
+		$unit  = strtoupper( substr( $limit, -1 ) );
 		$value = (int) substr( $limit, 0, -1 );
-		
+
 		switch ( $unit ) {
 			case 'G':
 				return $value * 1024 * 1024 * 1024;

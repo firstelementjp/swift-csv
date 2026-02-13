@@ -323,6 +323,18 @@ msgstr "基本項目"
 msgid "All Fields"
 msgstr "全項目"
 
+msgid "Custom"
+msgstr "カスタム"
+
+msgid "Use the %1$s hook to specify custom export items and order. See %2$s for details."
+msgstr "%1$sフックを使ってエクスポートする項目・順番を指定できます。詳しくは%2$sをご参照ください。"
+
+msgid "Use the swift_csv_export_columns hook to specify custom export items and order. See documentation for details."
+msgstr "swift_csv_export_columnsフックを使ってエクスポートする項目・順番を指定できます。詳しくはドキュメントをご参照ください。"
+
+msgid "documentation"
+msgstr "ドキュメント"
+
 #: includes/class-swift-csv-admin.php:359
 msgid "Include fields starting with \"_\""
 msgstr "\"_\"から始まるフィールドを含める"
@@ -347,6 +359,36 @@ msgstr "エクスポートが正常に完了しました！"
 
 msgid "Export cancelled"
 msgstr "エクスポートがキャンセルされました"
+
+msgid "Export Settings"
+msgstr "エクスポート設定"
+
+msgid "Export Log"
+msgstr "エクスポートログ"
+
+msgid "Import Settings"
+msgstr "インポート設定"
+
+msgid "Import Log"
+msgstr "インポートログ"
+
+msgid "Ready to start export..."
+msgstr "エクスポートの準備完了..."
+
+msgid "Ready to start import..."
+msgstr "インポートの準備完了..."
+
+msgid "Drop CSV file here or click to browse"
+msgstr "CSVファイルをドロップまたはクリックして選択"
+
+msgid "Maximum file size: 10MB"
+msgstr "最大ファイルサイズ: 10MB"
+
+msgid "Maximum file size: 200MB"
+msgstr "最大ファイルサイズ: 200MB"
+
+msgid "Maximum file size: %s"
+msgstr "最大ファイルサイズ: %s"
 
 msgid "Export failed"
 msgstr "エクスポートに失敗しました"

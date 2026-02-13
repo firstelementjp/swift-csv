@@ -34,3 +34,4 @@ init.sh
 .envrc
 *.local
 README.en.md
+debug.php

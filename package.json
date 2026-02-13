@@ -1,6 +1,6 @@
 {
 	"name": "swift-csv",
-	"version": "0.9.5",
+	"version": "0.9.6",
 	"description": "Swift CSV - Simple CSV Management Without the Complexity.",
 	"license": "GPL-2.0+",
 	"engines": {
@@ -8,14 +8,12 @@
 	},
 	"scripts": {
 		"dev": "npm run watch:all",
-		"watch:all": "npm run watch:js & npm run watch:css & npm run watch:pro",
-		"watch:js": "esbuild assets/js/admin-scripts.js --minify --outfile=assets/js/admin-scripts.min.js --watch",
-		"watch:css": "esbuild assets/css/admin-style.css --minify --outfile=assets/css/admin-style.min.css --watch",
-		"build": "npm run build:js && npm run build:css && run build:pro",
-		"build:js": "esbuild assets/js/admin-scripts.js --minify --outfile=assets/js/admin-scripts.min.js",
-		"build:css": "esbuild assets/css/admin-style.css --minify --outfile=assets/css/admin-style.min.css",
-		"watch:pro": "esbuild ../swift-csv-pro/assets/js/admin-pro-scripts.js --minify --outfile=../swift-csv-pro/assets/js/admin-pro-scripts.min.js --watch",
-		"build:pro": "esbuild ../swift-csv-pro/assets/js/admin-pro-scripts.js --minify --outfile=../swift-csv-pro/assets/js/admin-pro-scripts.min.js",
+		"watch:all": "npm run watch:js & npm run watch:css",
+		"watch:js": "esbuild assets/js/swift-csv-admin-scripts.js --minify --outfile=assets/js/swift-csv-admin-scripts.min.js --watch=forever",
+		"watch:css": "esbuild assets/css/swift-csv-admin-style.css --minify --outfile=assets/css/swift-csv-admin-style.min.css --watch=forever",
+		"build": "npm run build:js && npm run build:css",
+		"build:js": "esbuild assets/js/swift-csv-admin-scripts.js --minify --outfile=assets/js/swift-csv-admin-scripts.min.js",
+		"build:css": "esbuild assets/css/swift-csv-admin-style.css --minify --outfile=assets/css/swift-csv-admin-style.min.css",
 		"lint:js": "eslint . --ext .js",
 		"lint:js:fix": "eslint . --ext .js --fix",
 		"format": "prettier --write .",

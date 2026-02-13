@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://firstelementjp.github.io/swift-csv/
+    about: Please check the docs first.
+  - name: Security
+    url: https://github.com/firstelementjp/swift-csv/security/policy
+    about: Please report security issues privately.

@@ -90,29 +90,6 @@ class Swift_CSV_Import_Meta_Tax {
 	}
 
 	/**
-	 * Process meta fields and taxonomies for a post.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb                                                                                                                                                                                            $wpdb WordPress database handler.
-	 * @param array{post_id:int,post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                                           $counters Counters (by reference).
-	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>}
-	 */
-	public function process_meta_and_taxonomies_for_row( wpdb $wpdb, array $context, array &$counters ): array {
-		return $this->process_meta_and_taxonomies_for_row_with_args(
-			$wpdb,
-			$context['post_id'],
-			$context['headers'],
-			$context['data'],
-			$context['allowed_post_fields'],
-			$context['taxonomy_format'],
-			$context['taxonomy_format_validation'],
-			$context['dry_run'],
-			$counters
-		);
-	}
-
-	/**
 	 * Collect taxonomy fields from a CSV row.
 	 *
 	 * @since 0.9.0

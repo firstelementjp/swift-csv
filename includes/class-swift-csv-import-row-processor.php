@@ -45,37 +45,6 @@ class Swift_CSV_Import_Row_Processor {
 	}
 
 	/**
-	 * Apply success side effects for a row (counters and GUID update).
-	 *
-	 * @since 0.9.0
-	 * @param wpdb                                                                                  $wpdb WordPress database handler.
-	 * @param int                                                                                   $post_id Post ID.
-	 * @param bool                                                                                  $is_update Whether this row updated an existing post.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>} $counters Counters (by reference).
-	 * @param callable(bool,int&,int&,int&): void                                                   $increment_row_counters_on_success Increment counters.
-	 * @param callable(wpdb,int): void                                                              $update_guid_for_new_post Update GUID for new post.
-	 * @return void
-	 */
-	public function apply_success_counters_and_guid(
-		wpdb $wpdb,
-		int $post_id,
-		bool $is_update,
-		array &$counters,
-		callable $increment_row_counters_on_success,
-		callable $update_guid_for_new_post
-	): void {
-		$processed = &$counters['processed'];
-		$created   = &$counters['created'];
-		$updated   = &$counters['updated'];
-
-		$increment_row_counters_on_success( $is_update, $processed, $created, $updated );
-
-		if ( ! $is_update ) {
-			$update_guid_for_new_post( $wpdb, $post_id );
-		}
-	}
-
-	/**
 	 * Handle row result after persisting wp_posts data.
 	 *
 	 * @since 0.9.0

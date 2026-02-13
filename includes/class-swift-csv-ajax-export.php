@@ -340,18 +340,18 @@ class Swift_CSV_Ajax_Export {
 			}
 		}
 
-		// Hook for meta key classification (Pro version ACF integration)
+		// Hook for meta key classification
 		/**
 		 * Filter and classify discovered meta keys
 		 *
 		 * Allows developers to classify meta keys into different categories
-		 * (ACF, regular, private) for specialized processing. This hook is
-		 * ideal for Pro versions with ACF integration.
+		 * (regular, private) for specialized processing. This hook enables
+		 * custom field type classification and processing.
 		 *
 		 * @since 0.9.0
 		 * @param array $all_meta_keys All discovered meta keys
 		 * @param array $args Export arguments including context
-		 * @return array Classified meta keys array with 'acf', 'regular', 'private' keys
+		 * @return array Classified meta keys array with 'regular', 'private' keys
 		 */
 		$meta_classify_args = [
 			'post_type'            => $post_type,
@@ -363,10 +363,9 @@ class Swift_CSV_Ajax_Export {
 		$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', $all_meta_keys, $meta_classify_args );
 
 		// Ensure classified structure exists
-		if ( ! is_array( $classified_meta_keys ) || ! isset( $classified_meta_keys['acf'] ) ) {
+		if ( ! is_array( $classified_meta_keys ) ) {
 			// Fallback: create basic classification
 			$classified_meta_keys = [
-				'acf'     => [],
 				'regular' => [],
 				'private' => [],
 			];
@@ -380,17 +379,16 @@ class Swift_CSV_Ajax_Export {
 			}
 		}
 
-		// Hook for custom field headers generation (Pro version ACF integration)
+		// Hook for custom field headers generation
 		/**
 		 * Generate custom field headers for export
 		 *
 		 * Allows extensions to generate custom field headers from classified meta keys.
-		 * This hook is ideal for Pro versions with ACF integration that need to create
-		 * headers with different prefixes (acf_, cf_) based on field type.
+		 * This hook enables custom header generation with different prefixes based on field type.
 		 *
 		 * @since 0.9.0
 		 * @param array $custom_field_headers Array of custom field headers (empty array to start)
-		 * @param array $classified_meta_keys Classified meta keys with 'acf', 'regular', 'private' keys
+		 * @param array $classified_meta_keys Classified meta keys with 'regular', 'private' keys
 		 * @param array $args Export arguments including context
 		 * @return array Complete custom field headers array
 		 */
@@ -491,6 +489,9 @@ class Swift_CSV_Ajax_Export {
 	 */
 	public function handle_ajax_export(): void {
 		try {
+			error_log( '=== Export Handler Started ===' );
+			error_log( 'Memory usage at start: ' . memory_get_usage( true ) );
+
 			// Security check
 			check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 			ignore_user_abort( false );
@@ -683,29 +684,6 @@ class Swift_CSV_Ajax_Export {
 						$clean_value = $this->normalize_quotes( $clean_value );
 						$value       = $clean_value;
 
-					} elseif ( str_starts_with( $header, 'acf_' ) ) {
-						// Handle ACF fields - delegate to Pro version processing
-						$meta_key = substr( $header, 4 );
-
-						/**
-						 * Process ACF field value for export
-						 *
-						 * Allows Pro version to handle ACF field processing with proper
-						 * formatting, taxonomy term resolution, and field type handling.
-						 *
-						 * @since 0.9.0
-						 * @param string $value Processed field value (default: empty)
-						 * @param string $meta_key Original ACF field name
-						 * @param int $post_id Post ID
-						 * @param array $args Processing arguments
-						 * @return string Processed ACF field value
-						 */
-						$acf_args = [
-							'post_type' => $post_type,
-							'context'   => 'export_data_processing',
-						];
-						$value    = apply_filters( 'swift_csv_process_acf_field_value', '', $meta_key, $post_id, $acf_args );
-
 					} elseif ( str_starts_with( $header, 'cf_' ) ) {
 						$meta_key = substr( $header, 3 );
 
@@ -734,7 +712,7 @@ class Swift_CSV_Ajax_Export {
 						 * Process custom header values for export
 						 *
 						 * Allows developers to process custom headers that don't fit
-						 * into standard categories (ID, post fields, taxonomies, ACF, custom fields).
+						 * into standard categories (ID, post fields, taxonomies, custom fields).
 						 * This hook is ideal for plugin-specific fields or special data processing.
 						 *
 						 * @since 0.9.0

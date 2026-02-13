@@ -75,6 +75,42 @@ npm run lint:js
 npm run format
 ```
 
+## Regression Test Checklist (Import)
+
+When you refactor import code or touch CSV parsing / row processing / persistence, run the checklist below in a real WordPress environment.
+
+### 1) Dry Run
+
+1. Open **Admin Dashboard → Swift CSV → Import**
+2. Select a known-good CSV
+3. Run **Dry Run** for:
+    - New posts
+    - Update existing posts
+4. Confirm:
+    - Import completes without errors
+    - Progress UI updates and reaches 100%
+    - Browser console has no JSON parse errors
+    - Log summary shows created/updated/errors with expected labels
+
+### 2) Real Import (Non-Dry Run)
+
+1. Run a small import that creates at least 1 new post
+2. Run a small import that updates at least 1 existing post
+3. Confirm:
+    - Posts are actually created/updated in WordPress
+    - Progress UI updates and reaches 100%
+    - Browser console has no JSON parse errors
+    - `debug.log` does not contain PHP fatal errors
+    - Taxonomies and custom fields are applied as expected
+
+### 3) Asset rebuild (when JS/CSS changes)
+
+If you changed files under `assets/js/` or `assets/css/`, rebuild and include the updated minified outputs:
+
+```bash
+npm run build
+```
+
 ## Project Conventions
 
 ### CSV column prefixes

@@ -3,7 +3,7 @@
  * Plugin Name:       Swift CSV
  * Plugin URI:        https://github.com/firstelementjp/swift-csv
  * Description:       Lightweight and simple CSV import/export plugin. Supports custom post types, custom taxonomies, and custom fields.
- * Version:           0.9.5
+ * Version:           0.9.6
  * Author:            FirstElement, Inc.
  * Author URI:        https://www.firstelement.co.jp/
  * License:           GPL-2.0+
@@ -18,10 +18,33 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 // Define plugin constants.
-define( 'SWIFT_CSV_VERSION', '0.9.4' );
+define( 'SWIFT_CSV_VERSION', '0.9.6' );
 define( 'SWIFT_CSV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SWIFT_CSV_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );
+define( 'SWIFT_CSV_PRO_URL', 'https://www.firstelement.co.jp/swift-csv/pro/' );
+define( 'SWIFT_CSV_DOCS_URL', 'https://firstelementjp.github.io/swift-csv/#/' );
+
+// Include required files.
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-admin.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-license-handler.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-updater.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-helper.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-csv.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-row-context.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-meta-tax.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-persister.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-row-processor.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-import.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';
+
+// Register plugin hooks.
+register_activation_hook( __FILE__, 'swift_csv_activate' );
+register_deactivation_hook( __FILE__, 'swift_csv_deactivate' );
+
+// Initialize plugin.
+add_action( 'plugins_loaded', 'swift_csv_init' );
+add_action( 'plugins_loaded', 'swift_csv_load_textdomain' );
 
 /**
  * Load plugin textdomain.
@@ -32,29 +55,12 @@ define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );
  * @return void
  */
 function swift_csv_load_textdomain() {
-	$loaded = load_plugin_textdomain(
+	load_plugin_textdomain(
 		'swift-csv',
 		false,
 		dirname( SWIFT_CSV_BASENAME ) . '/languages'
 	);
-
-	// Debug: Check if textdomain is loaded
-	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		error_log( 'Swift CSV textdomain loaded: ' . ( $loaded ? 'yes' : 'no' ) );
-		error_log( 'Current locale: ' . get_locale() );
-		error_log( 'Textdomain path: ' . dirname( SWIFT_CSV_BASENAME ) . '/languages' );
-	}
 }
-add_action( 'plugins_loaded', 'swift_csv_load_textdomain' );
-
-// Include required files.
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-admin.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-exporter.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-importer.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-batch.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-updater.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-import.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';
 
 /**
  * Initialize Swift CSV plugin
@@ -67,14 +73,10 @@ require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';
  */
 function swift_csv_init() {
 	new Swift_CSV_Admin();
-	new Swift_CSV_Exporter();
-	// new Swift_CSV_Importer(); // Currently unused - using ajax-import.php instead
-	new Swift_CSV_Batch();
+	new Swift_CSV_Ajax_Import();
+	new Swift_CSV_Ajax_Export();
 	new Swift_CSV_Updater( __FILE__ );
 }
-add_action( 'plugins_loaded', 'swift_csv_init' );
-
-register_activation_hook( __FILE__, 'swift_csv_activate' );
 
 /**
  * Plugin activation hook
@@ -96,8 +98,27 @@ function swift_csv_activate() {
 		wp_mkdir_p( $csv_dir );
 	}
 
-	// Flush rewrite rules if needed.
-	flush_rewrite_rules();
+	// Create temp directory and cleanup old files.
+	$temp_dir = $upload_dir['basedir'] . '/swift-csv-temp';
+	if ( ! file_exists( $temp_dir ) ) {
+		wp_mkdir_p( $temp_dir );
+	}
+
+	// Create .htaccess to restrict web access.
+	$htaccess_file = $temp_dir . '/.htaccess';
+	if ( ! file_exists( $htaccess_file ) ) {
+		file_put_contents( $htaccess_file, "Deny from all\n" );
+	}
+
+	// Cleanup old temp files (older than 24 hours).
+	$files = glob( $temp_dir . '/*.csv' );
+	if ( $files ) {
+		foreach ( $files as $file ) {
+			if ( time() - filemtime( $file ) > 86400 ) { // 24 hours
+				unlink( $file );
+			}
+		}
+	}
 }
 
 register_deactivation_hook( __FILE__, 'swift_csv_deactivate' );
@@ -113,7 +134,4 @@ register_deactivation_hook( __FILE__, 'swift_csv_deactivate' );
 function swift_csv_deactivate() {
 	// Clean up all scheduled cron jobs.
 	wp_clear_scheduled_hook( 'swift_csv_process_batch' );
-
-	// Flush rewrite rules.
-	flush_rewrite_rules();
 }

@@ -1,16 +1,37 @@
 <?php
 /**
- * Plugin updater functionality
+ * Plugin Updater for Swift CSV
  *
- * Handles automatic updates from GitHub releases.
+ * Handles automatic updates from GitHub releases with version checking
+ * and package download functionality.
  *
- * @since  0.9.0
+ * @since 0.9.0
+ * @package Swift_CSV
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Plugin Updater for Swift CSV
+ *
+ * Handles automatic updates from GitHub releases with version checking
+ * and package download functionality.
+ *
+ * @since 0.9.0
+ * @package Swift_CSV
+ */
+
+/**
+ * Plugin Updater class
+ *
+ * Handles automatic updates from GitHub releases with version checking
+ * and package download functionality.
+ *
+ * @since 0.9.0
+ * @package Swift_CSV
+ */
 class Swift_CSV_Updater {
 
 	/**

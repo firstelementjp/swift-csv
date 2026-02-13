@@ -17,6 +17,30 @@ msgstr ""
 "X-Generator: Poedit 3.4.2\n"
 "X-Domain: swift-csv\n"
 
+#: includes/class-swift-csv-admin.php:490
+msgid "Taxonomy Format"
+msgstr "タクソノミー形式"
+
+#: includes/class-swift-csv-admin.php:495
+msgid "Names (name)"
+msgstr "名前（name）"
+
+#: includes/class-swift-csv-admin.php:498
+msgid "Term IDs (term_id)"
+msgstr "タームID（term_id）"
+
+#: includes/class-swift-csv-admin.php:501
+msgid "Choose how taxonomy terms are exported: names for readability or term IDs for data integrity."
+msgstr "タクソノミータームのエクスポート形式を選択：読みやすさのための名前、またはデータ整合性のためのタームID。"
+
+#: includes/class-swift-csv-admin.php:506
+msgid "Custom Fields"
+msgstr "カスタムフィールド"
+
+#: includes/class-swift-csv-admin.php:510
+msgid "Include fields starting with \"_\""
+msgstr "\"_\"で始まるフィールドを含める"
+
 #. Plugin Name of the plugin
 #: swift-csv.php
 msgid "Swift CSV"
@@ -78,9 +102,106 @@ msgstr ""
 msgid "Go to contact form"
 msgstr ""
 
-#: includes/class-swift-csv-admin.php:222
+#: includes/class-swift-csv-admin.php:504
+msgid "Update Existing"
+msgstr "既存投稿を更新"
+
+#: includes/class-swift-csv-admin.php:509
+msgid "Update existing posts if they match by ID"
+msgstr "IDが一致する場合に既存投稿を更新"
+
+#: includes/class-swift-csv-admin.php:511
+msgid "If checked, existing posts will be updated. If unchecked, only new posts will be created."
+msgstr "チェックすると既存投稿が更新されます。チェックしない場合、新しい投稿のみが作成されます。"
+
+#: includes/class-swift-csv-admin.php:527
+msgid "Dry Run"
+msgstr "テスト実行"
+
+#: includes/class-swift-csv-admin.php:531
+msgid "Test import without creating posts"
+msgstr "投稿を作成せずにインポートをテスト"
+
+#: includes/class-swift-csv-admin.php:533
+msgid "Run a test import to preview changes without modifying your data."
+msgstr "データを変更せずに変更内容をプレビューするテストインポートを実行します。"
+
+#: includes/class-swift-csv-admin.php:561
+msgid "Select whether the term values in the CSV are names (text) or term IDs (numeric)."
+msgstr "CSV上のタームの値が名前（テキスト）かタームID（数値）かを選択してください。"
+
+#: includes/class-swift-csv-admin.php:1192
+msgid "Pro License Key"
+msgstr "Proライセンスキー"
+
+#: includes/class-swift-csv-admin.php:658
+#: includes/class-swift-csv-admin.php:495
+#: includes/class-swift-csv-admin.php:555
+msgid "Names"
+msgstr "名前"
+
+#: includes/class-swift-csv-admin.php:661
+#: includes/class-swift-csv-admin.php:498
+#: includes/class-swift-csv-admin.php:559
+msgid "Term IDs"
+msgstr "タームID"
+
+#: includes/class-swift-csv-admin.php:677
+msgid "Preview what will be imported by checking the log output without actually creating posts or taxonomies (Dry Run)."
+msgstr "インポートされる内容をログに出力してあらかじめ確認できます（Dry Run）。"
+
+#: includes/class-swift-csv-admin.php:352
 msgid "Export"
 msgstr "エクスポート"
+
+#: includes/class-swift-csv-admin.php:142
+msgid "Test import without creating posts or modifying data."
+msgstr "投稿を作成せずにインポートをテストします。実際のデータは変更されません。"
+
+#: includes/class-swift-csv-admin.php:143
+msgid "Test completed!"
+msgstr "テスト完了！"
+
+#: includes/class-swift-csv-admin.php:144
+msgid "Created posts:"
+msgstr "新規作成:"
+
+#: includes/class-swift-csv-admin.php:145
+msgid "Updated posts:"
+msgstr "更新:"
+
+#: includes/class-swift-csv-ajax-import.php:505
+msgid "Update post: ID=%1$s, title=%2$s"
+msgstr "更新投稿: ID=%1$s, タイトル=%2$s"
+
+#: includes/class-swift-csv-ajax-import.php:530
+msgid "New post: title=%1$s"
+msgstr "新規投稿: タイトル=%1$s"
+
+#: includes/class-swift-csv-ajax-import.php:753
+msgid "Existing term: %1$s (ID: %2$s, taxonomy: %3$s)"
+msgstr "既存ターム: %1$s (ID: %2$s, タクソノミー: %3$s)"
+
+#: includes/class-swift-csv-ajax-import.php:786
+msgid "Custom field (multi-value): %1$s = %2$s"
+msgstr "カスタムフィールド（複数値）: %1$s = %2$s"
+
+#: includes/class-swift-csv-ajax-import.php:794
+msgid "Custom field: %1$s = %2$s"
+msgstr "カスタムフィールド: %1$s = %2$s"
+
+#: includes/class-swift-csv-ajax-import.php:310
+msgid "Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Names\" but CSV contains only numeric values: %2$s. Please check your data format."
+msgstr "タクソノミー \"%1$s\" で形式の不一致が検出されました。UIは「名前」に設定されていますが、CSVには数値のみが含まれています：%2$s。データ形式を確認してください。"
+
+#: includes/class-swift-csv-ajax-import.php:325
+msgid "Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Term IDs\" but CSV contains only text values: %2$s. Please check your data format."
+msgstr "タクソノミー \"%1$s\" で形式の不一致が検出されました。UIは「タームID」に設定されていますが、CSVにはテキストのみが含まれています：%2$s。データ形式を確認してください。"
+
+#: includes/class-swift-csv-admin.php:664
+#: includes/class-swift-csv-admin.php:501
+msgid "Choose how taxonomy terms are imported: names for readability or term IDs for data integrity."
+msgstr "タクソノミータームのインポート形式を選択：読みやすさのための名前、またはデータ整合性のためのタームID。"
 
 #: includes/class-swift-csv-admin.php:225
 msgid "Import"
@@ -324,9 +445,6 @@ msgid "All Fields"
 msgstr "全項目"
 
 #: includes/class-swift-csv-admin.php:359
-msgid "Include fields starting with \"_\""
-msgstr "\"_\"から始まるフィールドを含める"
-
 msgid "Processed:"
 msgstr "処理済み:"
 
@@ -359,3 +477,275 @@ msgstr "分"
 
 msgid "Est. remaining:"
 msgstr "残り時間:"
+
+msgid "Ready to start import..."
+msgstr "インポートの準備ができました..."
+
+msgid "Import Log"
+msgstr "インポートログ"
+
+msgid "Starting import process..."
+msgstr "インポート処理を開始します..."
+
+msgid "An error occurred. Please try again."
+msgstr "エラーが発生しました。もう一度お試しください。"
+
+msgid "Ready to start export..."
+msgstr "エクスポートの準備ができました..."
+
+msgid "File removed"
+msgstr "ファイルが削除されました"
+
+msgid "Please select a CSV file"
+msgstr "CSVファイルを選択してください"
+
+msgid "File size exceeds 10MB limit"
+msgstr "ファイルサイズが10MBの制限を超えています"
+
+msgid "File selected:"
+msgstr "ファイルが選択されました:"
+
+msgid "Remove"
+msgstr "削除"
+
+msgid "Starting export process..."
+msgstr "エクスポート処理を開始します..."
+
+msgid "Post Type:"
+msgstr "投稿タイプ:"
+
+msgid "Export Scope:"
+msgstr "エクスポート範囲:"
+
+msgid "Include Private Meta:"
+msgstr "プライベートメタを含める:"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "No"
+msgstr "いいえ"
+
+msgid "Export Limit:"
+msgstr "エクスポート制限:"
+
+msgid "No limit"
+msgstr "制限なし"
+
+msgid "Chunk processing start position (row):"
+msgstr "チャンク処理開始位置（行）:"
+
+msgid "Export error:"
+msgstr "エクスポートエラー:"
+
+msgid "File:"
+msgstr "ファイル:"
+
+msgid "File Size:"
+msgstr "ファイルサイズ:"
+
+msgid "Update Existing:"
+msgstr "既存を更新:"
+
+msgid "Importing..."
+msgstr "インポート中..."
+
+msgid "Import cancelled by user"
+msgstr "ユーザーによってインポートがキャンセルされました"
+
+msgid "Import error:"
+msgstr "インポートエラー:"
+
+msgid "Download ready:"
+msgstr "ダウンロード準備完了:"
+
+msgid "Total updated:"
+msgstr "総更新数:"
+
+msgid "Total errors:"
+msgstr "総エラー数:"
+
+msgid "Batch export started"
+msgstr "バッチエクスポートが開始されました"
+
+msgid "Import Settings"
+msgstr "インポート設定"
+
+msgid "Drop CSV file here or click to browse"
+msgstr "CSVファイルをここにドロップまたはクリックして選択"
+
+msgid "Maximum file size: %s"
+msgstr "最大ファイルサイズ: %s"
+
+msgid "Custom"
+msgstr "カスタム"
+
+msgid "Use the %1$s hook to specify custom export items and order. See %2$s for details."
+msgstr "%1$sフックを使用してカスタムエクスポート項目と順序を指定します。詳細については%2$sを参照してください。"
+
+msgid "documentation"
+msgstr "ドキュメント"
+
+msgid "Export Settings"
+msgstr "エクスポート設定"
+
+msgid "File: %s"
+msgstr "ファイル: %s"
+
+msgid "File Size: %s"
+msgstr "ファイルサイズ: %s"
+
+msgid "Post Type: %s"
+msgstr "投稿タイプ: %s"
+
+msgid "Update Existing: %s"
+msgstr "既存投稿の更新: %s"
+
+msgid "Processing chunk starting from row %d"
+msgstr "行 %d からチャンクを処理中"
+
+msgid "Processed"
+msgstr "処理済み"
+
+msgid "Created: %d"
+msgstr "新規作成: %d"
+
+msgid "Updated: %d"
+msgstr "更新: %d"
+
+msgid "Errors: %d"
+msgstr "エラー: %d"
+
+msgid "Total updated: %d"
+msgstr "総更新数: %d"
+
+msgid "Total errors: %d"
+msgstr "総エラー数: %d"
+
+msgid "Export Log"
+msgstr "エクスポートログ"
+
+msgid "Export cancelled by user"
+msgstr "ユーザーによってエクスポートがキャンセルされました"
+
+msgid "The license is valid."
+msgstr "ライセンスは有効です。"
+
+msgid "License expiration date: %1$s (remaining %2$s days)"
+msgstr "ライセンス有効期限: %1$s (残り %2$s 日)"
+
+msgid "Activation count: %1$s / %2$s"
+msgstr "有効化されたサイト数: %1$s / %2$s"
+
+msgid "Unlimited"
+msgstr "無制限"
+
+msgid "Show"
+msgstr "表示"
+
+msgid "Hide"
+msgstr "非表示"
+
+msgid "Deactivate"
+msgstr "無効化"
+
+msgid "Activate"
+msgstr "有効化"
+
+msgid "License"
+msgstr "ライセンス"
+
+msgid "Enter the license key you received at the time of purchase and press the \"Activate\" button."
+msgstr "購入時に受け取ったライセンスキーを入力し、「有効化」ボタンを押してください。"
+
+msgid "Unlock more with Swift CSV Pro"
+msgstr "Swift CSV Pro でさらに多くの機能を解放"
+
+msgid "With a Pro license, you can:"
+msgstr "Proライセンスで以下の機能が利用できます："
+
+msgid "ACF Integration"
+msgstr "ACF連携"
+
+msgid "Export and import Advanced Custom Fields with proper formatting"
+msgstr "Advanced Custom Fieldsの書式を正しく維持したままエクスポート・インポート"
+
+msgid "Support for all ACF field types including taxonomy, repeater, and relationship fields"
+msgstr "タクソノミー、リピーター、関連フィールドを含むすべてのACFフィールドタイプをサポート"
+
+msgid "Automatic field type detection and proper value formatting"
+msgstr "自動フィールドタイプ検出と適切な値の書式設定"
+
+msgid "Advanced Features"
+msgstr "高度な機能"
+
+msgid "Batch processing for large datasets (1000+ records)"
+msgstr "大規模データセットのバッチ処理（1000+レコード）"
+
+msgid "Real-time progress tracking with AJAX"
+msgstr "AJAXによるリアルタイム進行状況追跡"
+
+msgid "Custom field filtering and selection"
+msgstr "カスタムフィールドのフィルタリングと選択"
+
+msgid "Advanced taxonomy handling with term ID or name export"
+msgstr "タームIDまたは名前での高度なタクソノミー処理"
+
+msgid "Import Enhancements"
+msgstr "インポート機能強化"
+
+msgid "Multi-value custom fields support"
+msgstr "複数値カスタムフィールドサポート"
+
+msgid "Advanced filtering and sorting options"
+msgstr "高度なフィルタリングとソートオプション"
+
+msgid "Custom export templates and formats"
+msgstr "カスタムエクスポートテンプレートと形式"
+
+msgid "Scheduled export functionality"
+msgstr "スケジュールエクスポート機能"
+
+msgid "Support & Updates"
+msgstr "サポートとアップデート"
+
+msgid "Priority customer support"
+msgstr "優先カスタマーサポート"
+
+msgid "Automatic updates from our update server"
+msgstr "アップデートサーバーからの自動アップデート"
+
+msgid "Access to beta features and early releases"
+msgstr "ベータ機能と早期リリースへのアクセス"
+
+msgid "Extended documentation and tutorials"
+msgstr "拡張ドキュメントとチュートリアル"
+
+msgid "View Swift CSV Pro Details"
+msgstr "Swift CSV Pro詳細を表示"
+
+msgid "License API URL not defined. Please activate Swift CSV Pro."
+msgstr "ライセンスAPI URLが定義されていません。Swift CSV Proを有効化してください。"
+
+msgid "License deactivated locally. Server-side activation remains active."
+msgstr "ライセンスをローカルで無効化しました。サーバー側のアクティベーションは解除されません。"
+
+#: includes/class-swift-csv-admin.php:160
+msgid "Total imported:"
+msgstr "インポート"
+
+#: includes/class-swift-csv-admin.php:215
+msgid "Imported"
+msgstr "インポート"
+
+#: includes/class-swift-csv-admin.php:216
+msgid "Updated"
+msgstr "更新"
+
+#: includes/class-swift-csv-admin.php:223
+msgid "No file selected"
+msgstr "ファイルが選択されていません"
+
+#: includes/class-swift-csv-admin.php:217
+msgid "Errors"
+msgstr "エラー"

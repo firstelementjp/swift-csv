@@ -56,14 +56,6 @@ class Swift_CSV_Ajax_Import {
 	private $persister_util;
 
 	/**
-	 * Orchestrator utility instance.
-	 *
-	 * @since 0.9.0
-	 * @var Swift_CSV_Import_Orchestrator|null
-	 */
-	private $orchestrator_util;
-
-	/**
 	 * Row processor utility instance.
 	 *
 	 * @since 0.9.0
@@ -133,19 +125,6 @@ class Swift_CSV_Ajax_Import {
 			$this->persister_util = new Swift_CSV_Import_Persister();
 		}
 		return $this->persister_util;
-	}
-
-	/**
-	 * Get import orchestrator instance.
-	 *
-	 * @since 0.9.0
-	 * @return Swift_CSV_Import_Orchestrator
-	 */
-	private function get_orchestrator_util(): Swift_CSV_Import_Orchestrator {
-		if ( null === $this->orchestrator_util ) {
-			$this->orchestrator_util = new Swift_CSV_Import_Orchestrator();
-		}
-		return $this->orchestrator_util;
 	}
 
 	/**
@@ -278,21 +257,15 @@ class Swift_CSV_Ajax_Import {
 	private function process_batch_import( array $config, array $csv_data, array &$counters ): void {
 		global $wpdb;
 
-		$this->get_orchestrator_util()->run_process_batch_import(
-			$wpdb,
-			$config,
-			$csv_data,
-			$counters,
-			function (): array {
-				return $this->get_allowed_post_fields();
-			},
-			function ( array $headers, string $file_path ): ?int {
-				return $this->ensure_id_column_or_send_error_and_cleanup( $headers, $file_path );
-			},
-			function ( wpdb $wpdb, array $config, array $csv_data, array $allowed_post_fields, int $index, array &$counters ): void {
-				$this->process_import_loop_iteration( $wpdb, $config, $csv_data, $allowed_post_fields, $index, $counters );
-			}
-		);
+		$allowed_post_fields = $this->get_allowed_post_fields();
+		$id_col              = $this->ensure_id_column_or_send_error_and_cleanup( $csv_data['headers'], $config['file_path'] );
+		if ( null === $id_col ) {
+			return;
+		}
+
+		for ( $i = $config['start_row']; $i < min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] ); $i++ ) {
+			$this->process_import_loop_iteration( $wpdb, $config, $csv_data, $allowed_post_fields, $i, $counters );
+		}
 	}
 
 	/**
@@ -315,20 +288,16 @@ class Swift_CSV_Ajax_Import {
 		int $index,
 		array &$counters
 	) {
-		$this->get_orchestrator_util()->run_process_import_loop_iteration(
-			$wpdb,
-			$config,
-			$csv_data,
-			$allowed_post_fields,
-			$index,
-			$counters,
-			function ( string $line, int &$processed ): bool {
-				return $this->maybe_skip_empty_csv_line( $line, $processed );
-			},
-			function ( wpdb $wpdb, array $config, array $csv_data, array $allowed_post_fields, string $line, string $delimiter, array $headers, array &$counters ): void {
-				$this->process_row_if_possible( $wpdb, $config, $csv_data, $allowed_post_fields, $line, $delimiter, $headers, $counters );
-			}
-		);
+		$line      = $csv_data['lines'][ $index ] ?? '';
+		$delimiter = $csv_data['delimiter'] ?? ',';
+		$headers   = $csv_data['headers'] ?? [];
+
+		$processed = &$counters['processed'];
+		if ( $this->maybe_skip_empty_csv_line( $line, $processed ) ) {
+			return;
+		}
+
+		$this->process_row_if_possible( $wpdb, $config, $csv_data, $allowed_post_fields, $line, $delimiter, $headers, $counters );
 	}
 
 	/**
@@ -346,21 +315,16 @@ class Swift_CSV_Ajax_Import {
 	 * @return void
 	 */
 	private function process_row_if_possible( wpdb $wpdb, array $config, array $csv_data, array $allowed_post_fields, string $line, string $delimiter, array $headers, array &$counters ): void {
-		$this->get_orchestrator_util()->run_process_row_if_possible(
+		$row_context = $this->build_import_row_context_from_config( $wpdb, $config, $line, $delimiter, $headers, $allowed_post_fields );
+		if ( null === $row_context ) {
+			return;
+		}
+
+		$this->process_row_context(
 			$wpdb,
-			$config,
-			$csv_data,
-			$allowed_post_fields,
-			$line,
-			$delimiter,
-			$headers,
-			$counters,
-			function ( wpdb $wpdb, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
-				return $this->build_import_row_context_from_config( $wpdb, $config, $line, $delimiter, $headers, $allowed_post_fields );
-			},
-			function ( wpdb $wpdb, array $row_context, array $context, array &$counters ): void {
-				$this->process_row_context( $wpdb, $row_context, $context, $counters );
-			}
+			$row_context,
+			$this->build_row_processing_context( $config, $csv_data, $headers, $allowed_post_fields ),
+			$counters
 		);
 	}
 
@@ -391,7 +355,15 @@ class Swift_CSV_Ajax_Import {
 	 * @return array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array}
 	 */
 	private function build_row_processing_context( array $config, array $csv_data, array $headers, array $allowed_post_fields ): array {
-		return $this->get_orchestrator_util()->run_build_row_processing_context( $config, $csv_data, $headers, $allowed_post_fields );
+		return [
+			'post_type'                  => (string) ( $config['post_type'] ?? 'post' ),
+			'dry_run'                    => (bool) ( $config['dry_run'] ?? false ),
+			'headers'                    => $headers,
+			'data'                       => [],
+			'allowed_post_fields'        => $allowed_post_fields,
+			'taxonomy_format'            => (string) ( $config['taxonomy_format'] ?? 'name' ),
+			'taxonomy_format_validation' => $csv_data['taxonomy_format_validation'] ?? [],
+		];
 	}
 
 	/**

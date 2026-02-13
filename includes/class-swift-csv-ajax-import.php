@@ -800,23 +800,6 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Persist post row from CSV.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb   $wpdb WordPress DB instance.
-	 * @param bool   $is_update Update flag.
-	 * @param int    $post_id Post ID.
-	 * @param array  $post_fields_from_csv Post fields.
-	 * @param string $post_type Post type.
-	 * @param bool   $dry_run Dry run flag.
-	 * @param array  $dry_run_log Dry run log.
-	 * @return void
-	 */
-	private function persist_post_row_from_csv( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, string $post_type, bool $dry_run, array &$dry_run_log ) {
-		return $this->get_persister_util()->persist_post_row_from_csv( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
-	}
-
-	/**
 	 * Handle error and cleanup.
 	 *
 	 * @since 0.9.0

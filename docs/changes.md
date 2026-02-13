@@ -4,7 +4,11 @@
 
 ### Improvements
 
-- **Import refactoring** - Improved maintainability for future Pro integration
+- **Import refactoring** - Split responsibilities into utility classes for better maintainability
+
+### Technical Debt
+
+- **Release cleanup** - Removed unconditional server/client debug logs for normal usage
 
 ---
 
@@ -78,7 +82,7 @@
 
 ---
 
-## [0.9.2] - 2026-01-31
+## [0.9.2] - 2024-01-31
 
 ### New Features
 
@@ -92,7 +96,7 @@
 - Updated documentation with usage examples
 - Enhanced code quality and maintainability
 
-## [0.9.1] - 2026-01-31
+## [0.9.1] - 2024-01-31
 
 ### New Features
 
@@ -111,7 +115,7 @@
 - Memory leak fix for large file processing
 - Japanese character encoding issue fix
 
-## [0.9.0] - 2026-01-15
+## [0.9.0] - 2024-01-15
 
 ### New Features
 

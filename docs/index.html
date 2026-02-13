@@ -4,6 +4,14 @@
 		<meta charset="UTF-8" />
 		<title>Swift CSV Documentation</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			name="description"
+			content="Complete documentation for Swift CSV WordPress plugin - import/export functionality, configuration, troubleshooting, and developer guides."
+		/>
+		<meta
+			name="keywords"
+			content="WordPress, CSV, import, export, plugin, documentation, Swift CSV"
+		/>
 		<link
 			rel="icon"
 			type="image/png"
@@ -35,7 +43,18 @@
 					previousText: 'Previous',
 					nextText: 'Next',
 				},
-				plugins: [],
+				plugins: [
+					function (hook, vm) {
+						hook.doneEach(function () {
+							// Add custom styling for code blocks
+							document.querySelectorAll('pre[data-lang]').forEach(function (block) {
+								if (!block.classList.contains('enhanced')) {
+									block.classList.add('enhanced');
+								}
+							});
+						});
+					},
+				],
 			};
 		</script>
 		<script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>

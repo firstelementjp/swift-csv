@@ -382,13 +382,14 @@ class Swift_CSV_Ajax_Import {
 		array $context,
 		array &$counters
 	) {
-		$this->get_row_processor_util()->process_row_context(
+		$this->get_row_processor_util()->process_row_context_with_persister(
 			$wpdb,
 			$row_context,
 			$context,
 			$counters,
-			function ( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, array $single_row_context, array &$counters ): void {
-				$this->process_single_import_row( $wpdb, $is_update, $post_id, $post_fields_from_csv, $single_row_context, $counters );
+			$this->get_persister_util(),
+			function ( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters ): void {
+				$this->handle_successful_row_import( $wpdb, $post_id, $is_update, $context, $counters );
 			}
 		);
 	}

@@ -29,6 +29,7 @@ phpdoc.xml export-ignore
 .envrc.example export-ignore
 .eslintrc.json export-ignore
 debug.php export-ignore
+debug.php.example export-ignore
 
 # Exclude Git and CI files
 .gitignore export-ignore
@@ -39,6 +40,7 @@ swift-csv/ export-ignore
 # Exclude documentation (keep README.md and LICENSE)
 docs/ export-ignore
 phpdoc/ export-ignore
+CONTRIBUTING.md export-ignore
 
 # Exclude large banner images (not needed for plugin functionality)
 assets/images/swift-csv-banner.jpeg export-ignore

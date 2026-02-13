@@ -412,6 +412,17 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
+	 * Check if a CSV line is empty.
+	 *
+	 * @since 0.9.0
+	 * @param string $line CSV line.
+	 * @return bool
+	 */
+	private function is_empty_csv_line( string $line ): bool {
+		return $this->get_csv_util()->is_empty_csv_line( $line );
+	}
+
+	/**
 	 * Process one import row including DB persist and success/error handling.
 	 *
 	 * @since 0.9.0

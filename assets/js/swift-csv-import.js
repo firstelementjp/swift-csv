@@ -112,7 +112,7 @@ function initFileUpload() {
 	if (removeBtn) {
 		removeBtn.addEventListener('click', () => {
 			fileInput.value = '';
-			fileInfo.classList.remove('visible'); // ← CSSクラスで非表示
+			fileInfo.classList.remove('visible');
 			uploadArea.classList.remove('file-selected');
 		});
 	}
@@ -143,7 +143,7 @@ function handleFileSelect(file) {
 		console.log('Setting file info...'); // Debug log
 		fileName.textContent = file.name;
 		fileSize.textContent = SwiftCSVCore.formatFileSize(file.size);
-		fileInfo.classList.add('visible'); // ← CSSクラスで表示
+		fileInfo.classList.add('visible');
 		uploadArea.classList.add('file-selected');
 		console.log('File info set successfully'); // Debug log
 	} else {
@@ -283,7 +283,7 @@ function processImportChunk(
 	const formData = new FormData();
 	formData.append('action', 'swift_csv_ajax_import');
 	formData.append('nonce', swiftCSV.nonce);
-	formData.append('csv_file', file); // ← 直接ファイルを送信
+	formData.append('csv_file', file);
 	formData.append('post_type', postType);
 	formData.append('update_existing', updateExisting);
 	formData.append('taxonomy_format', taxonomyFormat);
@@ -315,7 +315,7 @@ function processImportChunk(
 					data.cumulative_created,
 					data.cumulative_updated,
 					data.cumulative_errors,
-					file, // ← ファイルを渡す
+					file,
 					postType,
 					updateExisting,
 					taxonomyFormat,
@@ -491,7 +491,7 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 		uploadArea.classList.remove('file-selected');
 	}
 	if (fileInfo) {
-		fileInfo.classList.remove('visible'); // ← CSSクラスで非表示
+		fileInfo.classList.remove('visible');
 	}
 }
 

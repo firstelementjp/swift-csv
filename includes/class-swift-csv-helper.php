@@ -20,7 +20,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package Swift_CSV
  */
 class Swift_CSV_Helper {
-
 	/**
 	 * Parse CSV content line by line to handle quoted fields with newlines.
 	 *

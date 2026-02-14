@@ -226,6 +226,24 @@ class Swift_CSV_Ajax_Import {
 		$delimiter = $this->detect_csv_delimiter( $lines );
 		$headers   = $this->read_and_normalize_headers( $lines, $delimiter );
 
+		/**
+		 * Filter and classify discovered meta keys during import
+		 *
+		 * Allows developers to classify meta keys into different categories
+		 * (regular, private) for specialized processing. This hook enables
+		 * custom field type classification and processing.
+		 *
+		 * @since 0.9.0
+		 * @param array $all_meta_keys All discovered meta keys (empty for import)
+		 * @param array $args Import arguments including context
+		 * @return array Classified meta keys array with 'regular', 'private' keys
+		 */
+		$meta_classify_args   = [
+			'post_type' => $taxonomy_format, // Will be overridden in actual implementation
+			'context'   => 'import_meta_classification',
+		];
+		$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', [], $meta_classify_args );
+
 		$taxonomy_format_validation = $this->detect_taxonomy_format_validation_or_send_error_and_cleanup(
 			$lines,
 			$delimiter,
@@ -416,6 +434,25 @@ class Swift_CSV_Ajax_Import {
 			return;
 		}
 
+		// Filter sample posts for field detection (Pro version ACF integration)
+		/**
+		 * Filter sample posts for better field detection during import
+		 *
+		 * Allows extensions to modify sample posts used for field detection.
+		 * This hook is ideal for Pro versions with ACF integration that need
+		 * more sample posts to detect all fields.
+		 *
+		 * @since 0.9.0
+		 * @param array $sample_post_ids Empty array to start (no sample posts needed for import)
+		 * @param array $args Import arguments including post type
+		 * @return array Modified sample post IDs
+		 */
+		$sample_filter_args = [
+			'post_type' => $config['post_type'],
+			'context'   => 'import_field_detection',
+		];
+		$sample_post_ids    = apply_filters( 'swift_csv_filter_sample_posts', [], $sample_filter_args );
+
 		$total_rows             = $this->count_total_rows( $csv_data['lines'] );
 		$csv_data['total_rows'] = $total_rows;
 
@@ -551,6 +588,28 @@ class Swift_CSV_Ajax_Import {
 			$counters
 		);
 
+		// Prepare import fields for processing (Pro version ACF integration)
+		/**
+		 * Prepare import fields for processing
+		 *
+		 * Allows extensions to prepare and modify import fields before processing.
+		 * This hook is ideal for Pro versions with ACF integration that need to
+		 * prepare ACF field data or modify field values before processing.
+		 *
+		 * @since 0.9.0
+		 * @param array $meta_fields Meta fields to be processed
+		 * @param int $post_id Post ID being processed
+		 * @param array $args Processing arguments including headers and context
+		 * @return array Modified meta fields for processing
+		 */
+		$prepare_args         = [
+			'headers'   => $headers,
+			'data'      => $data,
+			'context'   => 'import_field_preparation',
+			'post_type' => $context['post_type'] ?? 'post',
+		];
+		$prepared_meta_fields = apply_filters( 'swift_csv_prepare_import_fields', $result['meta_fields'], $post_id, $prepare_args );
+
 		// Custom field processing hook for extensions
 		/**
 		 * Action for processing custom fields during import
@@ -562,7 +621,7 @@ class Swift_CSV_Ajax_Import {
 		 * @param int $post_id The ID of the created/updated post
 		 * @param array $meta_fields Array of meta fields to process
 		 */
-		$this->run_custom_field_processing_hook( $post_id, $result['meta_fields'] );
+		$this->run_custom_field_processing_hook( $post_id, $prepared_meta_fields );
 	}
 
 	/**

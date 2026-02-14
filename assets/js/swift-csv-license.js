@@ -60,10 +60,17 @@ function initLicense() {
 				license_action: action,
 			});
 
-			if (!response.success) {
+			// Parse JSON response (SwiftCSVCore.wpPost returns raw Response object)
+			const data = await response.json();
+
+			console.log('License response:', data);
+			console.log('Response success:', data.success);
+			console.log('Response data:', data.data);
+
+			if (!data.success) {
 				// Throw an error so that the catch block can show the backend message.
 				throw new Error(
-					response.data?.message ||
+					data.data?.message ||
 						SwiftCSVCore.__('License operation failed.', 'swift-csv-pro')
 				);
 			}

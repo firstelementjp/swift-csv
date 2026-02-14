@@ -44,13 +44,13 @@
 	height: 2.5rem;
 	background-color: white;
 	display: grid;
-	grid-template: 100% / 8em 22px 20px 20px 17px;
+	grid-template: 100% / 86px 54px 22px 20px 20px 17px;
 	grid-gap: 1.5em;
 	justify-content: end;
 	align-items: center;
 }
 .locale-ja #plugin_support {
-	grid-template: 100% / 8em 22px 20px 20px 17px;
+	grid-template: 100% / 73px 54px 22px 20px 20px 17px;
 }
 #plugin_support a {
 	text-align: right;

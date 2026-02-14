@@ -17,6 +17,10 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+// Custom debug log path
+$log_file = plugin_dir_path( __FILE__ ) . 'debug.log';
+ini_set( 'error_log', $log_file );
+
 // Define plugin constants.
 define( 'SWIFT_CSV_VERSION', '0.9.7' );
 define( 'SWIFT_CSV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );

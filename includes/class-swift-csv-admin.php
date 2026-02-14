@@ -672,6 +672,8 @@ class Swift_CSV_Admin {
 			// Determine the local license status based on the requested action
 			$local_status = ( 'activate' === $action ) ? 'active' : 'inactive';
 
+			error_log( 'License operation SUCCESS: ' . $action . ' - Message: ' . $result['message'] );
+
 			if ( $product_id > 0 ) {
 				$all_licenses['products'][ $product_id ] = [
 					'key'    => $license_key,
@@ -685,6 +687,9 @@ class Swift_CSV_Admin {
 			wp_send_json_success( [ 'message' => $result['message'] ] );
 
 		} else {
+			error_log( 'License operation FAILED: ' . $action . ' - Message: ' . $result['message'] );
+			error_log( 'Full result: ' . print_r( $result, true ) );
+
 			if ( $product_id > 0 ) {
 				$all_licenses['products'][ $product_id ] = [
 					'key'    => $license_key,

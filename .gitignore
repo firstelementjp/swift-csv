@@ -35,5 +35,3 @@ init.sh
 .envrc
 *.local
 README.en.md
-CONTRIBUTING.md
-debug.php.example

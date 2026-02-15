@@ -88,6 +88,14 @@ class Swift_CSV_Ajax_Import {
 	private $response_manager_util;
 
 	/**
+	 * CSV parser utility instance.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Csv_Parser|null
+	 */
+	private $csv_parser_util;
+
+	/**
 	 * Whether Pro license is active
 	 *
 	 * @since 0.9.7
@@ -222,6 +230,19 @@ class Swift_CSV_Ajax_Import {
 			$this->response_manager_util = new Swift_CSV_Import_Response_Manager();
 		}
 		return $this->response_manager_util;
+	}
+
+	/**
+	 * Get CSV parser instance.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Csv_Parser
+	 */
+	private function get_csv_parser_util(): Swift_CSV_Import_Csv_Parser {
+		if ( null === $this->csv_parser_util ) {
+			$this->csv_parser_util = new Swift_CSV_Import_Csv_Parser();
+		}
+		return $this->csv_parser_util;
 	}
 
 	/**
@@ -549,7 +570,12 @@ class Swift_CSV_Ajax_Import {
 			return;
 		}
 
-		$csv_data = $this->parse_and_validate_csv( $config['file_path'], $config['taxonomy_format'] );
+		$csv_content = $this->read_uploaded_csv_content_or_send_error_and_cleanup( $config['file_path'] );
+		if ( null === $csv_content ) {
+			return;
+		}
+
+		$csv_data = $this->get_csv_parser_util()->parse_and_validate_csv( $csv_content, $config, $config['file_path'] );
 		if ( null === $csv_data ) {
 			return;
 		}

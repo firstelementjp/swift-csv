@@ -113,8 +113,8 @@ cf_tags: "wordpress|php|developer"
 
 ## 🔧 Requirements
 
-- **WordPress**: 5.0 or higher
-- **PHP**: 7.4 or higher
+- **WordPress**: 6.0 or higher
+- **PHP**: 8.0 or higher
 - **Memory**: 128MB+ (for large CSV processing)
 
 ## 🌍 Internationalization

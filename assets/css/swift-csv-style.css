@@ -598,30 +598,44 @@ a.nav-tab:last-of-type {
 
 /* Processing state with shimmer animation */
 .progress-bar.processing .progress-bar-fill {
-	background: linear-gradient(
-		90deg,
-		#0073aa 0%,
-		#2271b1 25%,
-		#0073aa 50%,
-		#2271b1 75%,
-		#0073aa 100%
-	);
+	background: linear-gradient(90deg, #0073aa 0%, #008bcc 50%, #0073aa 100%);
 	background-size: 200% 100%;
 	animation: shimmer 2s linear infinite;
 }
 
 @keyframes shimmer {
 	0% {
-		background-position: -200% 0;
+		background-position: 200% 0;
 	}
 	100% {
-		background-position: 200% 0;
+		background-position: -200% 0;
 	}
 }
 
 .progress-bar.completed .progress-bar-fill {
 	background-color: #46b450;
 	animation: none;
+}
+
+/* Animation variations */
+.progress-bar.processing.shimmer-reverse .progress-bar-fill {
+	animation: shimmer-reverse 2s linear infinite;
+}
+
+.progress-bar.processing.shimmer-alternate .progress-bar-fill {
+	animation: shimmer-alternate 3s ease-in-out infinite;
+}
+
+.progress-bar.processing.shimmer-pulse .progress-bar-fill {
+	animation: shimmer-pulse 2.5s ease-in-out infinite;
+}
+
+.progress-bar.processing.shimmer-fast .progress-bar-fill {
+	animation: shimmer 1s linear infinite;
+}
+
+.progress-bar.processing.shimmer-slow .progress-bar-fill {
+	animation: shimmer 4s linear infinite;
 }
 
 .progress-stats {

@@ -23,7 +23,7 @@
 		"build:import": "esbuild assets/js/swift-csv-import.js --minify --outfile=assets/js/swift-csv-import.min.js",
 		"build:license": "esbuild assets/js/swift-csv-license.js --minify --outfile=assets/js/swift-csv-license.min.js",
 		"build:main": "esbuild assets/js/swift-csv-main.js --minify --outfile=assets/js/swift-csv-main.min.js",
-		"build:css": "esbuild assets/css/swift-csv-style.css --minify --outfile=assets/css/swift-csv-style.min.js",
+		"build:css": "esbuild assets/css/swift-csv-style.css --minify --outfile=assets/css/swift-csv-style.min.css",
 		"lint:js": "eslint . --ext .js",
 		"lint:js:fix": "eslint . --ext .js --fix",
 		"format": "prettier --write .",

@@ -72,6 +72,14 @@ class Swift_CSV_Ajax_Import {
 	private $file_processor_util;
 
 	/**
+	 * Batch processor utility instance.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Batch_Processor|null
+	 */
+	private $batch_processor_util;
+
+	/**
 	 * Whether Pro license is active
 	 *
 	 * @since 0.9.7
@@ -180,6 +188,19 @@ class Swift_CSV_Ajax_Import {
 			$this->file_processor_util = new Swift_CSV_Import_File_Processor();
 		}
 		return $this->file_processor_util;
+	}
+
+	/**
+	 * Get batch processor instance.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Batch_Processor
+	 */
+	private function get_batch_processor_util(): Swift_CSV_Import_Batch_Processor {
+		if ( null === $this->batch_processor_util ) {
+			$this->batch_processor_util = new Swift_CSV_Import_Batch_Processor();
+		}
+		return $this->batch_processor_util;
 	}
 
 	/**
@@ -534,57 +555,8 @@ class Swift_CSV_Ajax_Import {
 		$total_rows             = $this->count_total_rows( $csv_data['lines'] );
 		$csv_data['total_rows'] = $total_rows;
 
-		// Determine batch size based on total rows and configuration
-		$dry_run = $config['dry_run'];
-
-		if ( $dry_run ) {
-			// Always use row-by-row processing for dry run
-			$batch_size = 1;
-		} else {
-			// Determine threshold for row-by-row vs batch processing
-			$row_processing_threshold = 100;
-
-			/**
-			 * Filter the threshold for switching between row-by-row and batch processing
-			 *
-			 * Allows developers to customize when to switch from row-by-row processing
-			 * to batch processing based on their specific needs and server capabilities.
-			 *
-			 * @since 0.9.7
-			 * @param int $threshold Number of rows at which to switch to batch processing.
-			 * @param int $total_rows Total number of rows in the CSV.
-			 * @param array $config Import configuration including post_type, dry_run, etc.
-			 * @return int Modified threshold.
-			 */
-			$row_processing_threshold = apply_filters(
-				'swift_csv_import_row_processing_threshold',
-				$row_processing_threshold,
-				$total_rows,
-				$config
-			);
-
-			// Determine base batch size
-			$base_batch_size = ( $total_rows <= $row_processing_threshold ) ? 1 : 10;
-
-			/**
-			 * Filter the batch size for import processing
-			 *
-			 * Allows developers to customize batch size based on their specific needs,
-			 * server capabilities, or data characteristics.
-			 *
-			 * @since 0.9.7
-			 * @param int $batch_size Current batch size (1 for row-by-row, 10 for batch).
-			 * @param int $total_rows Total number of rows in the CSV.
-			 * @param array $config Import configuration including post_type, dry_run, etc.
-			 * @return int Modified batch size.
-			 */
-			$batch_size = apply_filters(
-				'swift_csv_import_batch_size',
-				$base_batch_size,
-				$total_rows,
-				$config
-			);
-		}
+		// Calculate batch size using batch processor
+		$batch_size = $this->get_batch_processor_util()->calculate_batch_size( $total_rows, $config );
 
 		// Update config with dynamic batch size
 		$config['batch_size'] = $batch_size;
@@ -603,7 +575,8 @@ class Swift_CSV_Ajax_Import {
 		$previous_updated  = $cumulative_counts['updated'];
 		$previous_errors   = $cumulative_counts['errors'];
 
-		$this->process_batch_import( $config, $csv_data, $counters );
+		// Process batch using batch processor
+		$counters = $this->get_batch_processor_util()->process_batch( $config, $csv_data );
 
 		$next_row = $config['start_row'] + $counters['processed'];
 		$continue = $next_row < $total_rows;

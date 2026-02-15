@@ -17,6 +17,10 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+// Custom debug log path
+$log_file = plugin_dir_path( __FILE__ ) . 'debug.log';
+ini_set( 'error_log', $log_file );
+
 // Define plugin constants.
 define( 'SWIFT_CSV_VERSION', '0.9.7' );
 define( 'SWIFT_CSV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
@@ -37,6 +41,7 @@ require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-meta-tax.ph
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-persister.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-row-processor.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-file-processor.php';
+require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-batch-processor.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-import.php';
 require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';
 

@@ -128,8 +128,9 @@ class Swift_CSV_Ajax_Export {
 			$config
 		);
 
-		// Determine base batch size
-		$base_batch_size = ( $total_count <= $row_processing_threshold ) ? 1 : self::BATCH_SIZE;
+		// Determine base batch size based on actual export limit, not total count
+		$actual_export_count = min( $total_count, $export_limit );
+		$base_batch_size     = ( $actual_export_count <= $row_processing_threshold ) ? 1 : self::BATCH_SIZE;
 
 		/**
 		 * Filter the batch size for export processing
@@ -749,6 +750,8 @@ class Swift_CSV_Ajax_Export {
 						'processed' => $start_row,
 						'total'     => $max_posts_to_process,
 						'continue'  => false,
+						'progress'  => 100,
+						'status'    => 'completed',
 						'csv_chunk' => '',
 					]
 				);
@@ -770,6 +773,8 @@ class Swift_CSV_Ajax_Export {
 						'processed' => $start_row,
 						'total'     => $max_posts_to_process,
 						'continue'  => false,
+						'progress'  => 100,
+						'status'    => 'completed',
 						'csv_chunk' => '',
 					]
 				);
@@ -909,6 +914,7 @@ class Swift_CSV_Ajax_Export {
 					'total'           => $max_posts_to_process,
 					'continue'        => $continue,
 					'progress'        => $progress,
+					'status'          => $continue ? 'processing' : 'completed',
 					'csv_chunk'       => $csv_chunk,
 					'posts_processed' => count( $posts ),
 				]

@@ -124,6 +124,16 @@ function handleAjaxImport(e) {
 	clearLog('import');
 	addLogEntry(swiftCSV.messages.startingImport, 'info', 'import');
 
+	// Start progress bar animation immediately
+	const progressContainer = document.querySelector('.swift-csv-progress');
+	if (progressContainer) {
+		const progressBar = progressContainer.querySelector('.progress-bar');
+		if (progressBar) {
+			progressBar.classList.add('processing');
+			progressBar.classList.remove('completed');
+		}
+	}
+
 	const file = document.querySelector('#ajax_csv_file')?.files[0];
 
 	if (!file) {
@@ -364,10 +374,20 @@ function updateImportProgress(data, startTime) {
 		return;
 	}
 
+	const progressBar = progressContainer.querySelector('.progress-bar');
 	const progressFill = progressContainer.querySelector('.progress-bar-fill');
 	const processedEl = progressContainer.querySelector('.processed-rows');
 	const totalEl = progressContainer.querySelector('.total-rows');
 	const percentageEl = progressContainer.querySelector('.percentage');
+
+	// Add processing state animation
+	if (progressBar && data.status === 'processing') {
+		progressBar.classList.add('processing');
+		progressBar.classList.remove('completed');
+	} else if (progressBar && data.status === 'completed') {
+		progressBar.classList.remove('processing');
+		progressBar.classList.add('completed');
+	}
 
 	// Find detail count elements
 	const createdEl = progressContainer.querySelector('.created-count');

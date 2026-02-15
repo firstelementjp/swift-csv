@@ -18,6 +18,16 @@ function handleAjaxExport(e) {
 	clearLog('export');
 	addLogEntry(swiftCSV.messages.startingExport, 'info', 'export');
 
+	// Start progress bar animation immediately
+	const progressContainer = document.querySelector('.swift-csv-progress');
+	if (progressContainer) {
+		const progressBar = progressContainer.querySelector('.progress-bar');
+		if (progressBar) {
+			progressBar.classList.add('processing');
+			progressBar.classList.remove('completed');
+		}
+	}
+
 	const postType = document.querySelector('#ajax_export_post_type')?.value;
 	const postStatus =
 		document.querySelector('input[name="swift_csv_export_post_status"]:checked')?.value ||
@@ -202,7 +212,6 @@ function handleAjaxExport(e) {
 					return;
 				}
 
-				console.error('Export error:', error);
 				if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
 					window.SwiftCSVUtils.addLogEntry(
 						swiftCSV.messages.exportError + ' ' + error.message,
@@ -241,10 +250,20 @@ function updateAjaxProgress(data, startTime) {
 		return;
 	}
 
+	const progressBar = progressContainer.querySelector('.progress-bar');
 	const progressFill = progressContainer.querySelector('.progress-bar-fill');
 	const processedEl = progressContainer.querySelector('.processed-rows');
 	const totalEl = progressContainer.querySelector('.total-rows');
 	const percentageEl = progressContainer.querySelector('.percentage');
+
+	// Add processing state animation
+	if (progressBar && data.status === 'processing') {
+		progressBar.classList.add('processing');
+		progressBar.classList.remove('completed');
+	} else if (progressBar && data.status === 'completed') {
+		progressBar.classList.remove('processing');
+		progressBar.classList.add('completed');
+	}
 
 	// Update progress bar
 	if (progressFill && data.progress !== undefined) {

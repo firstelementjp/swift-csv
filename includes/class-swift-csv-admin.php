@@ -96,9 +96,7 @@ class Swift_CSV_Admin {
 	public function enqueue_scripts( $hook ) {
 		if ( 'tools_page_swift-csv' === $hook ) {
 			$debug_mode = defined( 'WP_DEBUG' ) && WP_DEBUG;
-			// Force debug mode for testing
-			$debug_mode = true;
-			$suffix     = ''; // Always use non-minified for testing
+			$suffix     = $debug_mode ? '' : '.min';
 
 			// Core utilities (must be loaded first)
 			wp_register_script(

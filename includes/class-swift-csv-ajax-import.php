@@ -80,6 +80,14 @@ class Swift_CSV_Ajax_Import {
 	private $batch_processor_util;
 
 	/**
+	 * Response manager utility instance.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Response_Manager|null
+	 */
+	private $response_manager_util;
+
+	/**
 	 * Whether Pro license is active
 	 *
 	 * @since 0.9.7
@@ -201,6 +209,19 @@ class Swift_CSV_Ajax_Import {
 			$this->batch_processor_util = new Swift_CSV_Import_Batch_Processor();
 		}
 		return $this->batch_processor_util;
+	}
+
+	/**
+	 * Get response manager instance.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Response_Manager
+	 */
+	private function get_response_manager_util(): Swift_CSV_Import_Response_Manager {
+		if ( null === $this->response_manager_util ) {
+			$this->response_manager_util = new Swift_CSV_Import_Response_Manager();
+		}
+		return $this->response_manager_util;
 	}
 
 	/**
@@ -570,7 +591,7 @@ class Swift_CSV_Ajax_Import {
 			'dry_run_details' => [], // New: detailed row-by-row results
 		];
 
-		$cumulative_counts = $this->get_cumulative_counts();
+		$cumulative_counts = $this->get_response_manager_util()->get_cumulative_counts();
 		$previous_created  = $cumulative_counts['created'];
 		$previous_updated  = $cumulative_counts['updated'];
 		$previous_errors   = $cumulative_counts['errors'];
@@ -581,9 +602,9 @@ class Swift_CSV_Ajax_Import {
 		$next_row = $config['start_row'] + $counters['processed'];
 		$continue = $next_row < $total_rows;
 
-		$this->cleanup_temp_file_if_complete( $continue, $config['file_path'] );
+		$this->get_response_manager_util()->cleanup_temp_file_if_complete( $continue, $config['file_path'] );
 
-		$this->send_import_progress_response(
+		$this->get_response_manager_util()->send_import_progress_response(
 			$config['start_row'],
 			$counters['processed'],
 			$total_rows,

@@ -48,8 +48,8 @@ register_activation_hook( __FILE__, 'swift_csv_activate' );
 register_deactivation_hook( __FILE__, 'swift_csv_deactivate' );
 
 // Initialize plugin.
-add_action( 'plugins_loaded', 'swift_csv_init' );
-add_action( 'plugins_loaded', 'swift_csv_load_textdomain' );
+add_action( 'init', 'swift_csv_load_textdomain', 0 );
+add_action( 'init', 'swift_csv_init', 10 );
 
 /**
  * Load plugin textdomain.

@@ -32,6 +32,23 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
+	// Post status toggle for custom help
+	const postStatusRadios = document.querySelectorAll(
+		'input[name="swift_csv_export_post_status"]'
+	);
+	const postStatusHelp = document.getElementById('custom-post-status-help');
+
+	if (postStatusRadios.length && postStatusHelp) {
+		if (window.SwiftCSVCore && window.swiftCSV && window.swiftCSV.debug) {
+			SwiftCSVCore.swiftCSVLog('Post status toggle initialized');
+		}
+		postStatusRadios.forEach(radio => {
+			radio.addEventListener('change', function () {
+				postStatusHelp.style.display = this.value === 'custom' ? 'block' : 'none';
+			});
+		});
+	}
+
 	// Initialize modules when available
 	const initializeModules = () => {
 		// Wait for all modules to be loaded

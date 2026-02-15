@@ -35,7 +35,27 @@ msgid "Custom Fields"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:510
-msgid "Include fields starting with \"_\""
+msgid "Include private meta fields"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:417
+msgid "Post Status"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:422
+msgid "Published posts only"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:426
+msgid "All posts"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:430
+msgid "Custom"
+msgstr ""
+
+#: includes/class-swift-csv-admin.php:435
+msgid "Use the %1$s hook to specify custom post status filtering. See %2$s for details."
 msgstr ""
 
 #. Plugin Name of the plugin
@@ -216,13 +236,13 @@ msgid "Maximum file size: %s"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:123
-#: includes/class-swift-csv-admin.php:513
-msgid "Custom"
+#: includes/class-swift-csv-admin.php:435
+msgid "Use the %1$s hook to specify target post status. See %2$s for details."
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:124
 #: includes/class-swift-csv-admin.php:519
-msgid "Use the %1$s hook to specify custom export items and order. See %2$s for details."
+msgid "Use the %1$s hook to specify export content and order. See %2$s for details."
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:125
@@ -308,7 +328,7 @@ msgid "Starting export process..."
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:145
-msgid "Export Scope:"
+msgid "Export Content:"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:146
@@ -447,7 +467,7 @@ msgid "Post Type"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:500
-msgid "Export Scope"
+msgid "Export Content"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:529

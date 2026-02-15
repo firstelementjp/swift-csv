@@ -155,6 +155,41 @@ We welcome contributions! Please follow our development workflow:
 
 GPLv2+ - See [LICENSE](LICENSE) file for details
 
+## 🎯 Hooks for Developers
+
+Swift CSV provides various hooks for customization:
+
+### Custom Post Status Export
+
+Use the `swift_csv_export_post_status_query` hook to filter posts by custom status:
+
+```php
+/**
+ * Filter post status for custom export queries
+ */
+add_filter( 'swift_csv_export_post_status_query', function( $post_status, $args ) {
+    // Export only posts with specific statuses
+    if ( 'post' === $args['post_type'] ) {
+        return [ 'publish', 'private', 'future' ];
+    }
+
+    // For pages, include all statuses
+    if ( 'page' === $args['post_type'] ) {
+        return 'any';
+    }
+
+    return $post_status;
+}, 10, 2 );
+```
+
+### Available Hooks
+
+- `swift_csv_export_post_status_query` - Filter post status for export queries
+- `swift_csv_export_columns` - Customize export columns
+- `swift_csv_import_row` - Process each import row
+- `swift_csv_before_export` - Before export starts
+- `swift_csv_after_import` - After import completes
+
 ## 👨‍💻 Developer
 
 [FirstElement,Inc.](https://www.firstelement.co.jp/), [Daijiro Miyazawa](https://x.com/dxd5001)

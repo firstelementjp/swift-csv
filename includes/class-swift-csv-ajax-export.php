@@ -150,6 +150,55 @@ class Swift_CSV_Ajax_Export {
 	 */
 
 	/**
+	 * Get post status for WP_Query based on user selection
+	 *
+	 * Converts the user's post status selection into the appropriate
+	 * value for WP_Query post_status parameter.
+	 *
+	 * @since 0.9.0
+	 * @param string $post_type The post type being exported
+	 * @param string $post_status The user's selection ('publish', 'any', 'custom')
+	 * @return string|array The post status value for WP_Query
+	 */
+	private function get_post_status_for_query( string $post_type, string $post_status ) {
+		switch ( $post_status ) {
+			case 'publish':
+				// For attachment type, use 'inherit' instead of 'publish'
+				return $post_type === 'attachment' ? 'inherit' : 'publish';
+
+			case 'any':
+				return 'any';
+
+			case 'custom':
+				/**
+				 * Filter custom post status for export queries
+				 *
+				 * Allows developers to specify custom post status filtering
+				 * when 'custom' option is selected in the export interface.
+				 *
+				 * @since 0.9.0
+				 * @param string|array $post_status Post status(es) to query
+				 * @param string $post_type The post type being exported
+				 * @param array $args Additional context including export parameters
+				 * @return string|array Modified post status(es)
+				 */
+				$custom_args = [
+					'post_type' => $post_type,
+					'context'   => 'custom_post_status',
+				];
+
+				$custom_status = apply_filters( 'swift_csv_export_post_status_query', 'publish', $custom_args );
+
+				// Ensure we return a valid value
+				return is_array( $custom_status ) ? $custom_status : (string) $custom_status;
+
+			default:
+				// Fallback to publish for safety
+				return $post_type === 'attachment' ? 'inherit' : 'publish';
+		}
+	}
+
+	/**
 	 * Get allowed post fields for CSV export based on scope
 	 *
 	 * Returns an array of WordPress post field names that should be included
@@ -496,6 +545,7 @@ class Swift_CSV_Ajax_Export {
 
 			// Get parameters
 			$post_type            = sanitize_text_field( $_POST['post_type'] ?? 'post' );
+			$post_status          = sanitize_text_field( $_POST['post_status'] ?? 'publish' );
 			$export_scope         = sanitize_text_field( $_POST['export_scope'] ?? 'basic' );
 			$include_private_meta = ! empty( $_POST['include_private_meta'] ) && (string) $_POST['include_private_meta'] === '1';
 			$export_limit         = ! empty( $_POST['export_limit'] ) ? intval( $_POST['export_limit'] ) : 0;
@@ -522,10 +572,10 @@ class Swift_CSV_Ajax_Export {
 			}
 
 			// Get total posts count with limit
-			$post_status            = $post_type === 'attachment' ? 'inherit' : 'publish';
+			$query_post_status      = $this->get_post_status_for_query( $post_type, $post_status );
 			$total_posts_query_args = [
 				'post_type'      => $post_type,
-				'post_status'    => $post_status,
+				'post_status'    => $query_post_status,
 				'posts_per_page' => $export_limit > 0 ? $export_limit : -1,
 				'fields'         => 'ids',
 			];
@@ -564,7 +614,7 @@ class Swift_CSV_Ajax_Export {
 			// Get posts for current batch
 			$posts_query_args = [
 				'post_type'      => $post_type,
-				'post_status'    => $post_status,
+				'post_status'    => $query_post_status,
 				'posts_per_page' => min( self::BATCH_SIZE, $total_count - $start_row ),
 				'offset'         => $start_row,
 				'fields'         => 'ids',
@@ -625,7 +675,7 @@ class Swift_CSV_Ajax_Export {
 
 			// Simple CSV generation with headers
 			$csv_chunk = '';
-			$headers   = $this->build_headers( $post_type, $export_scope, $include_private_meta, $post_status );
+			$headers   = $this->build_headers( $post_type, $export_scope, $include_private_meta, $query_post_status );
 
 			// Add headers for first chunk
 			if ( $start_row === 0 ) {

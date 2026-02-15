@@ -38,8 +38,40 @@ msgid "Custom Fields"
 msgstr "カスタムフィールド"
 
 #: includes/class-swift-csv-admin.php:510
-msgid "Include fields starting with \"_\""
-msgstr "\"_\"で始まるフィールドを含める"
+msgid "Include private meta fields"
+msgstr "プライベートメタを含める"
+
+#: includes/class-swift-csv-admin.php:456
+msgid "Export Content"
+msgstr "エクスポート内容"
+
+#: includes/class-swift-csv-admin.php:428
+msgid "Export Content:"
+msgstr "エクスポート内容:"
+
+#: includes/class-swift-csv-admin.php:417
+msgid "Post Status"
+msgstr "投稿ステータス"
+
+#: includes/class-swift-csv-admin.php:422
+msgid "Published posts only"
+msgstr "公開記事のみ"
+
+#: includes/class-swift-csv-admin.php:426
+msgid "All posts"
+msgstr "全記事"
+
+#: includes/class-swift-csv-admin.php:430
+msgid "Custom"
+msgstr "カスタム"
+
+#: includes/class-swift-csv-admin.php:435
+msgid "Use the %1$s hook to specify custom post status filtering. See %2$s for details."
+msgstr "swift_csv_export_post_status_query フックを使用して対象となる投稿ステータスを指定できます。詳細についてはドキュメントを参照してください。"
+
+#: includes/class-swift-csv-admin.php:473
+msgid "Use the %1$s hook to specify custom export items and order. See %2$s for details."
+msgstr "swift_csv_export_columns フックを使用してエクスポート内容と順序を指定できます。詳細についてはドキュメントを参照してください。"
 
 #. Plugin Name of the plugin
 #: swift-csv.php
@@ -406,7 +438,7 @@ msgstr "インポート開始"
 
 #: includes/class-swift-csv-admin.php:339
 msgid "Export Scope"
-msgstr "エクスポート範囲"
+msgstr "エクスポート内容"
 
 #: includes/class-swift-csv-admin.php:354
 msgid "Advanced"
@@ -515,7 +547,7 @@ msgid "Post Type:"
 msgstr "投稿タイプ:"
 
 msgid "Export Scope:"
-msgstr "エクスポート範囲:"
+msgstr "エクスポート内容:"
 
 msgid "Include Private Meta:"
 msgstr "プライベートメタを含める:"
@@ -576,12 +608,6 @@ msgstr "CSVファイルをここにドロップまたはクリックして選択
 
 msgid "Maximum file size: %s"
 msgstr "最大ファイルサイズ: %s"
-
-msgid "Custom"
-msgstr "カスタム"
-
-msgid "Use the %1$s hook to specify custom export items and order. See %2$s for details."
-msgstr "%1$sフックを使用してカスタムエクスポート項目と順序を指定します。詳細については%2$sを参照してください。"
 
 msgid "documentation"
 msgstr "ドキュメント"

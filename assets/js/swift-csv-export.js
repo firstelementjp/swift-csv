@@ -19,6 +19,9 @@ function handleAjaxExport(e) {
 	addLogEntry(swiftCSV.messages.startingExport, 'info', 'export');
 
 	const postType = document.querySelector('#ajax_export_post_type')?.value;
+	const postStatus =
+		document.querySelector('input[name="swift_csv_export_post_status"]:checked')?.value ||
+		'publish';
 	const exportScope =
 		document.querySelector('input[name="swift_csv_export_scope"]:checked')?.value || 'basic';
 	const includePrivateMeta = document.querySelector(
@@ -43,7 +46,7 @@ function handleAjaxExport(e) {
 		exportScope === 'basic'
 			? swiftCSV.messages.exportScopeBasic
 			: swiftCSV.messages.exportScopeAll;
-	addLogEntry(swiftCSV.messages.exportScope + ' ' + exportScopeText, 'debug', 'export');
+	addLogEntry(swiftCSV.messages.exportContent + ' ' + exportScopeText, 'debug', 'export');
 
 	addLogEntry(
 		swiftCSV.messages.includePrivateMeta +
@@ -146,6 +149,7 @@ function handleAjaxExport(e) {
 			action: 'swift_csv_ajax_export',
 			nonce: swiftCSV.nonce,
 			post_type: postType,
+			post_status: postStatus,
 			export_scope: exportScope,
 			include_private_meta: includePrivateMeta,
 			taxonomy_format: taxonomyFormat,

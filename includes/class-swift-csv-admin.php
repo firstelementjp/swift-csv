@@ -196,7 +196,7 @@ class Swift_CSV_Admin {
 						// Export messages
 						'startingExport'        => esc_html__( 'Starting export process...', 'swift-csv' ),
 						'postTypeExport'        => esc_html__( 'Post Type:', 'swift-csv' ),
-						'exportScope'           => esc_html__( 'Export Scope:', 'swift-csv' ),
+						'exportContent'         => esc_html__( 'Export Content:', 'swift-csv' ),
 						'includePrivateMeta'    => esc_html__( 'Include Private Meta:', 'swift-csv' ),
 						'exportLimit'           => esc_html__( 'Export Limit:', 'swift-csv' ),
 						'exporting'             => esc_html__( 'Exporting...', 'swift-csv' ),
@@ -267,6 +267,14 @@ class Swift_CSV_Admin {
 			'swift_csv_export_post_type',
 			'',
 			[ $this, 'export_post_type_field_html' ],
+			'swift-csv',
+			'swift_csv_export_section'
+		);
+
+		add_settings_field(
+			'swift_csv_export_post_status',
+			'',
+			[ $this, 'export_post_status_field_html' ],
 			'swift-csv',
 			'swift_csv_export_section'
 		);
@@ -397,6 +405,45 @@ class Swift_CSV_Admin {
 	}
 
 	/**
+	 * Export post status field callback
+	 *
+	 * @since 0.9.6
+	 * @return void
+	 */
+	public function export_post_status_field_html() {
+		?>
+		<dl>
+			<dt>
+				<?php esc_html_e( 'Post Status', 'swift-csv' ); ?>
+			</dt>
+			<dd>
+				<label class="swift-csv-block-label">
+					<input type="radio" name="swift_csv_export_post_status" value="publish" checked>
+					<?php esc_html_e( 'Published posts only', 'swift-csv' ); ?>
+				</label>
+				<label class="swift-csv-block-label">
+					<input type="radio" name="swift_csv_export_post_status" value="any">
+					<?php esc_html_e( 'All posts', 'swift-csv' ); ?>
+				</label>
+				<label class="swift-csv-block-label">
+					<input type="radio" name="swift_csv_export_post_status" value="custom">
+					<?php esc_html_e( 'Custom', 'swift-csv' ); ?>
+				</label>
+				<div id="custom-post-status-help" class="swift-csv-custom-help">
+					<?php
+					printf(
+						esc_html__( 'Use the %1$s hook to specify target post status. See %2$s for details.', 'swift-csv' ),
+						'<code>swift_csv_export_post_status_query</code>',
+						'<a href="' . esc_url( SWIFT_CSV_DOCS_URL ) . 'hooks" target="_blank">' . esc_html__( 'documentation', 'swift-csv' ) . '</a>'
+					);
+					?>
+				</div>
+			</dd>
+		</dl>
+		<?php
+	}
+
+	/**
 	 * Export scope field callback
 	 *
 	 * @since 0.9.6
@@ -406,7 +453,7 @@ class Swift_CSV_Admin {
 		?>
 		<dl>
 			<dt>
-				<?php esc_html_e( 'Export Scope', 'swift-csv' ); ?>
+				<?php esc_html_e( 'Export Content', 'swift-csv' ); ?>
 			</dt>
 			<dd>
 				<label class="swift-csv-block-label">
@@ -424,7 +471,7 @@ class Swift_CSV_Admin {
 				<div id="custom-export-help" class="swift-csv-custom-help">
 					<?php
 					printf(
-						esc_html__( 'Use the %1$s hook to specify custom export items and order. See %2$s for details.', 'swift-csv' ),
+						esc_html__( 'Use the %1$s hook to specify export content and order. See %2$s for details.', 'swift-csv' ),
 						'<code>swift_csv_export_columns</code>',
 						'<a href="' . esc_url( SWIFT_CSV_DOCS_URL ) . 'hooks" target="_blank">' . esc_html__( 'documentation', 'swift-csv' ) . '</a>'
 					);
@@ -477,7 +524,7 @@ class Swift_CSV_Admin {
 			<dd>
 				<label>
 					<input type="checkbox" name="swift_csv_include_private_meta" value="1">
-					<?php esc_html_e( 'Include fields starting with "_"', 'swift-csv' ); ?>
+					<?php esc_html_e( 'Include private meta fields', 'swift-csv' ); ?>
 				</label>
 			</dd>
 		</dl>

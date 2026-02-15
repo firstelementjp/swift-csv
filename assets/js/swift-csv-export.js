@@ -186,32 +186,18 @@ function handleAjaxExport(e) {
 					csvContent += data.csv_chunk;
 					completeAjaxExport(csvContent, exportBtn, cancelBtn, postType);
 				} else {
-					// Handle error
-					if (error && error.name === 'AbortError') {
-						return;
-					}
-					console.error('Export error:', error);
-					if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
-						window.SwiftCSVUtils.addLogEntry(
-							swiftCSV.messages.exportError + ' ' + error.message,
-							'error',
-							'export'
-						);
-					}
-
-					if (exportBtn) {
-						exportBtn.disabled = false;
-						exportBtn.value = swiftCSV.messages.exportCsv;
-					}
-					if (cancelBtn) {
-						cancelBtn.style.display = 'none';
-					}
+					const serverMessage =
+						(data && data.data ? data.data : '') ||
+						(data && data.message ? data.message : '') ||
+						'';
+					throw new Error(serverMessage || swiftCSV.messages.exportError);
 				}
 			})
 			.catch(error => {
 				if (error && error.name === 'AbortError') {
 					return;
 				}
+
 				console.error('Export error:', error);
 				if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
 					window.SwiftCSVUtils.addLogEntry(

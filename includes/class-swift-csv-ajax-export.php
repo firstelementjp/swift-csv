@@ -363,7 +363,7 @@ class Swift_CSV_Ajax_Export {
 		$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', $all_meta_keys, $meta_classify_args );
 
 		// Ensure classified structure exists
-		if ( ! is_array( $classified_meta_keys ) ) {
+		if ( ! is_array( $classified_meta_keys ) || ! isset( $classified_meta_keys['regular'] ) ) {
 			// Fallback: create basic classification
 			$classified_meta_keys = [
 				'regular' => [],
@@ -489,9 +489,6 @@ class Swift_CSV_Ajax_Export {
 	 */
 	public function handle_ajax_export(): void {
 		try {
-			error_log( '=== Export Handler Started ===' );
-			error_log( 'Memory usage at start: ' . memory_get_usage( true ) );
-
 			// Security check
 			check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 			ignore_user_abort( false );

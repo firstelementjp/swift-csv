@@ -64,6 +64,14 @@ class Swift_CSV_Ajax_Import {
 	private $row_processor_util;
 
 	/**
+	 * File processor utility instance.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_File_Processor|null
+	 */
+	private $file_processor_util;
+
+	/**
 	 * Whether Pro license is active
 	 *
 	 * @since 0.9.7
@@ -162,6 +170,19 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
+	 * Get file processor instance.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_File_Processor
+	 */
+	private function get_file_processor_util(): Swift_CSV_Import_File_Processor {
+		if ( null === $this->file_processor_util ) {
+			$this->file_processor_util = new Swift_CSV_Import_File_Processor();
+		}
+		return $this->file_processor_util;
+	}
+
+	/**
 	 * Handle CSV file upload via AJAX.
 	 *
 	 * @since 0.9.0
@@ -175,32 +196,14 @@ class Swift_CSV_Ajax_Import {
 			return;
 		}
 
-		// Validate uploaded file
-		$file_validation = Swift_CSV_Helper::validate_upload_file( $_FILES['csv_file'] ?? null );
-		if ( ! $file_validation['valid'] ) {
-			Swift_CSV_Helper::send_error_response( $file_validation['error'] );
-			return;
+		// Delegate to file processor
+		$file_processor = $this->get_file_processor_util();
+		$result         = $file_processor->process_upload( $_FILES['csv_file'] ?? [] );
+
+		if ( $result ) {
+			wp_send_json( $result );
 		}
-
-		$file = $_FILES['csv_file'];
-
-		// Validate file size
-		$size_validation = Swift_CSV_Helper::validate_file_size( $file );
-		if ( ! $size_validation['valid'] ) {
-			Swift_CSV_Helper::send_error_response( $size_validation['error'] );
-			return;
-		}
-
-		// Create temp directory and file path
-		$temp_dir  = Swift_CSV_Helper::create_temp_directory();
-		$temp_file = Swift_CSV_Helper::generate_temp_file_path( $temp_dir );
-
-		// Save uploaded file
-		if ( Swift_CSV_Helper::save_uploaded_file( $file, $temp_file ) ) {
-			wp_send_json( [ 'file_path' => $temp_file ] );
-		} else {
-			Swift_CSV_Helper::send_error_response( 'Failed to save file' );
-		}
+		// Error handling is done within the file processor
 	}
 
 	/**

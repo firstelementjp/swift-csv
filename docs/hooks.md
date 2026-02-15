@@ -1,4 +1,4 @@
-# Swift CSV Hooks
+# Swift CSV Hooks (v0.9.7)
 
 This document describes all available hooks in the Swift CSV plugin that developers can use to extend and customize the import/export functionality.
 
@@ -7,6 +7,8 @@ This document describes all available hooks in the Swift CSV plugin that develop
 - [Export Hooks](#export-hooks)
 - [Import Hooks](#import-hooks)
 - [Admin Hooks](#admin-hooks)
+- [Progress Hooks](#progress-hooks)
+- [License Hooks](#license-hooks)
 
 ---
 
@@ -50,12 +52,561 @@ Filters the headers before export.
 add_filter( 'swift_csv_export_headers', 'my_custom_headers', 10, 2 );
 
 function my_custom_headers( $headers, $args ) {
-    // Add custom prefix to headers
-    return array_map( function( $header ) {
-        return 'my_prefix_' . $header;
-    }, $headers );
+    // Add custom headers for specific post types
+    if ( 'product' === $args['post_type'] ) {
+        $headers[] = 'custom_field';
+    }
+    return $headers;
 }
 ```
+
+### swift_csv_export_row
+
+Filters each row during export processing.
+
+**Parameters:**
+
+- `$row` (array): The row data being exported
+- `$post_id` (int): The post ID
+- `$args` (array): Export arguments
+
+**Example:**
+
+```php
+add_filter( 'swift_csv_export_row', 'my_custom_row_data', 10, 3 );
+
+function my_custom_row_data( $row, $post_id, $args ) {
+    // Add custom data to each row
+    $row['export_date'] = current_time( 'mysql' );
+    $row['export_user'] = get_current_user_id();
+    return $row;
+}
+```
+
+### swift_csv_before_export
+
+Action fired before export starts.
+
+**Parameters:**
+
+- `$args` (array): Export arguments
+
+**Example:**
+
+```php
+add_action( 'swift_csv_before_export', 'my_before_export', 10, 1 );
+
+function my_before_export( $args ) {
+    // Log export start
+    error_log( 'Export started for ' . $args['post_type'] );
+
+    // Set up custom session data
+    $_SESSION['export_start_time'] = time();
+}
+```
+
+### swift_csv_after_export
+
+Action fired after export completes.
+
+**Parameters:**
+
+- `$file_path` (string): Path to the generated CSV file
+- `$args` (array): Export arguments
+
+**Example:**
+
+```php
+add_action( 'swift_csv_after_export', 'my_after_export', 10, 2 );
+
+function my_after_export( $file_path, $args ) {
+    // Log export completion
+    $export_time = time() - $_SESSION['export_start_time'];
+    error_log( 'Export completed in ' . $export_time . ' seconds' );
+
+    // Send notification email
+    wp_mail( 'admin@example.com', 'Export Complete', 'Your CSV export is ready: ' . basename( $file_path ) );
+}
+```
+
+### swift_csv_export_post_status_query
+
+Filters the post status query for custom filtering.
+
+**Parameters:**
+
+- `$query_args` (array): WP_Query arguments
+- `$post_status` (string): Selected post status
+- `$args` (array): Export arguments
+
+**Example:**
+
+```php
+add_filter( 'swift_csv_export_post_status_query', 'my_custom_post_status_query', 10, 3 );
+
+function my_custom_post_status_query( $query_args, $post_status, $args ) {
+    if ( 'custom' === $post_status ) {
+        // Custom logic for specific post statuses
+        $query_args['post_status'] = ['publish', 'future'];
+        $query_args['meta_query'] = [
+            [
+                'key' => 'featured',
+                'value' => '1',
+                'compare' => '='
+            ]
+        ];
+    }
+    return $query_args;
+}
+```
+
+---
+
+## Import Hooks
+
+### swift_csv_before_import
+
+Action fired before import starts.
+
+**Parameters:**
+
+- `$args` (array): Import arguments
+
+**Example:**
+
+```php
+add_action( 'swift_csv_before_import', 'my_before_import', 10, 1 );
+
+function my_before_import( $args ) {
+    // Set up import session
+    $_SESSION['import_start_time'] = time();
+    $_SESSION['import_stats'] = ['processed' => 0, 'errors' => 0];
+
+    // Log import start
+    error_log( 'Import started for ' . $args['post_type'] );
+}
+```
+
+### swift_csv_import_row
+
+Filters each row during import processing.
+
+**Parameters:**
+
+- `$row` (array): The row data being imported
+- `$row_num` (int): The row number (0-based)
+- `$args` (array): Import arguments
+
+**Example:**
+
+```php
+add_filter( 'swift_csv_import_row', 'my_custom_import_row', 10, 3 );
+
+function my_custom_import_row( $row, $row_num, $args ) {
+    // Add custom processing
+    if ( ! empty( $row['email'] ) ) {
+        $row['email'] = sanitize_email( $row['email'] );
+    }
+
+    // Add import timestamp
+    $row['import_timestamp'] = current_time( 'mysql' );
+
+    return $row;
+}
+```
+
+### swift_csv_import_row_context
+
+Filters the row context and validation.
+
+**Parameters:**
+
+- `$context` (array): Row context data
+- `$row` (array): The row data
+- `$row_num` (int): The row number
+- `$args` (array): Import arguments
+
+**Example:**
+
+```php
+add_filter( 'swift_csv_import_row_context', 'my_custom_row_context', 10, 4 );
+
+function my_custom_row_context( $context, $row, $row_num, $args ) {
+    // Add custom validation
+    if ( empty( $row['required_field'] ) ) {
+        $context['validation']['errors'][] = 'Required field is missing';
+        $context['validation']['valid'] = false;
+    }
+
+    // Add custom data
+    $context['custom_data'] = [
+        'processed_by' => get_current_user_id(),
+        'processing_time' => time()
+    ];
+
+    return $context;
+}
+```
+
+### swift_csv_import_row_data
+
+Filters and preprocesses row data.
+
+**Parameters:**
+
+- `$row` (array): The row data
+- `$context` (array): Row context
+- `$args` (array): Import arguments
+
+**Example:**
+
+```php
+add_filter( 'swift_csv_import_row_data', 'my_preprocess_row_data', 10, 3 );
+
+function my_preprocess_row_data( $row, $context, $args ) {
+    // Preprocess data
+    if ( isset( $row['price'] ) ) {
+        $row['price'] = floatval( $row['price'] );
+    }
+
+    // Handle multi-value fields
+    if ( isset( $row['tags'] ) ) {
+        $row['tags'] = explode( '|', $row['tags'] );
+    }
+
+    return $row;
+}
+```
+
+### swift_csv_after_import
+
+Action fired after import completes.
+
+**Parameters:**
+
+- `$file_path` (string): Path to the processed CSV file
+- `$results` (array): Import results
+- `$args` (array): Import arguments
+
+**Example:**
+
+```php
+add_action( 'swift_csv_after_import', 'my_after_import', 10, 3 );
+
+function my_after_import( $file_path, $results, $args ) {
+    // Log completion
+    $import_time = time() - $_SESSION['import_start_time'];
+    error_log( 'Import completed: ' . $results['imported'] . ' imported, ' . $results['errors'] . ' errors' );
+
+    // Send import report
+    $message = sprintf(
+        'Import completed: %d imported, %d updated, %d errors',
+        $results['imported'],
+        $results['updated'],
+        $results['errors']
+    );
+    wp_mail( 'admin@example.com', 'Import Report', $message );
+}
+```
+
+---
+
+## Progress Hooks (v0.9.7)
+
+### swift_csv_export_batch_size
+
+Filters the batch size for export processing.
+
+**Parameters:**
+
+- `$batch_size` (int): Current batch size
+- `$total_count` (int): Total number of posts to export
+- `$post_type` (string): Post type being exported
+- `$config` (array): Export configuration
+
+**Example:**
+
+```php
+add_filter( 'swift_csv_export_batch_size', 'my_custom_batch_size', 10, 4 );
+
+function my_custom_batch_size( $batch_size, $total_count, $post_type, $config ) {
+    // Custom batch size based on post type
+    if ( 'product' === $post_type ) {
+        return min( $batch_size, 100 ); // Smaller batches for products
+    }
+
+    // Larger batches for simple post types
+    if ( 'post' === $post_type ) {
+        return $batch_size * 2;
+    }
+
+    return $batch_size;
+}
+```
+
+### swift_csv_export_row_processing_threshold
+
+Filters the threshold for switching between row-by-row and batch processing.
+
+**Parameters:**
+
+- `$threshold` (int): Current threshold (default: 100)
+- `$total_count` (int): Total number of posts
+- `$post_type` (string): Post type being exported
+- `$config` (array): Export configuration
+
+**Example:**
+
+```php
+add_filter( 'swift_csv_export_row_processing_threshold', 'my_custom_threshold', 10, 4 );
+
+function my_custom_threshold( $threshold, $total_count, $post_type, $config ) {
+    // Lower threshold for complex post types
+    if ( 'product' === $post_type ) {
+        return 50; // Use row-by-row for smaller datasets
+    }
+
+    return $threshold;
+}
+```
+
+### swift_csv_import_batch_size
+
+Filters the batch size for import processing.
+
+**Parameters:**
+
+- `$batch_size` (int): Current batch size
+- `$total_rows` (int): Total number of rows
+- `$config` (array): Import configuration
+
+**Example:**
+
+```php
+add_filter( 'swift_csv_import_batch_size', 'my_custom_import_batch_size', 10, 3 );
+
+function my_custom_import_batch_size( $batch_size, $total_rows, $config ) {
+    // Smaller batches for complex data
+    if ( $config['post_type'] === 'product' ) {
+        return min( $batch_size, 5 );
+    }
+
+    return $batch_size;
+}
+```
+
+---
+
+## Admin Hooks
+
+### swift_csv_admin_tabs
+
+Filters the admin tabs.
+
+**Parameters:**
+
+- `$tabs` (array): Array of tab configurations
+- `$current_tab` (string): Currently active tab
+
+**Example:**
+
+```php
+add_filter( 'swift_csv_admin_tabs', 'my_custom_admin_tabs', 10, 2 );
+
+function my_custom_admin_tabs( $tabs, $current_tab ) {
+    // Add custom tab
+    $tabs['my_custom'] = [
+        'label' => 'Custom Tool',
+        'callback' => 'my_custom_tab_content',
+        'icon' => 'dashicons-tools'
+    ];
+
+    return $tabs;
+}
+```
+
+### swift_csv_process_custom_header
+
+Processes custom export headers.
+
+**Parameters:**
+
+- `$header` (string): The header string
+- `$index` (int): Header index
+- `$args` (array): Export arguments
+
+**Example:**
+
+```php
+add_filter( 'swift_csv_process_custom_header', 'my_process_custom_header', 10, 3 );
+
+function my_process_custom_header( $header, $index, $args ) {
+    // Process custom headers
+    if ( 'custom_field' === $header ) {
+        return 'my_custom_field';
+    }
+
+    return $header;
+}
+```
+
+---
+
+## License Hooks
+
+### swift_csv_license_status
+
+Filters the license status display.
+
+**Parameters:**
+
+- `$status` (array): License status information
+- `$license_key` (string): The license key
+
+**Example:**
+
+```php
+add_filter( 'swift_csv_license_status', 'my_custom_license_status', 10, 2 );
+
+function my_custom_license_status( $status, $license_key ) {
+    // Add custom status information
+    $status['custom_check'] = my_license_validation( $license_key );
+    $status['expiry_date'] = get_option( 'my_license_expiry' );
+
+    return $status;
+}
+```
+
+---
+
+## Hook Examples
+
+### Complete Custom Export Workflow
+
+```php
+// Custom export workflow for products
+add_filter( 'swift_csv_export_columns', 'my_product_columns', 10, 3 );
+add_filter( 'swift_csv_export_row', 'my_product_row_data', 10, 3 );
+add_action( 'swift_csv_before_export', 'my_product_export_start', 10, 1 );
+add_action( 'swift_csv_after_export', 'my_product_export_complete', 10, 2 );
+
+function my_product_columns( $columns, $post_type, $include_private ) {
+    if ( 'product' === $post_type ) {
+        return ['sku', 'name', 'price', 'stock', 'category'];
+    }
+    return $columns;
+}
+
+function my_product_row_data( $row, $post_id, $args ) {
+    $product = wc_get_product( $post_id );
+    $row['sku'] = $product->get_sku();
+    $row['price'] = $product->get_price();
+    $row['stock'] = $product->get_stock_quantity();
+    return $row;
+}
+
+function my_product_export_start( $args ) {
+    if ( 'product' === $args['post_type'] ) {
+        // Set up product-specific export session
+        $_SESSION['product_export'] = [
+            'start_time' => time(),
+            'user_id' => get_current_user_id()
+        ];
+    }
+}
+
+function my_product_export_complete( $file_path, $args ) {
+    if ( 'product' === $args['post_type'] ) {
+        // Send product export notification
+        $export_time = time() - $_SESSION['product_export']['start_time'];
+        $message = "Product export completed in {$export_time} seconds";
+        wp_mail( 'admin@example.com', 'Product Export Complete', $message );
+    }
+}
+```
+
+### Complete Custom Import Workflow
+
+```php
+// Custom import workflow with validation
+add_filter( 'swift_csv_import_row_context', 'my_import_validation', 10, 4 );
+add_filter( 'swift_csv_import_row_data', 'my_import_preprocessing', 10, 3 );
+add_action( 'swift_csv_after_import', 'my_import_cleanup', 10, 3 );
+
+function my_import_validation( $context, $row, $row_num, $args ) {
+    // Validate required fields
+    $required_fields = ['name', 'email'];
+    foreach ( $required_fields as $field ) {
+        if ( empty( $row[$field] ) ) {
+            $context['validation']['errors'][] = "Missing required field: {$field}";
+            $context['validation']['valid'] = false;
+        }
+    }
+
+    return $context;
+}
+
+function my_import_preprocessing( $row, $context, $args ) {
+    // Preprocess data
+    $row['name'] = sanitize_text_field( $row['name'] );
+    $row['email'] = sanitize_email( $row['email'] );
+
+    // Handle multi-value fields
+    if ( isset( $row['tags'] ) ) {
+        $row['tags'] = array_map( 'sanitize_text_field', explode( '|', $row['tags'] ) );
+    }
+
+    return $row;
+}
+
+function my_import_cleanup( $file_path, $results, $args ) {
+    // Clean up import session
+    unset( $_SESSION['import_start_time'] );
+
+    // Send import report
+    $message = sprintf(
+        "Import completed:\n- Imported: %d\n- Updated: %d\n- Errors: %d",
+        $results['imported'],
+        $results['updated'],
+        $results['errors']
+    );
+    wp_mail( 'admin@example.com', 'Import Report', $message );
+}
+```
+
+## Best Practices
+
+1. **Always check post type** before applying custom logic
+2. **Use proper sanitization** for all data
+3. **Handle edge cases** like empty values or invalid data
+4. **Log custom operations** for debugging
+5. **Test with small datasets** first
+6. **Use WordPress functions** for data handling
+7. **Consider performance** for large datasets
+8. **Document your custom hooks** for other developers
+
+## Hook Priority Guidelines
+
+- **10-20**: General customizations
+- **20-30**: Third-party integrations
+- **30-40**: Advanced custom logic
+- **40+**: Emergency fixes and overrides
+
+## Version Compatibility
+
+- **v0.9.7**: Added progress hooks and enhanced batch processing
+- **v0.9.6**: Improved import row context handling
+- **v0.9.5**: Added admin tab filtering
+- **v0.9.0**: Initial hook system implementation
+
+function my*custom_headers( $headers, $args ) {
+// Add custom prefix to headers
+return array_map( function( $header ) {
+return 'my_prefix*' . $header;
+}, $headers );
+}
+
+````
 
 ### swift_csv_add_additional_headers
 
@@ -80,7 +631,7 @@ function my_additional_headers( $headers, $post_type, $args ) {
     }
     return $headers;
 }
-```
+````
 
 ### swift_csv_generate_all_headers
 
@@ -336,7 +887,7 @@ function show_analytics_content( $tab, $import_results ) {
   $query_args['order'] = 'DESC';
   }
 
-          return $query_args;
+              return $query_args;
 
     }
 

@@ -175,6 +175,7 @@
 	background: #fff;
 	margin-bottom: -2px;
 	line-height: 1.9;
+	border-bottom: none;
 }
 
 a.nav-tab:last-of-type {

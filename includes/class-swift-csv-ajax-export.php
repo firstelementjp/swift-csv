@@ -33,9 +33,9 @@ class Swift_CSV_Ajax_Export {
 	 * Whether Pro license is active
 	 *
 	 * @since 0.9.7
-	 * @var bool
+	 * @var bool|null
 	 */
-	private $pro_license_active = false;
+	private static $pro_license_active = null;
 
 	/**
 	 * Constructor
@@ -45,35 +45,19 @@ class Swift_CSV_Ajax_Export {
 	public function __construct() {
 		add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
 		add_action( 'wp_ajax_swift_csv_cancel_export', [ $this, 'handle_ajax_export_cancel' ] );
-
-		// Store license status for efficiency
-		$this->pro_license_active = $this->check_pro_license_status();
 	}
 
 	/**
-	 * Check Pro license status once during construction
-	 *
-	 * @since 0.9.7
-	 * @return bool True if Pro version is available and license is active
-	 */
-	private function check_pro_license_status() {
-		// Check if Pro version is available
-		if ( ! class_exists( 'Swift_CSV_Pro_Admin' ) ) {
-			return false;
-		}
-
-		// Check if license is active using license handler
-		return Swift_CSV_License_Handler::is_pro_version_licensed();
-	}
-
-	/**
-	 * Check if Pro version is licensed (property accessor)
+	 * Check if Pro version is licensed (static cached for performance)
 	 *
 	 * @since 0.9.7
 	 * @return bool True if Pro version is available and license is active
 	 */
 	private function is_pro_version_licensed() {
-		return $this->pro_license_active;
+		if ( null === self::$pro_license_active ) {
+			self::$pro_license_active = Swift_CSV_License_Handler::is_pro_active();
+		}
+		return self::$pro_license_active;
 	}
 
 	/**

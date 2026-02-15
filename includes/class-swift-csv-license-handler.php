@@ -23,15 +23,32 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    swift-csv
  * @subpackage Core
  */
+
 class Swift_CSV_License_Handler {
+
+	/**
+	 * Product IDs for each paid add-on.
+	 *
+	 * These IDs should be kept in sync with the
+	 * products used by the license server.
+	 */
+	public const PRODUCT_ID_PRO = 328;
+
+	/**
+	 * Static cache for license data
+	 *
+	 * @since 0.9.7
+	 * @var array|null
+	 */
+	private static $license_cache = null;
 
 	/**
 	 * Product ID for Swift CSV Pro.
 	 *
 	 * @since 0.9.6
-	 * @var int
+	 * @var int (deprecated, use PRODUCT_ID_PRO instead)
 	 */
-	private $product_id = 328;
+	private $product_id = self::PRODUCT_ID_PRO;
 
 	/**
 	 * Activate license.
@@ -41,7 +58,14 @@ class Swift_CSV_License_Handler {
 	 * @return array The response from the license server.
 	 */
 	public function activate( $license_key ) {
-		return $this->call_license_api( 'activate', $license_key );
+		$result = $this->call_license_api( 'activate', $license_key );
+
+		// Clear cache after license change
+		if ( $result['success'] ?? false ) {
+			self::clear_cache();
+		}
+
+		return $result;
 	}
 
 	/**
@@ -56,6 +80,7 @@ class Swift_CSV_License_Handler {
 		if ( ! defined( 'SWIFT_CSV_LICENSE_API_URL' ) || empty( SWIFT_CSV_LICENSE_API_URL ) ) {
 			// Remove local license data
 			delete_option( 'swift_csv_pro_license' );
+			self::clear_cache();
 
 			return [
 				'success'    => true,
@@ -64,7 +89,12 @@ class Swift_CSV_License_Handler {
 			];
 		}
 
-		return $this->call_license_api( 'deactivate', $license_key );
+		$result = $this->call_license_api( 'deactivate', $license_key );
+
+		// Clear cache after license change
+		self::clear_cache();
+
+		return $result;
 	}
 
 	/**
@@ -79,7 +109,7 @@ class Swift_CSV_License_Handler {
 		if ( ! defined( 'SWIFT_CSV_LICENSE_API_URL' ) || empty( SWIFT_CSV_LICENSE_API_URL ) ) {
 			return [
 				'success' => false,
-				'message' => __( 'License API URL not defined. Please activate Swift CSV Pro.', 'swift-csv' ),
+				'message' => __( 'License server not configured.', 'swift-csv' ),
 			];
 		}
 
@@ -120,42 +150,136 @@ class Swift_CSV_License_Handler {
 	}
 
 	/**
-	 * Check if Pro license is active
+	 * Returns all product license entries indexed by productId.
+	 *
+	 * @since 0.9.7
+	 * @return array<int, array{
+	 *     key: string,
+	 *     status: string,
+	 *     data: array
+	 * }>
+	 */
+	public static function get_products() {
+		if ( null === self::$license_cache ) {
+			self::$license_cache = self::fetch_license_data();
+		}
+
+		$products = self::$license_cache['products'] ?? [];
+		return is_array( $products ) ? $products : [];
+	}
+
+	/**
+	 * Returns normalized license information.
+	 *
+	 * @since 0.9.7
+	 * @return array{
+	 *     status: string,
+	 *     data: array,
+	 *     product_id: int,
+	 *     is_active: bool
+	 * }
+	 */
+	public static function get_info() {
+		$products = self::get_products();
+
+		if ( empty( $products ) ) {
+			return [
+				'status'     => 'inactive',
+				'data'       => [],
+				'product_id' => self::PRODUCT_ID_PRO,
+				'is_active'  => false,
+			];
+		}
+
+		// Prefer the Pro product entry; fall back to the first available.
+		if ( isset( $products[ self::PRODUCT_ID_PRO ] ) ) {
+			$entry      = $products[ self::PRODUCT_ID_PRO ];
+			$product_id = self::PRODUCT_ID_PRO;
+		} else {
+			$entry      = reset( $products );
+			$product_id = (int) key( $products );
+		}
+
+		$status = isset( $entry['status'] ) ? (string) $entry['status'] : 'inactive';
+		$data   = isset( $entry['data'] ) && is_array( $entry['data'] ) ? $entry['data'] : [];
+
+		return [
+			'status'     => $status,
+			'data'       => $data,
+			'product_id' => $product_id,
+			'is_active'  => ( 'active' === $status ),
+		];
+	}
+
+	/**
+	 * Checks whether the given product license is active.
+	 *
+	 * @since 0.9.7
+	 * @param int $product_id Product ID.
+	 * @return bool
+	 */
+	public static function is_product_active( $product_id ) {
+		$products = self::get_products();
+
+		if ( ! isset( $products[ $product_id ] ) ) {
+			return false;
+		}
+
+		$status = isset( $products[ $product_id ]['status'] ) ? (string) $products[ $product_id ]['status'] : 'inactive';
+
+		return ( 'active' === $status );
+	}
+
+	/**
+	 * Convenience wrapper for checking the Pro license status.
+	 *
+	 * @since 0.9.7
+	 * @return bool
+	 */
+	public static function is_pro_active() {
+		return self::is_product_active( self::PRODUCT_ID_PRO );
+	}
+
+	/**
+	 * Fetch license data from database
+	 *
+	 * @since 0.9.7
+	 * @return array License data structure
+	 */
+	private static function fetch_license_data() {
+		return get_option( 'swift_csv_pro_license', [] );
+	}
+
+	/**
+	 * Clear static cache
+	 *
+	 * Useful after license activation/deactivation or testing
+	 *
+	 * @since 0.9.7
+	 * @return void
+	 */
+	public static function clear_cache() {
+		self::$license_cache = null;
+	}
+
+	/**
+	 * Check if Pro license is active (legacy method for backward compatibility)
 	 *
 	 * @since 0.9.7
 	 * @return bool True if Pro license is active and valid
 	 */
 	public function is_license_active() {
-		$license_data = get_option( 'swift_csv_pro_license', [] );
-
-		if ( ! is_array( $license_data ) || ! isset( $license_data['products'] ) ) {
-			return false;
-		}
-
-		// Check for product ID 328 (Swift CSV Pro)
-		if ( isset( $license_data['products'][ $this->product_id ] ) && 'active' === $license_data['products'][ $this->product_id ]['status'] ) {
-			return true;
-		}
-
-		return false;
+		return self::is_pro_active();
 	}
 
 	/**
-	 * Check if Pro version is active and licensed (static helper)
-	 *
-	 * Static method for easy access from export/import classes
+	 * Check if Pro version is active and licensed (legacy static method)
 	 *
 	 * @since 0.9.7
+	 * @deprecated Use is_pro_active() instead
 	 * @return bool True if Pro license is active and valid
 	 */
 	public static function is_pro_version_licensed() {
-		static $is_licensed = null;
-
-		if ( null === $is_licensed ) {
-			$handler     = new self();
-			$is_licensed = $handler->is_license_active();
-		}
-
-		return $is_licensed;
+		return self::is_pro_active();
 	}
 }

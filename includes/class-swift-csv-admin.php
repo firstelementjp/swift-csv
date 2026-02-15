@@ -831,65 +831,6 @@ class Swift_CSV_Admin {
 	/**
 	 * Check if Pro license is active
 	 *
-	 * @since 0.9.6
-	 * @return bool True if Pro license is active and valid
-	 */
-	public function is_pro_license_active() {
-		$license_data = get_option( 'swift_csv_pro_license', [] );
-
-		if ( ! is_array( $license_data ) || ! isset( $license_data['products'] ) ) {
-			return false;
-		}
-
-		// Check for product ID 328 (Swift CSV Pro)
-		if ( isset( $license_data['products'][328] ) && 'active' === $license_data['products'][328]['status'] ) {
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Get the admin instance for license checking
-	 *
-	 * This method allows Pro version to check license status
-	 * by accessing the main admin instance.
-	 *
-	 * @since 0.9.7
-	 * @return self|null Admin instance or null if not available
-	 */
-	public static function get_instance_for_license_check() {
-		static $instance = null;
-
-		if ( null === $instance ) {
-			// Try to get the global admin instance
-			if ( class_exists( 'Swift_CSV_Admin' ) ) {
-				global $swift_csv_admin;
-				if ( isset( $swift_csv_admin ) && $swift_csv_admin instanceof Swift_CSV_Admin ) {
-					$instance = $swift_csv_admin;
-				}
-			}
-		}
-
-		return $instance;
-	}
-
-	/**
-	 * Check if Pro license is active (static helper)
-	 *
-	 * Static method for easy access from Pro version
-	 *
-	 * @since 0.9.7
-	 * @return bool True if Pro license is active and valid
-	 */
-	public static function is_pro_license_active_static() {
-		$instance = self::get_instance_for_license_check();
-		return $instance ? $instance->is_pro_license_active() : false;
-	}
-
-	/**
-	 * Displays professional header with version info and support links .
-	 *
 	 * @since  0.9.0
 	 * @return void
 	 */
@@ -1021,7 +962,7 @@ class Swift_CSV_Admin {
 				<?php
 				// Add license tab directly as default tab
 				$icon = '';
-				if ( class_exists( 'Swift_CSV_Pro_Admin' ) && ! $this->is_pro_license_active() ) {
+				if ( class_exists( 'Swift_CSV_Pro_Admin' ) && ! Swift_CSV_License_Handler::is_pro_active() ) {
 					$icon = '<span class="dashicons dashicons-warning swift-csv-warning-icon"></span>';
 				}
 				?>
@@ -1271,7 +1212,7 @@ class Swift_CSV_Admin {
 					<?php do_settings_fields( 'swift-csv', 'swift_csv_license_section' ); ?>
 
 					<?php
-					$is_license_active = $this->is_pro_license_active();
+					$is_license_active = Swift_CSV_License_Handler::is_pro_active();
 					$pro_is_loaded     = class_exists( 'Swift_CSV_Pro_Admin' );
 
 					if ( ! $pro_is_loaded || ! $is_license_active ) :
@@ -1341,7 +1282,7 @@ class Swift_CSV_Admin {
 		$products       = is_array( $license_data ) ? ( $license_data['products'] ?? [] ) : [];
 		$pro_product    = is_array( $products ) ? ( $products[328] ?? [] ) : [];
 		$license_key    = is_array( $pro_product ) ? ( $pro_product['key'] ?? '' ) : '';
-		$license_status = $this->is_pro_license_active() ? 'active' : 'inactive';
+		$license_status = Swift_CSV_License_Handler::is_pro_active() ? 'active' : 'inactive';
 		?>
 		<dl>
 			<dt>

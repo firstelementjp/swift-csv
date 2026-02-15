@@ -64,15 +64,52 @@ class Swift_CSV_Ajax_Import {
 	private $row_processor_util;
 
 	/**
+	 * Whether Pro license is active
+	 *
+	 * @since 0.9.7
+	 * @var bool
+	 */
+	private $pro_license_active = false;
+
+	/**
 	 * Constructor: Register AJAX hooks.
 	 *
 	 * @since 0.9.0
 	 */
 	public function __construct() {
+		add_action( 'wp_ajax_swift_csv_upload', [ $this, 'upload_handler' ] );
 		add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'import_handler' ] );
-		add_action( 'wp_ajax_nopriv_swift_csv_ajax_import', [ $this, 'import_handler' ] );
 		add_action( 'wp_ajax_swift_csv_ajax_upload', [ $this, 'upload_handler' ] );
 		add_action( 'wp_ajax_nopriv_swift_csv_ajax_upload', [ $this, 'upload_handler' ] );
+
+		// Store license status for efficiency
+		$this->pro_license_active = $this->check_pro_license_status();
+	}
+
+	/**
+	 * Check Pro license status once during construction
+	 *
+	 * @since 0.9.7
+	 * @return bool True if Pro version is available and license is active
+	 */
+	private function check_pro_license_status() {
+		// Check if Pro version is available
+		if ( ! class_exists( 'Swift_CSV_Pro_Admin' ) ) {
+			return false;
+		}
+
+		// Check if license is active using license handler
+		return Swift_CSV_License_Handler::is_pro_version_licensed();
+	}
+
+	/**
+	 * Check if Pro version is licensed (property accessor)
+	 *
+	 * @since 0.9.7
+	 * @return bool True if Pro version is available and license is active
+	 */
+	private function is_pro_version_licensed() {
+		return $this->pro_license_active;
 	}
 
 	/**
@@ -243,6 +280,21 @@ class Swift_CSV_Ajax_Import {
 			'context'   => 'import_meta_classification',
 		];
 		$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', [], $meta_classify_args );
+
+		// License check: Only allow ACF processing if Pro version is active and licensed
+		if ( ! $this->is_pro_version_licensed() ) {
+			// Remove ACF keys from classification if not licensed
+			if ( isset( $classified_meta_keys['acf'] ) ) {
+				// Move ACF keys to regular keys (they'll be treated as regular custom fields)
+				if ( isset( $classified_meta_keys['regular'] ) && is_array( $classified_meta_keys['regular'] ) ) {
+					$classified_meta_keys['regular'] = array_merge(
+						$classified_meta_keys['regular'],
+						$classified_meta_keys['acf'] ?? []
+					);
+				}
+				unset( $classified_meta_keys['acf'] );
+			}
+		}
 
 		// Run before import validation hook
 		$import_validation = [

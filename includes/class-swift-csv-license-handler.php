@@ -118,4 +118,44 @@ class Swift_CSV_License_Handler {
 
 		return $data;
 	}
+
+	/**
+	 * Check if Pro license is active
+	 *
+	 * @since 0.9.7
+	 * @return bool True if Pro license is active and valid
+	 */
+	public function is_license_active() {
+		$license_data = get_option( 'swift_csv_pro_license', [] );
+
+		if ( ! is_array( $license_data ) || ! isset( $license_data['products'] ) ) {
+			return false;
+		}
+
+		// Check for product ID 328 (Swift CSV Pro)
+		if ( isset( $license_data['products'][ $this->product_id ] ) && 'active' === $license_data['products'][ $this->product_id ]['status'] ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if Pro version is active and licensed (static helper)
+	 *
+	 * Static method for easy access from export/import classes
+	 *
+	 * @since 0.9.7
+	 * @return bool True if Pro license is active and valid
+	 */
+	public static function is_pro_version_licensed() {
+		static $is_licensed = null;
+
+		if ( null === $is_licensed ) {
+			$handler     = new self();
+			$is_licensed = $handler->is_license_active();
+		}
+
+		return $is_licensed;
+	}
 }

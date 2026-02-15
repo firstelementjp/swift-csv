@@ -832,9 +832,9 @@ class Swift_CSV_Admin {
 	 * Check if Pro license is active
 	 *
 	 * @since 0.9.6
-	 * @return bool
+	 * @return bool True if Pro license is active and valid
 	 */
-	private function is_pro_license_active() {
+	public function is_pro_license_active() {
 		$license_data = get_option( 'swift_csv_pro_license', [] );
 
 		if ( ! is_array( $license_data ) || ! isset( $license_data['products'] ) ) {
@@ -847,6 +847,44 @@ class Swift_CSV_Admin {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get the admin instance for license checking
+	 *
+	 * This method allows Pro version to check license status
+	 * by accessing the main admin instance.
+	 *
+	 * @since 0.9.7
+	 * @return self|null Admin instance or null if not available
+	 */
+	public static function get_instance_for_license_check() {
+		static $instance = null;
+
+		if ( null === $instance ) {
+			// Try to get the global admin instance
+			if ( class_exists( 'Swift_CSV_Admin' ) ) {
+				global $swift_csv_admin;
+				if ( isset( $swift_csv_admin ) && $swift_csv_admin instanceof Swift_CSV_Admin ) {
+					$instance = $swift_csv_admin;
+				}
+			}
+		}
+
+		return $instance;
+	}
+
+	/**
+	 * Check if Pro license is active (static helper)
+	 *
+	 * Static method for easy access from Pro version
+	 *
+	 * @since 0.9.7
+	 * @return bool True if Pro license is active and valid
+	 */
+	public static function is_pro_license_active_static() {
+		$instance = self::get_instance_for_license_check();
+		return $instance ? $instance->is_pro_license_active() : false;
 	}
 
 	/**

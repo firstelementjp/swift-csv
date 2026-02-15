@@ -829,7 +829,7 @@ class Swift_CSV_Admin {
 	}
 
 	/**
-	 * Check if Pro license is active
+	 * Displays professional header with version info and support links .
 	 *
 	 * @since  0.9.0
 	 * @return void
@@ -963,12 +963,20 @@ class Swift_CSV_Admin {
 				// Add license tab directly as default tab
 				$icon = '';
 				if ( class_exists( 'Swift_CSV_Pro_Admin' ) && ! Swift_CSV_License_Handler::is_pro_active() ) {
-					$icon = '<span class="dashicons dashicons-warning swift-csv-warning-icon"></span>';
+					$icon = '<span class="dashicons dashicons-warning" style="color: #f59e0b;"></span>';
 				}
+
+				// Custom allowed HTML list for safe output
+				$allowed_html = [
+					'span' => [
+						'class' => true,
+						'style' => true,
+					],
+				];
 				?>
 				<a href="?page=swift-csv&tab=license" class="nav-tab <?php echo 'license' === $tab ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'License', 'swift-csv' ); ?>
-					<?php wp_kses_post( $icon ); ?>
+					<?php echo wp_kses( $icon, $allowed_html ); ?>
 				</a>
 				<?php
 				/**

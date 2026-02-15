@@ -919,10 +919,20 @@ a.nav-tab:last-of-type {
 	color: #666;
 }
 
-/* Warning icon for license tab */
+/* ==========================================================================
+	License Warning Icon
+	========================================================================== */
+
 .swift-csv-warning-icon {
 	color: #f59e0b;
+	margin-left: 4px;
+	font-size: 14px;
 }
+
+/* Warning icon for license tab */
+/* .swift-csv-warning-icon {
+	color: #f59e0b;
+} */
 
 /* Hidden elements (display: none) */
 .swift-csv-hidden {

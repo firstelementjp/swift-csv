@@ -148,8 +148,8 @@ We welcome contributions! Please follow our development workflow:
 
 ### Current Development
 
-- **Batch Export UI**: Progress bar and AJAX integration (released in v0.9.4)
-- **Future**: Enhanced error handling and user experiences are welcome through [GitHub Issues](https://github.com/firstelementjp/swift-csv/issues).
+- **v0.9.7 Released**: Real-time export progress with detailed logging, enhanced license status detection, complete Japanese localization, and adaptive batch processing
+- **Future**: Enhanced features and integrations are welcome through [GitHub Issues](https://github.com/firstelementjp/swift-csv/issues).
 
 ## 📄 License
 

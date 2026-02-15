@@ -250,11 +250,6 @@ class Swift_CSV_Admin {
 			wp_enqueue_script( 'swift-csv-import' );
 			wp_enqueue_script( 'swift-csv-license' );
 			wp_enqueue_script( 'swift-csv-main' );
-
-			// Log script loading for debugging
-			if ( $debug_mode ) {
-				error_log( '[Swift CSV] Modular admin scripts loaded v' . SWIFT_CSV_VERSION );
-			}
 		}
 	}
 
@@ -732,8 +727,6 @@ class Swift_CSV_Admin {
 			// Determine the local license status based on the requested action
 			$local_status = ( 'activate' === $action ) ? 'active' : 'inactive';
 
-			error_log( 'License operation SUCCESS: ' . $action . ' - Message: ' . $result['message'] );
-
 			if ( $product_id > 0 ) {
 				$all_licenses['products'][ $product_id ] = [
 					'key'    => $license_key,
@@ -747,9 +740,6 @@ class Swift_CSV_Admin {
 			wp_send_json_success( [ 'message' => $result['message'] ] );
 
 		} else {
-			error_log( 'License operation FAILED: ' . $action . ' - Message: ' . $result['message'] );
-			error_log( 'Full result: ' . print_r( $result, true ) );
-
 			if ( $product_id > 0 ) {
 				$all_licenses['products'][ $product_id ] = [
 					'key'    => $license_key,
@@ -917,12 +907,7 @@ class Swift_CSV_Admin {
 	 */
 	public function render_main_page() {
 		// Sanitize and validate tab parameter.
-		$tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'export';
-
-		// Log admin page access for debugging
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( "[Swift CSV] Admin page accessed: tab={$tab}" );
-		}
+		$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'export';
 
 		// Allow custom tabs (like Pro version tabs) - don't restrict to export/import only
 		// The validation will be handled by the individual tab rendering logic
@@ -941,11 +926,6 @@ class Swift_CSV_Admin {
 
 			if ( isset( $_GET['error_details'] ) ) {
 				$import_results['error_details'] = explode( '|', urldecode( $_GET['error_details'] ) );
-			}
-
-			// Log import results for debugging
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( "[Swift CSV] Import results displayed: imported={$import_results['imported']}, updated={$import_results['updated']}, errors={$import_results['errors']}" );
 			}
 		}
 

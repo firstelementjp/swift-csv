@@ -2,12 +2,28 @@
 # Include only necessary files for plugin distribution
 
 # Include minified assets
-assets/css/admin-style.min.css
-assets/js/admin-scripts.min.js
+assets/css/swift-csv-style.min.css
+assets/css/swift-csv-admin-style.min.css
+assets/css/swift-csv-pro-admin-style.min.css
+assets/js/swift-csv-core.min.js
+assets/js/swift-csv-export.min.js
+assets/js/swift-csv-import.min.js
+assets/js/swift-csv-license.min.js
+assets/js/swift-csv-main.min.js
+assets/js/swift-csv-admin-scripts.min.js
+assets/js/swift-csv-pro-admin-scripts.min.js
 
 # Exclude development files but keep minified assets
-assets/css/admin-style.css export-ignore
-assets/js/admin-scripts.js export-ignore
+assets/css/swift-csv-style.css export-ignore
+assets/css/swift-csv-admin-style.css export-ignore
+assets/css/swift-csv-pro-admin-style.css export-ignore
+assets/js/swift-csv-core.js export-ignore
+assets/js/swift-csv-export.js export-ignore
+assets/js/swift-csv-import.js export-ignore
+assets/js/swift-csv-license.js export-ignore
+assets/js/swift-csv-main.js export-ignore
+assets/js/swift-csv-admin-scripts.js export-ignore
+assets/js/swift-csv-pro-admin-scripts.js export-ignore
 
 # Exclude development and build files
 composer.json export-ignore

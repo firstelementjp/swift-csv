@@ -128,9 +128,8 @@ class Swift_CSV_Import_Row_Context {
 
 		// Handle row validation errors
 		if ( ! $row_validation['valid'] ) {
-			// For now, we'll log errors but continue processing
+			// For now, we'll continue processing even with validation errors
 			// In a future version, this could skip the row or stop processing
-			error_log( '[Swift CSV] Row validation failed: ' . implode( ', ', $row_validation['errors'] ) );
 		}
 
 		// Run data filtering hook

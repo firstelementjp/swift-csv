@@ -306,9 +306,7 @@ class Swift_CSV_Updater {
 		delete_site_transient( 'update_plugins' );
 
 		// Log update
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'Swift CSV plugin updated successfully' );
-		}
+		// Update successful - plugin is now at the latest version
 	}
 
 	/**

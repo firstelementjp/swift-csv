@@ -70,20 +70,24 @@ msgid "Published posts only"
 msgstr "公開記事のみ"
 
 #: includes/class-swift-csv-admin.php:426
-msgid "All posts"
-msgstr "全記事"
+msgid "All statuses"
+msgstr "すべてのステータス"
 
 #: includes/class-swift-csv-admin.php:430
 msgid "Custom"
 msgstr "カスタム"
 
 #: includes/class-swift-csv-admin.php:435
-msgid "Use the %1$s hook to specify custom post status filtering. See %2$s for details."
-msgstr "swift_csv_export_post_status_query フックを使用して対象となる投稿ステータスを指定できます。詳細についてはドキュメントを参照してください。"
+msgid "Use the %1$s hook to specify target post status. See %2$s for details."
+msgstr "%1s フックを使用して対象となる投稿ステータスを指定できます。詳細については%2sを参照してください。"
 
-#: includes/class-swift-csv-admin.php:473
+#: includes/class-swift-csv-admin.php:174
 msgid "Use the %1$s hook to specify custom export items and order. See %2$s for details."
-msgstr "swift_csv_export_columns フックを使用してエクスポート内容と順序を指定できます。詳細についてはドキュメントを参照してください。"
+msgstr "%1s フックを使用してエクスポートする項目と順序を指定できます。詳細については%2sを参照してください。"
+
+#: includes/class-swift-csv-admin.php:487
+msgid "Use the %1$s hook to specify export content and order. See %2$s for details."
+msgstr "%1s フックを使用してエクスポート内容と順序を指定できます。詳細については%2sを参照してください。"
 
 #. Plugin Name of the plugin
 #: swift-csv.php

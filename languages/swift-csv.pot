@@ -47,7 +47,7 @@ msgid "Published posts only"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:426
-msgid "All posts"
+msgid "All statuses"
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:430

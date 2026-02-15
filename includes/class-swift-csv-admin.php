@@ -436,7 +436,7 @@ class Swift_CSV_Admin {
 				</label>
 				<label class="swift-csv-block-label">
 					<input type="radio" name="swift_csv_export_post_status" value="any">
-					<?php esc_html_e( 'All posts', 'swift-csv' ); ?>
+					<?php esc_html_e( 'All statuses', 'swift-csv' ); ?>
 				</label>
 				<label class="swift-csv-block-label">
 					<input type="radio" name="swift_csv_export_post_status" value="custom">

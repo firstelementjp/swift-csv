@@ -226,9 +226,10 @@ class Swift_CSV_Ajax_Export {
 	 * @param string $post_type The post type to export
 	 * @param string $export_scope The export scope ('basic', 'all', 'custom')
 	 * @param bool   $include_private_meta Whether to include private meta fields
+	 * @param string $post_status The post status to query
 	 * @return string[] Array of CSV header strings
 	 */
-	private function build_headers( string $post_type, string $export_scope = 'basic', bool $include_private_meta = false ): array {
+	private function build_headers( string $post_type, string $export_scope = 'basic', bool $include_private_meta = false, string $post_status = 'publish' ): array {
 		$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 		$include_private_meta = (bool) $include_private_meta;
 
@@ -287,7 +288,7 @@ class Swift_CSV_Ajax_Export {
 		];
 		$sample_query_args                   = [
 			'post_type'      => $post_type,
-			'post_status'    => 'publish',
+			'post_status'    => $post_status,
 			'posts_per_page' => 1,
 			'orderby'        => 'post_date',
 			'order'          => 'DESC',
@@ -521,9 +522,10 @@ class Swift_CSV_Ajax_Export {
 			}
 
 			// Get total posts count with limit
+			$post_status            = $post_type === 'attachment' ? 'inherit' : 'publish';
 			$total_posts_query_args = [
 				'post_type'      => $post_type,
-				'post_status'    => 'publish',
+				'post_status'    => $post_status,
 				'posts_per_page' => $export_limit > 0 ? $export_limit : -1,
 				'fields'         => 'ids',
 			];
@@ -562,7 +564,7 @@ class Swift_CSV_Ajax_Export {
 			// Get posts for current batch
 			$posts_query_args = [
 				'post_type'      => $post_type,
-				'post_status'    => 'publish',
+				'post_status'    => $post_status,
 				'posts_per_page' => min( self::BATCH_SIZE, $total_count - $start_row ),
 				'offset'         => $start_row,
 				'fields'         => 'ids',
@@ -623,7 +625,7 @@ class Swift_CSV_Ajax_Export {
 
 			// Simple CSV generation with headers
 			$csv_chunk = '';
-			$headers   = $this->build_headers( $post_type, $export_scope, $include_private_meta );
+			$headers   = $this->build_headers( $post_type, $export_scope, $include_private_meta, $post_status );
 
 			// Add headers for first chunk
 			if ( $start_row === 0 ) {

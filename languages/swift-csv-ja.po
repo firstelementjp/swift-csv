@@ -17,6 +17,18 @@ msgstr ""
 "X-Generator: Poedit 3.4.2\n"
 "X-Domain: swift-csv\n"
 
+#: includes/class-swift-csv-license-handler.php:115
+msgid "Swift CSV Pro is not installed. Please install Swift CSV Pro to use license features."
+msgstr "Swift CSV Proがインストールされていません。ライセンス機能を使用するにはSwift CSV Proをインストールしてください。"
+
+#: includes/class-swift-csv-license-handler.php:122
+msgid "Swift CSV Pro is installed but not activated. Please activate Swift CSV Pro to use license features."
+msgstr "Swift CSV Proはインストールされていますが有効化されていません。ライセンス機能を使用するにはSwift CSV Proを有効化してください。"
+
+#: includes/class-swift-csv-license-handler.php:125
+msgid "License server is not configured. Please contact support."
+msgstr "ライセンスサーバーが設定されていません。サポートにお問い合わせください。"
+
 #: includes/class-swift-csv-admin.php:490
 msgid "Taxonomy Format"
 msgstr "タクソノミー形式"

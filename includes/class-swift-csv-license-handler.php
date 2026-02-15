@@ -107,9 +107,27 @@ class Swift_CSV_License_Handler {
 	 */
 	private function call_license_api( $action, $license_key ) {
 		if ( ! defined( 'SWIFT_CSV_LICENSE_API_URL' ) || empty( SWIFT_CSV_LICENSE_API_URL ) ) {
+			// Check if Swift CSV Pro is installed and active
+			$pro_plugin_path = 'swift-csv-pro/swift-csv-pro.php';
+			$is_pro_active   = is_plugin_active( $pro_plugin_path );
+
+			// Check if Pro plugin files exist
+			$pro_plugin_exists = file_exists( WP_PLUGIN_DIR . '/' . $pro_plugin_path );
+
+			if ( ! $pro_plugin_exists ) {
+				// Pro plugin is not installed at all
+				$message = __( 'Swift CSV Pro is not installed. Please install Swift CSV Pro to use license features.', 'swift-csv' );
+			} elseif ( ! $is_pro_active ) {
+				// Pro plugin exists but is not active
+				$message = __( 'Swift CSV Pro is installed but not activated. Please activate Swift CSV Pro to use license features.', 'swift-csv' );
+			} else {
+				// Pro plugin is active but license server is not configured
+				$message = __( 'License server is not configured. Please contact support.', 'swift-csv' );
+			}
+
 			return [
 				'success' => false,
-				'message' => __( 'License server not configured.', 'swift-csv' ),
+				'message' => $message,
 			];
 		}
 

@@ -71,6 +71,7 @@ function initLicense() {
 				// Throw an error so that the catch block can show the backend message.
 				throw new Error(
 					data.data?.message ||
+						data.message ||
 						SwiftCSVCore.__('License operation failed.', 'swift-csv-pro')
 				);
 			}

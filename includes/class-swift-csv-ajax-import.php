@@ -96,6 +96,14 @@ class Swift_CSV_Ajax_Import {
 	private $csv_parser_util;
 
 	/**
+	 * Environment manager utility instance.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Environment_Manager|null
+	 */
+	private $environment_manager_util;
+
+	/**
 	 * Whether Pro license is active
 	 *
 	 * @since 0.9.7
@@ -243,6 +251,19 @@ class Swift_CSV_Ajax_Import {
 			$this->csv_parser_util = new Swift_CSV_Import_Csv_Parser();
 		}
 		return $this->csv_parser_util;
+	}
+
+	/**
+	 * Get environment manager instance.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Environment_Manager
+	 */
+	private function get_environment_manager_util(): Swift_CSV_Import_Environment_Manager {
+		if ( null === $this->environment_manager_util ) {
+			$this->environment_manager_util = new Swift_CSV_Import_Environment_Manager();
+		}
+		return $this->environment_manager_util;
 	}
 
 	/**
@@ -565,12 +586,12 @@ class Swift_CSV_Ajax_Import {
 	 * @return void Sends JSON response with import results
 	 */
 	public function import_handler() {
-		$config = $this->prepare_import_environment();
+		$config = $this->get_environment_manager_util()->prepare_import_environment();
 		if ( null === $config ) {
 			return;
 		}
 
-		$csv_content = $this->read_uploaded_csv_content_or_send_error_and_cleanup( $config['file_path'] );
+		$csv_content = $config['csv_content'];
 		if ( null === $csv_content ) {
 			return;
 		}

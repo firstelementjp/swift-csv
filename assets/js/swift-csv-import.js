@@ -264,6 +264,27 @@ function processImportChunk(
 				// Update progress
 				updateImportProgress(data, startTime);
 
+				// Show Dry Run logs for real-time display (even when continuing)
+				if (data.dry_run) {
+					// Display detailed dry run results for each row (real-time)
+					if (
+						data.dry_run_details &&
+						Array.isArray(data.dry_run_details) &&
+						data.dry_run_details.length > 0
+					) {
+						data.dry_run_details.forEach(detail => {
+							const statusIcon = detail.status === 'success' ? '✓' : '✗';
+							const actionText = detail.action === 'create' ? '新規作成' : '更新';
+							const logMessage = `[Dry Run] ${statusIcon} 行${detail.row}: ${actionText} - "${detail.title}"`;
+							addLogEntry(
+								logMessage,
+								detail.status === 'success' ? 'success' : 'error',
+								'import'
+							);
+						});
+					}
+				}
+
 				// Process next chunk
 				processImportChunk(
 					data.processed,
@@ -363,13 +384,19 @@ function updateImportProgress(data, startTime) {
 
 	// Update detail counts
 	if (createdEl && data.created !== undefined) {
-		createdEl.textContent = data.created;
+		// Use cumulative value for proper display
+		createdEl.textContent =
+			data.cumulative_created !== undefined ? data.cumulative_created : data.created;
 	}
 	if (updatedEl && data.updated !== undefined) {
-		updatedEl.textContent = data.updated;
+		// Use cumulative value for proper display
+		updatedEl.textContent =
+			data.cumulative_updated !== undefined ? data.cumulative_updated : data.updated;
 	}
 	if (errorEl && data.errors !== undefined) {
-		errorEl.textContent = data.errors;
+		// Use cumulative value for proper display
+		errorEl.textContent =
+			data.cumulative_errors !== undefined ? data.cumulative_errors : data.errors;
 	}
 }
 

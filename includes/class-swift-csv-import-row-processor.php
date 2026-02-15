@@ -119,7 +119,7 @@ class Swift_CSV_Import_Row_Processor {
 
 			// Record detailed dry run information for errors
 			if ( $dry_run && isset( $counters['dry_run_details'] ) ) {
-				$row_number = $counters['processed'] + 1;
+				$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number
 				$post_title = $post_fields_from_csv['post_title'] ?? 'Untitled';
 
 				$counters['dry_run_details'][] = [

@@ -541,6 +541,9 @@ function handleAjaxImport(e) {
 	const startTime = Date.now();
 	let isCancelled = false;
 
+	// Global variable to accumulate dry run details across batches
+	let accumulatedDryRunDetails = [];
+
 	// Log import start
 	swiftCSVLog(
 		`Import started: post_type=${postType}, update_existing=${updateExisting}, taxonomy_format=${taxonomyFormat}, dry_run=${dryRun}`
@@ -618,13 +621,21 @@ function handleAjaxImport(e) {
 
 				// Log Dry Run specific information
 				if (dryRun) {
-					// Display detailed dry run results
+					// Debug: Check if dry_run_details is available
+					console.log('Dry run details:', data.dry_run_details);
+
+					// Display detailed dry run results for each batch (real-time)
 					if (
 						data.dry_run_details &&
 						Array.isArray(data.dry_run_details) &&
 						data.dry_run_details.length > 0
 					) {
-						addLogEntry('[Dry Run] 詳細な処理結果:', 'info', 'import');
+						// Only show results for this batch to avoid duplication
+						addLogEntry(
+							`[Dry Run] バッチ結果 (${data.dry_run_details.length}件):`,
+							'info',
+							'import'
+						);
 						data.dry_run_details.forEach(detail => {
 							const statusIcon = detail.status === 'success' ? '✓' : '✗';
 							const actionText = detail.action === 'create' ? '新規作成' : '更新';
@@ -640,6 +651,26 @@ function handleAjaxImport(e) {
 								addLogEntry(`    ${detail.details}`, 'debug', 'import');
 							}
 						});
+					}
+
+					// Also accumulate for final summary
+					if (
+						data.dry_run_details &&
+						Array.isArray(data.dry_run_details) &&
+						data.dry_run_details.length > 0
+					) {
+						accumulatedDryRunDetails = accumulatedDryRunDetails.concat(
+							data.dry_run_details
+						);
+					}
+
+					// Show final summary when complete
+					if (!data.continue && accumulatedDryRunDetails.length > 0) {
+						addLogEntry(
+							`[Dry Run] 処理完了: 合計 ${accumulatedDryRunDetails.length}件`,
+							'success',
+							'import'
+						);
 					}
 
 					// Legacy dry_run_log support

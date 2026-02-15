@@ -96,14 +96,16 @@ class Swift_CSV_Admin {
 	public function enqueue_scripts( $hook ) {
 		if ( 'tools_page_swift-csv' === $hook ) {
 			$debug_mode = defined( 'WP_DEBUG' ) && WP_DEBUG;
-			$suffix     = $debug_mode ? '' : '.min';
+			// Force debug mode for testing
+			$debug_mode = true;
+			$suffix     = ''; // Always use non-minified for testing
 
 			// Core utilities (must be loaded first)
 			wp_register_script(
 				'swift-csv-core',
 				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-core' . $suffix . '.js',
 				[ 'wp-i18n' ],
-				SWIFT_CSV_VERSION,
+				SWIFT_CSV_VERSION . '.' . time(),
 				true
 			);
 
@@ -112,7 +114,7 @@ class Swift_CSV_Admin {
 				'swift-csv-export',
 				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-export' . $suffix . '.js',
 				[ 'swift-csv-core' ],
-				SWIFT_CSV_VERSION,
+				SWIFT_CSV_VERSION . '.' . time(),
 				true
 			);
 
@@ -121,7 +123,7 @@ class Swift_CSV_Admin {
 				'swift-csv-import',
 				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-import' . $suffix . '.js',
 				[ 'swift-csv-core' ],
-				SWIFT_CSV_VERSION,
+				SWIFT_CSV_VERSION . '.' . time(),
 				true
 			);
 
@@ -130,7 +132,7 @@ class Swift_CSV_Admin {
 				'swift-csv-license',
 				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-license' . $suffix . '.js',
 				[ 'swift-csv-core' ],
-				SWIFT_CSV_VERSION,
+				SWIFT_CSV_VERSION . '.' . time(),
 				true
 			);
 
@@ -139,7 +141,7 @@ class Swift_CSV_Admin {
 				'swift-csv-main',
 				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-main' . $suffix . '.js',
 				[ 'swift-csv-core', 'swift-csv-export', 'swift-csv-import', 'swift-csv-license' ],
-				SWIFT_CSV_VERSION,
+				SWIFT_CSV_VERSION . '.' . time(),
 				true
 			);
 

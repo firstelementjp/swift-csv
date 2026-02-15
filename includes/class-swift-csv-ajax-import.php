@@ -200,7 +200,7 @@ class Swift_CSV_Ajax_Import {
 		return [
 			'file_path'       => sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) ),
 			'start_row'       => intval( $_POST['start_row'] ?? 0 ),
-			'batch_size'      => 10,
+			'batch_size'      => isset( $_POST['dry_run'] ) && $_POST['dry_run'] === '1' ? 1 : 10, // Dry Runでは行単位処理
 			'post_type'       => sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) ),
 			'update_existing' => sanitize_text_field( wp_unslash( $_POST['update_existing'] ?? '0' ) ),
 			'taxonomy_format' => sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) ),
@@ -380,6 +380,7 @@ class Swift_CSV_Ajax_Import {
 		return [
 			'post_type'                  => (string) ( $config['post_type'] ?? 'post' ),
 			'dry_run'                    => (bool) ( $config['dry_run'] ?? false ),
+			'start_row'                  => (int) ( $config['start_row'] ?? 0 ),
 			'headers'                    => $headers,
 			'data'                       => [],
 			'allowed_post_fields'        => $allowed_post_fields,
@@ -575,11 +576,18 @@ class Swift_CSV_Ajax_Import {
 
 		// Record detailed dry run information
 		if ( $dry_run ) {
-			$row_number = $counters['processed'] + 1; // Current row being processed
-			$post_title = $data['post_title'] ?? 'Untitled';
-			$action     = $is_update ? 'update' : 'create';
+			$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number from context
 
-			$dry_run_details[] = [
+			// Get title from data using header index
+			$post_title  = 'Untitled';
+			$title_index = array_search( 'post_title', $headers );
+			if ( $title_index !== false && isset( $data[ $title_index ] ) ) {
+				$post_title = $data[ $title_index ];
+			}
+
+			$action = $is_update ? 'update' : 'create';
+
+			$detail = [
 				'row'     => $row_number,
 				'action'  => $action,
 				'title'   => $post_title,
@@ -593,6 +601,11 @@ class Swift_CSV_Ajax_Import {
 					$post_title
 				),
 			];
+
+			$dry_run_details[] = $detail;
+
+			// Debug logging
+			error_log( '[Swift CSV] Dry run detail: ' . print_r( $detail, true ) );
 		}
 
 		$this->get_row_processor_util()->apply_success_counters_and_guid_without_callbacks(

@@ -260,13 +260,14 @@ function processImportChunk(
 	})
 		.then(response => response.json())
 		.then(data => {
-			if (data.success && data.continue) {
+			// Always show batch processing logs (both continuing and final batches)
+			if (data.success) {
 				// Update progress
 				updateImportProgress(data, startTime);
 
-				// Show Dry Run logs for real-time display (even when continuing)
-				if (data.dry_run) {
-					// Display detailed dry run results for each row (real-time)
+				// Show batch processing logs for real-time display (both Dry Run and actual import)
+				if (data.dry_run || !data.dry_run) {
+					// Display detailed processing results for each row in the batch
 					if (
 						data.dry_run_details &&
 						Array.isArray(data.dry_run_details) &&
@@ -274,8 +275,14 @@ function processImportChunk(
 					) {
 						data.dry_run_details.forEach(detail => {
 							const statusIcon = detail.status === 'success' ? '✓' : '✗';
-							const actionText = detail.action === 'create' ? '新規作成' : '更新';
-							const logMessage = `[Dry Run] ${statusIcon} 行${detail.row}: ${actionText} - "${detail.title}"`;
+							const actionText =
+								detail.action === 'create'
+									? swiftCSV.messages.createAction
+									: swiftCSV.messages.updateAction;
+							const prefix = data.dry_run
+								? `[${swiftCSV.messages.dryRunPrefix}]`
+								: `[${swiftCSV.messages.importPrefix}]`;
+							const logMessage = `${prefix} ${statusIcon} ${swiftCSV.messages.rowLabel}${detail.row}: ${actionText} - "${detail.title}"`;
 							addLogEntry(
 								logMessage,
 								detail.status === 'success' ? 'success' : 'error',
@@ -285,26 +292,27 @@ function processImportChunk(
 					}
 				}
 
-				// Process next chunk
-				processImportChunk(
-					data.processed,
-					data.cumulative_created,
-					data.cumulative_updated,
-					data.cumulative_errors,
-					file,
-					postType,
-					updateExisting,
-					taxonomyFormat,
-					dryRun,
-					importBtn,
-					cancelBtn,
-					startTime,
-					isCancelled
-				);
-			} else if (data.success) {
-				// Import completed - update progress one final time
-				updateImportProgress(data, startTime);
-				completeAjaxImport(data, importBtn, cancelBtn);
+				if (data.continue) {
+					// Process next chunk
+					processImportChunk(
+						data.processed,
+						data.cumulative_created,
+						data.cumulative_updated,
+						data.cumulative_errors,
+						file,
+						postType,
+						updateExisting,
+						taxonomyFormat,
+						dryRun,
+						importBtn,
+						cancelBtn,
+						startTime,
+						isCancelled
+					);
+				} else {
+					// Import completed - show final completion
+					completeAjaxImport(data, importBtn, cancelBtn);
+				}
 			} else {
 				// Handle error
 				addLogEntry(swiftCSV.messages.importError + ' ' + data.error, 'error', 'import');

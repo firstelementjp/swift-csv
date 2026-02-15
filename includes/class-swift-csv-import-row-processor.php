@@ -117,8 +117,8 @@ class Swift_CSV_Import_Row_Processor {
 		} catch ( Exception $e ) {
 			++$errors;
 
-			// Record detailed dry run information for errors
-			if ( $dry_run && isset( $counters['dry_run_details'] ) ) {
+			// Record detailed processing information for errors (both dry run and actual import)
+			if ( isset( $counters['dry_run_details'] ) ) {
 				$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number
 				$post_title = $post_fields_from_csv['post_title'] ?? 'Untitled';
 

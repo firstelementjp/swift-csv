@@ -195,6 +195,16 @@ class Swift_CSV_Admin {
 						'dryRunCreated'         => esc_html__( 'Created posts:', 'swift-csv' ),
 						'dryRunUpdated'         => esc_html__( 'Updated posts:', 'swift-csv' ),
 						'dryRunErrors'          => esc_html__( 'Errors:', 'swift-csv' ),
+						// Log prefixes
+						'dryRunPrefix'          => esc_html__( 'Dry Run', 'swift-csv' ),
+						'importPrefix'          => esc_html__( 'Import', 'swift-csv' ),
+						// Action texts
+						'createAction'          => esc_html__( 'New', 'swift-csv' ),
+						'updateAction'          => esc_html__( 'Update', 'swift-csv' ),
+						// Log labels
+						'rowLabel'              => esc_html__( 'Row', 'swift-csv' ),
+						'batchResults'          => esc_html__( 'Batch Results', 'swift-csv' ),
+						'items'                 => esc_html__( 'items', 'swift-csv' ),
 						// Export messages
 						'startingExport'        => esc_html__( 'Starting export process...', 'swift-csv' ),
 						'postTypeExport'        => esc_html__( 'Post Type:', 'swift-csv' ),

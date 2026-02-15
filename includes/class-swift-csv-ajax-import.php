@@ -200,7 +200,7 @@ class Swift_CSV_Ajax_Import {
 		return [
 			'file_path'       => sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) ),
 			'start_row'       => intval( $_POST['start_row'] ?? 0 ),
-			'batch_size'      => isset( $_POST['dry_run'] ) && $_POST['dry_run'] === '1' ? 1 : 10, // Dry Runでは行単位処理
+			'batch_size'      => 10, // Will be dynamically updated based on total rows
 			'post_type'       => sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) ),
 			'update_existing' => sanitize_text_field( wp_unslash( $_POST['update_existing'] ?? '0' ) ),
 			'taxonomy_format' => sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) ),
@@ -503,6 +503,61 @@ class Swift_CSV_Ajax_Import {
 		$total_rows             = $this->count_total_rows( $csv_data['lines'] );
 		$csv_data['total_rows'] = $total_rows;
 
+		// Determine batch size based on total rows and configuration
+		$dry_run = $config['dry_run'];
+
+		if ( $dry_run ) {
+			// Always use row-by-row processing for dry run
+			$batch_size = 1;
+		} else {
+			// Determine threshold for row-by-row vs batch processing
+			$row_processing_threshold = 100;
+
+			/**
+			 * Filter the threshold for switching between row-by-row and batch processing
+			 *
+			 * Allows developers to customize when to switch from row-by-row processing
+			 * to batch processing based on their specific needs and server capabilities.
+			 *
+			 * @since 0.9.7
+			 * @param int $threshold Number of rows at which to switch to batch processing.
+			 * @param int $total_rows Total number of rows in the CSV.
+			 * @param array $config Import configuration including post_type, dry_run, etc.
+			 * @return int Modified threshold.
+			 */
+			$row_processing_threshold = apply_filters(
+				'swift_csv_import_row_processing_threshold',
+				$row_processing_threshold,
+				$total_rows,
+				$config
+			);
+
+			// Determine base batch size
+			$base_batch_size = ( $total_rows <= $row_processing_threshold ) ? 1 : 10;
+
+			/**
+			 * Filter the batch size for import processing
+			 *
+			 * Allows developers to customize batch size based on their specific needs,
+			 * server capabilities, or data characteristics.
+			 *
+			 * @since 0.9.7
+			 * @param int $batch_size Current batch size (1 for row-by-row, 10 for batch).
+			 * @param int $total_rows Total number of rows in the CSV.
+			 * @param array $config Import configuration including post_type, dry_run, etc.
+			 * @return int Modified batch size.
+			 */
+			$batch_size = apply_filters(
+				'swift_csv_import_batch_size',
+				$base_batch_size,
+				$total_rows,
+				$config
+			);
+		}
+
+		// Update config with dynamic batch size
+		$config['batch_size'] = $batch_size;
+
 		$counters = [
 			'processed'       => 0,
 			'created'         => 0,
@@ -620,8 +675,8 @@ class Swift_CSV_Ajax_Import {
 		$taxonomy_format_validation = $context['taxonomy_format_validation'];
 		$dry_run                    = $context['dry_run'];
 
-		// Record detailed dry run information
-		if ( $dry_run ) {
+		// Record detailed processing information for both dry run and actual import
+		if ( $dry_run || true ) { // Always record details for UI display
 			$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number from context
 
 			// Get title from data using header index
@@ -633,7 +688,7 @@ class Swift_CSV_Ajax_Import {
 
 			$action = $is_update ? 'update' : 'create';
 
-			// Run validation hook for dry run
+			// Run validation hook for both dry run and actual import
 			$validation_result = [
 				'valid'    => true,
 				'errors'   => [],
@@ -641,11 +696,11 @@ class Swift_CSV_Ajax_Import {
 			];
 
 			/**
-			 * Validate data during dry run processing
+			 * Validate data during processing (both dry run and actual import)
 			 *
-			 * Allows developers to implement custom validation logic for dry run mode.
+			 * Allows developers to implement custom validation logic for processing.
 			 * This hook enables business rule validation, data quality checks,
-			 * and custom error reporting for preview functionality.
+			 * and custom error reporting for both preview and actual import.
 			 *
 			 * @since 0.9.7
 			 * @param array{valid:bool,errors:array<string>,warnings:array<string>} $validation_result Validation result with errors and warnings.

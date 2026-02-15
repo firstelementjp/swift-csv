@@ -2,7 +2,7 @@
 /**
  * Import File Processor for Swift CSV
  *
- * Handles file upload, CSV parsing, and validation operations.
+ * Handles file processing operations for CSV import.
  * Extracted from Swift_CSV_Ajax_Import for better separation of concerns.
  *
  * @since 0.9.8
@@ -18,22 +18,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * This class is responsible for:
  * - File upload validation
- * - CSV content parsing
  * - Temporary file management
- * - Error handling for file operations
+ * - File path generation
  *
  * @since 0.9.8
  * @package Swift_CSV
  */
 class Swift_CSV_Import_File_Processor {
-
-	/**
-	 * CSV utility instance.
-	 *
-	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Csv|null
-	 */
-	private $csv_util;
 
 	/**
 	 * Constructor.
@@ -45,41 +36,36 @@ class Swift_CSV_Import_File_Processor {
 	}
 
 	/**
-	 * Get CSV utility instance.
-	 *
-	 * @since 0.9.8
-	 * @return Swift_CSV_Import_Csv
-	 */
-	private function get_csv_util(): Swift_CSV_Import_Csv {
-		if ( null === $this->csv_util ) {
-			$this->csv_util = new Swift_CSV_Import_Csv();
-		}
-		return $this->csv_util;
-	}
-
-	/**
-	 * Handle file upload and processing.
+	 * Handle file upload.
 	 *
 	 * Processes uploaded CSV file with validation and temporary storage.
 	 * Extracted from upload_handler() for better separation of concerns.
 	 *
 	 * @since 0.9.8
-	 * @param array $upload_data File upload data from $_FILES.
-	 * @return array|false File path on success, false on failure.
+	 * @return array{file_path:string}|null File path or null on error.
 	 */
-	public function process_upload( array $upload_data ) {
-		// Validate uploaded file
-		$file_validation = Swift_CSV_Helper::validate_upload_file( $upload_data );
-		if ( ! $file_validation['valid'] ) {
-			$this->send_error_response( $file_validation['error'] );
-			return false;
+	public function handle_upload(): ?array {
+		// Verify nonce
+		$nonce = $_POST['nonce'] ?? '';
+		if ( ! Swift_CSV_Helper::verify_nonce( $nonce ) ) {
+			Swift_CSV_Helper::send_security_error();
+			return null;
 		}
 
+		// Validate uploaded file
+		$file_validation = Swift_CSV_Helper::validate_upload_file( $_FILES['csv_file'] ?? null );
+		if ( ! $file_validation['valid'] ) {
+			Swift_CSV_Helper::send_error_response( $file_validation['error'] );
+			return null;
+		}
+
+		$file = $_FILES['csv_file'];
+
 		// Validate file size
-		$size_validation = Swift_CSV_Helper::validate_file_size( $upload_data );
+		$size_validation = Swift_CSV_Helper::validate_file_size( $file );
 		if ( ! $size_validation['valid'] ) {
-			$this->send_error_response( $size_validation['error'] );
-			return false;
+			Swift_CSV_Helper::send_error_response( $size_validation['error'] );
+			return null;
 		}
 
 		// Create temp directory and file path
@@ -87,11 +73,11 @@ class Swift_CSV_Import_File_Processor {
 		$temp_file = Swift_CSV_Helper::generate_temp_file_path( $temp_dir );
 
 		// Save uploaded file
-		if ( Swift_CSV_Helper::save_uploaded_file( $upload_data, $temp_file ) ) {
+		if ( Swift_CSV_Helper::save_uploaded_file( $file, $temp_file ) ) {
 			return [ 'file_path' => $temp_file ];
 		} else {
-			$this->send_error_response( 'Failed to save file' );
-			return false;
+			Swift_CSV_Helper::send_error_response( 'Failed to save file' );
+			return null;
 		}
 	}
 
@@ -99,33 +85,38 @@ class Swift_CSV_Import_File_Processor {
 	 * Validate uploaded file.
 	 *
 	 * @since 0.9.8
-	 * @param array $file File data from $_FILES.
-	 * @return bool True if valid, false otherwise.
+	 * @param array $file Uploaded file data.
+	 * @return array{valid:bool,error:string|null} Validation result.
 	 */
-	public function validate_file( array $file ): bool {
-		$file_validation = Swift_CSV_Helper::validate_upload_file( $file );
-		return $file_validation['valid'];
+	private function validate_file( array $file ): array {
+		// Placeholder implementation
+		return [
+			'valid' => false,
+			'error' => 'Not implemented',
+		];
 	}
 
 	/**
-	 * Parse CSV content.
+	 * Create temporary file path.
 	 *
 	 * @since 0.9.8
-	 * @param string $content CSV content.
-	 * @return array|false Parsed data or false on failure.
+	 * @return string Temporary file path.
 	 */
-	public function parse_csv_content( string $content ) {
-		return $this->get_csv_util()->parse_csv_content( $content );
+	private function create_temp_file_path(): string {
+		// Placeholder implementation
+		return '';
 	}
 
 	/**
-	 * Send error response.
+	 * Save uploaded file.
 	 *
 	 * @since 0.9.8
-	 * @param string $message Error message.
-	 * @return void
+	 * @param array  $file Uploaded file data.
+	 * @param string $temp_file Temporary file path.
+	 * @return bool Success status.
 	 */
-	private function send_error_response( string $message ): void {
-		Swift_CSV_Helper::send_error_response( $message );
+	private function save_file( array $file, string $temp_file ): bool {
+		// Placeholder implementation
+		return false;
 	}
 }

@@ -189,21 +189,13 @@ class Swift_CSV_Ajax_Import {
 	 * @return void Sends JSON response
 	 */
 	public function upload_handler() {
-		// Verify nonce
-		$nonce = $_POST['nonce'] ?? '';
-		if ( ! Swift_CSV_Helper::verify_nonce( $nonce ) ) {
-			Swift_CSV_Helper::send_security_error();
-			return;
-		}
-
 		// Delegate to file processor
-		$file_processor = $this->get_file_processor_util();
-		$result         = $file_processor->process_upload( $_FILES['csv_file'] ?? [] );
+		$result = $this->get_file_processor_util()->handle_upload();
 
-		if ( $result ) {
+		if ( null !== $result && isset( $result['file_path'] ) ) {
 			wp_send_json( $result );
 		}
-		// Error handling is done within the file processor
+		// Error responses are handled by the file processor
 	}
 
 	/**

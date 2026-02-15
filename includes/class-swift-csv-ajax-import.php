@@ -244,6 +244,52 @@ class Swift_CSV_Ajax_Import {
 		];
 		$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', [], $meta_classify_args );
 
+		// Run before import validation hook
+		$import_validation = [
+			'valid'    => true,
+			'errors'   => [],
+			'warnings' => [],
+		];
+
+		/**
+		 * Validate entire CSV before import processing begins
+		 *
+		 * Allows developers to implement comprehensive validation for the entire
+		 * CSV file before any processing starts. This hook enables file-level
+		 * validation, structural checks, and business rule validation.
+		 *
+		 * @since 0.9.7
+		 * @param array{valid:bool,errors:array<string>,warnings:array<string>} $import_validation Import validation result.
+		 * @param array{lines:array<string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array} $csv_data Parsed CSV data and structure.
+		 * @param array{file_path:string,post_type:string,taxonomy_format:string,dry_run:bool} $config Import configuration.
+		 * @return array{valid:bool,errors:array<string>,warnings:array<string>} Modified validation result.
+		 */
+		$import_validation = apply_filters(
+			'swift_csv_before_import',
+			$import_validation,
+			[
+				'lines'                      => $lines,
+				'delimiter'                  => $delimiter,
+				'headers'                    => $headers,
+				'taxonomy_format_validation' => $taxonomy_format_validation,
+			],
+			[
+				'file_path'       => $file_path,
+				'post_type'       => $taxonomy_format, // Will be overridden in actual implementation
+				'taxonomy_format' => $taxonomy_format,
+				'dry_run'         => false, // This is validation phase, actual dry_run status comes later
+			]
+		);
+
+		// Handle import validation errors
+		if ( ! $import_validation['valid'] ) {
+			$this->send_error_and_cleanup(
+				__( 'Import validation failed:', 'swift-csv' ) . ' ' . implode( ', ', $import_validation['errors'] ),
+				$file_path
+			);
+			return null;
+		}
+
 		$taxonomy_format_validation = $this->detect_taxonomy_format_validation_or_send_error_and_cleanup(
 			$lines,
 			$delimiter,
@@ -587,25 +633,75 @@ class Swift_CSV_Ajax_Import {
 
 			$action = $is_update ? 'update' : 'create';
 
+			// Run validation hook for dry run
+			$validation_result = [
+				'valid'    => true,
+				'errors'   => [],
+				'warnings' => [],
+			];
+
+			/**
+			 * Validate data during dry run processing
+			 *
+			 * Allows developers to implement custom validation logic for dry run mode.
+			 * This hook enables business rule validation, data quality checks,
+			 * and custom error reporting for preview functionality.
+			 *
+			 * @since 0.9.7
+			 * @param array{valid:bool,errors:array<string>,warnings:array<string>} $validation_result Validation result with errors and warnings.
+			 * @param array{row:int,action:string,title:string,post_id:int} $detail Current row processing details.
+			 * @param array{headers:array<int,string>,data:array<int,string>,post_type:string,dry_run:bool} $context Processing context including CSV data.
+			 * @return array{valid:bool,errors:array<string>,warnings:array<string>} Modified validation result.
+			 */
+			$validation_result = apply_filters(
+				'swift_csv_dry_run_validation',
+				$validation_result,
+				[
+					'row'     => $row_number,
+					'action'  => $action,
+					'title'   => $post_title,
+					'post_id' => $post_id,
+				],
+				[
+					'headers'   => $headers,
+					'data'      => $data,
+					'post_type' => $context['post_type'] ?? 'post',
+					'dry_run'   => $dry_run,
+				]
+			);
+
+			// Determine status based on validation
+			$status          = 'success';
+			$details_message = sprintf(
+				$is_update ?
+					__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ) :
+					__( 'New post: title=%1$s, ID will be assigned', 'swift-csv' ),
+				$post_id,
+				$post_title
+			);
+
+			// Handle validation errors
+			if ( ! $validation_result['valid'] ) {
+				$status          = 'error';
+				$details_message = __( 'Validation failed:', 'swift-csv' ) . ' ' . implode( ', ', $validation_result['errors'] );
+			}
+
+			// Add warnings if any
+			if ( ! empty( $validation_result['warnings'] ) ) {
+				$details_message .= ' ' . __( 'Warnings:', 'swift-csv' ) . ' ' . implode( ', ', $validation_result['warnings'] );
+			}
+
 			$detail = [
 				'row'     => $row_number,
 				'action'  => $action,
 				'title'   => $post_title,
 				'post_id' => $post_id,
-				'status'  => 'success',
-				'details' => sprintf(
-					$is_update ?
-						__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ) :
-						__( 'New post: title=%1$s, ID will be assigned', 'swift-csv' ),
-					$post_id,
-					$post_title
-				),
+				'status'  => $status,
+				'details' => $details_message,
 			];
 
 			$dry_run_details[] = $detail;
 
-			// Debug logging
-			error_log( '[Swift CSV] Dry run detail: ' . print_r( $detail, true ) );
 		}
 
 		$this->get_row_processor_util()->apply_success_counters_and_guid_without_callbacks(

@@ -89,6 +89,86 @@ class Swift_CSV_Import_Row_Context {
 			return null;
 		}
 
+		// Run row validation hook
+		$row_validation = [
+			'valid'    => true,
+			'errors'   => [],
+			'warnings' => [],
+		];
+
+		/**
+		 * Validate individual CSV row data
+		 *
+		 * Allows developers to implement row-level validation logic for each
+		 * CSV row during import processing. This hook enables field-level
+		 * validation, data format checks, and custom business rules.
+		 *
+		 * @since 0.9.7
+		 * @param array{valid:bool,errors:array<string>,warnings:array<string>} $row_validation Row validation result.
+		 * @param array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool} $row_context Complete row processing context.
+		 * @param array{headers:array<int,string>,allowed_post_fields:array<int,string>,update_existing:string,post_type:string} $context Processing context and configuration.
+		 * @return array{valid:bool,errors:array<string>,warnings:array<string>} Modified validation result.
+		 */
+		$row_validation = apply_filters(
+			'swift_csv_import_row_validation',
+			$row_validation,
+			[
+				'data'                 => $data,
+				'post_fields_from_csv' => $post_fields_from_csv,
+				'post_id'              => $post_id,
+				'is_update'            => $is_update,
+			],
+			[
+				'headers'             => $headers,
+				'allowed_post_fields' => $allowed_post_fields,
+				'update_existing'     => $update_existing,
+				'post_type'           => $post_type,
+			]
+		);
+
+		// Handle row validation errors
+		if ( ! $row_validation['valid'] ) {
+			// For now, we'll log errors but continue processing
+			// In a future version, this could skip the row or stop processing
+			error_log( '[Swift CSV] Row validation failed: ' . implode( ', ', $row_validation['errors'] ) );
+		}
+
+		// Run data filtering hook
+		/**
+		 * Filter and preprocess CSV row data before final processing
+		 *
+		 * Allows developers to modify, clean, or preprocess CSV data before
+		 * it gets processed by the import system. This hook enables data
+		 * transformation, normalization, and custom preprocessing.
+		 *
+		 * @since 0.9.7
+		 * @param array{data:array<int,string>,post_fields_from_csv:array<string,mixed>} $filtered_data Modified row data and post fields.
+		 * @param array{data:array<int,string>,post_fields_from_csv:array<string,mixed>} $original_data Original row data and post fields.
+		 * @param array{headers:array<int,string>,allowed_post_fields:array<int,string>,update_existing:string,post_type:string} $context Processing context and configuration.
+		 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>} Modified row data and post fields.
+		 */
+		$filtered_data = apply_filters(
+			'swift_csv_import_data_filter',
+			[
+				'data'                 => $data,
+				'post_fields_from_csv' => $post_fields_from_csv,
+			],
+			[
+				'data'                 => $data,
+				'post_fields_from_csv' => $post_fields_from_csv,
+			],
+			[
+				'headers'             => $headers,
+				'allowed_post_fields' => $allowed_post_fields,
+				'update_existing'     => $update_existing,
+				'post_type'           => $post_type,
+			]
+		);
+
+		// Use filtered data
+		$data                 = $filtered_data['data'];
+		$post_fields_from_csv = $filtered_data['post_fields_from_csv'];
+
 		return $this->build_import_row_context_array( $data, $post_fields_from_csv, $post_id, $is_update );
 	}
 

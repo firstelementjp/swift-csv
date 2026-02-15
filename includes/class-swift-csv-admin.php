@@ -639,7 +639,7 @@ class Swift_CSV_Admin {
 					<input type="checkbox" id="dry_run" name="swift_csv_import_dry_run" value="1">
 					<?php esc_html_e( 'Test import without creating posts', 'swift-csv' ); ?>
 				</label>
-				<p class="description"><?php esc_html_e( 'Run a test import to preview changes without modifying your data.', 'swift-csv' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Run a test import to preview changes without modifying your data. (Dry Run)', 'swift-csv' ); ?></p>
 			</dd>
 		</dl>
 		<?php

@@ -155,8 +155,8 @@ msgid "Test import without creating posts"
 msgstr "投稿を作成せずにインポートをテスト"
 
 #: includes/class-swift-csv-admin.php:533
-msgid "Run a test import to preview changes without modifying your data."
-msgstr "データを変更せずに変更内容をプレビューするテストインポートを実行します。"
+msgid "Run a test import to preview changes without modifying your data. (Dry Run)"
+msgstr "データを変更せずに変更内容をプレビューするテストインポートを実行します。（Dry Run）"
 
 #: includes/class-swift-csv-admin.php:561
 msgid "Select whether the term values in the CSV are names (text) or term IDs (numeric)."

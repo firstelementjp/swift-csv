@@ -74,6 +74,65 @@ class Swift_CSV_Ajax_Export {
 	}
 
 	/**
+	 * Get dynamic batch size for export processing
+	 *
+	 * @since 0.9.7
+	 * @param int    $total_count Total number of posts to export
+	 * @param string $post_type Post type being exported
+	 * @param array  $config Export configuration
+	 * @return int Dynamic batch size
+	 */
+	private function get_export_batch_size( int $total_count, string $post_type, array $config ): int {
+		// Determine threshold for row-by-row vs batch processing
+		$row_processing_threshold = 100;
+
+		/**
+		 * Filter the threshold for switching between row-by-row and batch processing for export
+		 *
+		 * Allows developers to customize when to switch from row-by-row processing
+		 * to batch processing based on their specific needs and server capabilities.
+		 *
+		 * @since 0.9.7
+		 * @param int $threshold Number of rows at which to switch to batch processing.
+		 * @param int $total_count Total number of posts to export.
+		 * @param string $post_type Post type being exported.
+		 * @param array $config Export configuration.
+		 * @return int Modified threshold.
+		 */
+		$row_processing_threshold = apply_filters(
+			'swift_csv_export_row_processing_threshold',
+			$row_processing_threshold,
+			$total_count,
+			$post_type,
+			$config
+		);
+
+		// Determine base batch size
+		$base_batch_size = ( $total_count <= $row_processing_threshold ) ? 1 : self::BATCH_SIZE;
+
+		/**
+		 * Filter the batch size for export processing
+		 *
+		 * Allows developers to customize batch size based on their specific needs,
+		 * server capabilities, or data characteristics.
+		 *
+		 * @since 0.9.7
+		 * @param int $batch_size Current batch size (1 for row-by-row, 500 for batch).
+		 * @param int $total_count Total number of posts to export.
+		 * @param string $post_type Post type being exported.
+		 * @param array $config Export configuration.
+		 * @return int Modified batch size.
+		 */
+		return apply_filters(
+			'swift_csv_export_batch_size',
+			$base_batch_size,
+			$total_count,
+			$post_type,
+			$config
+		);
+	}
+
+	/**
 	 * Check whether export should be cancelled
 	 *
 	 * Notes:
@@ -611,11 +670,19 @@ class Swift_CSV_Ajax_Export {
 			// Define max_posts_to_process
 			$max_posts_to_process = $export_limit > 0 ? $export_limit : $total_count;
 
+			// Get dynamic batch size for export
+			$export_config = [
+				'post_type'    => $post_type,
+				'export_limit' => $export_limit,
+				'post_status'  => $query_post_status,
+			];
+			$batch_size    = $this->get_export_batch_size( $total_count, $post_type, $export_config );
+
 			// Get posts for current batch
 			$posts_query_args = [
 				'post_type'      => $post_type,
 				'post_status'    => $query_post_status,
-				'posts_per_page' => min( self::BATCH_SIZE, $total_count - $start_row ),
+				'posts_per_page' => min( $batch_size, $total_count - $start_row ),
 				'offset'         => $start_row,
 				'fields'         => 'ids',
 			];
@@ -634,7 +701,7 @@ class Swift_CSV_Ajax_Export {
 			$posts_query_args = apply_filters( 'swift_csv_export_data_query_args', $posts_query_args, [ 'post_type' => $post_type ] );
 
 			// Force our limit regardless of filter
-			$posts_query_args['posts_per_page'] = min( self::BATCH_SIZE, $max_posts_to_process - $start_row );
+			$posts_query_args['posts_per_page'] = min( $batch_size, $max_posts_to_process - $start_row );
 			$posts_query_args['offset']         = $start_row;
 			$posts_query_args['fields']         = 'ids';
 

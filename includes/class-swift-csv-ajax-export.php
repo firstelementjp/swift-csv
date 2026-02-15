@@ -782,8 +782,9 @@ class Swift_CSV_Ajax_Export {
 			}
 
 			// Simple CSV generation with headers
-			$csv_chunk = '';
-			$headers   = $this->build_headers( $post_type, $export_scope, $include_private_meta, $query_post_status );
+			$csv_chunk      = '';
+			$headers        = $this->build_headers( $post_type, $export_scope, $include_private_meta, $query_post_status );
+			$export_details = []; // Collect export details for logging
 
 			// Add headers for first chunk
 			if ( $start_row === 0 ) {
@@ -796,6 +797,10 @@ class Swift_CSV_Ajax_Export {
 					wp_send_json_error( 'Export cancelled by user' );
 					return;
 				}
+
+				// Get post data for logging
+				$post       = get_post( $post_id );
+				$post_title = $post ? $post->post_title : 'Untitled';
 
 				// Get all meta data at once for performance and to preserve serialized values
 				$all_meta = get_post_meta( $post_id );
@@ -895,6 +900,20 @@ class Swift_CSV_Ajax_Export {
 					$row[] = $value;
 				}
 
+				// Add export detail for logging
+				$export_details[] = [
+					'row'     => $start_row + count( $export_details ) + 1,
+					'action'  => 'export',
+					'title'   => $post_title,
+					'post_id' => $post_id,
+					'status'  => 'success',
+					'details' => sprintf(
+						__( 'Export post: ID=%1$s, title=%2$s', 'swift-csv' ),
+						$post_id,
+						$post_title
+					),
+				];
+
 				$csv_chunk .= $this->fputcsv_row( $row );
 			}
 
@@ -917,6 +936,7 @@ class Swift_CSV_Ajax_Export {
 					'status'          => $continue ? 'processing' : 'completed',
 					'csv_chunk'       => $csv_chunk,
 					'posts_processed' => count( $posts ),
+					'export_details'  => $export_details,
 				]
 			);
 		} catch ( Exception $e ) {

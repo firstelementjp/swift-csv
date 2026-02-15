@@ -439,6 +439,16 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	// Check if this was a Dry Run
 	const isDryRun = data.dry_run || false;
 
+	// Set progress bar to completed state
+	const progressContainer = document.querySelector('.swift-csv-progress');
+	if (progressContainer) {
+		const progressBar = progressContainer.querySelector('.progress-bar');
+		if (progressBar) {
+			progressBar.classList.remove('processing');
+			progressBar.classList.add('completed');
+		}
+	}
+
 	// Add appropriate completion message
 	if (isDryRun) {
 		addLogEntry('[Dry Run] ' + swiftCSV.messages.dryRunCompleted, 'success', 'import');

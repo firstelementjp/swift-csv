@@ -190,11 +190,53 @@ function handleAjaxExport(e) {
 					// Update progress
 					updateAjaxProgress(data, startTime);
 
+					// Show export details for real-time display
+					if (
+						data.export_details &&
+						Array.isArray(data.export_details) &&
+						data.export_details.length > 0
+					) {
+						data.export_details.forEach(detail => {
+							const statusIcon = detail.status === 'success' ? '✓' : '✗';
+							const prefix = `[${swiftCSV.messages.exportPrefix || 'Export'}]`;
+							const logMessage = `${prefix} ${statusIcon} ${swiftCSV.messages.rowLabel || 'Row'} ${detail.row}: ${detail.title}`;
+
+							if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
+								window.SwiftCSVUtils.addLogEntry(
+									logMessage,
+									detail.status === 'success' ? 'success' : 'error',
+									'export'
+								);
+							}
+						});
+					}
+
 					// Process next chunk
 					processChunk(data.processed);
 				} else if (data.success) {
 					// Export completed - update progress one final time
 					updateAjaxProgress(data, startTime);
+
+					// Show final export details
+					if (
+						data.export_details &&
+						Array.isArray(data.export_details) &&
+						data.export_details.length > 0
+					) {
+						data.export_details.forEach(detail => {
+							const statusIcon = detail.status === 'success' ? '✓' : '✗';
+							const prefix = `[${swiftCSV.messages.exportPrefix || 'Export'}]`;
+							const logMessage = `${prefix} ${statusIcon} ${swiftCSV.messages.rowLabel || 'Row'} ${detail.row}: ${detail.title}`;
+
+							if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
+								window.SwiftCSVUtils.addLogEntry(
+									logMessage,
+									detail.status === 'success' ? 'success' : 'error',
+									'export'
+								);
+							}
+						});
+					}
 
 					// Append final CSV chunk
 					csvContent += data.csv_chunk;
@@ -327,7 +369,7 @@ function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
 	// Reset buttons
 	if (exportBtn) {
 		exportBtn.disabled = false;
-		exportBtn.value = swiftCSV.messages.exportCsv;
+		exportBtn.value = swiftCSV.messages.startExport;
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'none';

@@ -156,6 +156,7 @@ class Swift_CSV_Admin {
 					'debug'    => $debug_mode,
 					'messages' => [
 						'exportCsv'             => esc_html__( 'Export CSV', 'swift-csv' ),
+						'startExport'           => esc_html__( 'Start Export', 'swift-csv' ),
 						'importCsv'             => esc_html__( 'Import CSV', 'swift-csv' ),
 						'startImport'           => esc_html__( 'Start Import', 'swift-csv' ),
 						'exporting'             => esc_html__( 'Exporting...', 'swift-csv' ),
@@ -216,6 +217,8 @@ class Swift_CSV_Admin {
 						'exportCompleted'       => esc_html__( 'Export completed successfully!', 'swift-csv' ),
 						'downloadReady'         => esc_html__( 'Download ready:', 'swift-csv' ),
 						'batchExportStarted'    => esc_html__( 'Batch export started', 'swift-csv' ),
+						'exportAction'          => esc_html__( 'Exported', 'swift-csv' ),
+						'exportPrefix'          => esc_html__( 'Export', 'swift-csv' ),
 						// Common messages
 						'yes'                   => esc_html__( 'Yes', 'swift-csv' ),
 						'no'                    => esc_html__( 'No', 'swift-csv' ),

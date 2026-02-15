@@ -618,7 +618,31 @@ function handleAjaxImport(e) {
 
 				// Log Dry Run specific information
 				if (dryRun) {
-					// Check if dry_run_log exists and is an array
+					// Display detailed dry run results
+					if (
+						data.dry_run_details &&
+						Array.isArray(data.dry_run_details) &&
+						data.dry_run_details.length > 0
+					) {
+						addLogEntry('[Dry Run] 詳細な処理結果:', 'info', 'import');
+						data.dry_run_details.forEach(detail => {
+							const statusIcon = detail.status === 'success' ? '✓' : '✗';
+							const actionText = detail.action === 'create' ? '新規作成' : '更新';
+							const logMessage = `[Dry Run] ${statusIcon} 行${detail.row}: ${actionText} - "${detail.title}"`;
+							addLogEntry(
+								logMessage,
+								detail.status === 'success' ? 'success' : 'error',
+								'import'
+							);
+
+							// Add details as sub-entry
+							if (detail.details) {
+								addLogEntry(`    ${detail.details}`, 'debug', 'import');
+							}
+						});
+					}
+
+					// Legacy dry_run_log support
 					if (
 						data.dry_run_log &&
 						Array.isArray(data.dry_run_log) &&
@@ -630,8 +654,6 @@ function handleAjaxImport(e) {
 							}
 						});
 					}
-					// If dry_run_log doesn't exist or is empty, that's normal for now
-					// The PHP side hasn't implemented the full Dry Run logic yet
 				}
 
 				// Log details - use cumulative values

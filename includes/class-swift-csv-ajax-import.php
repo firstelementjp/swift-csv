@@ -295,7 +295,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param array{lines:array<int,string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array,total_rows:int}        $csv_data Parsed CSV data.
 	 * @param array<int, string>                                                                                                               $allowed_post_fields Allowed post fields.
 	 * @param int                                                                                                                              $index Row index.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                            $counters Counters (by reference).
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>,dry_run_details:array<array,mixed>}         $counters Counters (by reference).
 	 * @return void
 	 */
 	private function process_import_loop_iteration(
@@ -329,7 +329,7 @@ class Swift_CSV_Ajax_Import {
 	 * @param string                                                                                                                           $line Raw CSV line.
 	 * @param string                                                                                                                           $delimiter CSV delimiter.
 	 * @param array<int, string>                                                                                                               $headers CSV headers.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                            $counters Counters (by reference).
+	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>,dry_run_details:array<array,mixed>}         $counters Counters (by reference).
 	 * @return void
 	 */
 	private function process_row_if_possible( wpdb $wpdb, array $config, array $csv_data, array $allowed_post_fields, string $line, string $delimiter, array $headers, array &$counters ): void {
@@ -457,11 +457,12 @@ class Swift_CSV_Ajax_Import {
 		$csv_data['total_rows'] = $total_rows;
 
 		$counters = [
-			'processed'   => 0,
-			'created'     => 0,
-			'updated'     => 0,
-			'errors'      => 0,
-			'dry_run_log' => [],
+			'processed'       => 0,
+			'created'         => 0,
+			'updated'         => 0,
+			'errors'          => 0,
+			'dry_run_log'     => [],
+			'dry_run_details' => [], // New: detailed row-by-row results
 		];
 
 		$cumulative_counts = $this->get_cumulative_counts();
@@ -487,7 +488,8 @@ class Swift_CSV_Ajax_Import {
 			$previous_updated,
 			$previous_errors,
 			$config['dry_run'],
-			$counters['dry_run_log']
+			$counters['dry_run_log'],
+			$counters['dry_run_details']
 		);
 	}
 
@@ -506,9 +508,10 @@ class Swift_CSV_Ajax_Import {
 	 * @param int                $previous_errors Previous cumulative errors.
 	 * @param bool               $dry_run Dry run flag.
 	 * @param array<int, string> $dry_run_log Dry run log.
+	 * @param array<array,mixed> $dry_run_details Detailed dry run results.
 	 * @return void
 	 */
-	private function send_import_progress_response( int $start_row, int $processed, int $total_rows, int $errors, int $created, int $updated, int $previous_created, int $previous_updated, int $previous_errors, bool $dry_run, array $dry_run_log ): void {
+	private function send_import_progress_response( int $start_row, int $processed, int $total_rows, int $errors, int $created, int $updated, int $previous_created, int $previous_updated, int $previous_errors, bool $dry_run, array $dry_run_log, array $dry_run_details ): void {
 		$next_row = $start_row + $processed; // Use actual processed count
 		$continue = $next_row < $total_rows;
 
@@ -529,6 +532,7 @@ class Swift_CSV_Ajax_Import {
 				'continue'           => $continue,
 				'dry_run'            => $dry_run,
 				'dry_run_log'        => $dry_run_log,
+				'dry_run_details'    => $dry_run_details,
 			]
 		);
 	}
@@ -559,7 +563,8 @@ class Swift_CSV_Ajax_Import {
 	 * @return void
 	 */
 	private function handle_successful_row_import( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters ) {
-		$dry_run_log = &$counters['dry_run_log'];
+		$dry_run_log     = &$counters['dry_run_log'];
+		$dry_run_details = &$counters['dry_run_details'];
 
 		$headers                    = $context['headers'];
 		$data                       = $context['data'];
@@ -567,6 +572,28 @@ class Swift_CSV_Ajax_Import {
 		$taxonomy_format            = $context['taxonomy_format'];
 		$taxonomy_format_validation = $context['taxonomy_format_validation'];
 		$dry_run                    = $context['dry_run'];
+
+		// Record detailed dry run information
+		if ( $dry_run ) {
+			$row_number = $counters['processed'] + 1; // Current row being processed
+			$post_title = $data['post_title'] ?? 'Untitled';
+			$action     = $is_update ? 'update' : 'create';
+
+			$dry_run_details[] = [
+				'row'     => $row_number,
+				'action'  => $action,
+				'title'   => $post_title,
+				'post_id' => $post_id,
+				'status'  => 'success',
+				'details' => sprintf(
+					$is_update ?
+						__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ) :
+						__( 'New post: title=%1$s, ID will be assigned', 'swift-csv' ),
+					$post_id,
+					$post_title
+				),
+			];
+		}
 
 		$this->get_row_processor_util()->apply_success_counters_and_guid_without_callbacks(
 			$wpdb,

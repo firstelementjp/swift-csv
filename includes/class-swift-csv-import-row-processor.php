@@ -116,6 +116,25 @@ class Swift_CSV_Import_Row_Processor {
 			$persist_result = $persister->persist_post_row_from_csv_with_result( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
 		} catch ( Exception $e ) {
 			++$errors;
+
+			// Record detailed dry run information for errors
+			if ( $dry_run && isset( $counters['dry_run_details'] ) ) {
+				$row_number = $counters['processed'] + 1;
+				$post_title = $post_fields_from_csv['post_title'] ?? 'Untitled';
+
+				$counters['dry_run_details'][] = [
+					'row'     => $row_number,
+					'action'  => $is_update ? 'update' : 'create',
+					'title'   => $post_title,
+					'post_id' => $post_id,
+					'status'  => 'error',
+					'details' => sprintf(
+						__( 'Error: %1$s', 'swift-csv' ),
+						$e->getMessage()
+					),
+				];
+			}
+
 			return;
 		}
 

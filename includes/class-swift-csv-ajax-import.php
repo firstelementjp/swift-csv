@@ -283,70 +283,6 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Process one import loop iteration.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb                                                                                                                             $wpdb WordPress database handler.
-	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool} $config Import configuration.
-	 * @param array{lines:array<int,string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array,total_rows:int}        $csv_data Parsed CSV data.
-	 * @param array<int, string>                                                                                                               $allowed_post_fields Allowed post fields.
-	 * @param int                                                                                                                              $index Row index.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>,dry_run_details:array<array,mixed>}         $counters Counters (by reference).
-	 * @return void
-	 */
-	private function process_import_loop_iteration(
-		wpdb $wpdb,
-		array $config,
-		array $csv_data,
-		array $allowed_post_fields,
-		int $index,
-		array &$counters
-	) {
-		$line      = $csv_data['lines'][ $index ] ?? '';
-		$delimiter = $csv_data['delimiter'] ?? ',';
-		$headers   = $csv_data['headers'] ?? [];
-
-		$processed = &$counters['processed'];
-		if ( $this->maybe_skip_empty_csv_line( $line, $processed ) ) {
-			return;
-		}
-
-		$this->process_row_if_possible( $wpdb, $config, $csv_data, $allowed_post_fields, $line, $delimiter, $headers, $counters );
-	}
-
-	/**
-	 * Process one CSV row if it can be converted to a valid row context.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb                                                                                                                             $wpdb WordPress database handler.
-	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool} $config Import configuration.
-	 * @param array{lines:array<int,string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array,total_rows:int}        $csv_data Parsed CSV data.
-	 * @param array<int, string>                                                                                                               $allowed_post_fields Allowed post fields.
-	 * @param string                                                                                                                           $line Raw CSV line.
-	 * @param string                                                                                                                           $delimiter CSV delimiter.
-	 * @param array<int, string>                                                                                                               $headers CSV headers.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>,dry_run_details:array<array,mixed>}         $counters Counters (by reference).
-	 * @return void
-	 */
-	private function process_row_if_possible( wpdb $wpdb, array $config, array $csv_data, array $allowed_post_fields, string $line, string $delimiter, array $headers, array &$counters ): void {
-		$row_context = $this->build_import_row_context_from_config( $wpdb, $config, $line, $delimiter, $headers, $allowed_post_fields );
-		if ( null === $row_context ) {
-			return;
-		}
-
-		$this->get_row_processor_util()->process_row_context_with_persister(
-			$wpdb,
-			$row_context,
-			$this->build_row_processing_context( $config, $csv_data, $headers, $allowed_post_fields ),
-			$counters,
-			$this->get_persister_util(),
-			function ( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters ): void {
-				$this->handle_successful_row_import( $wpdb, $post_id, $is_update, $context, $counters );
-			}
-		);
-	}
-
-	/**
 	 * Build per-row import context using config values.
 	 *
 	 * @since 0.9.0
@@ -709,50 +645,16 @@ class Swift_CSV_Ajax_Import {
 
 		$file = $_FILES['csv_file'];
 
-		// Validate file
-		if ( $file['error'] !== UPLOAD_ERR_OK ) {
+		// Validate file.
+		if ( UPLOAD_ERR_OK !== $file['error'] ) {
 			return Swift_CSV_Helper::send_error_response_and_return_null( 'Upload error: ' . $file['error'], $file_path );
 		}
 
-		// Read CSV directly from uploaded file
+		// Read CSV directly from uploaded file.
 		$csv_content = (string) file_get_contents( $file['tmp_name'] );
-		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings
+		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings.
 
 		return $csv_content;
-	}
-
-	/**
-	 * Parse CSV content line by line to handle quoted fields with newlines.
-	 *
-	 * @since 0.9.0
-	 * @param string $csv_content CSV content.
-	 * @return array<int, string>
-	 */
-	private function parse_csv_lines_preserving_quoted_newlines( string $csv_content ): array {
-		return $this->get_csv_util()->parse_csv_lines_preserving_quoted_newlines( $csv_content );
-	}
-
-	/**
-	 * Detect CSV delimiter from first line.
-	 *
-	 * @since 0.9.0
-	 * @param array<int, string> $lines CSV lines.
-	 * @return string
-	 */
-	private function detect_csv_delimiter( array $lines ): string {
-		return $this->get_csv_util()->detect_csv_delimiter( $lines );
-	}
-
-	/**
-	 * Read CSV header row and normalize it.
-	 *
-	 * @since 0.9.0
-	 * @param array<int, string> $lines CSV lines (will consume the first line).
-	 * @param string             $delimiter CSV delimiter.
-	 * @return array<int, string>
-	 */
-	private function read_and_normalize_headers( array &$lines, string $delimiter ): array {
-		return $this->get_csv_util()->read_and_normalize_headers( $lines, $delimiter );
 	}
 
 	/**

@@ -57,7 +57,7 @@ class Swift_CSV_Import_Row_Processor {
 	 */
 	public function handle_row_result_after_persist_without_callbacks( $result, array &$counters ): bool {
 		$errors = &$counters['errors'];
-		if ( $result !== false ) {
+		if ( false !== $result ) {
 			return true;
 		}
 
@@ -77,9 +77,10 @@ class Swift_CSV_Import_Row_Processor {
 	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                                                                                                                                                   $counters Counters (by reference).
 	 * @param Swift_CSV_Import_Persister                                                                                                                                                                                                                                                                              $persister Persister utility.
 	 * @param callable(wpdb,int,bool,array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array},array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}): void $handle_successful_row_import Success handler.
+	 * @phpcs-ignore Squiz.Commenting.FunctionComment.IncorrectTypeHint
 	 * @return void
 	 */
-	public function process_row_context_with_persister( wpdb $wpdb, array $row_context, array $context, array &$counters, Swift_CSV_Import_Persister $persister, callable $handle_successful_row_import ): void {
+	public function process_row_context_with_persister( wpdb $wpdb, array $row_context, array $context, array &$counters, Swift_CSV_Import_Persister $persister, $handle_successful_row_import ): void {
 		$data                 = $row_context['data'];
 		$post_fields_from_csv = $row_context['post_fields_from_csv'];
 		$post_id              = $row_context['post_id'];
@@ -103,9 +104,10 @@ class Swift_CSV_Import_Row_Processor {
 	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                                                                                                                                                                                                   $counters Counters (by reference).
 	 * @param Swift_CSV_Import_Persister                                                                                                                                                                                                                                                                              $persister Persister utility.
 	 * @param callable(wpdb,int,bool,array{post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array},array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}): void $handle_successful_row_import Success handler.
+	 * @phpcs-ignore Squiz.Commenting.FunctionComment.IncorrectTypeHint
 	 * @return void
 	 */
-	public function process_single_import_row_with_persister_without_callbacks( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, array $context, array &$counters, Swift_CSV_Import_Persister $persister, callable $handle_successful_row_import ): void {
+	public function process_single_import_row_with_persister_without_callbacks( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, array $context, array &$counters, Swift_CSV_Import_Persister $persister, $handle_successful_row_import ): void {
 		$errors      = &$counters['errors'];
 		$dry_run_log = &$counters['dry_run_log'];
 
@@ -117,9 +119,9 @@ class Swift_CSV_Import_Row_Processor {
 		} catch ( Exception $e ) {
 			++$errors;
 
-			// Record detailed processing information for errors (both dry run and actual import)
+			// Record detailed processing information for errors (both dry run and actual import).
 			if ( isset( $counters['dry_run_details'] ) ) {
-				$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number
+				$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number.
 				$post_title = $post_fields_from_csv['post_title'] ?? 'Untitled';
 
 				$counters['dry_run_details'][] = [
@@ -129,6 +131,7 @@ class Swift_CSV_Import_Row_Processor {
 					'post_id' => $post_id,
 					'status'  => 'error',
 					'details' => sprintf(
+						// translators: %s: Error message from exception.
 						__( 'Error: %1$s', 'swift-csv' ),
 						$e->getMessage()
 					),

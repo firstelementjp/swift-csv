@@ -357,17 +357,46 @@ class Swift_CSV_Ajax_Import {
 	 * @return void Sends JSON response with import results
 	 */
 	public function import_handler() {
-		$config = $this->get_environment_manager_util()->prepare_import_environment();
-		if ( null === $config ) {
+		// Get file path from file-processor first
+		$file_processor = new Swift_CSV_Import_File_Processor();
+		$file_result    = $file_processor->handle_upload();
+		if ( null === $file_result ) {
+			return;
+		}
+		$file_path = $file_result['file_path'];
+
+		// Read CSV content directly
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$csv_content = (string) file_get_contents( $file_path );
+		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings.
+
+		// Extract and validate parameters
+		$start_row       = isset( $_POST['start_row'] ) ? intval( $_POST['start_row'] ) : 0;
+		$batch_size      = isset( $_POST['batch_size'] ) ? intval( $_POST['batch_size'] ) : 10;
+		$post_type       = sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) );
+		$update_existing = sanitize_text_field( wp_unslash( $_POST['update_existing'] ?? 'no' ) );
+		$taxonomy_format = sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) );
+		$dry_run         = isset( $_POST['dry_run'] ) && 'true' === $_POST['dry_run'];
+
+		// Validate post type
+		if ( ! post_type_exists( $post_type ) ) {
+			Swift_CSV_Helper::send_error_response( 'Invalid post type: ' . $post_type );
 			return;
 		}
 
-		$csv_content = $config['csv_content'];
-		if ( null === $csv_content ) {
-			return;
-		}
+		// Create config array
+		$config = [
+			'file_path'       => $file_path,
+			'start_row'       => $start_row,
+			'batch_size'      => $batch_size,
+			'post_type'       => $post_type,
+			'update_existing' => $update_existing,
+			'taxonomy_format' => $taxonomy_format,
+			'dry_run'         => $dry_run,
+			'csv_content'     => $csv_content,
+		];
 
-		$csv_data = $this->get_csv_parser_util()->parse_and_validate_csv( $csv_content, $config, $config['file_path'] );
+		$csv_data = $this->get_csv_parser_util()->parse_and_validate_csv( $csv_content, $config, $file_path );
 		if ( null === $csv_data ) {
 			return;
 		}

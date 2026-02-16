@@ -75,6 +75,9 @@ class Swift_CSV_Import_File_Processor {
 		$temp_dir  = Swift_CSV_Helper::create_temp_directory();
 		$temp_file = Swift_CSV_Helper::generate_temp_file_path( $temp_dir );
 
+		// Cleanup old temporary files on upload (first request only).
+		Swift_CSV_Helper::cleanup_old_temp_files( $temp_dir, $temp_file );
+
 		// Copy uploaded file to temp location.
 		if ( ! copy( $uploaded_file['file'], $temp_file ) ) {
 			Swift_CSV_Helper::send_error_response( 'Failed to save file' );

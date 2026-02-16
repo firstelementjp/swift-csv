@@ -232,6 +232,48 @@ class Swift_CSV_Helper {
 	}
 
 	/**
+	 * Cleanup old temporary files
+	 *
+	 * Removes all ajax-import temporary files except the current one
+	 * to prevent accumulation during import sessions.
+	 * This should be called before creating new temporary files.
+	 *
+	 * @since 0.9.8
+	 * @param string $temp_dir Temporary directory path.
+	 * @param string $current_file Optional current file to preserve.
+	 * @return void
+	 */
+	public static function cleanup_old_temp_files( $temp_dir, $current_file = '' ) {
+		if ( ! is_dir( $temp_dir ) ) {
+			return;
+		}
+
+		$files = scandir( $temp_dir );
+
+		foreach ( $files as $file ) {
+			if ( '.' === $file || '..' === $file ) {
+				continue;
+			}
+
+			$file_path = $temp_dir . '/' . $file;
+
+			// Only remove ajax-import files.
+			if ( strpos( $file, 'ajax-import-' ) !== 0 ) {
+				continue;
+			}
+
+			// Skip the current file if specified.
+			if ( $current_file && basename( $current_file ) === $file ) {
+				continue;
+			}
+
+			if ( is_file( $file_path ) ) {
+				wp_delete_file( $file_path );
+			}
+		}
+	}
+
+	/**
 	 * Save uploaded file to temporary location.
 	 *
 	 * @since 0.9.0

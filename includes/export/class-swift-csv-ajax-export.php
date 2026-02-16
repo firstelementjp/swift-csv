@@ -129,8 +129,41 @@ class Swift_CSV_Ajax_Export {
 		);
 
 		// Determine base batch size based on actual export limit, not total count
+		$export_limit        = $config['export_limit'] ?? 0;
 		$actual_export_count = min( $total_count, $export_limit );
-		$base_batch_size     = ( $actual_export_count <= $row_processing_threshold ) ? 1 : self::BATCH_SIZE;
+
+		if ( $actual_export_count <= $row_processing_threshold ) {
+			$base_batch_size = 1;
+		} else {
+			// Calculate safe batch size based on server constraints
+			$max_execution_time = ini_get( 'max_execution_time' );
+			$max_execution_time = $max_execution_time ? (int) $max_execution_time : 30; // Default 30 seconds
+
+			// Use 50% of max_execution_time as safety margin
+			$safe_time_limit = $max_execution_time * 0.5;
+
+			// Estimate processing time per row (faster for export: 0.1 seconds)
+			$avg_time_per_row = 0.1;
+
+			// Calculate optimal batch size with safety constraints
+			$time_based_batch = max( 1, floor( $safe_time_limit / $avg_time_per_row ) );
+
+			// Apply reasonable limits: minimum 20, maximum 200 for export
+			$optimized_batch_size = max( 20, min( 200, $time_based_batch ) );
+
+			$base_batch_size = $optimized_batch_size;
+
+			// Log batch size calculation for debugging
+			error_log(
+				sprintf(
+					'[Swift CSV Export] Batch size calculation: max_execution_time=%ds, safe_limit=%.1fs, optimal_batch=%d, final_batch_size=%d',
+					$max_execution_time,
+					$safe_time_limit,
+					$time_based_batch,
+					$base_batch_size
+				)
+			);
+		}
 
 		/**
 		 * Filter the batch size for export processing

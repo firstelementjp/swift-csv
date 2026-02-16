@@ -79,7 +79,7 @@ class Swift_CSV_Import_Batch_Processor {
 		}
 
 		// Determine threshold for row-by-row vs batch processing.
-		$row_processing_threshold = 100;
+		$row_processing_threshold = 1; // Always show real-time logs
 
 		/**
 		 * Filter the threshold for switching between row-by-row and batch processing
@@ -100,8 +100,39 @@ class Swift_CSV_Import_Batch_Processor {
 			$config
 		);
 
-		// Determine base batch size.
-		$base_batch_size = ( $total_rows <= $row_processing_threshold ) ? 1 : 10;
+		// Determine base batch size with dynamic optimization.
+		if ( $total_rows <= $row_processing_threshold ) {
+			$base_batch_size = 1;
+		} else {
+			// Calculate safe batch size based on server constraints
+			$max_execution_time = ini_get( 'max_execution_time' );
+			$max_execution_time = $max_execution_time ? (int) $max_execution_time : 30; // Default 30 seconds
+
+			// Use 50% of max_execution_time as safety margin
+			$safe_time_limit = $max_execution_time * 0.5;
+
+			// Estimate processing time per row (0.35 seconds based on performance data)
+			$avg_time_per_row = 0.35;
+
+			// Calculate optimal batch size with safety constraints
+			$time_based_batch = max( 1, floor( $safe_time_limit / $avg_time_per_row ) );
+
+			// Apply reasonable limits: minimum 10, maximum 50
+			$optimized_batch_size = max( 10, min( 50, $time_based_batch ) );
+
+			$base_batch_size = $optimized_batch_size;
+
+			// Log batch size calculation for debugging
+			error_log(
+				sprintf(
+					'[Swift CSV Import] Batch size calculation: max_execution_time=%ds, safe_limit=%.1fs, optimal_batch=%d, final_batch_size=%d',
+					$max_execution_time,
+					$safe_time_limit,
+					$time_based_batch,
+					$base_batch_size
+				)
+			);
+		}
 
 		/**
 		 * Filter the batch size for import processing

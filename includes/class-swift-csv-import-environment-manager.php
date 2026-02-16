@@ -49,31 +49,47 @@ class Swift_CSV_Import_Environment_Manager {
 			return null;
 		}
 
-		// Handle file upload directly
+		// Handle file upload securely using wp_handle_upload.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		if ( ! isset( $_FILES['csv_file'] ) ) {
 			Swift_CSV_Helper::send_error_response_and_return_null( 'No file uploaded', '' );
 			return null;
 		}
 
-		$file = $_FILES['csv_file'];
+		// Use WordPress built-in file upload handler for security.
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 
-		// Validate file
-		if ( $file['error'] !== UPLOAD_ERR_OK ) {
-			Swift_CSV_Helper::send_error_response_and_return_null( 'Upload error: ' . $file['error'], '' );
+		// Additional nonce verification for file upload operation.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$nonce = wp_unslash( $_POST['nonce'] ?? '' );
+		if ( ! wp_verify_nonce( $nonce, 'swift_csv_ajax_nonce' ) ) {
+			Swift_CSV_Helper::send_security_error( '' );
 			return null;
 		}
 
-		// Read CSV directly from uploaded file
-		$csv_content = (string) file_get_contents( $file['tmp_name'] );
-		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$uploaded_file = wp_handle_upload( $_FILES['csv_file'], [ 'test_form' => false ] );
 
-		// Create temp directory and file path
+		if ( isset( $uploaded_file['error'] ) ) {
+			Swift_CSV_Helper::send_error_response_and_return_null( 'Upload error: ' . $uploaded_file['error'], '' );
+			return null;
+		}
+
+		// Read CSV from the securely uploaded file.
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$csv_content = (string) file_get_contents( $uploaded_file['file'] );
+		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings.
+
+		// Store the uploaded file path for cleanup.
+		$uploaded_file_path = $uploaded_file['file'];
+
+		// Create temp directory and file path.
 		$temp_dir  = Swift_CSV_Helper::create_temp_directory();
 		$temp_file = Swift_CSV_Helper::generate_temp_file_path( $temp_dir );
 
-		// Save uploaded file
-		if ( ! Swift_CSV_Helper::save_uploaded_file( $file, $temp_file ) ) {
-			Swift_CSV_Helper::send_error_response_and_return_null( 'Failed to save file', '' );
+		// Copy uploaded file to temp location.
+		if ( ! copy( $uploaded_file['file'], $temp_file ) ) {
+			Swift_CSV_Helper::send_error_response_and_return_null( 'Failed to save file', $uploaded_file_path );
 			return null;
 		}
 
@@ -121,32 +137,6 @@ class Swift_CSV_Import_Environment_Manager {
 		return true;
 	}
 
-	/**
-	 * Read uploaded CSV content from request.
-	 *
-	 * @since 0.9.8
-	 * @param string $file_path Temporary file path for cleanup.
-	 * @return string|null CSV content or null on error (sends JSON response).
-	 */
-	public function read_uploaded_csv_content_or_send_error_and_cleanup( string $file_path ): ?string {
-		// Handle file upload directly
-		if ( ! isset( $_FILES['csv_file'] ) ) {
-			return Swift_CSV_Helper::send_error_response_and_return_null( 'No file uploaded', $file_path );
-		}
-
-		$file = $_FILES['csv_file'];
-
-		// Validate file
-		if ( $file['error'] !== UPLOAD_ERR_OK ) {
-			return Swift_CSV_Helper::send_error_response_and_return_null( 'Upload error: ' . $file['error'], $file_path );
-		}
-
-		// Read CSV directly from uploaded file
-		$csv_content = (string) file_get_contents( $file['tmp_name'] );
-		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings
-
-		return $csv_content;
-	}
 
 	/**
 	 * Get allowed post fields.

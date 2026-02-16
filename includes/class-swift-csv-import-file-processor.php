@@ -45,40 +45,43 @@ class Swift_CSV_Import_File_Processor {
 	 * @return array{file_path:string}|null File path or null on error.
 	 */
 	public function handle_upload(): ?array {
-		// Verify nonce
-		$nonce = $_POST['nonce'] ?? '';
+		// Verify nonce.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$nonce = wp_unslash( $_POST['nonce'] ?? '' );
 		if ( ! Swift_CSV_Helper::verify_nonce( $nonce ) ) {
 			Swift_CSV_Helper::send_security_error();
 			return null;
 		}
 
-		// Validate uploaded file
-		$file_validation = Swift_CSV_Helper::validate_upload_file( $_FILES['csv_file'] ?? null );
-		if ( ! $file_validation['valid'] ) {
-			Swift_CSV_Helper::send_error_response( $file_validation['error'] );
+		// Handle file upload securely using wp_handle_upload.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if ( ! isset( $_FILES['csv_file'] ) ) {
+			Swift_CSV_Helper::send_error_response( 'No file uploaded' );
 			return null;
 		}
 
-		$file = $_FILES['csv_file'];
+		// Use WordPress built-in file upload handler for security.
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 
-		// Validate file size
-		$size_validation = Swift_CSV_Helper::validate_file_size( $file );
-		if ( ! $size_validation['valid'] ) {
-			Swift_CSV_Helper::send_error_response( $size_validation['error'] );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$uploaded_file = wp_handle_upload( $_FILES['csv_file'], [ 'test_form' => false ] );
+
+		if ( isset( $uploaded_file['error'] ) ) {
+			Swift_CSV_Helper::send_error_response( 'Upload error: ' . $uploaded_file['error'] );
 			return null;
 		}
 
-		// Create temp directory and file path
+		// Create temp directory and file path.
 		$temp_dir  = Swift_CSV_Helper::create_temp_directory();
 		$temp_file = Swift_CSV_Helper::generate_temp_file_path( $temp_dir );
 
-		// Save uploaded file
-		if ( Swift_CSV_Helper::save_uploaded_file( $file, $temp_file ) ) {
-			return [ 'file_path' => $temp_file ];
-		} else {
+		// Copy uploaded file to temp location.
+		if ( ! copy( $uploaded_file['file'], $temp_file ) ) {
 			Swift_CSV_Helper::send_error_response( 'Failed to save file' );
 			return null;
 		}
+
+		return [ 'file_path' => $temp_file ];
 	}
 
 	/**

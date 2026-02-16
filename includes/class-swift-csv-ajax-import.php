@@ -14,9 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Handles CSV import operations via AJAX requests.
+ * Handles CSV import operations via AJAX requests
  *
- * This class processes CSV file uploads and chunked imports,
+ * This class processes CSV file uploads and chunked imports.
  * supporting custom post types, taxonomies, and meta fields.
  *
  * @since 0.9.0
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Ajax_Import {
 	/**
-	 * CSV utility instance.
+	 * CSV utility instance
 	 *
 	 * @since 0.9.0
 	 * @var Swift_CSV_Import_Csv|null
@@ -32,7 +32,7 @@ class Swift_CSV_Ajax_Import {
 	private $csv_util;
 
 	/**
-	 * Row context utility instance.
+	 * Row context utility instance
 	 *
 	 * @since 0.9.0
 	 * @var Swift_CSV_Import_Row_Context|null
@@ -40,7 +40,7 @@ class Swift_CSV_Ajax_Import {
 	private $row_context_util;
 
 	/**
-	 * Meta/taxonomy utility instance.
+	 * Meta/taxonomy utility instance
 	 *
 	 * @since 0.9.0
 	 * @var Swift_CSV_Import_Meta_Tax|null
@@ -48,7 +48,7 @@ class Swift_CSV_Ajax_Import {
 	private $meta_tax_util;
 
 	/**
-	 * Persister utility instance.
+	 * Persister utility instance
 	 *
 	 * @since 0.9.0
 	 * @var Swift_CSV_Import_Persister|null
@@ -56,7 +56,7 @@ class Swift_CSV_Ajax_Import {
 	private $persister_util;
 
 	/**
-	 * Row processor utility instance.
+	 * Row processor utility instance
 	 *
 	 * @since 0.9.0
 	 * @var Swift_CSV_Import_Row_Processor|null
@@ -64,7 +64,7 @@ class Swift_CSV_Ajax_Import {
 	private $row_processor_util;
 
 	/**
-	 * File processor utility instance.
+	 * File processor utility instance
 	 *
 	 * @since 0.9.8
 	 * @var Swift_CSV_Import_File_Processor|null
@@ -72,7 +72,7 @@ class Swift_CSV_Ajax_Import {
 	private $file_processor_util;
 
 	/**
-	 * Batch processor utility instance.
+	 * Batch processor utility instance
 	 *
 	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Batch_Processor|null
@@ -80,7 +80,7 @@ class Swift_CSV_Ajax_Import {
 	private $batch_processor_util;
 
 	/**
-	 * Response manager utility instance.
+	 * Response manager utility instance
 	 *
 	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Response_Manager|null
@@ -88,7 +88,7 @@ class Swift_CSV_Ajax_Import {
 	private $response_manager_util;
 
 	/**
-	 * CSV parser utility instance.
+	 * CSV parser utility instance
 	 *
 	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Csv_Parser|null
@@ -96,7 +96,7 @@ class Swift_CSV_Ajax_Import {
 	private $csv_parser_util;
 
 	/**
-	 * Environment manager utility instance.
+	 * Environment manager utility instance
 	 *
 	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Environment_Manager|null
@@ -112,7 +112,7 @@ class Swift_CSV_Ajax_Import {
 	private static $pro_license_active = null;
 
 	/**
-	 * Constructor: Register AJAX hooks.
+	 * Constructor: Register AJAX hooks
 	 *
 	 * @since 0.9.0
 	 */
@@ -137,7 +137,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get CSV utility instance.
+	 * Get CSV utility instance
 	 *
 	 * @since 0.9.0
 	 * @return Swift_CSV_Import_Csv
@@ -150,7 +150,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get row context utility instance.
+	 * Get row context utility instance
 	 *
 	 * @since 0.9.0
 	 * @return Swift_CSV_Import_Row_Context
@@ -163,7 +163,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get meta/taxonomy utility instance.
+	 * Get meta/taxonomy utility instance
 	 *
 	 * @since 0.9.0
 	 * @return Swift_CSV_Import_Meta_Tax
@@ -176,7 +176,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get persister utility instance.
+	 * Get persister utility instance
 	 *
 	 * @since 0.9.0
 	 * @return Swift_CSV_Import_Persister
@@ -189,7 +189,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get row processor instance.
+	 * Get row processor instance
 	 *
 	 * @since 0.9.0
 	 * @return Swift_CSV_Import_Row_Processor
@@ -202,7 +202,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get file processor instance.
+	 * Get file processor instance
 	 *
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_File_Processor
@@ -215,7 +215,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get batch processor instance.
+	 * Get batch processor instance
 	 *
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Batch_Processor
@@ -228,7 +228,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get response manager instance.
+	 * Get response manager instance
 	 *
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Response_Manager
@@ -241,7 +241,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get CSV parser instance.
+	 * Get CSV parser instance
 	 *
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Csv_Parser
@@ -254,7 +254,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get environment manager instance.
+	 * Get environment manager instance
 	 *
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Environment_Manager
@@ -267,23 +267,23 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Handle CSV file upload via AJAX.
+	 * Handle CSV file upload via AJAX
 	 *
 	 * @since 0.9.0
 	 * @return void Sends JSON response
 	 */
 	public function upload_handler() {
-		// Delegate to file processor
+		// Delegate to file processor.
 		$result = $this->get_file_processor_util()->handle_upload();
 
 		if ( null !== $result && isset( $result['file_path'] ) ) {
 			wp_send_json( $result );
 		}
-		// Error responses are handled by the file processor
+		// Error responses are handled by the file processor.
 	}
 
 	/**
-	 * Build per-row import context using config values.
+	 * Build per-row import context using config values
 	 *
 	 * @since 0.9.0
 	 * @param wpdb                                                                                                                             $wpdb WordPress database handler.
@@ -299,7 +299,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Build the per-row processing context.
+	 * Build the per-row processing context
 	 *
 	 * @since 0.9.0
 	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool} $config Import configuration.
@@ -322,7 +322,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Skip empty CSV line and update processed counter.
+	 * Skip empty CSV line and update processed counter
 	 *
 	 * @since 0.9.0
 	 * @param string $line Raw CSV line.
@@ -330,17 +330,17 @@ class Swift_CSV_Ajax_Import {
 	 * @return bool True if the line was skipped.
 	 */
 	private function maybe_skip_empty_csv_line( string $line, int &$processed ): bool {
-		// Skip empty lines only
+		// Skip empty lines only.
 		if ( ! $this->is_empty_csv_line( $line ) ) {
 			return false;
 		}
 
-		++$processed; // Count empty lines as processed to avoid infinite loop
+		++$processed; // Count empty lines as processed to avoid infinite loop.
 		return true;
 	}
 
 	/**
-	 * Check if a CSV line is empty.
+	 * Check if a CSV line is empty
 	 *
 	 * @since 0.9.0
 	 * @param string $line CSV line.
@@ -351,7 +351,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Handle CSV import processing via AJAX.
+	 * Handle CSV import processing via AJAX
 	 *
 	 * @since 0.9.0
 	 * @return void Sends JSON response with import results
@@ -372,7 +372,7 @@ class Swift_CSV_Ajax_Import {
 			return;
 		}
 
-		// Filter sample posts for field detection (Pro version ACF integration)
+		// Filter sample posts for field detection (Pro version ACF integration).
 		/**
 		 * Filter sample posts for better field detection during import
 		 *
@@ -394,10 +394,10 @@ class Swift_CSV_Ajax_Import {
 		$total_rows             = $this->get_csv_util()->count_total_rows( $csv_data['lines'] );
 		$csv_data['total_rows'] = $total_rows;
 
-		// Calculate batch size using batch processor
+		// Calculate batch size using batch processor.
 		$batch_size = $this->get_batch_processor_util()->calculate_batch_size( $total_rows, $config );
 
-		// Update config with dynamic batch size
+		// Update config with dynamic batch size.
 		$config['batch_size'] = $batch_size;
 
 		$counters = [
@@ -406,7 +406,7 @@ class Swift_CSV_Ajax_Import {
 			'updated'         => 0,
 			'errors'          => 0,
 			'dry_run_log'     => [],
-			'dry_run_details' => [], // New: detailed row-by-row results
+			'dry_run_details' => [], // New: detailed row-by-row results.
 		];
 
 		$cumulative_counts = $this->get_response_manager_util()->get_cumulative_counts();
@@ -414,7 +414,7 @@ class Swift_CSV_Ajax_Import {
 		$previous_updated  = $cumulative_counts['updated'];
 		$previous_errors   = $cumulative_counts['errors'];
 
-		// Process batch using batch processor
+		// Process batch using batch processor.
 		$counters = $this->get_batch_processor_util()->process_batch( $config, $csv_data );
 
 		$next_row = $config['start_row'] + $counters['processed'];
@@ -439,7 +439,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Handle successful row import.
+	 * Handle successful row import
 	 *
 	 * @since 0.9.0
 	 * @param wpdb                                                                                                                                                                    $wpdb WordPress DB instance.
@@ -460,20 +460,20 @@ class Swift_CSV_Ajax_Import {
 		$taxonomy_format_validation = $context['taxonomy_format_validation'];
 		$dry_run                    = $context['dry_run'];
 
-		// Record detailed processing information for both dry run and actual import
-		if ( $dry_run || true ) { // Always record details for UI display
-			$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number from context
+		// Record detailed processing information for both dry run and actual import.
+		if ( $dry_run || true ) { // Always record details for UI display.
+			$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number from context.
 
-			// Get title from data using header index
+			// Get title from data using header index.
 			$post_title  = 'Untitled';
-			$title_index = array_search( 'post_title', $headers );
-			if ( $title_index !== false && isset( $data[ $title_index ] ) ) {
+			$title_index = array_search( 'post_title', $headers, true );
+			if ( false !== $title_index && isset( $data[ $title_index ] ) ) {
 				$post_title = $data[ $title_index ];
 			}
 
 			$action = $is_update ? 'update' : 'create';
 
-			// Run validation hook for both dry run and actual import
+			// Run validation hook for both dry run and actual import.
 			$validation_result = [
 				'valid'    => true,
 				'errors'   => [],
@@ -510,23 +510,25 @@ class Swift_CSV_Ajax_Import {
 				]
 			);
 
-			// Determine status based on validation
+			// Determine status based on validation.
 			$status          = 'success';
 			$details_message = sprintf(
 				$is_update ?
+				/* translators: 1: Post ID, 2: Post title */
 				__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ) :
+				/* translators: 1: Post title */
 				__( 'New post: title=%1$s, ID will be assigned', 'swift-csv' ),
 				$post_id,
 				$post_title
 			);
 
-			// Handle validation errors
+			// Handle validation errors.
 			if ( ! $validation_result['valid'] ) {
 				$status          = 'error';
 				$details_message = __( 'Validation failed:', 'swift-csv' ) . ' ' . implode( ', ', $validation_result['errors'] );
 			}
 
-			// Add warnings if any
+			// Add warnings if any.
 			if ( ! empty( $validation_result['warnings'] ) ) {
 				$details_message .= ' ' . __( 'Warnings:', 'swift-csv' ) . ' ' . implode( ', ', $validation_result['warnings'] );
 			}
@@ -551,7 +553,7 @@ class Swift_CSV_Ajax_Import {
 			$counters
 		);
 
-		// Process meta fields and taxonomies
+		// Process meta fields and taxonomies.
 		$result = $this->get_meta_tax_util()->process_meta_and_taxonomies_for_row_with_args(
 			$wpdb,
 			$post_id,
@@ -564,7 +566,7 @@ class Swift_CSV_Ajax_Import {
 			$counters
 		);
 
-		// Prepare import fields for processing (Pro version ACF integration)
+		// Prepare import fields for processing (Pro version ACF integration).
 		/**
 		 * Prepare import fields for processing
 		 *
@@ -586,7 +588,7 @@ class Swift_CSV_Ajax_Import {
 		];
 		$prepared_meta_fields = apply_filters( 'swift_csv_prepare_import_fields', $result['meta_fields'], $post_id, $prepare_args );
 
-		// Custom field processing hook for extensions
+		// Custom field processing hook for extensions.
 		/**
 		 * Action for processing custom fields during import
 		 *
@@ -601,7 +603,7 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Run custom field processing hook for extensions.
+	 * Run custom field processing hook for extensions
 	 *
 	 * @since 0.9.0
 	 * @param int                  $post_id Post ID.
@@ -613,16 +615,18 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Verify nonce for AJAX request.
+	 * Verify nonce for AJAX request
 	 *
 	 * @since 0.9.0
 	 * @return bool True if nonce is valid.
 	 */
 	private function verify_nonce_or_send_error_and_cleanup(): bool {
-		$nonce     = (string) ( $_POST['nonce'] ?? '' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$nonce     = filter_input( INPUT_POST, 'nonce' );
 		$file_path = sanitize_text_field( wp_unslash( $_POST['file_path'] ?? '' ) );
 
-		if ( ! Swift_CSV_Helper::verify_nonce( $nonce ) ) {
+		// Verify nonce for security.
+		if ( ! wp_verify_nonce( $nonce, 'swift_csv_ajax_nonce' ) ) {
 			Swift_CSV_Helper::send_security_error( $file_path );
 			return false;
 		}
@@ -630,35 +634,9 @@ class Swift_CSV_Ajax_Import {
 		return true;
 	}
 
-	/**
-	 * Read uploaded CSV content from request.
-	 *
-	 * @since 0.9.0
-	 * @param string $file_path Temporary file path for cleanup.
-	 * @return string|null CSV content or null on error (sends JSON response).
-	 */
-	private function read_uploaded_csv_content_or_send_error_and_cleanup( string $file_path ): ?string {
-		// Handle file upload directly
-		if ( ! isset( $_FILES['csv_file'] ) ) {
-			return Swift_CSV_Helper::send_error_response_and_return_null( 'No file uploaded', $file_path );
-		}
-
-		$file = $_FILES['csv_file'];
-
-		// Validate file.
-		if ( UPLOAD_ERR_OK !== $file['error'] ) {
-			return Swift_CSV_Helper::send_error_response_and_return_null( 'Upload error: ' . $file['error'], $file_path );
-		}
-
-		// Read CSV directly from uploaded file.
-		$csv_content = (string) file_get_contents( $file['tmp_name'] );
-		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings.
-
-		return $csv_content;
-	}
 
 	/**
-	 * Get allowed WP post fields that can be imported from CSV.
+	 * Get allowed WP post fields that can be imported from CSV
 	 *
 	 * @since 0.9.0
 	 * @return array<int, string>

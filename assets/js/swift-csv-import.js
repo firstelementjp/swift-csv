@@ -170,6 +170,7 @@ function handleAjaxImport(e) {
 	const importBtn = document.querySelector('#ajax-import-csv-btn');
 	const cancelBtn = document.querySelector('#ajax-import-cancel-btn');
 	const startTime = Date.now();
+	const abortController = new AbortController();
 	let isCancelled = false;
 
 	// Update button states
@@ -185,7 +186,7 @@ function handleAjaxImport(e) {
 	if (cancelBtn) {
 		cancelBtn.addEventListener('click', function () {
 			isCancelled = true;
-			addLogEntry(swiftCSV.messages.importCancelledByUser, 'warning', 'import');
+			abortController.abort(); // Cancel the fetch request
 
 			if (importBtn) {
 				importBtn.disabled = false;
@@ -211,7 +212,8 @@ function handleAjaxImport(e) {
 		importBtn,
 		cancelBtn,
 		startTime,
-		isCancelled
+		isCancelled,
+		abortController
 	);
 }
 
@@ -231,6 +233,7 @@ function handleAjaxImport(e) {
  * @param {HTMLElement} cancelBtn Cancel button element
  * @param {number} startTime Start time
  * @param {boolean} isCancelled Cancel flag
+ * @param {AbortController} abortController Abort controller for cancelling fetch
  */
 function processImportChunk(
 	startRow = 0,
@@ -245,7 +248,8 @@ function processImportChunk(
 	importBtn,
 	cancelBtn,
 	startTime,
-	isCancelled
+	isCancelled,
+	abortController
 ) {
 	if (isCancelled) return;
 
@@ -267,6 +271,7 @@ function processImportChunk(
 	fetch(swiftCSV.ajaxUrl, {
 		method: 'POST',
 		body: formData,
+		signal: abortController.signal,
 	})
 		.then(response => response.json())
 		.then(data => {
@@ -317,7 +322,8 @@ function processImportChunk(
 						importBtn,
 						cancelBtn,
 						startTime,
-						isCancelled
+						isCancelled,
+						abortController
 					);
 				} else {
 					// Import completed - show final completion
@@ -337,17 +343,15 @@ function processImportChunk(
 			}
 		})
 		.catch(error => {
-			console.error('Import error:', error);
-
-			// Extract the actual error message
-			let errorMessage = error.message;
-			if (
-				errorMessage === 'Import failed' &&
-				error.message.includes('Format mismatch detected')
-			) {
-				errorMessage = error.message;
+			// Handle fetch errors including cancellation
+			if (error.name === 'AbortError') {
+				// This is expected when user cancels - don't show as error
+				addLogEntry(swiftCSV.messages.importCancelledByUser, 'warning', 'import');
+				return;
 			}
 
+			// Handle other errors
+			const errorMessage = error.message || 'Unknown error occurred';
 			addLogEntry(swiftCSV.messages.importError + ' ' + errorMessage, 'error', 'import');
 
 			if (importBtn) {

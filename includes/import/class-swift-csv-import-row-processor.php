@@ -40,7 +40,7 @@ class Swift_CSV_Import_Row_Processor {
 			++$updated;
 		} else {
 			++$created;
-			Swift_CSV_Helper::update_guid_for_new_post( $wpdb, $post_id );
+			Swift_CSV_Helper::update_guid_for_new_post( $post_id );
 		}
 	}
 

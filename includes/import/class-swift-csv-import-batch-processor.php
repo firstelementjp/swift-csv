@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Handles batch processing operations for CSV import.
+ * Handles batch processing operations for CSV import
  *
  * This class is responsible for:
  * - Batch size calculation
@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Swift_CSV_Import_Batch_Processor {
 
 	/**
-	 * Row context utility instance.
+	 * Row context utility instance
 	 *
 	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Row_Context|null
@@ -36,7 +36,7 @@ class Swift_CSV_Import_Batch_Processor {
 	private $row_context_util;
 
 	/**
-	 * Meta/taxonomy utility instance.
+	 * Meta/taxonomy utility instance
 	 *
 	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Meta_Tax|null
@@ -44,7 +44,7 @@ class Swift_CSV_Import_Batch_Processor {
 	private $meta_tax_util;
 
 	/**
-	 * Persister utility instance.
+	 * Persister utility instance
 	 *
 	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Persister|null
@@ -52,7 +52,7 @@ class Swift_CSV_Import_Batch_Processor {
 	private $persister_util;
 
 	/**
-	 * Row processor utility instance.
+	 * Row processor utility instance
 	 *
 	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Row_Processor|null
@@ -60,7 +60,7 @@ class Swift_CSV_Import_Batch_Processor {
 	private $row_processor_util;
 
 	/**
-	 * Calculate batch size.
+	 * Calculate batch size
 	 *
 	 * Determines optimal batch size based on total rows and configuration.
 	 * Extracted from import_handler() for better separation of concerns.
@@ -74,11 +74,11 @@ class Swift_CSV_Import_Batch_Processor {
 		$dry_run = $config['dry_run'] ?? false;
 
 		if ( $dry_run ) {
-			// Always use row-by-row processing for dry run
+			// Always use row-by-row processing for dry run.
 			return 1;
 		}
 
-		// Determine threshold for row-by-row vs batch processing
+		// Determine threshold for row-by-row vs batch processing.
 		$row_processing_threshold = 100;
 
 		/**
@@ -100,7 +100,7 @@ class Swift_CSV_Import_Batch_Processor {
 			$config
 		);
 
-		// Determine base batch size
+		// Determine base batch size.
 		$base_batch_size = ( $total_rows <= $row_processing_threshold ) ? 1 : 10;
 
 		/**
@@ -124,7 +124,7 @@ class Swift_CSV_Import_Batch_Processor {
 	}
 
 	/**
-	 * Process batch import.
+	 * Process batch import
 	 *
 	 * Main batch processing method extracted from import_handler().
 	 * Handles the core import loop with proper error handling and progress tracking.
@@ -144,15 +144,15 @@ class Swift_CSV_Import_Batch_Processor {
 			'dry_run_details' => [],
 		];
 
-		// Delegate to Ajax_Import's original method
-		// This maintains all existing logic without modification
+		// Delegate to Ajax_Import's original method.
+		// This maintains all existing logic without modification.
 		$this->process_batch_import( $config, $csv_data, $counters );
 
 		return $counters;
 	}
 
 	/**
-	 * Batch import processing logic.
+	 * Batch import processing logic
 	 *
 	 * This method contains the exact same logic as the original Ajax_Import::process_batch_import
 	 * to ensure no behavior changes during refactoring.
@@ -168,7 +168,7 @@ class Swift_CSV_Import_Batch_Processor {
 
 		$allowed_post_fields = $this->get_allowed_post_fields();
 
-		// Use Swift_CSV_Helper directly for ID column validation
+		// Use Swift_CSV_Helper directly for ID column validation.
 		$validation_result = Swift_CSV_Helper::validate_id_column( $csv_data['headers'], $config['file_path'] );
 		if ( ! $validation_result['valid'] ) {
 			Swift_CSV_Helper::send_error_response( $validation_result['error'] );
@@ -176,13 +176,15 @@ class Swift_CSV_Import_Batch_Processor {
 		}
 		$id_col = $validation_result['id_col'];
 
-		for ( $i = $config['start_row']; $i < min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] ); $i++ ) {
+		// Calculate end row once to avoid function calls in loop test.
+		$end_row = min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] );
+		for ( $i = $config['start_row']; $i < $end_row; $i++ ) {
 			$this->process_import_loop_iteration( $wpdb, $config, $csv_data, $allowed_post_fields, $i, $counters );
 		}
 	}
 
 	/**
-	 * Import loop iteration logic.
+	 * Import loop iteration logic
 	 *
 	 * @since 0.9.8
 	 * @param wpdb  $wpdb WordPress database handler.
@@ -204,7 +206,7 @@ class Swift_CSV_Import_Batch_Processor {
 			return;
 		}
 
-		// Use Ajax_Import's original row processing logic
+		// Use Ajax_Import's original row processing logic.
 		$row_context = $this->build_import_row_context_from_config( $config, $line, $delimiter, $headers, $allowed_post_fields );
 		if ( null === $row_context ) {
 			return;
@@ -212,7 +214,7 @@ class Swift_CSV_Import_Batch_Processor {
 
 		$context = $this->build_row_processing_context( $config, $csv_data, $headers, $allowed_post_fields );
 
-		// Use the original row processor utility
+		// Use the original row processor utility.
 		$this->get_row_processor_util()->process_row_context_with_persister(
 			$wpdb,
 			$row_context,
@@ -226,7 +228,7 @@ class Swift_CSV_Import_Batch_Processor {
 	}
 
 	/**
-	 * Row context building logic.
+	 * Row context building logic
 	 *
 	 * @since 0.9.8
 	 * @param array  $config Import configuration.
@@ -248,7 +250,7 @@ class Swift_CSV_Import_Batch_Processor {
 	}
 
 	/**
-	 * Row processing context building logic.
+	 * Row processing context building logic
 	 *
 	 * @since 0.9.8
 	 * @param array $config Import configuration.
@@ -271,7 +273,7 @@ class Swift_CSV_Import_Batch_Processor {
 	}
 
 	/**
-	 * Successful row import handling logic.
+	 * Successful row import handling logic
 	 *
 	 * @since 0.9.8
 	 * @param wpdb  $wpdb WordPress database object.
@@ -292,20 +294,20 @@ class Swift_CSV_Import_Batch_Processor {
 		$taxonomy_format_validation = $context['taxonomy_format_validation'];
 		$dry_run                    = $context['dry_run'];
 
-		// Record detailed processing information for both dry run and actual import
-		if ( $dry_run || true ) { // Always record details for UI display
-			$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number from context
+		// Record detailed processing information for both dry run and actual import.
+		if ( $dry_run || true ) { // Always record details for UI display.
+			$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number from context.
 
-			// Get title from data using header index
+			// Get title from data using header index.
 			$post_title  = 'Untitled';
-			$title_index = array_search( 'post_title', $headers );
-			if ( $title_index !== false && isset( $data[ $title_index ] ) ) {
+			$title_index = array_search( 'post_title', $headers, true );
+			if ( false !== $title_index && isset( $data[ $title_index ] ) ) {
 				$post_title = $data[ $title_index ];
 			}
 
 			$action = $is_update ? 'update' : 'create';
 
-			// Run validation hook for both dry run and actual import
+			// Run validation hook for both dry run and actual import.
 			$validation_result = [
 				'valid'    => true,
 				'errors'   => [],
@@ -331,7 +333,7 @@ class Swift_CSV_Import_Batch_Processor {
 				$context
 			);
 
-			// Check if validation failed
+			// Check if validation failed.
 			if ( ! $validation_result['valid'] ) {
 				$status  = 'error';
 				$details = implode( ', ', array_merge( $validation_result['errors'], $validation_result['warnings'] ) );
@@ -353,7 +355,7 @@ class Swift_CSV_Import_Batch_Processor {
 
 		}
 
-		// Apply success counters using row processor utility
+		// Apply success counters using row processor utility.
 		$this->get_row_processor_util()->apply_success_counters_and_guid_without_callbacks(
 			$wpdb,
 			$post_id,
@@ -361,7 +363,7 @@ class Swift_CSV_Import_Batch_Processor {
 			$counters
 		);
 
-		// Process meta fields and taxonomies
+		// Process meta fields and taxonomies.
 		$result = $this->get_meta_tax_util()->process_meta_and_taxonomies_for_row_with_args(
 			$wpdb,
 			$post_id,
@@ -374,19 +376,16 @@ class Swift_CSV_Import_Batch_Processor {
 			$counters
 		);
 
-		// Prepare import fields for processing (Pro version ACF integration)
 		/**
 		 * Prepare import fields for processing
 		 *
 		 * Allows extensions to prepare and modify import fields before processing.
-		 * This hook is ideal for Pro versions with ACF integration that need to
-		 * prepare ACF field data or modify field values before processing.
 		 *
 		 * @since 0.9.0
-		 * @param array $meta_fields Meta fields to be processed
-		 * @param int $post_id Post ID being processed
-		 * @param array $args Processing arguments including headers and context
-		 * @return array Modified meta fields for processing
+		 * @param array $meta_fields Meta fields to be processed.
+		 * @param int $post_id Post ID being processed.
+		 * @param array $args Processing arguments including headers and context.
+		 * @return array Modified meta fields for processing.
 		 */
 		$prepare_args         = [
 			'headers'   => $headers,
@@ -396,7 +395,6 @@ class Swift_CSV_Import_Batch_Processor {
 		];
 		$prepared_meta_fields = apply_filters( 'swift_csv_prepare_import_fields', $result['meta_fields'], $post_id, $prepare_args );
 
-		// Custom field processing hook for extensions
 		/**
 		 * Action for processing custom fields during import
 		 *
@@ -404,14 +402,14 @@ class Swift_CSV_Import_Batch_Processor {
 		 * This hook is called after basic field processing is complete.
 		 *
 		 * @since 0.9.0
-		 * @param int $post_id The ID of the created/updated post
-		 * @param array $meta_fields Array of meta fields to process
+		 * @param int $post_id The ID of the created/updated post.
+		 * @param array $meta_fields Array of meta fields to process.
 		 */
 		do_action( 'swift_csv_process_custom_fields', $post_id, $prepared_meta_fields );
 	}
 
 	/**
-	 * Ensure CSV has the required ID column.
+	 * Ensure CSV has the required ID column
 	 *
 	 * @since 0.9.8
 	 * @param array  $headers CSV headers.
@@ -430,7 +428,7 @@ class Swift_CSV_Import_Batch_Processor {
 	}
 
 	/**
-	 * Get row context utility instance.
+	 * Get row context utility instance
 	 *
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Row_Context
@@ -443,7 +441,7 @@ class Swift_CSV_Import_Batch_Processor {
 	}
 
 	/**
-	 * Get meta/taxonomy utility instance.
+	 * Get meta/taxonomy utility instance
 	 *
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Meta_Tax
@@ -456,7 +454,7 @@ class Swift_CSV_Import_Batch_Processor {
 	}
 
 	/**
-	 * Get persister utility instance.
+	 * Get persister utility instance
 	 *
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Persister
@@ -469,7 +467,7 @@ class Swift_CSV_Import_Batch_Processor {
 	}
 
 	/**
-	 * Get row processor utility instance.
+	 * Get row processor utility instance
 	 *
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Row_Processor
@@ -482,7 +480,7 @@ class Swift_CSV_Import_Batch_Processor {
 	}
 
 	/**
-	 * Get allowed post fields.
+	 * Get allowed post fields
 	 *
 	 * @since 0.9.8
 	 * @return array Allowed post fields.

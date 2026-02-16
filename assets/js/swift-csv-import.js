@@ -176,7 +176,7 @@ function handleAjaxImport(e) {
 	// Update button states
 	if (importBtn) {
 		importBtn.disabled = true;
-		importBtn.textContent = swiftCSV.messages.processing;
+		importBtn.textContent = swiftCSV.messages.importing;
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'inline-block';

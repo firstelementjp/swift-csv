@@ -1139,10 +1139,10 @@ class Swift_CSV_Admin {
 						<?php do_settings_fields( 'swift-csv', 'swift_csv_import_section' ); ?>
 
 						<p class="submit">
-							<button type="submit" class="button button-primary">
+							<button type="submit" class="button button-primary" id="ajax-import-csv-btn">
 								<?php esc_html_e( 'Start Import', 'swift-csv' ); ?>
 							</button>
-							<button type="button" class="button" id="ajax-import-cancel-btn" style="display: none;">
+							<button type="button" class="button" id="ajax-import-cancel-btn" style="display: none; margin-left: 10px;">
 					<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
 				</button>
 						</p>

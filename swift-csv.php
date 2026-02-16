@@ -10,6 +10,8 @@
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       swift-csv
  * Domain Path:       /languages
+ *
+ * @package           Swift_CSV
  */
 
 // If this file is called directly, abort.
@@ -17,7 +19,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-// Custom debug log path
+// Custom debug log path.
 $log_file = plugin_dir_path( __FILE__ ) . 'debug.log';
 ini_set( 'error_log', $log_file );
 
@@ -147,7 +149,18 @@ function swift_csv_activate() {
 	// Create .htaccess to restrict web access.
 	$htaccess_file = $temp_dir . '/.htaccess';
 	if ( ! file_exists( $htaccess_file ) ) {
-		file_put_contents( $htaccess_file, "Deny from all\n" );
+		global $wp_filesystem;
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . '/wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+		$wp_filesystem->put_contents( $htaccess_file, "Deny from all\n" );
+	}
+
+	// Create index.php to prevent directory listing.
+	$index_file = $temp_dir . '/index.php';
+	if ( ! file_exists( $index_file ) ) {
+		$wp_filesystem->put_contents( $index_file, "<?php\n// Silence is golden.\n" );
 	}
 
 	// Cleanup old temp files (older than 24 hours).
@@ -155,7 +168,7 @@ function swift_csv_activate() {
 	if ( $files ) {
 		foreach ( $files as $file ) {
 			if ( time() - filemtime( $file ) > 86400 ) { // 24 hours
-				unlink( $file );
+				wp_delete_file( $file );
 			}
 		}
 	}

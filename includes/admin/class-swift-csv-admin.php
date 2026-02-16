@@ -76,7 +76,7 @@ class Swift_CSV_Admin {
 
 			wp_enqueue_style(
 				'swift-csv-admin',
-				plugin_dir_url( __FILE__ ) . '../assets/css/swift-csv-style' . $suffix . '.css',
+				SWIFT_CSV_PLUGIN_URL . 'assets/css/swift-csv-style' . $suffix . '.css',
 				[],
 				SWIFT_CSV_VERSION
 			);
@@ -101,7 +101,7 @@ class Swift_CSV_Admin {
 			// Core utilities (must be loaded first)
 			wp_register_script(
 				'swift-csv-core',
-				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-core' . $suffix . '.js',
+				SWIFT_CSV_PLUGIN_URL . 'assets/js/swift-csv-core' . $suffix . '.js',
 				[ 'wp-i18n' ],
 				SWIFT_CSV_VERSION . '.' . time(),
 				true
@@ -110,7 +110,7 @@ class Swift_CSV_Admin {
 			// Export functionality
 			wp_register_script(
 				'swift-csv-export',
-				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-export' . $suffix . '.js',
+				SWIFT_CSV_PLUGIN_URL . 'assets/js/swift-csv-export' . $suffix . '.js',
 				[ 'swift-csv-core' ],
 				SWIFT_CSV_VERSION . '.' . time(),
 				true
@@ -119,7 +119,7 @@ class Swift_CSV_Admin {
 			// Import functionality
 			wp_register_script(
 				'swift-csv-import',
-				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-import' . $suffix . '.js',
+				SWIFT_CSV_PLUGIN_URL . 'assets/js/swift-csv-import' . $suffix . '.js',
 				[ 'swift-csv-core' ],
 				SWIFT_CSV_VERSION . '.' . time(),
 				true
@@ -128,7 +128,7 @@ class Swift_CSV_Admin {
 			// License functionality
 			wp_register_script(
 				'swift-csv-license',
-				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-license' . $suffix . '.js',
+				SWIFT_CSV_PLUGIN_URL . 'assets/js/swift-csv-license' . $suffix . '.js',
 				[ 'swift-csv-core' ],
 				SWIFT_CSV_VERSION . '.' . time(),
 				true
@@ -137,7 +137,7 @@ class Swift_CSV_Admin {
 			// Main entry point (must be loaded last)
 			wp_register_script(
 				'swift-csv-main',
-				plugin_dir_url( __FILE__ ) . '../assets/js/swift-csv-main' . $suffix . '.js',
+				SWIFT_CSV_PLUGIN_URL . 'assets/js/swift-csv-main' . $suffix . '.js',
 				[ 'swift-csv-core', 'swift-csv-export', 'swift-csv-import', 'swift-csv-license' ],
 				SWIFT_CSV_VERSION . '.' . time(),
 				true

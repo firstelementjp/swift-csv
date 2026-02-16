@@ -372,7 +372,6 @@ class Swift_CSV_Ajax_Import {
 			return;
 		}
 
-		// Filter sample posts for field detection (Pro version ACF integration).
 		/**
 		 * Filter sample posts for better field detection during import
 		 *
@@ -553,7 +552,6 @@ class Swift_CSV_Ajax_Import {
 			$counters
 		);
 
-		// Process meta fields and taxonomies.
 		$result = $this->get_meta_tax_util()->process_meta_and_taxonomies_for_row_with_args(
 			$wpdb,
 			$post_id,
@@ -566,7 +564,6 @@ class Swift_CSV_Ajax_Import {
 			$counters
 		);
 
-		// Prepare import fields for processing (Pro version ACF integration).
 		/**
 		 * Prepare import fields for processing
 		 *
@@ -588,7 +585,6 @@ class Swift_CSV_Ajax_Import {
 		];
 		$prepared_meta_fields = apply_filters( 'swift_csv_prepare_import_fields', $result['meta_fields'], $post_id, $prepare_args );
 
-		// Custom field processing hook for extensions.
 		/**
 		 * Action for processing custom fields during import
 		 *
@@ -633,7 +629,6 @@ class Swift_CSV_Ajax_Import {
 
 		return true;
 	}
-
 
 	/**
 	 * Get allowed WP post fields that can be imported from CSV

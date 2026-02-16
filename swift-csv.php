@@ -30,23 +30,53 @@ define( 'SWIFT_CSV_PRO_URL', 'https://www.firstelement.co.jp/swift-csv/pro/' );
 define( 'SWIFT_CSV_DOCS_URL', 'https://firstelementjp.github.io/swift-csv/#/' );
 define( 'SWIFT_CSV_DEEPWIKI_URL', 'https://deepwiki.com/firstelementjp/swift-csv' );
 
-// Include required files.
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-admin.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-license-handler.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-updater.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-helper.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-csv.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-row-context.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-meta-tax.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-persister.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-row-processor.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-file-processor.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-batch-processor.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-response-manager.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-csv-parser.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-import-environment-manager.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-import.php';
-require_once SWIFT_CSV_PLUGIN_DIR . 'includes/class-swift-csv-ajax-export.php';
+/**
+ * Custom autoloader for Swift CSV classes.
+ *
+ * Automatically loads classes following WordPress naming convention:
+ * Swift_CSV_Admin → includes/admin/class-swift-csv-admin.php
+ * Swift_CSV_Import_* → includes/import/class-swift-csv-import-*.php
+ * Swift_CSV_Export_* → includes/export/class-swift-csv-export-*.php
+ *
+ * @since 0.9.8
+ * @param string $class_name Class name to load.
+ */
+spl_autoload_register(
+	function ( $class_name ) {
+		$prefix   = 'Swift_CSV_';
+		$base_dir = SWIFT_CSV_PLUGIN_DIR . 'includes/';
+
+		// Only handle classes with Swift_CSV_ prefix.
+		if ( strncmp( $prefix, $class_name, strlen( $prefix ) ) !== 0 ) {
+			return;
+		}
+
+		// Convert class name to file name.
+		$relative_class = substr( $class_name, strlen( $prefix ) );
+		$file_name      = 'class-' . str_replace( '_', '-', strtolower( $class_name ) ) . '.php';
+
+		// Determine subdirectory based on class type.
+		$sub_dir = '';
+		if ( strpos( $relative_class, 'Admin' ) !== false ||
+			strpos( $relative_class, 'License_Handler' ) !== false ||
+			strpos( $relative_class, 'Updater' ) !== false ) {
+			$sub_dir = 'admin/';
+		} elseif ( strpos( $relative_class, 'Import' ) !== false ||
+					strpos( $relative_class, 'Ajax_Import' ) !== false ) {
+			$sub_dir = 'import/';
+		} elseif ( strpos( $relative_class, 'Export' ) !== false ||
+					strpos( $relative_class, 'Ajax_Export' ) !== false ) {
+			$sub_dir = 'export/';
+		}
+
+		$file_path = $base_dir . $sub_dir . $file_name;
+
+		// Load file if exists.
+		if ( file_exists( $file_path ) ) {
+			require_once $file_path;
+		}
+	}
+);
 
 // Register plugin hooks.
 register_activation_hook( __FILE__, 'swift_csv_activate' );

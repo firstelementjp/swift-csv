@@ -271,7 +271,12 @@ function processImportChunk(
 	const formData = new FormData();
 	formData.append('action', 'swift_csv_ajax_import');
 	formData.append('nonce', swiftCSV.nonce);
-	formData.append('csv_file', file);
+
+	// Only send file on first request (start_row = 0)
+	if (startRow === 0) {
+		formData.append('csv_file', file);
+	}
+
 	formData.append('post_type', postType);
 	formData.append('update_existing', updateExisting);
 	formData.append('taxonomy_format', taxonomyFormat);

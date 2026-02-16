@@ -117,10 +117,8 @@ class Swift_CSV_Ajax_Import {
 	 * @since 0.9.0
 	 */
 	public function __construct() {
-		add_action( 'wp_ajax_swift_csv_upload', [ $this, 'upload_handler' ] );
+		// Only use import_handler to avoid duplicate file processing
 		add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'import_handler' ] );
-		add_action( 'wp_ajax_swift_csv_ajax_upload', [ $this, 'upload_handler' ] );
-		add_action( 'wp_ajax_nopriv_swift_csv_ajax_upload', [ $this, 'upload_handler' ] );
 	}
 
 	/**
@@ -264,22 +262,6 @@ class Swift_CSV_Ajax_Import {
 			$this->environment_manager_util = new Swift_CSV_Import_Environment_Manager();
 		}
 		return $this->environment_manager_util;
-	}
-
-	/**
-	 * Handle CSV file upload via AJAX
-	 *
-	 * @since 0.9.0
-	 * @return void Sends JSON response
-	 */
-	public function upload_handler() {
-		// Delegate to file processor.
-		$result = $this->get_file_processor_util()->handle_upload();
-
-		if ( null !== $result && isset( $result['file_path'] ) ) {
-			wp_send_json( $result );
-		}
-		// Error responses are handled by the file processor.
 	}
 
 	/**

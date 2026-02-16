@@ -56,8 +56,23 @@ class Swift_CSV_Import_File_Processor {
 		// Handle file upload securely using wp_handle_upload.
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		if ( ! isset( $_FILES['csv_file'] ) ) {
-			Swift_CSV_Helper::send_error_response( 'No file uploaded' );
-			return null;
+			// For batch requests (start_row > 0), use existing file
+			$start_row = isset( $_POST['start_row'] ) ? intval( $_POST['start_row'] ) : 0;
+			if ( $start_row > 0 ) {
+				// Return existing temp file path for batch processing
+				$temp_dir = Swift_CSV_Helper::create_temp_directory();
+				$files    = scandir( $temp_dir );
+				foreach ( $files as $file ) {
+					if ( strpos( $file, 'ajax-import-' ) === 0 ) {
+						return [ 'file_path' => $temp_dir . '/' . $file ];
+					}
+				}
+				Swift_CSV_Helper::send_error_response( 'No existing file found for batch processing' );
+				return null;
+			} else {
+				Swift_CSV_Helper::send_error_response( 'No file uploaded' );
+				return null;
+			}
 		}
 
 		// Use WordPress built-in file upload handler for security.
@@ -75,8 +90,11 @@ class Swift_CSV_Import_File_Processor {
 		$temp_dir  = Swift_CSV_Helper::create_temp_directory();
 		$temp_file = Swift_CSV_Helper::generate_temp_file_path( $temp_dir );
 
-		// Cleanup old temporary files on upload (first request only).
-		Swift_CSV_Helper::cleanup_old_temp_files( $temp_dir, $temp_file );
+		// Cleanup old temporary files only on first upload.
+		$start_row = isset( $_POST['start_row'] ) ? intval( $_POST['start_row'] ) : 0;
+		if ( 0 === $start_row ) {
+			Swift_CSV_Helper::cleanup_old_temp_files( $temp_dir, $temp_file );
+		}
 
 		// Copy uploaded file to temp location.
 		if ( ! copy( $uploaded_file['file'], $temp_file ) ) {

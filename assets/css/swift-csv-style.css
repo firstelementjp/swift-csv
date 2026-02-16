@@ -307,6 +307,12 @@ a.nav-tab:last-of-type {
 	font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 	font-size: 12px;
 	line-height: 1.4;
+	max-height: 300px;
+	overflow-y: auto;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 10px;
+	background-color: #f9f9f9;
 }
 
 .log-entry {

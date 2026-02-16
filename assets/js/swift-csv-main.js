@@ -116,8 +116,11 @@ function addLogEntry(message, level = 'info', context = 'export') {
 	const logContent = document.querySelector(`#${context}-log-content`);
 	if (!logContent) return;
 
-	// Keep only latest 100 entries to prevent performance issues
-	if (logContent.children.length >= 100) {
+	// Get max log entries from localized data (default: 30)
+	const maxLogEntries = swiftCSV.maxLogEntries || 30;
+
+	// Keep only latest entries to prevent performance issues
+	if (logContent.children.length >= maxLogEntries) {
 		logContent.removeChild(logContent.firstChild);
 	}
 

@@ -151,10 +151,21 @@ class Swift_CSV_Admin {
 				'swift-csv-core',
 				'swiftCSV',
 				[
-					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
-					'nonce'    => wp_create_nonce( 'swift_csv_ajax_nonce' ),
-					'debug'    => $debug_mode,
-					'messages' => [
+					'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
+					'nonce'         => wp_create_nonce( 'swift_csv_ajax_nonce' ),
+					'debug'         => $debug_mode,
+					/**
+					 * Filter maximum log entries to display
+					 *
+					 * Allows developers to customize the number of log entries
+					 * that are kept in the UI display. Default is 30.
+					 *
+					 * @since 0.9.8
+					 * @param int $max_entries Maximum number of log entries to keep.
+					 * @return int Modified maximum entries.
+					 */
+					'maxLogEntries' => apply_filters( 'swift_csv_max_log_entries', 30 ),
+					'messages'      => [
 						'exportCsv'             => esc_html__( 'Export CSV', 'swift-csv' ),
 						'startExport'           => esc_html__( 'Start Export', 'swift-csv' ),
 						'importCsv'             => esc_html__( 'Import CSV', 'swift-csv' ),

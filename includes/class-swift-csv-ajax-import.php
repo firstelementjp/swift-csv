@@ -455,7 +455,7 @@ class Swift_CSV_Ajax_Import {
 		];
 		$sample_post_ids    = apply_filters( 'swift_csv_filter_sample_posts', [], $sample_filter_args );
 
-		$total_rows             = $this->count_total_rows( $csv_data['lines'] );
+		$total_rows             = $this->get_csv_util()->count_total_rows( $csv_data['lines'] );
 		$csv_data['total_rows'] = $total_rows;
 
 		// Calculate batch size using batch processor
@@ -870,17 +870,6 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Count actual data rows (exclude empty lines).
-	 *
-	 * @since 0.9.0
-	 * @param array<int, string> $lines CSV lines.
-	 * @return int
-	 */
-	private function count_total_rows( array $lines ): int {
-		return $this->get_csv_util()->count_total_rows( $lines );
-	}
-
-	/**
 	 * Get cumulative counts from previous chunks.
 	 *
 	 * @since 0.9.0
@@ -896,20 +885,5 @@ class Swift_CSV_Ajax_Import {
 			'updated' => $previous_updated,
 			'errors'  => $previous_errors,
 		];
-	}
-
-	/**
-	 * Handle error and cleanup.
-	 *
-	 * @since 0.9.0
-	 * @param string $error_message Error message.
-	 * @param string $file_path     Temporary file path for cleanup.
-	 * @return void
-	 */
-	private function handle_error_and_cleanup( string $error_message, string $file_path = '' ): void {
-		if ( ! empty( $file_path ) ) {
-			@unlink( $file_path );
-		}
-		Swift_CSV_Helper::send_error_response( $error_message );
 	}
 }

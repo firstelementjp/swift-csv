@@ -116,6 +116,11 @@ function addLogEntry(message, level = 'info', context = 'export') {
 	const logContent = document.querySelector(`#${context}-log-content`);
 	if (!logContent) return;
 
+	// Keep only latest 100 entries to prevent performance issues
+	if (logContent.children.length >= 100) {
+		logContent.removeChild(logContent.firstChild);
+	}
+
 	const logEntry = document.createElement('div');
 	logEntry.className = `log-entry log-${level} log-${context}`;
 

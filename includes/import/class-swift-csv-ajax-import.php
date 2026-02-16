@@ -419,10 +419,19 @@ class Swift_CSV_Ajax_Import {
 			'dry_run_details' => [], // New: detailed row-by-row results.
 		];
 
-		$cumulative_counts = $this->get_response_manager_util()->get_cumulative_counts();
-		$previous_created  = $cumulative_counts['created'];
-		$previous_updated  = $cumulative_counts['updated'];
-		$previous_errors   = $cumulative_counts['errors'];
+		// For dry run, reset cumulative counts to prevent log accumulation
+		if ( $config['dry_run'] ) {
+			$cumulative_counts = [
+				'created' => 0,
+				'updated' => 0,
+				'errors'  => 0,
+			];
+		} else {
+			$cumulative_counts = $this->get_response_manager_util()->get_cumulative_counts();
+		}
+		$previous_created = $cumulative_counts['created'];
+		$previous_updated = $cumulative_counts['updated'];
+		$previous_errors  = $cumulative_counts['errors'];
 
 		// Process batch using batch processor.
 		$counters = $this->get_batch_processor_util()->process_batch( $config, $csv_data );

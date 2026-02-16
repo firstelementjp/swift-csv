@@ -168,13 +168,22 @@ class Swift_CSV_Import_Batch_Processor {
 
 		$allowed_post_fields = $this->get_allowed_post_fields();
 
-		// Use Swift_CSV_Helper directly for ID column validation.
-		$validation_result = Swift_CSV_Helper::validate_id_column( $csv_data['headers'], $config['file_path'] );
-		if ( ! $validation_result['valid'] ) {
-			Swift_CSV_Helper::send_error_response( $validation_result['error'] );
-			return;
+		// Validate ID column only on first batch to prevent performance issues
+		if ( 0 === $config['start_row'] ) {
+			// Use Swift_CSV_Helper directly for ID column validation.
+			$validation_result = Swift_CSV_Helper::validate_id_column( $csv_data['headers'], $config['file_path'] );
+			if ( ! $validation_result['valid'] ) {
+				Swift_CSV_Helper::send_error_response( $validation_result['error'] );
+				return;
+			}
+			$id_col = $validation_result['id_col'];
+		} else {
+			// For subsequent batches, get ID column from headers directly
+			$id_col = array_search( 'ID', $csv_data['headers'], true );
+			if ( false === $id_col ) {
+				$id_col = null;
+			}
 		}
-		$id_col = $validation_result['id_col'];
 
 		// Calculate end row once to avoid function calls in loop test.
 		$end_row = min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] );

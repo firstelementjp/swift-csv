@@ -283,29 +283,6 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Process batch of CSV rows.
-	 *
-	 * @since 0.9.0
-	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool} $config Import configuration.
-	 * @param array{lines:array<int,string>,delimiter:string,headers:array<int,string>,taxonomy_format_validation:array,total_rows:int}        $csv_data Parsed CSV data.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>}                                            $counters Counters (by reference).
-	 * @return void
-	 */
-	private function process_batch_import( array $config, array $csv_data, array &$counters ): void {
-		global $wpdb;
-
-		$allowed_post_fields = $this->get_allowed_post_fields();
-		$id_col              = $this->ensure_id_column_or_send_error_and_cleanup( $csv_data['headers'], $config['file_path'] );
-		if ( null === $id_col ) {
-			return;
-		}
-
-		for ( $i = $config['start_row']; $i < min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] ); $i++ ) {
-			$this->process_import_loop_iteration( $wpdb, $config, $csv_data, $allowed_post_fields, $i, $counters );
-		}
-	}
-
-	/**
 	 * Process one import loop iteration.
 	 *
 	 * @since 0.9.0
@@ -526,64 +503,6 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Send JSON response for import progress.
-	 *
-	 * @since 0.9.0
-	 * @param int                $start_row Start row.
-	 * @param int                $processed Processed count.
-	 * @param int                $total_rows Total rows.
-	 * @param int                $errors Error count.
-	 * @param int                $created Created count.
-	 * @param int                $updated Updated count.
-	 * @param int                $previous_created Previous cumulative created.
-	 * @param int                $previous_updated Previous cumulative updated.
-	 * @param int                $previous_errors Previous cumulative errors.
-	 * @param bool               $dry_run Dry run flag.
-	 * @param array<int, string> $dry_run_log Dry run log.
-	 * @param array<array,mixed> $dry_run_details Detailed dry run results.
-	 * @return void
-	 */
-	private function send_import_progress_response( int $start_row, int $processed, int $total_rows, int $errors, int $created, int $updated, int $previous_created, int $previous_updated, int $previous_errors, bool $dry_run, array $dry_run_log, array $dry_run_details ): void {
-		$next_row = $start_row + $processed; // Use actual processed count
-		$continue = $next_row < $total_rows;
-
-		wp_send_json(
-			[
-				'success'            => true,
-				'processed'          => $next_row,
-				'total'              => $total_rows,
-				'batch_processed'    => $processed,
-				'batch_errors'       => $errors,
-				'created'            => $created,
-				'updated'            => $updated,
-				'errors'             => $errors,
-				'cumulative_created' => $previous_created + $created,
-				'cumulative_updated' => $previous_updated + $updated,
-				'cumulative_errors'  => $previous_errors + $errors,
-				'progress'           => round( ( $next_row / $total_rows ) * 100, 2 ),
-				'continue'           => $continue,
-				'dry_run'            => $dry_run,
-				'dry_run_log'        => $dry_run_log,
-				'dry_run_details'    => $dry_run_details,
-			]
-		);
-	}
-
-	/**
-	 * Cleanup temporary file when import is complete.
-	 *
-	 * @since 0.9.0
-	 * @param bool   $continue Whether import continues.
-	 * @param string $file_path Temporary file path.
-	 * @return void
-	 */
-	private function cleanup_temp_file_if_complete( bool $continue, string $file_path ): void {
-		if ( ! $continue && $file_path && file_exists( $file_path ) ) {
-			unlink( $file_path );
-		}
-	}
-
-	/**
 	 * Handle successful row import.
 	 *
 	 * @since 0.9.0
@@ -659,8 +578,8 @@ class Swift_CSV_Ajax_Import {
 			$status          = 'success';
 			$details_message = sprintf(
 				$is_update ?
-					__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ) :
-					__( 'New post: title=%1$s, ID will be assigned', 'swift-csv' ),
+				__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ) :
+				__( 'New post: title=%1$s, ID will be assigned', 'swift-csv' ),
 				$post_id,
 				$post_title
 			);

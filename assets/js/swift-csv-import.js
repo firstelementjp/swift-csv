@@ -188,6 +188,19 @@ function handleAjaxImport(e) {
 			isCancelled = true;
 			abortController.abort(); // Cancel the fetch request
 
+			// Reset progress bar
+			const progressContainer = document.querySelector('.swift-csv-progress');
+			if (progressContainer) {
+				const progressFill = progressContainer.querySelector('.progress-bar-fill');
+				const progressStats = progressContainer.querySelector('.progress-stats');
+
+				if (progressFill) {
+					progressFill.style.width = '0%';
+				}
+				// Keep the processed numbers as they are for user reference
+				// Don't reset: "3 / 10 rows processed (30%)" should remain
+			}
+
 			if (importBtn) {
 				importBtn.disabled = false;
 				importBtn.textContent = swiftCSV.messages.startImport;

@@ -33,7 +33,7 @@ class Swift_CSV_Helper {
 		$in_quotes    = false;
 
 		foreach ( explode( "\n", $csv_content ) as $line ) {
-			// Count quotes to determine if we're inside a quoted field
+			// Count quotes to determine if we're inside a quoted field.
 			$quote_count = substr_count( $line, '"' );
 
 			if ( $in_quotes ) {
@@ -42,12 +42,12 @@ class Swift_CSV_Helper {
 				$current_line = $line;
 			}
 
-			// Toggle quote state (odd number of quotes means we're inside quotes)
-			if ( $quote_count % 2 === 1 ) {
+			// Toggle quote state (odd number of quotes means we're inside quotes).
+			if ( 1 === $quote_count % 2 ) {
 				$in_quotes = ! $in_quotes;
 			}
 
-			// Only add line if we're not inside quotes
+			// Only add line if we're not inside quotes.
 			if ( ! $in_quotes ) {
 				$lines[]      = $current_line;
 				$current_line = '';
@@ -110,7 +110,7 @@ class Swift_CSV_Helper {
 	 * Parse PHP ini size string to bytes.
 	 *
 	 * @since 0.9.0
-	 * @param string $size The size string (e.g., '10M', '1G')
+	 * @param string $size The size string (e.g., '10M', '1G').
 	 * @return int Size in bytes
 	 */
 	public static function parse_ini_size( $size ) {
@@ -129,34 +129,20 @@ class Swift_CSV_Helper {
 		}
 	}
 
-	/**
-	 * Setup DB session for import process.
-	 *
-	 * @since 0.9.0
-	 * @param wpdb $wpdb WordPress DB instance.
-	 * @return void
-	 */
-	public static function setup_db_session( wpdb $wpdb ): void {
-		// Disable locks
-		$wpdb->query( 'SET SESSION autocommit = 1' );
-		$wpdb->query( 'SET SESSION innodb_lock_wait_timeout = 1' );
-	}
 
 	/**
 	 * Update GUID for newly inserted posts.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb $wpdb WordPress DB instance.
-	 * @param int  $post_id Post ID.
+	 * @param int $post_id Post ID.
 	 * @return void
 	 */
-	public static function update_guid_for_new_post( wpdb $wpdb, int $post_id ): void {
-		$wpdb->update(
-			$wpdb->posts,
-			[ 'guid' => get_permalink( $post_id ) ],
-			[ 'ID' => $post_id ],
-			[ '%s' ],
-			[ '%d' ]
+	public static function update_guid_for_new_post( int $post_id ): void {
+		wp_update_post(
+			[
+				'ID'   => $post_id,
+				'guid' => get_permalink( $post_id ),
+			]
 		);
 	}
 
@@ -170,7 +156,7 @@ class Swift_CSV_Helper {
 	 */
 	public static function send_error_response( $error_message, $file_path = null ) {
 		if ( $file_path && file_exists( $file_path ) ) {
-			unlink( $file_path );
+			wp_delete_file( $file_path );
 		}
 
 		wp_send_json(
@@ -270,7 +256,7 @@ class Swift_CSV_Helper {
 		$mixed       = false;
 
 		foreach ( $term_values as $term_val ) {
-			if ( $term_val === '' ) {
+			if ( '' === $term_val ) {
 				continue;
 			}
 
@@ -303,8 +289,8 @@ class Swift_CSV_Helper {
 	 * @return array{valid:bool,error:string|null} Validation result.
 	 */
 	public static function validate_taxonomy_format_consistency( $taxonomy_format, $validation, $file_path = null ) {
-		// Check for format mismatches
-		if ( $taxonomy_format === 'name' && $validation['all_numeric'] ) {
+		// Check for format mismatches.
+		if ( 'name' === $taxonomy_format && $validation['all_numeric'] ) {
 			$error = sprintf(
 				/* translators: 1: taxonomy name, 2: UI format, 3: sample values */
 				__( 'Format mismatch detected for taxonomy "%1$s". UI is set to "Names" but CSV contains only numeric values: %2$s. Please check your data format.', 'swift-csv' ),
@@ -313,7 +299,7 @@ class Swift_CSV_Helper {
 			);
 
 			if ( $file_path && file_exists( $file_path ) ) {
-				unlink( $file_path );
+				wp_delete_file( $file_path );
 			}
 
 			return [
@@ -322,7 +308,7 @@ class Swift_CSV_Helper {
 			];
 		}
 
-		if ( $taxonomy_format === 'id' && $validation['all_string'] ) {
+		if ( 'id' === $taxonomy_format && $validation['all_string'] ) {
 			$error = sprintf(
 				/* translators: 1: taxonomy name, 2: UI format, 3: sample values */
 				__( 'Format mismatch detected for taxonomy "%1$s". UI is set to "Term IDs" but CSV contains only text values: %2$s. Please check your data format.', 'swift-csv' ),
@@ -331,7 +317,7 @@ class Swift_CSV_Helper {
 			);
 
 			if ( $file_path && file_exists( $file_path ) ) {
-				unlink( $file_path );
+				wp_delete_file( $file_path );
 			}
 
 			return [
@@ -356,7 +342,7 @@ class Swift_CSV_Helper {
 	 */
 	public static function validate_id_column( $headers, $file_path = null ) {
 		$id_col = array_search( 'ID', $headers, true );
-		if ( $id_col !== false ) {
+		if ( false !== $id_col ) {
 			return [
 				'valid'  => true,
 				'id_col' => $id_col,
@@ -365,7 +351,7 @@ class Swift_CSV_Helper {
 		}
 
 		if ( $file_path && file_exists( $file_path ) ) {
-			unlink( $file_path );
+			wp_delete_file( $file_path );
 		}
 
 		return [
@@ -435,7 +421,7 @@ class Swift_CSV_Helper {
 			];
 		}
 
-		// Create new term
+		// Create new term.
 		$created = wp_insert_term( $term_name, $taxonomy );
 		if ( is_wp_error( $created ) ) {
 			return [
@@ -463,14 +449,14 @@ class Swift_CSV_Helper {
 	 * @return array<int, int> Array of resolved term IDs.
 	 */
 	public static function resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation ) {
-		// Handle different taxonomy formats with mixed data support
-		if ( $taxonomy_format === 'id' ) {
-			// Handle term IDs
+		// Handle different taxonomy formats with mixed data support.
+		if ( 'id' === $taxonomy_format ) {
+			// Handle term IDs.
 			$term_id = intval( $term_value );
 
-			// Check if the term value is actually a valid ID
-			if ( $term_id === 0 ) {
-				// For mixed format, treat numeric values as names
+			// Check if the term value is actually a valid ID.
+			if ( 0 === $term_id ) {
+				// For mixed format, treat numeric values as names.
 				if ( isset( $taxonomy_format_validation[ $taxonomy ] ) && $taxonomy_format_validation[ $taxonomy ]['mixed'] ) {
 					$name_result = self::resolve_term_by_name( $term_value, $taxonomy );
 					if ( $name_result['valid'] ) {
@@ -478,11 +464,11 @@ class Swift_CSV_Helper {
 					}
 				}
 
-				// Skip this term as it's not a valid ID
+				// Skip this term as it's not a valid ID.
 				return [];
 			}
 
-			// Valid ID, process normally
+			// Valid ID, process normally.
 			$id_result = self::resolve_term_by_id( $term_id, $taxonomy );
 			if ( $id_result['valid'] ) {
 				return [ $id_result['term_id'] ];
@@ -491,7 +477,7 @@ class Swift_CSV_Helper {
 			return [];
 		}
 
-		// Handle term names (default)
+		// Handle term names (default).
 		$name_result = self::resolve_term_by_name( $term_value, $taxonomy );
 		if ( $name_result['valid'] ) {
 			return [ $name_result['term_id'] ];

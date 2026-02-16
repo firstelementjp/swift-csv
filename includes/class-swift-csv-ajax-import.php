@@ -849,41 +849,4 @@ class Swift_CSV_Ajax_Import {
 			'ping_status',
 		];
 	}
-
-	/**
-	 * Ensure CSV has the required ID column.
-	 *
-	 * @since 0.9.0
-	 * @param array<int, string> $headers CSV headers.
-	 * @param string             $file_path Temporary file path for cleanup.
-	 * @return int|null ID column index or null on error (sends JSON response).
-	 */
-	private function ensure_id_column_or_send_error_and_cleanup( $headers, $file_path ) {
-		$validation_result = Swift_CSV_Helper::validate_id_column( $headers, $file_path );
-
-		if ( ! $validation_result['valid'] ) {
-			Swift_CSV_Helper::send_error_response( $validation_result['error'] );
-			return null;
-		}
-
-		return $validation_result['id_col'];
-	}
-
-	/**
-	 * Get cumulative counts from previous chunks.
-	 *
-	 * @since 0.9.0
-	 * @return array{created:int,updated:int,errors:int}
-	 */
-	private function get_cumulative_counts() {
-		$previous_created = isset( $_POST['cumulative_created'] ) ? intval( $_POST['cumulative_created'] ) : 0;
-		$previous_updated = isset( $_POST['cumulative_updated'] ) ? intval( $_POST['cumulative_updated'] ) : 0;
-		$previous_errors  = isset( $_POST['cumulative_errors'] ) ? intval( $_POST['cumulative_errors'] ) : 0;
-
-		return [
-			'created' => $previous_created,
-			'updated' => $previous_updated,
-			'errors'  => $previous_errors,
-		];
-	}
 }

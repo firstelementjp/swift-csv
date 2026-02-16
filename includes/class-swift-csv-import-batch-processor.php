@@ -168,11 +168,13 @@ class Swift_CSV_Import_Batch_Processor {
 
 		$allowed_post_fields = $this->get_allowed_post_fields();
 
-		// Use Ajax_Import's original ensure_id_column method
-		$id_col = $this->ensure_id_column_or_send_error_and_cleanup( $csv_data['headers'], $config['file_path'] );
-		if ( null === $id_col ) {
+		// Use Swift_CSV_Helper directly for ID column validation
+		$validation_result = Swift_CSV_Helper::validate_id_column( $csv_data['headers'], $config['file_path'] );
+		if ( ! $validation_result['valid'] ) {
+			Swift_CSV_Helper::send_error_response( $validation_result['error'] );
 			return;
 		}
+		$id_col = $validation_result['id_col'];
 
 		for ( $i = $config['start_row']; $i < min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] ); $i++ ) {
 			$this->process_import_loop_iteration( $wpdb, $config, $csv_data, $allowed_post_fields, $i, $counters );

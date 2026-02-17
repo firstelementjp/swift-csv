@@ -93,6 +93,125 @@ function initFileUpload() {
 	}
 }
 
+let importSession = '';
+let currentDryRun = '0';
+let currentEnableLogs = '0';
+let importLogLastId = 0;
+let importLogPollingTimer = null;
+let importLogPollingAbortController = null;
+let importLogPollingPromise = null;
+let isImportCancelled = false;
+
+function stopImportLogPolling({ abortRequest = true } = {}) {
+	if (importLogPollingTimer) {
+		clearInterval(importLogPollingTimer);
+		importLogPollingTimer = null;
+	}
+
+	if (abortRequest && importLogPollingAbortController) {
+		try {
+			importLogPollingAbortController.abort();
+		} catch (e) {
+			// ignore
+		}
+	}
+	importLogPollingAbortController = null;
+	importLogPollingPromise = null;
+}
+
+function pollImportLogs() {
+	if (isImportCancelled) return Promise.resolve();
+
+	if (currentEnableLogs !== '1') return Promise.resolve();
+
+	if (!importSession) return Promise.resolve();
+
+	if (importLogPollingAbortController) {
+		return importLogPollingPromise || Promise.resolve();
+	}
+
+	importLogPollingAbortController = new AbortController();
+	const logFormData = new URLSearchParams({
+		action: 'swift_csv_ajax_import_logs',
+		nonce: swiftCSV.nonce,
+		import_session: importSession,
+		enable_logs: currentEnableLogs,
+		after_id: String(importLogLastId),
+		limit: '200',
+	});
+
+	importLogPollingPromise = fetch(swiftCSV.ajaxUrl, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+		},
+		body: logFormData,
+		signal: importLogPollingAbortController.signal,
+	})
+		.then(response => response.json())
+		.then(data => {
+			importLogPollingAbortController = null;
+			importLogPollingPromise = null;
+			if (!data || !data.success || !data.data) {
+				return;
+			}
+
+			const payload = data.data;
+			if (payload.last_id !== undefined) {
+				importLogLastId = Number(payload.last_id) || importLogLastId;
+			}
+
+			if (payload.logs && Array.isArray(payload.logs) && payload.logs.length > 0) {
+				payload.logs.forEach(item => {
+					if (!item || !item.detail) return;
+					const detail = item.detail;
+					const statusIcon = detail.status === 'success' ? '✓' : '✗';
+					const actionText =
+						detail.action === 'create'
+							? swiftCSV.messages.createAction
+							: swiftCSV.messages.updateAction;
+					const prefix =
+						currentDryRun === '1'
+							? `[${swiftCSV.messages.dryRunPrefix}]`
+							: `[${swiftCSV.messages.importPrefix}]`;
+					const logMessage = `${prefix} ${statusIcon} ${swiftCSV.messages.rowLabel}${detail.row}: ${actionText} - "${detail.title}"`;
+					addLogEntry(
+						logMessage,
+						detail.status === 'success' ? 'success' : 'error',
+						'import'
+					);
+				});
+			}
+		})
+		.catch(() => {
+			importLogPollingAbortController = null;
+			importLogPollingPromise = null;
+		});
+
+	return importLogPollingPromise;
+}
+
+function startImportLogPolling() {
+	if (importLogPollingTimer) return;
+	pollImportLogs();
+	importLogPollingTimer = setInterval(() => pollImportLogs(), 500);
+}
+
+function flushImportLogsAfterComplete({ attempts = 3, delayMs = 300 } = {}) {
+	let chain = Promise.resolve();
+	for (let i = 0; i < attempts; i++) {
+		chain = chain
+			.then(() => pollImportLogs())
+			.then(
+				() =>
+					new Promise(resolve => {
+						setTimeout(resolve, delayMs);
+					})
+			);
+	}
+	return chain;
+}
+
 /**
  * Handle file selection
  *
@@ -151,6 +270,18 @@ function handleAjaxImport(e) {
 	const dryRun = document.querySelector('input[name="swift_csv_import_dry_run"]')?.checked
 		? '1'
 		: '0';
+	const enableLogs = document.querySelector('input[name="swift_csv_import_enable_logs"]')?.checked
+		? '1'
+		: '0';
+
+	importSession = Math.random().toString(36).slice(2, 14) + Date.now().toString(36);
+	currentDryRun = dryRun;
+	currentEnableLogs = enableLogs;
+	importLogLastId = 0;
+	stopImportLogPolling({ abortRequest: true });
+	if (enableLogs === '1') {
+		pollImportLogs();
+	}
 
 	// Log import settings
 	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.fileInfo + ' ' + file.name, 'debug');
@@ -171,7 +302,7 @@ function handleAjaxImport(e) {
 	const cancelBtn = document.querySelector('#ajax-import-cancel-btn');
 	const startTime = Date.now();
 	const abortController = new AbortController();
-	let isCancelled = false;
+	isImportCancelled = false;
 
 	// Update button states
 	if (importBtn) {
@@ -185,7 +316,8 @@ function handleAjaxImport(e) {
 	// Cancel functionality
 	if (cancelBtn) {
 		cancelBtn.addEventListener('click', function () {
-			isCancelled = true;
+			isImportCancelled = true;
+			stopImportLogPolling({ abortRequest: true });
 			abortController.abort(); // Cancel the fetch request
 
 			// Reset progress bar
@@ -222,10 +354,10 @@ function handleAjaxImport(e) {
 		updateExisting,
 		taxonomyFormat,
 		dryRun,
+		enableLogs,
 		importBtn,
 		cancelBtn,
 		startTime,
-		isCancelled,
 		abortController
 	);
 }
@@ -245,7 +377,6 @@ function handleAjaxImport(e) {
  * @param {HTMLElement} importBtn Import button element
  * @param {HTMLElement} cancelBtn Cancel button element
  * @param {number} startTime Start time
- * @param {boolean} isCancelled Cancel flag
  * @param {AbortController} abortController Abort controller for cancelling fetch
  */
 function processImportChunk(
@@ -258,19 +389,20 @@ function processImportChunk(
 	updateExisting,
 	taxonomyFormat,
 	dryRun,
+	enableLogs,
 	importBtn,
 	cancelBtn,
 	startTime,
-	isCancelled,
 	abortController
 ) {
-	if (isCancelled) return;
+	if (isImportCancelled) return;
 
 	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.processingChunk + ' ' + startRow, 'debug');
 
 	const formData = new FormData();
 	formData.append('action', 'swift_csv_ajax_import');
 	formData.append('nonce', swiftCSV.nonce);
+	formData.append('import_session', importSession);
 
 	// Only send file on first request (start_row = 0)
 	if (startRow === 0) {
@@ -281,6 +413,7 @@ function processImportChunk(
 	formData.append('update_existing', updateExisting);
 	formData.append('taxonomy_format', taxonomyFormat);
 	formData.append('dry_run', dryRun);
+	formData.append('enable_logs', enableLogs);
 	formData.append('start_row', startRow);
 	formData.append('cumulative_created', cumulativeCreated);
 	formData.append('cumulative_updated', cumulativeUpdated);
@@ -297,32 +430,8 @@ function processImportChunk(
 			if (data.success) {
 				// Update progress
 				updateImportProgress(data, startTime);
-
-				// Show batch processing logs for real-time display (both Dry Run and actual import)
-				if (data.dry_run || !data.dry_run) {
-					// Display detailed processing results for each row in the batch
-					if (
-						data.dry_run_details &&
-						Array.isArray(data.dry_run_details) &&
-						data.dry_run_details.length > 0
-					) {
-						data.dry_run_details.forEach(detail => {
-							const statusIcon = detail.status === 'success' ? '✓' : '✗';
-							const actionText =
-								detail.action === 'create'
-									? swiftCSV.messages.createAction
-									: swiftCSV.messages.updateAction;
-							const prefix = data.dry_run
-								? `[${swiftCSV.messages.dryRunPrefix}]`
-								: `[${swiftCSV.messages.importPrefix}]`;
-							const logMessage = `${prefix} ${statusIcon} ${swiftCSV.messages.rowLabel}${detail.row}: ${actionText} - "${detail.title}"`;
-							addLogEntry(
-								logMessage,
-								detail.status === 'success' ? 'success' : 'error',
-								'import'
-							);
-						});
-					}
+				if (enableLogs === '1') {
+					pollImportLogs();
 				}
 
 				if (data.continue) {
@@ -337,19 +446,33 @@ function processImportChunk(
 						updateExisting,
 						taxonomyFormat,
 						dryRun,
+						enableLogs,
 						importBtn,
 						cancelBtn,
 						startTime,
-						isCancelled,
 						abortController
 					);
 				} else {
-					// Import completed - show final completion
-					completeAjaxImport(data, importBtn, cancelBtn);
+					// Import complete
+					if (data.dry_run) {
+						addLogEntry(swiftCSV.messages.dryRunComplete, 'success', 'import');
+					} else {
+						addLogEntry(swiftCSV.messages.importComplete, 'success', 'import');
+					}
+					if (enableLogs === '1') {
+						flushImportLogsAfterComplete({ attempts: 3, delayMs: 300 }).finally(() => {
+							stopImportLogPolling({ abortRequest: false });
+							completeAjaxImport(data, importBtn, cancelBtn);
+						});
+					} else {
+						stopImportLogPolling({ abortRequest: false });
+						completeAjaxImport(data, importBtn, cancelBtn);
+					}
 				}
 			} else {
 				// Handle error
 				addLogEntry(swiftCSV.messages.importError + ' ' + data.error, 'error', 'import');
+				stopImportLogPolling({ abortRequest: true });
 
 				if (importBtn) {
 					importBtn.disabled = false;
@@ -365,12 +488,14 @@ function processImportChunk(
 			if (error.name === 'AbortError') {
 				// This is expected when user cancels - don't show as error
 				addLogEntry(swiftCSV.messages.importCancelledByUser, 'warning', 'import');
+				stopImportLogPolling({ abortRequest: true });
 				return;
 			}
 
 			// Handle other errors
 			const errorMessage = error.message || 'Unknown error occurred';
 			addLogEntry(swiftCSV.messages.importError + ' ' + errorMessage, 'error', 'import');
+			stopImportLogPolling({ abortRequest: true });
 
 			if (importBtn) {
 				importBtn.disabled = false;

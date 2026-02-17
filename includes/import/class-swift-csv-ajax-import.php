@@ -24,6 +24,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Ajax_Import {
 	/**
+	 * Maximum number of import logs to store per session.
+	 *
+	 * @since 0.9.8
+	 * @var int
+	 */
+	private $import_log_store_max = 500;
+
+	/**
+	 * Import log transient TTL in seconds.
+	 *
+	 * @since 0.9.8
+	 * @var int
+	 */
+	private $import_log_store_ttl = 3600;
+
+	/**
 	 * CSV utility instance
 	 *
 	 * @since 0.9.0
@@ -119,6 +135,191 @@ class Swift_CSV_Ajax_Import {
 	public function __construct() {
 		// Only use import_handler to avoid duplicate file processing
 		add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'import_handler' ] );
+		add_action( 'wp_ajax_swift_csv_ajax_import_logs', [ $this, 'handle_ajax_import_logs' ] );
+	}
+
+	/**
+	 * Get the transient key for the import log store.
+	 *
+	 * @since 0.9.8
+	 * @param string $import_session Import session ID.
+	 * @return string
+	 */
+	private function get_import_log_transient_key( string $import_session ): string {
+		$user_id = get_current_user_id();
+		return 'swift_csv_import_logs_' . $user_id . '_' . $import_session;
+	}
+
+	/**
+	 * Initialize import log store.
+	 *
+	 * @since 0.9.8
+	 * @param string $import_session Import session ID.
+	 * @return void
+	 */
+	private function init_import_log_store( string $import_session ): void {
+		$transient_key = $this->get_import_log_transient_key( $import_session );
+		set_transient(
+			$transient_key,
+			[
+				'last_id' => 0,
+				'logs'    => [],
+			],
+			$this->import_log_store_ttl
+		);
+	}
+
+	/**
+	 * Append an import log entry to the store.
+	 *
+	 * @since 0.9.8
+	 * @param string $import_session Import session ID.
+	 * @param array  $detail Log detail array.
+	 * @return int New log ID.
+	 */
+	private function append_import_log( string $import_session, array $detail ): int {
+		$transient_key = $this->get_import_log_transient_key( $import_session );
+		$store         = get_transient( $transient_key );
+		if ( ! is_array( $store ) ) {
+			$store = [
+				'last_id' => 0,
+				'logs'    => [],
+			];
+		}
+
+		$last_id = isset( $store['last_id'] ) ? (int) $store['last_id'] : 0;
+		$new_id  = $last_id + 1;
+		$logs    = isset( $store['logs'] ) && is_array( $store['logs'] ) ? $store['logs'] : [];
+		$logs[]  = [
+			'id'     => $new_id,
+			'detail' => $detail,
+		];
+
+		if ( count( $logs ) > $this->import_log_store_max ) {
+			$logs = array_slice( $logs, -1 * $this->import_log_store_max );
+		}
+
+		set_transient(
+			$transient_key,
+			[
+				'last_id' => $new_id,
+				'logs'    => $logs,
+			],
+			$this->import_log_store_ttl
+		);
+
+		return $new_id;
+	}
+
+	/**
+	 * Fetch import logs since a given log ID.
+	 *
+	 * @since 0.9.8
+	 * @param string $import_session Import session ID.
+	 * @param int    $after_id Last seen log ID.
+	 * @param int    $limit Maximum logs to return.
+	 * @return array{last_id:int,logs:array<int,array{id:int,detail:array}>}
+	 */
+	private function fetch_import_logs_since( string $import_session, int $after_id, int $limit ): array {
+		$transient_key = $this->get_import_log_transient_key( $import_session );
+		$store         = get_transient( $transient_key );
+		if ( ! is_array( $store ) ) {
+			return [
+				'last_id' => $after_id,
+				'logs'    => [],
+			];
+		}
+
+		$last_id = isset( $store['last_id'] ) ? (int) $store['last_id'] : 0;
+		$logs    = isset( $store['logs'] ) && is_array( $store['logs'] ) ? $store['logs'] : [];
+
+		$filtered = [];
+		foreach ( $logs as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			$item_id = isset( $item['id'] ) ? (int) $item['id'] : 0;
+			if ( $item_id <= $after_id ) {
+				continue;
+			}
+			$filtered[] = $item;
+			if ( count( $filtered ) >= $limit ) {
+				break;
+			}
+		}
+
+		return [
+			'last_id' => $last_id,
+			'logs'    => $filtered,
+		];
+	}
+
+	/**
+	 * Cleanup import log store.
+	 *
+	 * @since 0.9.8
+	 * @param string $import_session Import session ID.
+	 * @return void
+	 */
+	private function cleanup_import_log_store( string $import_session ): void {
+		delete_transient( $this->get_import_log_transient_key( $import_session ) );
+	}
+
+	/**
+	 * Get the transient key for CSV parsed data store.
+	 *
+	 * @since 0.9.8
+	 * @param string $import_session Import session ID.
+	 * @return string
+	 */
+	private function get_import_csv_transient_key( string $import_session ): string {
+		$user_id = get_current_user_id();
+		return 'swift_csv_import_csv_' . $user_id . '_' . $import_session;
+	}
+
+	/**
+	 * Cleanup CSV parsed data store.
+	 *
+	 * @since 0.9.8
+	 * @param string $import_session Import session ID.
+	 * @return void
+	 */
+	private function cleanup_import_csv_store( string $import_session ): void {
+		delete_transient( $this->get_import_csv_transient_key( $import_session ) );
+	}
+
+	/**
+	 * Handle AJAX request to fetch import logs.
+	 *
+	 * @since 0.9.8
+	 * @return void
+	 */
+	public function handle_ajax_import_logs(): void {
+		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
+
+		$import_session = sanitize_key( $_POST['import_session'] ?? '' );
+		if ( '' === $import_session ) {
+			wp_send_json_error( 'Missing import session' );
+			return;
+		}
+
+		$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
+		if ( ! $enable_logs ) {
+			wp_send_json_success(
+				[
+					'last_id' => 0,
+					'logs'    => [],
+				]
+			);
+			return;
+		}
+
+		$after_id = isset( $_POST['after_id'] ) ? intval( $_POST['after_id'] ) : 0;
+		$limit    = isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 100;
+		$limit    = max( 1, min( 200, $limit ) );
+
+		$result = $this->fetch_import_logs_since( $import_session, $after_id, $limit );
+		wp_send_json_success( $result );
 	}
 
 	/**
@@ -339,6 +540,8 @@ class Swift_CSV_Ajax_Import {
 	 * @return void Sends JSON response with import results
 	 */
 	public function import_handler() {
+		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
+
 		// Get file path from file-processor first
 		$file_processor = new Swift_CSV_Import_File_Processor();
 		$file_result    = $file_processor->handle_upload();
@@ -347,18 +550,41 @@ class Swift_CSV_Ajax_Import {
 		}
 		$file_path = $file_result['file_path'];
 
-		// Read CSV content directly
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$csv_content = (string) file_get_contents( $file_path );
-		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings.
+		$import_session = sanitize_key( $_POST['import_session'] ?? '' );
+		if ( '' === $import_session ) {
+			Swift_CSV_Helper::send_error_response( 'Missing import session' );
+			return;
+		}
+
+		$start_row   = isset( $_POST['start_row'] ) ? intval( $_POST['start_row'] ) : 0;
+		$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
+		$append_log  = null;
+		if ( $enable_logs && 0 === $start_row ) {
+			$this->init_import_log_store( $import_session );
+		}
+		if ( $enable_logs ) {
+			$append_log = function ( array $detail ) use ( $import_session ): void {
+				$this->append_import_log( $import_session, $detail );
+			};
+		}
+
+		$csv_store_key = $this->get_import_csv_transient_key( $import_session );
+		$csv_data      = get_transient( $csv_store_key );
+		if ( 0 === $start_row ) {
+			// Read CSV content directly (first request only).
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$csv_content = (string) file_get_contents( $file_path );
+			$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content ); // Normalize line endings.
+		} else {
+			$csv_content = '';
+		}
 
 		// Extract and validate parameters
-		$start_row       = isset( $_POST['start_row'] ) ? intval( $_POST['start_row'] ) : 0;
 		$batch_size      = isset( $_POST['batch_size'] ) ? intval( $_POST['batch_size'] ) : 10;
 		$post_type       = sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) );
 		$update_existing = sanitize_text_field( wp_unslash( $_POST['update_existing'] ?? 'no' ) );
 		$taxonomy_format = sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) );
-		$dry_run         = isset( $_POST['dry_run'] ) && 'true' === $_POST['dry_run'];
+		$dry_run         = isset( $_POST['dry_run'] ) && in_array( (string) $_POST['dry_run'], [ '1', 'true' ], true );
 
 		// Validate post type
 		if ( ! post_type_exists( $post_type ) ) {
@@ -376,11 +602,20 @@ class Swift_CSV_Ajax_Import {
 			'taxonomy_format' => $taxonomy_format,
 			'dry_run'         => $dry_run,
 			'csv_content'     => $csv_content,
+			'import_session'  => $import_session,
+			'append_log'      => $append_log,
 		];
 
-		$csv_data = $this->get_csv_parser_util()->parse_and_validate_csv( $csv_content, $config, $file_path );
-		if ( null === $csv_data ) {
-			return;
+		if ( 0 === $start_row ) {
+			$csv_data = $this->get_csv_parser_util()->parse_and_validate_csv( $csv_content, $config, $file_path );
+			if ( null === $csv_data ) {
+				$this->cleanup_import_log_store( $import_session );
+				return;
+			}
+			set_transient( $csv_store_key, $csv_data, $this->import_log_store_ttl );
+		} elseif ( ! is_array( $csv_data ) ) {
+				Swift_CSV_Helper::send_error_response( 'Missing CSV cache for import session' );
+				return;
 		}
 
 		/**
@@ -436,10 +671,23 @@ class Swift_CSV_Ajax_Import {
 		// Process batch using batch processor.
 		$counters = $this->get_batch_processor_util()->process_batch( $config, $csv_data );
 
+		// Flush any collected per-row details to the log store.
+		if ( $enable_logs && ! empty( $counters['dry_run_details'] ) && is_array( $counters['dry_run_details'] ) ) {
+			foreach ( $counters['dry_run_details'] as $detail ) {
+				if ( ! is_array( $detail ) ) {
+					continue;
+				}
+				$this->append_import_log( $import_session, $detail );
+			}
+		}
+
 		$next_row = $config['start_row'] + $counters['processed'];
 		$continue = $next_row < $total_rows;
 
 		$this->get_response_manager_util()->cleanup_temp_file_if_complete( $continue, $config['file_path'] );
+		if ( ! $continue ) {
+			$this->cleanup_import_csv_store( $import_session );
+		}
 
 		$this->get_response_manager_util()->send_import_progress_response(
 			$config['start_row'],
@@ -453,7 +701,7 @@ class Swift_CSV_Ajax_Import {
 			$previous_errors,
 			$config['dry_run'],
 			$counters['dry_run_log'],
-			$counters['dry_run_details']
+			[]
 		);
 	}
 
@@ -469,8 +717,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return void
 	 */
 	private function handle_successful_row_import( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters ) {
-		$dry_run_log     = &$counters['dry_run_log'];
-		$dry_run_details = &$counters['dry_run_details'];
+		$dry_run_log = &$counters['dry_run_log'];
 
 		$headers                    = $context['headers'];
 		$data                       = $context['data'];
@@ -561,8 +808,10 @@ class Swift_CSV_Ajax_Import {
 				'details' => $details_message,
 			];
 
-			$dry_run_details[] = $detail;
-
+			$import_session = (string) ( $context['import_session'] ?? '' );
+			if ( '' !== $import_session ) {
+				$this->append_import_log( $import_session, $detail );
+			}
 		}
 
 		$this->get_row_processor_util()->apply_success_counters_and_guid_without_callbacks(

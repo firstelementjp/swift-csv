@@ -363,6 +363,14 @@ class Swift_CSV_Admin {
 		);
 
 		add_settings_field(
+			'swift_csv_import_enable_logs',
+			'',
+			[ $this, 'import_enable_logs_field_html' ],
+			'swift-csv',
+			'swift_csv_import_section'
+		);
+
+		add_settings_field(
 			'swift_csv_import_dry_run',
 			'',
 			[ $this, 'import_dry_run_field_html' ],
@@ -647,6 +655,29 @@ class Swift_CSV_Admin {
 					<?php esc_html_e( 'Test import without creating posts', 'swift-csv' ); ?>
 				</label>
 				<p class="description"><?php esc_html_e( 'Run a test import to preview changes without modifying your data. (Dry Run)', 'swift-csv' ); ?></p>
+			</dd>
+		</dl>
+		<?php
+	}
+
+	/**
+	 * Import enable logs field callback
+	 *
+	 * @since 0.9.8
+	 * @return void
+	 */
+	public function import_enable_logs_field_html() {
+		?>
+		<dl>
+			<dt>
+				<?php esc_html_e( 'Log Output', 'swift-csv' ); ?>
+			</dt>
+			<dd>
+				<label>
+					<input type="checkbox" id="swift_csv_import_enable_logs" name="swift_csv_import_enable_logs" value="1">
+					<?php esc_html_e( 'Output logs during import', 'swift-csv' ); ?>
+				</label>
+				<p class="description"><?php esc_html_e( 'If checked, detailed per-row logs will be generated and displayed. Disable for maximum speed.', 'swift-csv' ); ?></p>
 			</dd>
 		</dl>
 		<?php

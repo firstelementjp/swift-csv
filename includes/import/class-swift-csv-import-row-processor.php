@@ -119,23 +119,26 @@ class Swift_CSV_Import_Row_Processor {
 		} catch ( Exception $e ) {
 			++$errors;
 
-			// Record detailed processing information for errors (both dry run and actual import).
-			if ( isset( $counters['dry_run_details'] ) ) {
-				$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number.
-				$post_title = $post_fields_from_csv['post_title'] ?? 'Untitled';
+			$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number.
+			$post_title = $post_fields_from_csv['post_title'] ?? 'Untitled';
 
-				$counters['dry_run_details'][] = [
-					'row'     => $row_number,
-					'action'  => $is_update ? 'update' : 'create',
-					'title'   => $post_title,
-					'post_id' => $post_id,
-					'status'  => 'error',
-					'details' => sprintf(
-						// translators: %s: Error message from exception.
-						__( 'Error: %1$s', 'swift-csv' ),
-						$e->getMessage()
-					),
-				];
+			$detail = [
+				'row'     => $row_number,
+				'action'  => $is_update ? 'update' : 'create',
+				'title'   => $post_title,
+				'post_id' => $post_id,
+				'status'  => 'error',
+				'details' => sprintf(
+					// translators: %s: Error message from exception.
+					__( 'Error: %1$s', 'swift-csv' ),
+					$e->getMessage()
+				),
+			];
+
+			if ( isset( $context['append_log'] ) && is_callable( $context['append_log'] ) ) {
+				call_user_func( $context['append_log'], $detail );
+			} elseif ( isset( $counters['dry_run_details'] ) ) {
+				$counters['dry_run_details'][] = $detail;
 			}
 
 			return;

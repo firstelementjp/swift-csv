@@ -97,6 +97,10 @@ msgstr "ログ出力"
 msgid "Output logs during import"
 msgstr "インポート中にログを出力する"
 
+#: includes/class-swift-csv-admin.php:457
+msgid "Output logs during export"
+msgstr "エクスポート中にログを出力する"
+
 #: includes/class-swift-csv-admin.php:680
 msgid "If checked, detailed per-row logs will be generated and displayed. Disable for maximum speed."
 msgstr "チェックすると行単位の詳細ログを生成・表示します。速度を優先する場合はオフにしてください。"

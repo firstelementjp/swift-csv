@@ -805,6 +805,7 @@ class Swift_CSV_Ajax_Export {
 			$include_private_meta = ! empty( $_POST['include_private_meta'] ) && (string) $_POST['include_private_meta'] === '1';
 			$export_limit         = ! empty( $_POST['export_limit'] ) ? intval( $_POST['export_limit'] ) : 0;
 			$taxonomy_format      = sanitize_text_field( $_POST['taxonomy_format'] ?? 'name' );
+			$enable_logs          = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
 			$start_row            = intval( $_POST['start_row'] ?? 0 );
 			$export_session       = sanitize_key( $_POST['export_session'] ?? '' );
 			if ( '' === $export_session ) {
@@ -814,7 +815,9 @@ class Swift_CSV_Ajax_Export {
 
 			if ( 0 === $start_row ) {
 				$this->cleanup_old_cancel_flags();
-				$this->init_export_log_store( $export_session );
+				if ( $enable_logs ) {
+					$this->init_export_log_store( $export_session );
+				}
 			}
 
 			if ( $this->is_cancelled( $export_session ) ) {
@@ -1061,15 +1064,17 @@ class Swift_CSV_Ajax_Export {
 					$row[] = $value;
 				}
 
-				$detail = [
-					'row'     => $start_row + $processed_count + 1,
-					'action'  => 'export',
-					'title'   => $post_title,
-					'post_id' => $post_id,
-					'status'  => 'success',
-					'details' => __( 'Export post: ', 'swift-csv' ) . 'ID=' . $post_id . ', title=' . $post_title,
-				];
-				$this->append_export_log( $export_session, $detail );
+				if ( $enable_logs ) {
+					$detail = [
+						'row'     => $start_row + $processed_count + 1,
+						'action'  => 'export',
+						'title'   => $post_title,
+						'post_id' => $post_id,
+						'status'  => 'success',
+						'details' => __( 'Export post: ', 'swift-csv' ) . 'ID=' . $post_id . ', title=' . $post_title,
+					];
+					$this->append_export_log( $export_session, $detail );
+				}
 
 				$csv_chunk .= $this->fputcsv_row( $row );
 				++$processed_count;
@@ -1114,6 +1119,17 @@ class Swift_CSV_Ajax_Export {
 		$export_session = sanitize_key( $_POST['export_session'] ?? '' );
 		if ( '' === $export_session ) {
 			wp_send_json_error( 'Missing export session' );
+			return;
+		}
+
+		$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
+		if ( ! $enable_logs ) {
+			wp_send_json_success(
+				[
+					'last_id' => 0,
+					'logs'    => [],
+				]
+			);
 			return;
 		}
 

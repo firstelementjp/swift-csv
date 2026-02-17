@@ -14,10 +14,6 @@
 function handleAjaxExport(e) {
 	e.preventDefault();
 
-	// Clear export log
-	clearLog('export');
-	addLogEntry(swiftCSV.messages.startingExport, 'info', 'export');
-
 	// Start progress bar animation immediately
 	const progressContainer = document.querySelector('.swift-csv-progress');
 	if (progressContainer) {
@@ -43,6 +39,15 @@ function handleAjaxExport(e) {
 		document.querySelector('input[name="swift_csv_export_taxonomy_format"]:checked')?.value ||
 		'name';
 	const exportLimit = document.querySelector('#swift_csv_export_limit')?.value || '';
+	const enableLogs = document.querySelector('input[name="swift_csv_export_enable_logs"]')?.checked
+		? '1'
+		: '0';
+
+	if (enableLogs === '1') {
+		// Clear export log
+		clearLog('export');
+		addLogEntry(swiftCSV.messages.startingExport, 'info', 'export');
+	}
 	const exportSession = (Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(
 		/\./g,
 		''
@@ -67,6 +72,8 @@ function handleAjaxExport(e) {
 	function pollExportLogs() {
 		if (isCancelled) return;
 
+		if (enableLogs !== '1') return Promise.resolve();
+
 		if (exportLogPollingAbortController) {
 			return exportLogPollingPromise || Promise.resolve();
 		}
@@ -76,6 +83,7 @@ function handleAjaxExport(e) {
 			action: 'swift_csv_ajax_export_logs',
 			nonce: swiftCSV.nonce,
 			export_session: exportSession,
+			enable_logs: enableLogs,
 			after_id: String(exportLogLastId),
 			limit: '200',
 		});
@@ -129,32 +137,35 @@ function handleAjaxExport(e) {
 
 	function startExportLogPolling() {
 		if (exportLogPollingTimer) return;
+		if (enableLogs !== '1') return;
 		pollExportLogs();
 		exportLogPollingTimer = setInterval(pollExportLogs, 2000);
 	}
 
-	// Log export settings
-	addLogEntry(swiftCSV.messages.postTypeExport + ' ' + postType, 'debug', 'export');
+	if (enableLogs === '1') {
+		// Log export settings
+		addLogEntry(swiftCSV.messages.postTypeExport + ' ' + postType, 'debug', 'export');
 
-	// Translate export scope
-	const exportScopeText =
-		exportScope === 'basic'
-			? swiftCSV.messages.exportScopeBasic
-			: swiftCSV.messages.exportScopeAll;
-	addLogEntry(swiftCSV.messages.exportContent + ' ' + exportScopeText, 'debug', 'export');
+		// Translate export scope
+		const exportScopeText =
+			exportScope === 'basic'
+				? swiftCSV.messages.exportScopeBasic
+				: swiftCSV.messages.exportScopeAll;
+		addLogEntry(swiftCSV.messages.exportContent + ' ' + exportScopeText, 'debug', 'export');
 
-	addLogEntry(
-		swiftCSV.messages.includePrivateMeta +
-			' ' +
-			(includePrivateMeta === '1' ? swiftCSV.messages.yes : swiftCSV.messages.no),
-		'debug',
-		'export'
-	);
-	addLogEntry(
-		swiftCSV.messages.exportLimit + ' ' + (exportLimit || swiftCSV.messages.noLimit),
-		'debug',
-		'export'
-	);
+		addLogEntry(
+			swiftCSV.messages.includePrivateMeta +
+				' ' +
+				(includePrivateMeta === '1' ? swiftCSV.messages.yes : swiftCSV.messages.no),
+			'debug',
+			'export'
+		);
+		addLogEntry(
+			swiftCSV.messages.exportLimit + ' ' + (exportLimit || swiftCSV.messages.noLimit),
+			'debug',
+			'export'
+		);
+	}
 
 	const exportBtn = document.querySelector('#ajax-export-csv-btn');
 	const cancelBtn = document.querySelector('#ajax-export-cancel-btn');
@@ -250,6 +261,7 @@ function handleAjaxExport(e) {
 			include_private_meta: includePrivateMeta,
 			taxonomy_format: taxonomyFormat,
 			export_limit: exportLimit,
+			enable_logs: enableLogs,
 			start_row: startRow,
 			export_session: exportSession,
 		});
@@ -282,18 +294,25 @@ function handleAjaxExport(e) {
 					// Export completed - update progress one final time
 					updateAjaxProgress(data, startTime);
 
-					Promise.resolve(exportLogPollingPromise)
-						.catch(() => {
-							// ignore
-						})
-						.finally(() => pollExportLogs())
-						.finally(() => {
-							stopExportLogPolling({ abortRequest: false });
+					if (enableLogs === '1') {
+						Promise.resolve(exportLogPollingPromise)
+							.catch(() => {
+								// ignore
+							})
+							.finally(() => pollExportLogs())
+							.finally(() => {
+								stopExportLogPolling({ abortRequest: false });
 
-							// Append final CSV chunk
-							csvContent += data.csv_chunk;
-							completeAjaxExport(csvContent, exportBtn, cancelBtn, postType);
-						});
+								// Append final CSV chunk
+								csvContent += data.csv_chunk;
+								completeAjaxExport(csvContent, exportBtn, cancelBtn, postType);
+							});
+					} else {
+						stopExportLogPolling({ abortRequest: false });
+
+						csvContent += data.csv_chunk;
+						completeAjaxExport(csvContent, exportBtn, cancelBtn, postType);
+					}
 				} else {
 					const serverMessage =
 						(data && data.data ? data.data : '') ||

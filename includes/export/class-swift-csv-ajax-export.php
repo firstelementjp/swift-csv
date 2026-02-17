@@ -230,66 +230,19 @@ class Swift_CSV_Ajax_Export {
 	 * @return int Dynamic batch size
 	 */
 	private function get_export_batch_size( int $total_count, string $post_type, array $config ): int {
-		// Determine threshold for row-by-row vs batch processing
-		$row_processing_threshold = 100;
+		$export_limit           = isset( $config['export_limit'] ) ? (int) $config['export_limit'] : 0;
+		$total_posts_to_process = $export_limit > 0 ? min( $total_count, $export_limit ) : $total_count;
+		$total_posts_to_process = max( 0, $total_posts_to_process );
 
-		/**
-		 * Filter the threshold for switching between row-by-row and batch processing for export
-		 *
-		 * Allows developers to customize when to switch from row-by-row processing
-		 * to batch processing based on their specific needs and server capabilities.
-		 *
-		 * @since 0.9.7
-		 * @param int $threshold Number of rows at which to switch to batch processing.
-		 * @param int $total_count Total number of posts to export.
-		 * @param string $post_type Post type being exported.
-		 * @param array $config Export configuration.
-		 * @return int Modified threshold.
-		 */
-		$row_processing_threshold = apply_filters(
-			'swift_csv_export_row_processing_threshold',
-			$row_processing_threshold,
-			$total_count,
-			$post_type,
-			$config
-		);
+		$max_execution_time = ini_get( 'max_execution_time' );
+		$max_execution_time = $max_execution_time ? (int) $max_execution_time : 30;
+		$max_execution_time = max( 1, $max_execution_time );
 
-		// Determine base batch size based on actual export limit, not total count
-		$export_limit        = $config['export_limit'] ?? 0;
-		$actual_export_count = min( $total_count, $export_limit );
-
-		if ( $actual_export_count <= $row_processing_threshold ) {
-			$base_batch_size = 1;
-		} else {
-			// Calculate safe batch size based on server constraints
-			$max_execution_time = ini_get( 'max_execution_time' );
-			$max_execution_time = $max_execution_time ? (int) $max_execution_time : 30; // Default 30 seconds
-
-			// Use 50% of max_execution_time as safety margin
-			$safe_time_limit = $max_execution_time * 0.5;
-
-			// Estimate processing time per row (faster for export: 0.1 seconds)
-			$avg_time_per_row = 0.1;
-
-			// Calculate optimal batch size with safety constraints
-			$time_based_batch = max( 1, floor( $safe_time_limit / $avg_time_per_row ) );
-
-			// Apply reasonable limits: minimum 20, maximum 200 for export
-			$optimized_batch_size = max( 20, min( 200, $time_based_batch ) );
-
-			$base_batch_size = $optimized_batch_size;
-
-			// Log batch size calculation for debugging
-			error_log(
-				sprintf(
-					'[Swift CSV Export] Batch size calculation: max_execution_time=%ds, safe_limit=%.1fs, optimal_batch=%d, final_batch_size=%d',
-					$max_execution_time,
-					$safe_time_limit,
-					$time_based_batch,
-					$base_batch_size
-				)
-			);
-		}
+		$safe_time_limit      = $max_execution_time * 0.5;
+		$avg_time_per_row     = 0.1;
+		$time_based_batch     = max( 1, (int) floor( $safe_time_limit / $avg_time_per_row ) );
+		$optimized_batch_size = max( 20, min( 200, $time_based_batch ) );
+		$base_batch_size      = max( 1, min( $total_posts_to_process, $optimized_batch_size ) );
 
 		/**
 		 * Filter the batch size for export processing

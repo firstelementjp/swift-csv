@@ -48,6 +48,91 @@ function handleAjaxExport(e) {
 		''
 	);
 
+	let exportLogLastId = 0;
+	let exportLogPollingTimer = null;
+	let exportLogPollingAbortController = null;
+	let exportLogPollingPromise = null;
+
+	function stopExportLogPolling({ abortRequest = true } = {}) {
+		if (exportLogPollingTimer) {
+			clearInterval(exportLogPollingTimer);
+			exportLogPollingTimer = null;
+		}
+		if (abortRequest && exportLogPollingAbortController) {
+			exportLogPollingAbortController.abort();
+			exportLogPollingAbortController = null;
+		}
+	}
+
+	function pollExportLogs() {
+		if (isCancelled) return;
+
+		if (exportLogPollingAbortController) {
+			return exportLogPollingPromise || Promise.resolve();
+		}
+
+		exportLogPollingAbortController = new AbortController();
+		const logFormData = new URLSearchParams({
+			action: 'swift_csv_ajax_export_logs',
+			nonce: swiftCSV.nonce,
+			export_session: exportSession,
+			after_id: String(exportLogLastId),
+			limit: '200',
+		});
+
+		exportLogPollingPromise = fetch(swiftCSV.ajaxUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: logFormData,
+			signal: exportLogPollingAbortController.signal,
+		})
+			.then(response => response.json())
+			.then(data => {
+				exportLogPollingAbortController = null;
+				exportLogPollingPromise = null;
+				if (!data || !data.success || !data.data) {
+					return;
+				}
+
+				const payload = data.data;
+				if (payload.last_id !== undefined) {
+					exportLogLastId = Number(payload.last_id) || exportLogLastId;
+				}
+
+				if (payload.logs && Array.isArray(payload.logs) && payload.logs.length > 0) {
+					payload.logs.forEach(item => {
+						if (!item || !item.detail) return;
+						const detail = item.detail;
+						const statusIcon = detail.status === 'success' ? '✓' : '✗';
+						const prefix = `[${swiftCSV.messages.exportPrefix || 'Export'}]`;
+						const logMessage = `${prefix} ${statusIcon} ${swiftCSV.messages.rowLabel || 'Row'} ${detail.row}: ${detail.title}`;
+
+						if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
+							window.SwiftCSVUtils.addLogEntry(
+								logMessage,
+								detail.status === 'success' ? 'success' : 'error',
+								'export'
+							);
+						}
+					});
+				}
+			})
+			.catch(() => {
+				exportLogPollingAbortController = null;
+				exportLogPollingPromise = null;
+			});
+
+		return exportLogPollingPromise;
+	}
+
+	function startExportLogPolling() {
+		if (exportLogPollingTimer) return;
+		pollExportLogs();
+		exportLogPollingTimer = setInterval(pollExportLogs, 2000);
+	}
+
 	// Log export settings
 	addLogEntry(swiftCSV.messages.postTypeExport + ' ' + postType, 'debug', 'export');
 
@@ -105,6 +190,7 @@ function handleAjaxExport(e) {
 
 		exportCancelHandler = function () {
 			isCancelled = true;
+			stopExportLogPolling({ abortRequest: true });
 			if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
 				window.SwiftCSVUtils.addLogEntry(
 					swiftCSV.messages.exportCancelledByUser,
@@ -190,57 +276,24 @@ function handleAjaxExport(e) {
 					// Update progress
 					updateAjaxProgress(data, startTime);
 
-					// Show export details for real-time display
-					if (
-						data.export_details &&
-						Array.isArray(data.export_details) &&
-						data.export_details.length > 0
-					) {
-						data.export_details.forEach(detail => {
-							const statusIcon = detail.status === 'success' ? '✓' : '✗';
-							const prefix = `[${swiftCSV.messages.exportPrefix || 'Export'}]`;
-							const logMessage = `${prefix} ${statusIcon} ${swiftCSV.messages.rowLabel || 'Row'} ${detail.row}: ${detail.title}`;
-
-							if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
-								window.SwiftCSVUtils.addLogEntry(
-									logMessage,
-									detail.status === 'success' ? 'success' : 'error',
-									'export'
-								);
-							}
-						});
-					}
-
 					// Process next chunk
 					processChunk(data.processed);
 				} else if (data.success) {
 					// Export completed - update progress one final time
 					updateAjaxProgress(data, startTime);
 
-					// Show final export details
-					if (
-						data.export_details &&
-						Array.isArray(data.export_details) &&
-						data.export_details.length > 0
-					) {
-						data.export_details.forEach(detail => {
-							const statusIcon = detail.status === 'success' ? '✓' : '✗';
-							const prefix = `[${swiftCSV.messages.exportPrefix || 'Export'}]`;
-							const logMessage = `${prefix} ${statusIcon} ${swiftCSV.messages.rowLabel || 'Row'} ${detail.row}: ${detail.title}`;
+					Promise.resolve(exportLogPollingPromise)
+						.catch(() => {
+							// ignore
+						})
+						.finally(() => pollExportLogs())
+						.finally(() => {
+							stopExportLogPolling({ abortRequest: false });
 
-							if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
-								window.SwiftCSVUtils.addLogEntry(
-									logMessage,
-									detail.status === 'success' ? 'success' : 'error',
-									'export'
-								);
-							}
+							// Append final CSV chunk
+							csvContent += data.csv_chunk;
+							completeAjaxExport(csvContent, exportBtn, cancelBtn, postType);
 						});
-					}
-
-					// Append final CSV chunk
-					csvContent += data.csv_chunk;
-					completeAjaxExport(csvContent, exportBtn, cancelBtn, postType);
 				} else {
 					const serverMessage =
 						(data && data.data ? data.data : '') ||
@@ -253,6 +306,7 @@ function handleAjaxExport(e) {
 				if (error && error.name === 'AbortError') {
 					return;
 				}
+				stopExportLogPolling({ abortRequest: true });
 
 				if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
 					window.SwiftCSVUtils.addLogEntry(
@@ -272,6 +326,7 @@ function handleAjaxExport(e) {
 			});
 	}
 
+	startExportLogPolling();
 	// Start processing
 	processChunk();
 }

@@ -79,7 +79,7 @@ class Swift_CSV_Import_Batch_Processor {
 		}
 
 		// Determine threshold for row-by-row vs batch processing.
-		$row_processing_threshold = 1; // Always show real-time logs
+		$row_processing_threshold = 10000; // Process row-by-row for up to 10,000 items to show real-time logs
 
 		/**
 		 * Filter the threshold for switching between row-by-row and batch processing

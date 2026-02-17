@@ -45,6 +45,132 @@ class Swift_CSV_Ajax_Export {
 	public function __construct() {
 		add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
 		add_action( 'wp_ajax_swift_csv_cancel_export', [ $this, 'handle_ajax_export_cancel' ] );
+		add_action( 'wp_ajax_swift_csv_ajax_export_logs', [ $this, 'handle_ajax_export_logs' ] );
+	}
+
+	/**
+	 * Get export log transient key
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @return string Transient key.
+	 */
+	private function get_export_log_transient_key( string $export_session ): string {
+		return 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
+	}
+
+	/**
+	 * Initialize export log store
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @return void
+	 */
+	private function init_export_log_store( string $export_session ): void {
+		$transient_key = $this->get_export_log_transient_key( $export_session );
+		set_transient(
+			$transient_key,
+			[
+				'last_id' => 0,
+				'logs'    => [],
+			],
+			3600
+		);
+	}
+
+	/**
+	 * Append one export log entry
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @param array  $detail Export detail.
+	 * @return int New log ID.
+	 */
+	private function append_export_log( string $export_session, array $detail ): int {
+		$transient_key = $this->get_export_log_transient_key( $export_session );
+		$store         = get_transient( $transient_key );
+		if ( ! is_array( $store ) ) {
+			$store = [
+				'last_id' => 0,
+				'logs'    => [],
+			];
+		}
+
+		$last_id = isset( $store['last_id'] ) ? (int) $store['last_id'] : 0;
+		$new_id  = $last_id + 1;
+		$logs    = isset( $store['logs'] ) && is_array( $store['logs'] ) ? $store['logs'] : [];
+		$logs[]  = [
+			'id'     => $new_id,
+			'detail' => $detail,
+		];
+
+		$max_logs = 500;
+		if ( count( $logs ) > $max_logs ) {
+			$logs = array_slice( $logs, -1 * $max_logs );
+		}
+
+		set_transient(
+			$transient_key,
+			[
+				'last_id' => $new_id,
+				'logs'    => $logs,
+			],
+			3600
+		);
+
+		return $new_id;
+	}
+
+	/**
+	 * Fetch export logs since a given ID
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @param int    $after_id Return logs with ID greater than this.
+	 * @param int    $limit Max number of logs.
+	 * @return array{last_id:int,logs:array} Result.
+	 */
+	private function fetch_export_logs_since( string $export_session, int $after_id, int $limit ): array {
+		$transient_key = $this->get_export_log_transient_key( $export_session );
+		$store         = get_transient( $transient_key );
+		if ( ! is_array( $store ) ) {
+			return [
+				'last_id' => 0,
+				'logs'    => [],
+			];
+		}
+
+		$last_id = isset( $store['last_id'] ) ? (int) $store['last_id'] : 0;
+		$logs    = isset( $store['logs'] ) && is_array( $store['logs'] ) ? $store['logs'] : [];
+
+		$result_logs = [];
+		foreach ( $logs as $log_item ) {
+			$log_id = isset( $log_item['id'] ) ? (int) $log_item['id'] : 0;
+			if ( $log_id <= $after_id ) {
+				continue;
+			}
+			$result_logs[] = $log_item;
+			if ( count( $result_logs ) >= $limit ) {
+				break;
+			}
+		}
+
+		return [
+			'last_id' => $last_id,
+			'logs'    => $result_logs,
+		];
+	}
+
+	/**
+	 * Cleanup export log store
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @return void
+	 */
+	private function cleanup_export_log_store( string $export_session ): void {
+		$transient_key = $this->get_export_log_transient_key( $export_session );
+		delete_transient( $transient_key );
 	}
 
 	/**
@@ -688,6 +814,7 @@ class Swift_CSV_Ajax_Export {
 
 			if ( 0 === $start_row ) {
 				$this->cleanup_old_cancel_flags();
+				$this->init_export_log_store( $export_session );
 			}
 
 			if ( $this->is_cancelled( $export_session ) ) {
@@ -817,14 +944,15 @@ class Swift_CSV_Ajax_Export {
 			// Simple CSV generation with headers
 			$csv_chunk      = '';
 			$headers        = $this->build_headers( $post_type, $export_scope, $include_private_meta, $query_post_status );
-			$export_details = []; // Collect export details for logging
+			$export_details = []; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 
 			// Add headers for first chunk
 			if ( $start_row === 0 ) {
 				$csv_chunk .= $this->fputcsv_row( $headers );
 			}
 
-			// Process each post
+			// Process each post and collect details (like import)
+			$processed_count = 0;
 			foreach ( $posts as $post_id ) {
 				if ( $this->is_cancelled( $export_session ) ) {
 					wp_send_json_error( 'Export cancelled by user' );
@@ -933,23 +1061,21 @@ class Swift_CSV_Ajax_Export {
 					$row[] = $value;
 				}
 
-				// Add export detail for logging
-				$export_details[] = [
-					'row'     => $start_row + count( $export_details ) + 1,
+				$detail = [
+					'row'     => $start_row + $processed_count + 1,
 					'action'  => 'export',
 					'title'   => $post_title,
 					'post_id' => $post_id,
 					'status'  => 'success',
-					'details' => sprintf(
-						__( 'Export post: ID=%1$s, title=%2$s', 'swift-csv' ),
-						$post_id,
-						$post_title
-					),
+					'details' => __( 'Export post: ', 'swift-csv' ) . 'ID=' . $post_id . ', title=' . $post_title,
 				];
+				$this->append_export_log( $export_session, $detail );
 
 				$csv_chunk .= $this->fputcsv_row( $row );
+				++$processed_count;
 			}
 
+			// Send batch response (like import)
 			$next_row = $start_row + count( $posts );
 			$continue = $next_row < $max_posts_to_process;
 			$progress = round( ( $next_row / $max_posts_to_process ) * 100, 2 );
@@ -969,12 +1095,34 @@ class Swift_CSV_Ajax_Export {
 					'status'          => $continue ? 'processing' : 'completed',
 					'csv_chunk'       => $csv_chunk,
 					'posts_processed' => count( $posts ),
-					'export_details'  => $export_details,
 				]
 			);
 		} catch ( Exception $e ) {
 			wp_send_json_error( 'Export failed: ' . $e->getMessage() );
 		}
+	}
+
+	/**
+	 * Handle Ajax export log fetch
+	 *
+	 * @since 0.9.8
+	 * @return void Sends JSON response.
+	 */
+	public function handle_ajax_export_logs(): void {
+		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
+
+		$export_session = sanitize_key( $_POST['export_session'] ?? '' );
+		if ( '' === $export_session ) {
+			wp_send_json_error( 'Missing export session' );
+			return;
+		}
+
+		$after_id = isset( $_POST['after_id'] ) ? intval( $_POST['after_id'] ) : 0;
+		$limit    = isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 100;
+		$limit    = max( 1, min( 200, $limit ) );
+
+		$result = $this->fetch_export_logs_since( $export_session, $after_id, $limit );
+		wp_send_json_success( $result );
 	}
 
 	/**
@@ -994,6 +1142,7 @@ class Swift_CSV_Ajax_Export {
 
 		$cancel_option_name = $this->get_cancel_option_name( $export_session );
 		update_option( $cancel_option_name, time(), false );
+		$this->cleanup_export_log_store( $export_session );
 
 		wp_send_json_success( 'Export cancellation signal sent' );
 	}

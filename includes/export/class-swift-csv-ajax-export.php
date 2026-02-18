@@ -761,9 +761,9 @@ class Swift_CSV_Ajax_Export {
 			$enable_logs          = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
 			$start_row            = intval( $_POST['start_row'] ?? 0 );
 			$export_session       = sanitize_key( $_POST['export_session'] ?? '' );
+
 			if ( '' === $export_session ) {
-				wp_send_json_error( 'Missing export session' );
-				return;
+				$export_session = 'export_' . gmdate( 'Y-m-d_H-i-s' ) . '_' . wp_generate_uuid4();
 			}
 
 			if ( 0 === $start_row ) {
@@ -1045,7 +1045,7 @@ class Swift_CSV_Ajax_Export {
 
 			wp_send_json(
 				[
-					'success'         => true,
+					'success'         => true ,
 					'processed'       => $start_row + count( $posts ),
 					'total'           => $max_posts_to_process,
 					'continue'        => $continue,

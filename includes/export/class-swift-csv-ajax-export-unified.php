@@ -30,7 +30,8 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @since 0.9.8
 	 */
 	public function __construct() {
-		add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
+		// Disable unified handler to avoid conflicts with standard handler
+		// add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
 		add_action( 'wp_ajax_swift_csv_ajax_export_logs', [ $this, 'handle_ajax_export_logs' ] );
 	}
 
@@ -79,9 +80,18 @@ class Swift_CSV_AJAX_Export_Unified {
 					break;
 			}
 
-			wp_send_json_success( $result );
+			// Try alternative response method
+			header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+			echo wp_json_encode(
+				[
+					'success' => true,
+					'data'    => $result,
+				]
+			);
+			wp_die();
 
 		} catch ( Exception $e ) {
+			error_log( 'Swift CSV Unified: exception caught: ' . $e->getMessage() );
 			wp_send_json_error( 'Export failed: ' . wp_kses_post( $e->getMessage() ) );
 		}
 	}
@@ -107,9 +117,18 @@ class Swift_CSV_AJAX_Export_Unified {
 			return;
 		}
 
-		// Get logs from standard export handler.
-		$export = new Swift_CSV_Ajax_Export();
-		$logs   = $export->get_export_logs( $export_session );
+		// Get logs directly instead of calling non-existent method
+		$transient_key = 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
+		$store         = get_transient( $transient_key );
+
+		if ( ! is_array( $store ) ) {
+			$logs = [
+				'last_id' => 0,
+				'logs'    => [],
+			];
+		} else {
+			$logs = $store;
+		}
 
 		wp_send_json_success( $logs );
 	}
@@ -251,20 +270,220 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @return array Export result.
 	 */
 	private function handle_standard_export( $config ) {
-		// Create standard export instance.
-		$export = new Swift_CSV_Ajax_Export();
+		// Debug: Log method entry
+		error_log( 'Swift CSV Unified: handle_standard_export called' );
+		error_log( 'Swift CSV Unified: POST data: ' . print_r( $_POST, true ) );
 
-		// Initialize export session.
-		$export_session = 'export_' . gmdate( 'Y-m-d_H-i-s' ) . '_' . wp_generate_uuid4();
-		$export->init_export_log_store( $export_session );
+		// Check if this is a batch request
+		$start_row      = intval( $_POST['start_row'] ?? 0 );
+		$export_session = sanitize_key( $_POST['export_session'] ?? '' );
 
-		// Store config for subsequent requests.
-		$transient_key = 'swift_csv_export_config_' . get_current_user_id() . '_' . $export_session;
-		set_transient( $transient_key, $config, HOUR_IN_SECONDS );
+		error_log( 'Swift CSV Unified: start_row: ' . $start_row . ', export_session: ' . $export_session );
+
+		if ( $start_row === 0 && empty( $export_session ) ) {
+			// Initial request - create session and return session info
+			error_log( 'Swift CSV Unified: Initial request - creating session' );
+			$export_session = 'export_' . gmdate( 'Y-m-d_H-i-s' ) . '_' . wp_generate_uuid4();
+
+			// Initialize log store
+			$transient_key = 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
+			set_transient(
+				$transient_key,
+				[
+					'last_id' => 0,
+					'logs'    => [],
+				],
+				3600
+			);
+
+			// Store config for subsequent requests
+			$config_transient_key = 'swift_csv_export_config_' . get_current_user_id() . '_' . $export_session;
+			set_transient( $config_transient_key, $config, HOUR_IN_SECONDS );
+
+			$result = [
+				'export_session' => $export_session,
+				'export_method'  => 'standard',
+				'total_posts'    => $this->get_total_posts_count( $config ),
+				'batch_size'     => 500,
+			];
+
+			error_log( 'Swift CSV Unified: Initial result: ' . print_r( $result, true ) );
+			return $result;
+		}
+
+		// Batch processing request
+		error_log( 'Swift CSV Unified: Batch processing request' );
+		return $this->process_standard_export_batch( $config, $start_row, $export_session );
+	}
+
+	/**
+	 * Get total posts count for export
+	 *
+	 * @since 0.9.8
+	 * @param array $config Export configuration.
+	 * @return int Total posts count.
+	 */
+	private function get_total_posts_count( $config ) {
+		$args = [
+			'post_type'      => $config['post_type'],
+			'post_status'    => $config['post_status'],
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		];
+
+		if ( ! empty( $config['export_limit'] ) && $config['export_limit'] > 0 ) {
+			$args['posts_per_page'] = intval( $config['export_limit'] );
+		}
+
+		$query = new WP_Query( $args );
+		return $query->found_posts;
+	}
+
+	/**
+	 * Process standard export batch
+	 *
+	 * @since 0.9.8
+	 * @param array  $config Export configuration.
+	 * @param int    $start_row Starting row number.
+	 * @param string $export_session Export session identifier.
+	 * @return array Batch processing result.
+	 */
+	private function process_standard_export_batch( $config, $start_row, $export_session ) {
+		$batch_size = 500;
+
+		// Get posts for this batch
+		$args = [
+			'post_type'      => $config['post_type'],
+			'post_status'    => $config['post_status'],
+			'posts_per_page' => $batch_size,
+			'offset'         => $start_row,
+			'fields'         => 'ids',
+		];
+
+		if ( ! empty( $config['export_limit'] ) && $config['export_limit'] > 0 ) {
+			$args['posts_per_page'] = min( $batch_size, intval( $config['export_limit'] ) - $start_row );
+		}
+
+		$query    = new WP_Query( $args );
+		$post_ids = $query->posts;
+
+		if ( empty( $post_ids ) ) {
+			return [
+				'success'     => true,
+				'completed'   => true,
+				'csv_content' => '',
+				'processed'   => $start_row,
+				'total'       => $this->get_total_posts_count( $config ),
+			];
+		}
+
+		// Generate CSV for this batch
+		$csv_content = $this->generate_csv_for_posts( $post_ids, $config, $start_row === 0 );
 
 		return [
-			'export_session' => $export_session,
-			'export_method'  => 'standard',
+			'success'     => true,
+			'completed'   => false,
+			'csv_content' => $csv_content,
+			'processed'   => $start_row + count( $post_ids ),
+			'total'       => $this->get_total_posts_count( $config ),
 		];
+	}
+
+	/**
+	 * Generate CSV content for posts
+	 *
+	 * @since 0.9.8
+	 * @param array $post_ids Post IDs.
+	 * @param array $config Export configuration.
+	 * @param bool  $include_headers Whether to include CSV headers.
+	 * @return string CSV content.
+	 */
+	private function generate_csv_for_posts( $post_ids, $config, $include_headers ) {
+		$csv = '';
+
+		if ( $include_headers ) {
+			$headers = $this->get_csv_headers( $config );
+			$csv    .= implode( ',', $headers ) . "\n";
+		}
+
+		foreach ( $post_ids as $post_id ) {
+			$row  = $this->get_csv_row( $post_id, $config );
+			$csv .= implode( ',', $row ) . "\n";
+		}
+
+		return $csv;
+	}
+
+	/**
+	 * Get CSV headers
+	 *
+	 * @since 0.9.8
+	 * @param array $config Export configuration.
+	 * @return array CSV headers.
+	 */
+	private function get_csv_headers( $config ) {
+		$headers = [ 'ID', 'Title', 'Content', 'Status', 'Date' ];
+
+		if ( $config['include_taxonomies'] ) {
+			$taxonomies = get_object_taxonomies( $config['post_type'], 'objects' );
+			foreach ( $taxonomies as $taxonomy ) {
+				if ( $config['taxonomy_format'] === 'name' ) {
+					$headers[] = $taxonomy->label;
+				} else {
+					$headers[] = $taxonomy->name . '_ids';
+				}
+			}
+		}
+
+		return $headers;
+	}
+
+	/**
+	 * Get CSV row for post
+	 *
+	 * @since 0.9.8
+	 * @param int   $post_id Post ID.
+	 * @param array $config Export configuration.
+	 * @return array CSV row data.
+	 */
+	private function get_csv_row( $post_id, $config ) {
+		$post = get_post( $post_id );
+
+		$row = [
+			$post->ID,
+			$this->escape_csv_field( $post->post_title ),
+			$this->escape_csv_field( $post->post_content ),
+			$post->post_status,
+			$post->post_date,
+		];
+
+		if ( $config['include_taxonomies'] ) {
+			$taxonomies = get_object_taxonomies( $config['post_type'] );
+			foreach ( $taxonomies as $taxonomy ) {
+				$terms = wp_get_post_terms( $post_id, $taxonomy );
+
+				if ( $config['taxonomy_format'] === 'name' ) {
+					$term_names = array_map( 'get_term_name', $terms );
+					$row[]      = $this->escape_csv_field( implode( '|', $term_names ) );
+				} else {
+					$term_ids = array_map( 'get_term_id', $terms );
+					$row[]    = implode( '|', $term_ids );
+				}
+			}
+		}
+
+		return $row;
+	}
+
+	/**
+	 * Escape CSV field
+	 *
+	 * @since 0.9.8
+	 * @param string $field Field value.
+	 * @return string Escaped field value.
+	 */
+	private function escape_csv_field( $field ) {
+		$field = str_replace( '"', '""', $field );
+		return '"' . $field . '"';
 	}
 }

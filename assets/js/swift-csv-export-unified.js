@@ -48,67 +48,196 @@
 				exportMethod === 'direct_sql'
 					? $('#direct-sql-export-btn')
 					: $('#ajax-export-csv-btn');
-			const $progressBar = $('#swift_csv_export_progress');
-			const $progressText = $('#swift_csv_export_progress_text');
 
-			// Get form data
+			// Show cancel button
+			this.showCancelButton($button);
+
+			// Disable export button and show loading
+			$button.prop('disabled', true).text('Exporting...');
+
 			const formData = this.getFormData();
-
-			// Add export method to form data
 			formData.export_method = exportMethod;
 
-			// Show loading state
-			$button.prop('disabled', true).text('Exporting...');
-			$progressBar.val(0);
-			$progressText.text('0%');
+			// Start export
+			this.processExport(formData, $button, exportMethod);
+		},
 
-			// Perform AJAX export
-			$.post(
-				ajaxurl,
-				{
+		/**
+		 * Show cancel button
+		 *
+		 * @param {jQuery} $exportButton Export button
+		 */
+		showCancelButton: function ($exportButton) {
+			// Create or show cancel button
+			let $cancelBtn = $('#swift-csv-cancel-btn');
+			if ($cancelBtn.length === 0) {
+				$cancelBtn = $('<button>')
+					.attr('id', 'swift-csv-cancel-btn')
+					.attr('type', 'button')
+					.addClass('button button-secondary')
+					.text('Cancel')
+					.css('margin-left', '10px');
+				$exportButton.after($cancelBtn);
+			}
+			$cancelBtn.show();
+
+			// Bind cancel handler
+			$cancelBtn.off('click').on('click', () => {
+				this.cancelExport($exportButton);
+			});
+		},
+
+		/**
+		 * Cancel export
+		 *
+		 * @param {jQuery} $exportButton Export button
+		 */
+		cancelExport: function ($exportButton) {
+			// Hide cancel button
+			$('#swift-csv-cancel-btn').hide();
+
+			// Reset export button
+			$exportButton
+				.prop('disabled', false)
+				.text(
+					$exportButton.is('#direct-sql-export-btn')
+						? 'High-Speed Export (Direct SQL)'
+						: 'Standard Export (WP Functions)'
+				);
+
+			// Send cancel request
+			const formData = new URLSearchParams({
+				action: 'swift_csv_cancel_export',
+				nonce: swiftCSV.nonce,
+				export_session: this.exportSession,
+			});
+
+			fetch(swiftCSV.ajaxUrl, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: formData,
+			}).catch(() => {
+				// Ignore cancel errors
+			});
+		},
+
+		/**
+		 * Process export with chunked handling
+		 *
+		 * @param {Object} formData Form data
+		 * @param {jQuery} $button Export button
+		 * @param {string} exportMethod Export method
+		 */
+		processExport: function (formData, $button, exportMethod) {
+			const self = this;
+			let csvContent = '';
+			let startRow = 0;
+
+			function processChunk() {
+				const chunkData = new URLSearchParams({
+					...formData,
 					action: 'swift_csv_ajax_export',
 					nonce: swiftCSV.nonce,
-					...formData,
-				},
-				function (response) {
-					if (response.success) {
-						if (exportMethod === 'direct_sql') {
-							// Direct SQL: Immediate download
-							SwiftCSVExportUnified.downloadCSV(
-								response.data.csv_content,
-								response.data.record_count
-							);
-							SwiftCSVExportUnified.showComplete(
-								$button,
-								$progressBar,
-								$progressText
-							);
-						} else {
-							// Standard: Start batch processing
-							SwiftCSVExportUnified.handleBatchExport(
-								response.data.export_session,
-								$button,
-								$progressBar,
-								$progressText
-							);
-						}
-					} else {
-						// Show error
-						const errorMessage = response.data
-							? response.data
-							: 'Unknown error occurred';
+					start_row: startRow,
+					export_session: self.exportSession || '',
+				});
 
-						SwiftCSVExportUnified.showError(
-							$button,
-							$progressBar,
-							$progressText,
-							errorMessage
-						);
-					}
-				}
-			).fail(function (xhr, status, error) {
-				SwiftCSVExportUnified.showError($button, $progressBar, $progressText, error);
-			});
+				fetch(swiftCSV.ajaxUrl, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: chunkData,
+				})
+					.then(response => response.json())
+					.then(data => {
+						if (data.success) {
+							// Store session if first response
+							if (!self.exportSession && data.export_session) {
+								self.exportSession = data.export_session;
+							}
+
+							// Append CSV content
+							if (data.csv_chunk) {
+								csvContent += data.csv_chunk;
+							}
+
+							// Update progress
+							self.updateProgress(data.processed, data.total, data.progress);
+
+							// Continue processing or complete
+							if (data.continue) {
+								startRow = data.processed;
+								processChunk();
+							} else {
+								// Export completed
+								self.completeExport(csvContent, $button, exportMethod);
+							}
+						} else {
+							throw new Error(data.data || 'Export failed');
+						}
+					})
+					.catch(error => {
+						self.showError($button, error.message);
+					});
+			}
+
+			processChunk();
+		},
+
+		/**
+		 * Update progress display
+		 *
+		 * @param {number} processed Processed count
+		 * @param {number} total Total count
+		 * @param {number} progress Progress percentage
+		 */
+		updateProgress: function (processed, total, progress) {
+			const $progressBar = $('.swift-csv-progress .progress-bar');
+			const $progressText = $('.swift-csv-progress .progress-text');
+
+			if ($progressBar.length) {
+				$progressBar.val(progress);
+			}
+			if ($progressText.length) {
+				$progressText.text(`${progress}% (${processed}/${total})`);
+			}
+		},
+
+		/**
+		 * Complete export and enable download
+		 *
+		 * @param {string} csvContent CSV content
+		 * @param {jQuery} $button Export button
+		 * @param {string} exportMethod Export method
+		 */
+		completeExport: function (csvContent, $button, exportMethod) {
+			// Hide cancel button
+			$('#swift-csv-cancel-btn').hide();
+
+			// Create download
+			this.downloadCSV(csvContent, csvContent.split('\n').length - 1);
+
+			// Reset button
+			$button
+				.prop('disabled', false)
+				.text(
+					$button.is('#direct-sql-export-btn')
+						? 'High-Speed Export (Direct SQL)'
+						: 'Standard Export (WP Functions)'
+				);
+
+			// Show completion message
+			const $progressBar = $('.swift-csv-progress .progress-bar');
+			const $progressText = $('.swift-csv-progress .progress-text');
+			if ($progressBar.length) {
+				$progressBar.val(100);
+			}
+			if ($progressText.length) {
+				$progressText.text('100% - Complete!');
+			}
 		},
 
 		/**
@@ -245,15 +374,16 @@
 		 * Show error state
 		 *
 		 * @param {jQuery} $button Button element
-		 * @param {jQuery} $progressBar Progress bar element
-		 * @param {jQuery} $progressText Progress text element
 		 * @param {string} errorMessage Error message
 		 */
-		showError: function ($button, $progressBar, $progressText, errorMessage) {
-			$progressBar.val(0);
-			$progressText.text('Export failed');
+		showError: function ($button, errorMessage) {
+			// Hide cancel button
+			$('#swift-csv-cancel-btn').hide();
+
+			// Reset button
 			$button.prop('disabled', false).text('Export Failed');
 
+			// Show alert
 			alert('Export failed: ' + errorMessage);
 
 			// Reset after delay
@@ -263,8 +393,6 @@
 						? 'High-Speed Export (Direct SQL)'
 						: 'Standard Export (WP Functions)'
 				);
-				$progressBar.val(0);
-				$progressText.text('0%');
 			}, 3000);
 		},
 

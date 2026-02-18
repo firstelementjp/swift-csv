@@ -25,18 +25,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 
 	/**
-	 * Constructor
-	 *
-	 * @since 0.9.8
-	 * @param array $config Export configuration.
-	 */
-	public function __construct( $config ) {
-		// Skip parent constructor validation for now
-		$this->config         = $config;
-		$this->export_session = 'export_' . gmdate( 'Y-m-d_H-i-s' ) . '_' . wp_generate_uuid4();
-	}
-
-	/**
 	 * Get posts data using direct SQL
 	 *
 	 * @since 0.9.8

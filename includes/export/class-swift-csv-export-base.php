@@ -96,13 +96,25 @@ abstract class Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Sanitize post status field (handles single and multiple values)
+	 * Sanitize post status field (handles single, multiple, and array values)
 	 *
 	 * @since 0.9.8
-	 * @param string $post_status Post status string (comma-separated for multiple).
+	 * @param string|array $post_status Post status string (comma-separated for multiple) or array of statuses.
 	 * @return string|array Sanitized post status(es).
 	 */
 	protected function sanitize_post_status( $post_status ) {
+		// Handle array input (from custom processing)
+		if ( is_array( $post_status ) ) {
+			$sanitized = [];
+			foreach ( $post_status as $status ) {
+				$sanitized_status = sanitize_text_field( $status );
+				if ( ! empty( $sanitized_status ) ) {
+					$sanitized[] = $sanitized_status;
+				}
+			}
+			return ! empty( $sanitized ) ? $sanitized : [ 'publish' ];
+		}
+
 		// Handle multiple statuses (comma-separated).
 		if ( strpos( $post_status, ',' ) !== false ) {
 			$statuses  = explode( ',', $post_status );

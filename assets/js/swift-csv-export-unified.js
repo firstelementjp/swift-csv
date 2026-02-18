@@ -57,8 +57,6 @@
 			// Add export method to form data
 			formData.export_method = exportMethod;
 
-			console.log(`[Unified Export] Starting ${exportMethod} export with config:`, formData);
-
 			// Show loading state
 			$button.prop('disabled', true).text('Exporting...');
 			$progressBar.val(0);
@@ -73,8 +71,6 @@
 					...formData,
 				},
 				function (response) {
-					console.log('[Unified Export] Response received:', response);
-
 					if (response.success) {
 						if (exportMethod === 'direct_sql') {
 							// Direct SQL: Immediate download
@@ -101,8 +97,6 @@
 						const errorMessage = response.data
 							? response.data
 							: 'Unknown error occurred';
-						console.error('[Unified Export] Export failed:', errorMessage);
-						console.error('[Unified Export] Full response:', response);
 
 						SwiftCSVExportUnified.showError(
 							$button,
@@ -113,7 +107,6 @@
 					}
 				}
 			).fail(function (xhr, status, error) {
-				console.error('[Unified Export] AJAX request failed:', error);
 				SwiftCSVExportUnified.showError($button, $progressBar, $progressText, error);
 			});
 		},
@@ -317,8 +310,6 @@
 			document.body.removeChild(link);
 
 			URL.revokeObjectURL(url);
-
-			console.log('[Unified Export] CSV downloaded: ' + recordCount + ' records');
 		},
 	};
 

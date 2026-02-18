@@ -88,52 +88,59 @@ const SwiftCSVExportUnified = {
 			window.SwiftCSVUtils.addLogEntry('Starting Direct SQL export...', 'info', 'export');
 		}
 
-		// Send AJAX request
-		this.sendAjaxRequest(formData)
+		// Start batch processing
+		this.startDirectSqlBatchExport(formData, button);
+	},
+
+	/**
+	 * Start Direct SQL batch export
+	 *
+	 * @param {Object} formData Form data
+	 * @param {HTMLElement} button Button element
+	 */
+	startDirectSqlBatchExport: function (formData, button) {
+		const startTime = Date.now();
+		let csvContent = '';
+		let processed = 0;
+		let totalPosts = 0;
+		let exportSession = '';
+
+		// Process initial request
+		this.processDirectSqlBatch(formData, 0, exportSession)
 			.then(response => {
-				console.log('Debug - Direct SQL response:', response);
-
 				if (response.success) {
-					// Add success log
-					if (
-						formData.enable_logs === '1' &&
-						window.SwiftCSVUtils &&
-						window.SwiftCSVUtils.addLogEntry
-					) {
-						window.SwiftCSVUtils.addLogEntry(
-							swiftCSV.messages.exportCompleted,
-							'success',
-							'export'
-						);
-					}
+					// Initialize session data
+					exportSession = response.data.export_session;
+					totalPosts = response.data.total_posts;
 
-					// Check if csv_content exists
-					if (!response.data || !response.data.csv_content) {
-						console.error('Debug - Missing csv_content in response:', response);
-						throw new Error(swiftCSV.messages.csvContentNotFound);
-					}
-
-					// Direct SQL: Immediate download
-					this.downloadCSV(response.data.csv_content, response.data.record_count);
-					this.showComplete(button);
+					// Process subsequent batches
+					return this.processDirectSqlBatches(
+						formData,
+						exportSession,
+						0,
+						button,
+						startTime
+					);
 				} else {
-					// Add error log
-					if (
-						formData.enable_logs === '1' &&
-						window.SwiftCSVUtils &&
-						window.SwiftCSVUtils.addLogEntry
-					) {
-						window.SwiftCSVUtils.addLogEntry(
-							'Direct SQL ' +
-								swiftCSV.messages.exportError +
-								' ' +
-								(response.data || swiftCSV.messages.unknownError),
-							'error',
-							'export'
-						);
-					}
+					throw new Error(response.data || 'Direct SQL export initialization failed');
+				}
+			})
+			.then(csvContent => {
+				// Export completed
+				this.downloadCSV(csvContent, processed);
+				this.showComplete(button);
 
-					this.showError(button, response.data || swiftCSV.messages.failed);
+				// Add success log
+				if (
+					formData.enable_logs === '1' &&
+					window.SwiftCSVUtils &&
+					window.SwiftCSVUtils.addLogEntry
+				) {
+					window.SwiftCSVUtils.addLogEntry(
+						swiftCSV.messages.exportCompleted,
+						'success',
+						'export'
+					);
 				}
 			})
 			.catch(error => {
@@ -144,14 +151,122 @@ const SwiftCSVExportUnified = {
 					window.SwiftCSVUtils.addLogEntry
 				) {
 					window.SwiftCSVUtils.addLogEntry(
-						'Direct SQL export error: ' + error.message,
+						'Direct SQL ' +
+							swiftCSV.messages.exportError +
+							' ' +
+							(error.message || swiftCSV.messages.unknownError),
 						'error',
 						'export'
 					);
 				}
 
-				this.showError(button, error.message || 'Network error');
+				this.showError(button, error.message || swiftCSV.messages.failed);
 			});
+	},
+
+	/**
+	 * Process Direct SQL batches
+	 *
+	 * @param {Object} formData Form data
+	 * @param {string} exportSession Export session
+	 * @param {number} startRow Starting row
+	 * @param {HTMLElement} button Button element
+	 * @param {number} startTime Start time
+	 * @return {Promise} CSV content
+	 */
+	processDirectSqlBatches: function (formData, exportSession, startRow, button, startTime) {
+		return this.processDirectSqlBatch(formData, startRow, exportSession).then(response => {
+			if (response.success) {
+				// Update progress
+				processed = response.data.processed;
+				this.updateDirectSqlProgress(
+					processed,
+					response.data.total_posts || 0,
+					button,
+					startTime
+				);
+
+				// Check if completed
+				if (response.data.completed) {
+					return response.data.csv_content;
+				}
+
+				// Process next batch
+				return this.processDirectSqlBatches(
+					formData,
+					exportSession,
+					processed,
+					button,
+					startTime
+				);
+			} else {
+				throw new Error(response.data || 'Batch processing failed');
+			}
+		});
+	},
+
+	/**
+	 * Process Direct SQL batch
+	 *
+	 * @param {Object} formData Form data
+	 * @param {number} startRow Starting row
+	 * @param {string} exportSession Export session
+	 * @return {Promise} Batch response
+	 */
+	processDirectSqlBatch: function (formData, startRow, exportSession) {
+		const batchFormData = new FormData();
+		batchFormData.append('action', 'swift_csv_ajax_export');
+		batchFormData.append('nonce', swiftCSV.nonce);
+		batchFormData.append('export_method', 'direct_sql');
+		batchFormData.append('start_row', startRow || 0);
+		batchFormData.append('export_session', exportSession || '');
+
+		// Add other form data
+		Object.keys(formData).forEach(key => {
+			if (
+				key !== 'action' &&
+				key !== 'nonce' &&
+				key !== 'export_method' &&
+				key !== 'start_row' &&
+				key !== 'export_session'
+			) {
+				batchFormData.append(key, formData[key]);
+			}
+		});
+
+		return this.sendAjaxRequest(batchFormData);
+	},
+
+	/**
+	 * Update Direct SQL progress
+	 *
+	 * @param {number} processed Processed count
+	 * @param {number} total Total count
+	 * @param {HTMLElement} button Button element
+	 * @param {number} startTime Start time
+	 */
+	updateDirectSqlProgress: function (processed, total, button, startTime) {
+		const percentage = total > 0 ? Math.round((processed / total) * 100) : 0;
+		const elapsed = Date.now() - startTime;
+		const elapsedSeconds = Math.floor(elapsed / 1000);
+
+		// Update button text
+		button.textContent = `${swiftCSV.messages.exporting} (${percentage}% - ${processed}/${total})`;
+
+		// Update progress bar if exists
+		const progressContainer = document.querySelector('.swift-csv-progress-container');
+		if (progressContainer) {
+			const progressBar = progressContainer.querySelector('.progress-bar');
+			const progressText = progressContainer.querySelector('.progress-text');
+
+			if (progressBar) {
+				progressBar.style.width = percentage + '%';
+			}
+
+			if (progressText) {
+				progressText.textContent = `${percentage}% - ${swiftCSV.messages.processedInfo} ${processed} (${elapsedSeconds}s)`;
+			}
+		}
 	},
 
 	/**

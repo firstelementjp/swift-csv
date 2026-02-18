@@ -56,10 +56,6 @@ class Swift_CSV_AJAX_Export_Unified {
 		}
 
 		// Rate limiting.
-		// Clear all existing transients for testing
-		global $wpdb;
-		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_swift_csv_%'" );
-
 		$this->check_rate_limit();
 
 		// Get export method.
@@ -231,34 +227,116 @@ class Swift_CSV_AJAX_Export_Unified {
 	 */
 	private function handle_direct_sql_export( $config ) {
 		try {
-			// Create Direct SQL Export instance.
+			// Debug: Check export_limit value
+			error_log( 'Debug - Direct SQL export_limit: ' . ( $config['export_limit'] ?? 'NOT SET' ) );
+
+			// Get parameters similar to standard export
+			$start_row      = intval( $_POST['start_row'] ?? 0 );
+			$export_session = isset( $_POST['export_session'] ) ? sanitize_text_field( wp_unslash( $_POST['export_session'] ) ) : '';
+
+			// Initialize session if first request
+			if ( '' === $export_session ) {
+				$export_session = 'direct_sql_export_' . gmdate( 'Ymd_His' ) . '_' . wp_generate_uuid4();
+			}
+
+			// Initialize on first batch
+			if ( 0 === $start_row ) {
+				$headers_key = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					$post_type  = $config['post_type'] ?? 'post';
+					$taxonomies = get_object_taxonomies( $post_type, 'names' );
+					error_log( 'Debug - Direct SQL include_taxonomies: ' . ( ! empty( $config['include_taxonomies'] ) ? '1' : '0' ) );
+					error_log( 'Debug - Direct SQL header post_type: ' . $post_type );
+					error_log( 'Debug - Direct SQL get_object_taxonomies(names): ' . wp_json_encode( $taxonomies ) );
+					$headers_preview = $this->get_csv_headers_array( $config );
+					error_log( 'Debug - Direct SQL headers count: ' . count( $headers_preview ) );
+					error_log( 'Debug - Direct SQL headers tail: ' . wp_json_encode( array_slice( $headers_preview, -10 ) ) );
+				}
+				$headers_line = $this->get_csv_headers_line( $config );
+				set_transient( $headers_key, $headers_line, HOUR_IN_SECONDS );
+
+				// Initialize log store if logging enabled
+				$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
+				if ( $enable_logs ) {
+					$this->init_export_log_store( $export_session );
+				}
+			}
+
+			// Check for cancellation
+			if ( $this->is_cancelled( $export_session ) ) {
+				wp_send_json_error( 'Export cancelled by user' );
+				return;
+			}
+
+			// Get total posts count
+			$total_posts = $this->get_total_posts_count( $config );
+
+			// Debug: Check total posts
+			error_log( 'Debug - Total posts count: ' . $total_posts );
+
+			$batch_size = $this->get_export_batch_size( $total_posts, $config['post_type'], $config );
+
+			// Create Direct SQL Export instance
 			$export = new Swift_CSV_Export_Direct_SQL( $config );
 
-			// Perform export.
-			$result = $export->export();
+			// Get posts for current batch
+			$posts_data = $export->get_posts_batch( $start_row, $batch_size );
 
-			// Clear concurrent export flag on success
-			$session_id = session_id();
-			$cache_key  = 'swift_csv_concurrent_export_' . $session_id;
-			delete_transient( $cache_key );
+			// Debug: Check posts data
+			error_log( 'Debug - Posts data count: ' . count( $posts_data ) );
 
-			if ( $result['success'] ) {
+			if ( empty( $posts_data ) ) {
+				// Export completed - return final CSV
+				$final_csv = $this->generate_final_csv( $export_session );
+
 				return [
-					'csv_content'    => $result['data']['csv_content'],
-					'record_count'   => $result['data']['record_count'],
-					'export_session' => $result['data']['export_session'],
+					'success'        => true,
+					'completed'      => true,
+					'csv_content'    => $final_csv,
+					'processed'      => $start_row,
+					'total_posts'    => $total_posts,
+					'export_session' => $export_session,
 					'export_method'  => 'direct_sql',
 				];
-			} else {
-				throw new Exception( $result['message'] );
 			}
+
+			// Generate CSV for this batch
+			$csv_chunk = $export->generate_csv_batch( $posts_data );
+
+			// Store CSV chunk for final assembly
+			$this->store_csv_chunk( $export_session, $csv_chunk );
+
+			// Add log entry if logging enabled
+			if ( isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true ) ) {
+				$this->append_export_log(
+					$export_session,
+					[
+						'row'    => $start_row,
+						'status' => 'success',
+						'title'  => 'Batch processed: ' . count( $posts_data ) . ' posts',
+						'time'   => current_time( 'mysql' ),
+					]
+				);
+			}
+
+			// Return batch progress
+			return [
+				'success'        => true,
+				'completed'      => false,
+				'processed'      => $start_row + count( $posts_data ),
+				'total_posts'    => $total_posts,
+				'batch_size'     => $batch_size,
+				'export_session' => $export_session,
+				'export_method'  => 'direct_sql',
+			];
+
 		} catch ( Exception $e ) {
 			// Clear concurrent export flag on error too
 			$session_id = session_id();
 			$cache_key  = 'swift_csv_concurrent_export_' . $session_id;
 			delete_transient( $cache_key );
 
-			throw new Exception( 'Direct SQL export failed: ' . $e->getMessage() );
+			throw new Exception( 'Direct SQL export failed: ' . esc_html( $e->getMessage() ) );
 		}
 	}
 
@@ -276,6 +354,243 @@ class Swift_CSV_AJAX_Export_Unified {
 	}
 
 	/**
+	 * Get export batch size
+	 *
+	 * @since 0.9.8
+	 * @param int    $total_count Total posts count.
+	 * @param string $post_type Post type.
+	 * @param array  $config Export configuration.
+	 * @return int Batch size.
+	 */
+	private function get_export_batch_size( $total_count, $post_type, $config ) {
+		// Default batch size
+		$batch_size = 1000;
+
+		// Dynamic batch size based on total count
+		if ( $total_count > 10000 ) {
+			$batch_size = 2000;
+		} elseif ( $total_count > 5000 ) {
+			$batch_size = 1500;
+		} elseif ( $total_count > 1000 ) {
+			$batch_size = 1000;
+		} else {
+			$batch_size = 500;
+		}
+
+		// Apply filter for customization
+		return apply_filters( 'swift_csv_direct_sql_batch_size', $batch_size, $total_count, $post_type, $config );
+	}
+
+	/**
+	 * Store CSV chunk for final assembly
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @param string $csv_chunk CSV chunk.
+	 * @return void
+	 */
+	private function store_csv_chunk( $export_session, $csv_chunk ) {
+		$chunks_key = 'swift_csv_csv_chunks_' . get_current_user_id() . '_' . $export_session;
+		$chunks     = get_transient( $chunks_key );
+
+		if ( ! $chunks ) {
+			$chunks = [];
+		}
+
+		$chunks[] = $csv_chunk;
+		set_transient( $chunks_key, $chunks, HOUR_IN_SECONDS );
+	}
+
+	/**
+	 * Generate final CSV from stored chunks
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @return string Final CSV content.
+	 */
+	private function generate_final_csv( $export_session ) {
+		$chunks_key  = 'swift_csv_csv_chunks_' . get_current_user_id() . '_' . $export_session;
+		$chunks      = get_transient( $chunks_key );
+		$headers_key = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
+		$headers     = get_transient( $headers_key );
+
+		// Debug: Check chunks
+		error_log( 'Debug - CSV chunks count: ' . ( is_array( $chunks ) ? count( $chunks ) : 0 ) );
+		error_log( 'Debug - Chunks data: ' . print_r( $chunks, true ) );
+
+		if ( ! $chunks ) {
+			return '';
+		}
+
+		// Generate headers
+		$final_csv = is_string( $headers ) && '' !== $headers ? $headers . "\n" : '';
+
+		// Debug: Check headers
+		error_log( 'Debug - CSV headers: ' . $headers );
+
+		// Combine all chunks
+		foreach ( $chunks as $chunk ) {
+			$final_csv .= $chunk;
+			if ( substr( $chunk, -1 ) !== "\n" ) {
+				$final_csv .= "\n";
+			}
+		}
+
+		// Debug: Check final CSV
+		error_log( 'Debug - Final CSV length: ' . strlen( $final_csv ) );
+		error_log( 'Debug - Final CSV preview: ' . substr( $final_csv, 0, 500 ) );
+
+		// Clean up chunks
+		delete_transient( $chunks_key );
+		delete_transient( $headers_key );
+
+		return $final_csv;
+	}
+
+	/**
+	 * Get CSV headers array
+	 *
+	 * @since 0.9.8
+	 * @param array $config Export configuration.
+	 * @return array CSV headers.
+	 */
+	private function get_csv_headers_array( array $config ): array {
+		$export_scope   = $config['export_scope'] ?? 'basic';
+		$scope          = is_array( $export_scope ) ? ( $export_scope['scope'] ?? 'basic' ) : $export_scope;
+		$custom_columns = is_array( $export_scope ) ? ( $export_scope['custom_columns'] ?? [] ) : [];
+
+		$basic_headers = [
+			'ID',
+			'post_title',
+			'post_content',
+			'post_status',
+			'post_date',
+			'post_modified',
+			'post_name',
+			'post_excerpt',
+			'post_author',
+			'comment_count',
+			'menu_order',
+		];
+
+		$all_headers = array_merge(
+			$basic_headers,
+			[
+				'post_type',
+				'post_parent',
+				'comment_status',
+				'ping_status',
+				'post_password',
+				'post_sticky',
+			]
+		);
+
+		switch ( $scope ) {
+			case 'all':
+				$headers = $all_headers;
+				break;
+			case 'basic':
+			default:
+				$headers = $basic_headers;
+				break;
+		}
+
+		if ( ! empty( $custom_columns ) && is_array( $custom_columns ) ) {
+			foreach ( $custom_columns as $column_key => $column_label ) {
+				$headers[] = $column_label;
+			}
+		}
+
+		if ( ! empty( $config['include_taxonomies'] ) ) {
+			$post_type  = $config['post_type'] ?? 'post';
+			$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+			foreach ( $taxonomies as $taxonomy ) {
+				$headers[] = 'tax_' . $taxonomy->name;
+			}
+		}
+
+		return apply_filters( 'swift_csv_export_headers', $headers, $config );
+	}
+
+	/**
+	 * Get CSV headers line
+	 *
+	 * @since 0.9.8
+	 * @param array $config Export configuration.
+	 * @return string CSV headers line.
+	 */
+	private function get_csv_headers_line( array $config ): string {
+		$headers = $this->get_csv_headers_array( $config );
+
+		return implode(
+			',',
+			array_map(
+				static function ( $header ) {
+					return '"' . str_replace( '"', '""', (string) $header ) . '"';
+				},
+				$headers
+			)
+		);
+	}
+
+	/**
+	 * Initialize export log store
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @return void
+	 */
+	private function init_export_log_store( $export_session ) {
+		$transient_key = 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
+		set_transient(
+			$transient_key,
+			[
+				'last_id' => 0,
+				'logs'    => [],
+			],
+			3600
+		);
+	}
+
+	/**
+	 * Append export log entry
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @param array  $detail Export detail.
+	 * @return int New log ID.
+	 */
+	private function append_export_log( $export_session, array $detail ) {
+		$transient_key = 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
+		$store         = get_transient( $transient_key );
+		if ( ! is_array( $store ) ) {
+			$store = [
+				'last_id' => 0,
+				'logs'    => [],
+			];
+		}
+
+		++$store['last_id'];
+		$detail['id']    = $store['last_id'];
+		$store['logs'][] = $detail;
+
+		set_transient( $transient_key, $store, 3600 );
+		return $store['last_id'];
+	}
+
+	/**
+	 * Check if export is cancelled
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @return bool True if cancelled.
+	 */
+	private function is_cancelled( $export_session ) {
+		$cancel_key = 'swift_csv_cancel_export_' . get_current_user_id();
+		return (bool) get_transient( $cancel_key );
+	}
+
+	/**
 	 * Get total posts count for export
 	 *
 	 * @since 0.9.8
@@ -290,12 +605,21 @@ class Swift_CSV_AJAX_Export_Unified {
 			'fields'         => 'ids',
 		];
 
+		// Apply export limit if specified
 		if ( ! empty( $config['export_limit'] ) && $config['export_limit'] > 0 ) {
-			$args['posts_per_page'] = intval( $config['export_limit'] );
+			$args['posts_per_page'] = $config['export_limit'];
 		}
 
 		$query = new WP_Query( $args );
-		return $query->found_posts;
+
+		// Debug: Check found posts vs export limit
+		$found_posts  = $query->found_posts;
+		$export_limit = $config['export_limit'] ?? 0;
+		$total_posts  = $export_limit > 0 ? min( $found_posts, $export_limit ) : $found_posts;
+
+		error_log( "Debug - Found posts: {$found_posts}, Export limit: {$export_limit}, Total posts: {$total_posts}" );
+
+		return $total_posts;
 	}
 
 	/**
@@ -371,78 +695,5 @@ class Swift_CSV_AJAX_Export_Unified {
 		}
 
 		return $csv;
-	}
-
-	/**
-	 * Get CSV headers
-	 *
-	 * @since 0.9.8
-	 * @param array $config Export configuration.
-	 * @return array CSV headers.
-	 */
-	private function get_csv_headers( $config ) {
-		$headers = [ 'ID', 'Title', 'Content', 'Status', 'Date' ];
-
-		if ( $config['include_taxonomies'] ) {
-			$taxonomies = get_object_taxonomies( $config['post_type'], 'objects' );
-			foreach ( $taxonomies as $taxonomy ) {
-				if ( $config['taxonomy_format'] === 'name' ) {
-					$headers[] = $taxonomy->label;
-				} else {
-					$headers[] = $taxonomy->name . '_ids';
-				}
-			}
-		}
-
-		return $headers;
-	}
-
-	/**
-	 * Get CSV row for post
-	 *
-	 * @since 0.9.8
-	 * @param int   $post_id Post ID.
-	 * @param array $config Export configuration.
-	 * @return array CSV row data.
-	 */
-	private function get_csv_row( $post_id, $config ) {
-		$post = get_post( $post_id );
-
-		$row = [
-			$post->ID,
-			$this->escape_csv_field( $post->post_title ),
-			$this->escape_csv_field( $post->post_content ),
-			$post->post_status,
-			$post->post_date,
-		];
-
-		if ( $config['include_taxonomies'] ) {
-			$taxonomies = get_object_taxonomies( $config['post_type'] );
-			foreach ( $taxonomies as $taxonomy ) {
-				$terms = wp_get_post_terms( $post_id, $taxonomy );
-
-				if ( $config['taxonomy_format'] === 'name' ) {
-					$term_names = array_map( 'get_term_name', $terms );
-					$row[]      = $this->escape_csv_field( implode( '|', $term_names ) );
-				} else {
-					$term_ids = array_map( 'get_term_id', $terms );
-					$row[]    = implode( '|', $term_ids );
-				}
-			}
-		}
-
-		return $row;
-	}
-
-	/**
-	 * Escape CSV field
-	 *
-	 * @since 0.9.8
-	 * @param string $field Field value.
-	 * @return string Escaped field value.
-	 */
-	private function escape_csv_field( $field ) {
-		$field = str_replace( '"', '""', $field );
-		return '"' . $field . '"';
 	}
 }

@@ -229,6 +229,15 @@ abstract class Swift_CSV_Export_Base {
 			}
 		}
 
+		// Always include taxonomies for Direct SQL
+		$post_type   = $this->config['post_type'] ?? 'post';
+		$taxonomies  = get_object_taxonomies( $post_type, 'objects' );
+		$tax_headers = [];
+		foreach ( $taxonomies as $taxonomy ) {
+			$tax_headers[] = 'tax_' . $taxonomy->name;
+		}
+		$headers = array_merge( $headers, $tax_headers );
+
 		/**
 		 * Filter CSV headers
 		 *

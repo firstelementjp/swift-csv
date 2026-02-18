@@ -112,15 +112,14 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	protected function get_csv_headers() {
 		$headers = parent::get_csv_headers();
 
-		if ( ! empty( $this->config['include_taxonomies'] ) ) {
-			$post_type   = $this->config['post_type'] ?? 'post';
-			$taxonomies  = get_object_taxonomies( $post_type, 'objects' );
-			$tax_headers = [];
-			foreach ( $taxonomies as $taxonomy ) {
-				$tax_headers[] = 'tax_' . $taxonomy->name;
-			}
-			$headers = array_merge( $headers, $tax_headers );
+		// Always include taxonomies for Direct SQL
+		$post_type   = $this->config['post_type'] ?? 'post';
+		$taxonomies  = get_object_taxonomies( $post_type, 'objects' );
+		$tax_headers = [];
+		foreach ( $taxonomies as $taxonomy ) {
+			$tax_headers[] = 'tax_' . $taxonomy->name;
 		}
+		$headers = array_merge( $headers, $tax_headers );
 
 		return $headers;
 	}
@@ -367,9 +366,8 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		$sticky_map   = is_array( $sticky_posts ) ? array_flip( array_map( 'intval', $sticky_posts ) ) : [];
 
 		$taxonomy_data = [];
-		if ( ! empty( $this->config['include_taxonomies'] ) ) {
-			$taxonomy_data = $this->get_taxonomy_data_for_posts( $posts );
-		}
+		// Always include taxonomies for Direct SQL
+		$taxonomy_data = $this->get_taxonomy_data_for_posts( $posts );
 
 		// Merge post data with meta data.
 		$merged_data = [];

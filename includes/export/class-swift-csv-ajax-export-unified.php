@@ -169,7 +169,6 @@ class Swift_CSV_AJAX_Export_Unified {
 				'export_limit'         => isset( $_POST['export_limit'] ) ? absint( $_POST['export_limit'] ) : 0,
 				'taxonomy_format'      => sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) ),
 				'enable_logs'          => isset( $_POST['enable_logs'] ) ? (bool) $_POST['enable_logs'] : false,
-				'include_taxonomies'   => true, // Always include taxonomies for Direct SQL
 			];
 
 			// Handle custom post status.
@@ -241,17 +240,7 @@ class Swift_CSV_AJAX_Export_Unified {
 
 			// Initialize on first batch
 			if ( 0 === $start_row ) {
-				$headers_key = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					$post_type  = $config['post_type'] ?? 'post';
-					$taxonomies = get_object_taxonomies( $post_type, 'names' );
-					error_log( 'Debug - Direct SQL include_taxonomies: ' . ( ! empty( $config['include_taxonomies'] ) ? '1' : '0' ) );
-					error_log( 'Debug - Direct SQL header post_type: ' . $post_type );
-					error_log( 'Debug - Direct SQL get_object_taxonomies(names): ' . wp_json_encode( $taxonomies ) );
-					$headers_preview = $this->get_csv_headers_array( $config );
-					error_log( 'Debug - Direct SQL headers count: ' . count( $headers_preview ) );
-					error_log( 'Debug - Direct SQL headers tail: ' . wp_json_encode( array_slice( $headers_preview, -10 ) ) );
-				}
+				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
 				$headers_line = $this->get_csv_headers_line( $config );
 				set_transient( $headers_key, $headers_line, HOUR_IN_SECONDS );
 
@@ -501,12 +490,11 @@ class Swift_CSV_AJAX_Export_Unified {
 			}
 		}
 
-		if ( ! empty( $config['include_taxonomies'] ) ) {
-			$post_type  = $config['post_type'] ?? 'post';
-			$taxonomies = get_object_taxonomies( $post_type, 'objects' );
-			foreach ( $taxonomies as $taxonomy ) {
-				$headers[] = 'tax_' . $taxonomy->name;
-			}
+		// Always include taxonomies for Direct SQL
+		$post_type  = $config['post_type'] ?? 'post';
+		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+		foreach ( $taxonomies as $taxonomy ) {
+			$headers[] = 'tax_' . $taxonomy->name;
 		}
 
 		return apply_filters( 'swift_csv_export_headers', $headers, $config );

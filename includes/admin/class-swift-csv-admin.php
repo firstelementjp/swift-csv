@@ -554,11 +554,11 @@ class Swift_CSV_Admin {
 			</dt>
 			<dd>
 				<label class="swift-csv-block-label">
-					<input type="radio" name="swift_csv_export_taxonomy_format" value="name" checked>
+					<input type="radio" id="swift_csv_taxonomy_format_name" name="taxonomy_format" value="name" checked>
 					<?php esc_html_e( 'Names (name)', 'swift-csv' ); ?>
 				</label>
 				<label class="swift-csv-block-label">
-					<input type="radio" name="swift_csv_export_taxonomy_format" value="id">
+					<input type="radio" id="swift_csv_taxonomy_format_id" name="taxonomy_format" value="id">
 					<?php esc_html_e( 'Term IDs (term_id)', 'swift-csv' ); ?>
 				</label>
 				<p class="description"><?php esc_html_e( 'Choose how taxonomy terms are exported: names for readability or term IDs for data integrity.', 'swift-csv' ); ?></p>

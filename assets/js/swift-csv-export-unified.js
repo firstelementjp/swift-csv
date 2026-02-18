@@ -283,7 +283,7 @@
 					? '1'
 					: '0',
 				export_limit: $('#swift_csv_export_limit').val() || '0',
-				taxonomy_format: $('#swift_csv_taxonomy_format').val() || 'names',
+				taxonomy_format: $('input[name="taxonomy_format"]:checked').val() || 'name',
 				enable_logs: $('#swift_csv_export_enable_logs').is(':checked') ? '1' : '0',
 			};
 		},

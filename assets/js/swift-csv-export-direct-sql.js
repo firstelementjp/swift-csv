@@ -112,24 +112,6 @@
 		 * Get form data
 		 */
 		getFormData: function () {
-			// Debug: Check if elements exist
-			console.log('[Direct SQL Export] Debug - Elements check:');
-			console.log(
-				'  post_type element:',
-				$('#swift_csv_export_post_type').length,
-				$('#swift_csv_export_post_type').val()
-			);
-			console.log(
-				'  post_status element:',
-				$('input[name="swift_csv_export_post_status"]:checked').length,
-				$('input[name="swift_csv_export_post_status"]:checked').val()
-			);
-			console.log(
-				'  export_scope element:',
-				$('input[name="swift_csv_export_scope"]:checked').length,
-				$('input[name="swift_csv_export_scope"]:checked').val()
-			);
-
 			return {
 				post_type: $('#swift_csv_export_post_type').val() || 'post',
 				post_status:
@@ -139,7 +121,7 @@
 					? '1'
 					: '0',
 				export_limit: $('#swift_csv_export_limit').val() || '0',
-				taxonomy_format: $('#swift_csv_taxonomy_format').val() || 'names',
+				taxonomy_format: $('input[name="taxonomy_format"]:checked').val() || 'name',
 				enable_logs: $('#swift_csv_export_enable_logs').is(':checked') ? '1' : '0',
 			};
 		},

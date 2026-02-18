@@ -55,6 +55,10 @@ class Swift_CSV_AJAX_Export_Unified {
 		}
 
 		// Rate limiting.
+		// Clear all existing transients for testing
+		global $wpdb;
+		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_swift_csv_%'" );
+
 		$this->check_rate_limit();
 
 		// Get export method.
@@ -117,9 +121,12 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @throws Exception When rate limit exceeded.
 	 */
 	private function check_rate_limit() {
+		// Clear any existing concurrent export flags for testing
+		$session_id = session_id();
+		$cache_key  = 'swift_csv_concurrent_export_' . $session_id;
+		delete_transient( $cache_key );
+
 		// Check for concurrent exports in the same session
-		$session_id   = session_id();
-		$cache_key    = 'swift_csv_concurrent_export_' . $session_id;
 		$is_exporting = get_transient( $cache_key );
 
 		if ( $is_exporting ) {
@@ -145,8 +152,9 @@ class Swift_CSV_AJAX_Export_Unified {
 				'export_scope'         => sanitize_text_field( wp_unslash( $_POST['export_scope'] ?? 'all' ) ),
 				'include_private_meta' => isset( $_POST['include_private_meta'] ) ? (bool) $_POST['include_private_meta'] : false,
 				'export_limit'         => isset( $_POST['export_limit'] ) ? absint( $_POST['export_limit'] ) : 0,
-				'taxonomy_format'      => sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'names' ) ),
+				'taxonomy_format'      => sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) ),
 				'enable_logs'          => isset( $_POST['enable_logs'] ) ? (bool) $_POST['enable_logs'] : false,
+				'include_taxonomies'   => true, // Always include taxonomies for Direct SQL
 			];
 
 			// Handle custom post status.
@@ -185,12 +193,6 @@ class Swift_CSV_AJAX_Export_Unified {
 					// Fallback to default fields if filter returns invalid data.
 					$config['export_fields'] = $default_fields;
 				}
-			}
-
-			// For Direct SQL export, temporarily simplify export scope handling
-			if ( isset( $_POST['export_method'] ) && 'direct_sql' === sanitize_text_field( wp_unslash( $_POST['export_method'] ) ) ) {
-				// Temporarily skip complex export scope processing for testing
-				// Just keep the basic string value for now
 			}
 
 			return $config;

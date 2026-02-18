@@ -143,6 +143,15 @@ class Swift_CSV_Admin {
 				true
 			);
 
+			// Direct SQL Export functionality
+			wp_register_script(
+				'swift-csv-export-direct-sql',
+				SWIFT_CSV_PLUGIN_URL . 'assets/js/swift-csv-export-direct-sql' . $suffix . '.js',
+				[ 'swift-csv-core' ],
+				SWIFT_CSV_VERSION . '.' . time(),
+				true
+			);
+
 			// Set script translations for core module
 			wp_set_script_translations( 'swift-csv-core', 'swift-csv', SWIFT_CSV_PLUGIN_DIR . 'languages' );
 
@@ -261,6 +270,7 @@ class Swift_CSV_Admin {
 			wp_enqueue_script( 'swift-csv-import' );
 			wp_enqueue_script( 'swift-csv-license' );
 			wp_enqueue_script( 'swift-csv-main' );
+			wp_enqueue_script( 'swift-csv-export-direct-sql' );
 		}
 	}
 
@@ -424,10 +434,10 @@ class Swift_CSV_Admin {
 		?>
 		<dl>
 			<dt>
-				<label for="ajax_export_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
+				<label for="swift_csv_export_post_type"><?php esc_html_e( 'Post Type', 'swift-csv' ); ?></label>
 			</dt>
 			<dd>
-				<select name="swift_csv_export_post_type" id="ajax_export_post_type" required>
+				<select name="swift_csv_export_post_type" id="swift_csv_export_post_type" required>
 					<?php foreach ( $post_types as $post_type ) : ?>
 						<option value="<?php echo esc_attr( $post_type->name ); ?>">
 							<?php echo esc_html( $post_type->labels->name ); ?> (<?php echo esc_html( $post_type->name ); ?>)
@@ -476,15 +486,15 @@ class Swift_CSV_Admin {
 			</dt>
 			<dd>
 				<label class="swift-csv-block-label">
-					<input type="radio" name="swift_csv_export_post_status" value="publish" checked>
+					<input type="radio" name="swift_csv_export_post_status" id="swift_csv_post_status_publish" value="publish" checked>
 					<?php esc_html_e( 'Published posts only', 'swift-csv' ); ?>
 				</label>
 				<label class="swift-csv-block-label">
-					<input type="radio" name="swift_csv_export_post_status" value="any">
+					<input type="radio" name="swift_csv_export_post_status" id="swift_csv_post_status_any" value="any">
 					<?php esc_html_e( 'All statuses', 'swift-csv' ); ?>
 				</label>
 				<label class="swift-csv-block-label">
-					<input type="radio" name="swift_csv_export_post_status" value="custom">
+					<input type="radio" name="swift_csv_export_post_status" id="swift_csv_post_status_custom" value="custom">
 					<?php esc_html_e( 'Custom', 'swift-csv' ); ?>
 				</label>
 				<div id="custom-post-status-help" class="swift-csv-custom-help">
@@ -515,15 +525,15 @@ class Swift_CSV_Admin {
 			</dt>
 			<dd>
 				<label class="swift-csv-block-label">
-					<input type="radio" name="swift_csv_export_scope" value="basic" checked>
+					<input type="radio" name="swift_csv_export_scope" id="swift_csv_export_scope_basic" value="basic" checked>
 					<?php esc_html_e( 'Basic Fields', 'swift-csv' ); ?>
 				</label>
 				<label class="swift-csv-block-label">
-					<input type="radio" name="swift_csv_export_scope" value="all">
+					<input type="radio" name="swift_csv_export_scope" id="swift_csv_export_scope_all" value="all">
 					<?php esc_html_e( 'All Fields', 'swift-csv' ); ?>
 				</label>
 				<label class="swift-csv-block-label">
-					<input type="radio" name="swift_csv_export_scope" value="custom">
+					<input type="radio" name="swift_csv_export_scope" id="swift_csv_export_scope_custom" value="custom">
 					<?php esc_html_e( 'Custom', 'swift-csv' ); ?>
 				</label>
 				<div id="custom-export-help" class="swift-csv-custom-help">
@@ -1114,7 +1124,10 @@ class Swift_CSV_Admin {
 						<?php do_settings_fields( 'swift-csv', 'swift_csv_export_section' ); ?>
 
 						<p class="submit">
-							<input type="submit" name="ajax_export_csv" class="button button-primary" id="ajax-export-csv-btn" value="<?php esc_html_e( 'Start Export', 'swift-csv' ); ?>">
+							<input type="submit" name="ajax_export_csv" class="button button-primary" id="ajax-export-csv-btn" value="<?php esc_html_e( 'Standard Export (WP Functions)', 'swift-csv' ); ?>">
+							<button type="button" class="button button-secondary" id="direct-sql-export-btn" style="margin-left: 10px;">
+								<?php esc_html_e( 'High-Speed Export (Direct SQL)', 'swift-csv' ); ?>
+							</button>
 							<button type="button" class="button" id="ajax-export-cancel-btn" style="display: none;">
 					<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
 				</button>

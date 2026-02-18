@@ -779,6 +779,10 @@ class Swift_CSV_Ajax_Export {
 			}
 
 			// Validate post type
+			error_log( 'Debug - Post type received: ' . $post_type );
+			error_log( 'Debug - Post type exists: ' . ( post_type_exists( $post_type ) ? 'true' : 'false' ) );
+			error_log( 'Debug - Available post types: ' . print_r( get_post_types(), true ) );
+
 			if ( ! post_type_exists( $post_type ) ) {
 				wp_send_json_error( 'Invalid post type' );
 			}

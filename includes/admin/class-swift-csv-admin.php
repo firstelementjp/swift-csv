@@ -111,7 +111,7 @@ class Swift_CSV_Admin {
 			wp_register_script(
 				'swift-csv-export-unified',
 				SWIFT_CSV_PLUGIN_URL . 'assets/js/swift-csv-export-unified' . $suffix . '.js',
-				[ 'jquery', 'swift-csv-core' ],
+				[ 'swift-csv-core' ],
 				'0.9.8',
 				true
 			);
@@ -256,6 +256,7 @@ class Swift_CSV_Admin {
 			);
 
 			// Enqueue all scripts in correct order
+			wp_enqueue_script( 'jquery' );
 			wp_enqueue_script( 'swift-csv-core' );
 			wp_enqueue_script( 'swift-csv-export-unified' ); // New unified export script
 			wp_enqueue_script( 'swift-csv-import' );

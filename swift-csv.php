@@ -73,6 +73,14 @@ spl_autoload_register(
 
 		$file_path = $base_dir . $sub_dir . $file_name;
 
+		// Load base export class first for inheritance.
+		if ( 'Swift_CSV_Export_Direct_SQL' === $class_name ) {
+			$base_file = $base_dir . 'export/class-swift-csv-export-base.php';
+			if ( file_exists( $base_file ) ) {
+				require_once $base_file;
+			}
+		}
+
 		// Load file if exists.
 		if ( file_exists( $file_path ) ) {
 			require_once $file_path;
@@ -116,8 +124,12 @@ function swift_csv_load_textdomain() {
 function swift_csv_init() {
 	new Swift_CSV_Admin();
 	new Swift_CSV_Ajax_Import();
-	new Swift_CSV_Ajax_Export();
-	new Swift_CSV_AJAX_Export_Direct_SQL();
+
+	// Manually include base export class first
+	require_once SWIFT_CSV_PLUGIN_DIR . 'includes/export/class-swift-csv-export-base.php';
+	require_once SWIFT_CSV_PLUGIN_DIR . 'includes/export/class-swift-csv-ajax-export-unified.php';
+	new Swift_CSV_AJAX_Export_Unified(); // Unified export handler
+
 	new Swift_CSV_Updater( __FILE__ );
 }
 

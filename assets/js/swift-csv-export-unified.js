@@ -77,7 +77,7 @@ const SwiftCSVExportUnified = {
 
 		// Disable button and show loading
 		button.disabled = true;
-		button.textContent = 'Exporting...';
+		button.textContent = swiftCSV.messages.exporting;
 
 		// Add log entry if logging is enabled
 		if (
@@ -91,6 +91,8 @@ const SwiftCSVExportUnified = {
 		// Send AJAX request
 		this.sendAjaxRequest(formData)
 			.then(response => {
+				console.log('Debug - Direct SQL response:', response);
+
 				if (response.success) {
 					// Add success log
 					if (
@@ -99,10 +101,16 @@ const SwiftCSVExportUnified = {
 						window.SwiftCSVUtils.addLogEntry
 					) {
 						window.SwiftCSVUtils.addLogEntry(
-							'Direct SQL export completed successfully',
+							swiftCSV.messages.exportCompleted,
 							'success',
 							'export'
 						);
+					}
+
+					// Check if csv_content exists
+					if (!response.data || !response.data.csv_content) {
+						console.error('Debug - Missing csv_content in response:', response);
+						throw new Error(swiftCSV.messages.csvContentNotFound);
 					}
 
 					// Direct SQL: Immediate download
@@ -116,13 +124,16 @@ const SwiftCSVExportUnified = {
 						window.SwiftCSVUtils.addLogEntry
 					) {
 						window.SwiftCSVUtils.addLogEntry(
-							'Direct SQL export failed: ' + (response.data || 'Unknown error'),
+							'Direct SQL ' +
+								swiftCSV.messages.exportError +
+								' ' +
+								(response.data || swiftCSV.messages.unknownError),
 							'error',
 							'export'
 						);
 					}
 
-					this.showError(button, response.data || 'Export failed');
+					this.showError(button, response.data || swiftCSV.messages.failed);
 				}
 			})
 			.catch(error => {
@@ -245,11 +256,11 @@ const SwiftCSVExportUnified = {
 	 */
 	showComplete: function (button) {
 		button.disabled = false;
-		button.textContent = 'Export Complete';
+		button.textContent = swiftCSV.exportCompleteText;
 
 		// Reset after delay
 		setTimeout(function () {
-			button.textContent = 'High-Speed Export (Direct SQL)';
+			button.textContent = swiftCSV.highSpeedExportText;
 		}, 3000);
 	},
 
@@ -261,12 +272,12 @@ const SwiftCSVExportUnified = {
 	 */
 	showError: function (button, errorMessage) {
 		button.disabled = false;
-		button.textContent = 'Export Failed';
-		alert('Export failed: ' + errorMessage);
+		button.textContent = swiftCSV.exportFailedText;
+		alert(swiftCSV.messages.failed + ': ' + errorMessage);
 
 		// Reset after delay
 		setTimeout(function () {
-			button.textContent = 'High-Speed Export (Direct SQL)';
+			button.textContent = swiftCSV.highSpeedExportText;
 		}, 3000);
 	},
 

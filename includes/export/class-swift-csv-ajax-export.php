@@ -43,9 +43,10 @@ class Swift_CSV_Ajax_Export {
 	 * @since 0.9.0
 	 */
 	public function __construct() {
-		add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
+		// Disable standard handler - unified handler now handles both methods
+		// add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
+		// add_action( 'wp_ajax_swift_csv_ajax_export_logs', [ $this, 'handle_ajax_export_logs' ] );
 		add_action( 'wp_ajax_swift_csv_cancel_export', [ $this, 'handle_ajax_export_cancel' ] );
-		add_action( 'wp_ajax_swift_csv_ajax_export_logs', [ $this, 'handle_ajax_export_logs' ] );
 	}
 
 	/**

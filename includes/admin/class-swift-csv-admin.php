@@ -151,9 +151,9 @@ class Swift_CSV_Admin {
 				'swift-csv-core',
 				'swiftCSV',
 				[
-					'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
-					'nonce'         => wp_create_nonce( 'swift_csv_ajax_nonce' ),
-					'debug'         => $debug_mode,
+					'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
+					'nonce'               => wp_create_nonce( 'swift_csv_ajax_nonce' ),
+					'debug'               => $debug_mode,
 					/**
 					 * Filter maximum log entries to display
 					 *
@@ -164,8 +164,15 @@ class Swift_CSV_Admin {
 					 * @param int $max_entries Maximum number of log entries to keep.
 					 * @return int Modified maximum entries.
 					 */
-					'maxLogEntries' => apply_filters( 'swift_csv_max_log_entries', 30 ),
-					'messages'      => [
+					'maxLogEntries'       => apply_filters( 'swift_csv_max_log_entries', 30 ),
+					// Button text for export
+					'highSpeedExportText' => esc_html__( 'High-Speed Export', 'swift-csv' ),
+					'standardExportText'  => esc_html__( 'Standard Export (WP Compatible)', 'swift-csv' ),
+					'exportCompleteText'  => esc_html__( 'Export Complete', 'swift-csv' ),
+					'exportFailedText'    => esc_html__( 'Export Failed', 'swift-csv' ),
+					'csvContentNotFound'  => esc_html__( 'CSV content not found in response', 'swift-csv' ),
+					'unknownError'        => esc_html__( 'Unknown error', 'swift-csv' ),
+					'messages'            => [
 						'exportCsv'             => esc_html__( 'Export CSV', 'swift-csv' ),
 						'startExport'           => esc_html__( 'Start Export', 'swift-csv' ),
 						'importCsv'             => esc_html__( 'Import CSV', 'swift-csv' ),
@@ -1115,10 +1122,10 @@ class Swift_CSV_Admin {
 						<?php do_settings_fields( 'swift-csv', 'swift_csv_export_section' ); ?>
 
 						<p class="submit">
-							<input type="submit" name="ajax_export_csv" class="button button-primary" id="ajax-export-csv-btn" value="<?php esc_html_e( 'Standard Export (WP Functions)', 'swift-csv' ); ?>">
-							<button type="button" class="button button-secondary" id="direct-sql-export-btn" style="margin-left: 10px;">
-								<?php esc_html_e( 'High-Speed Export (Direct SQL)', 'swift-csv' ); ?>
+							<button type="button" class="button button-primary" id="direct-sql-export-btn">
+								<?php esc_html_e( 'High-Speed Export', 'swift-csv' ); ?>
 							</button>
+							<input type="submit" name="ajax_export_csv" class="button button-secondary" id="ajax-export-csv-btn" value="<?php esc_html_e( 'Standard Export (WP Compatible)', 'swift-csv' ); ?>" style="margin-left: 10px;">
 							<button type="button" class="button" id="ajax-export-cancel-btn" style="display: none;">
 					<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
 				</button>

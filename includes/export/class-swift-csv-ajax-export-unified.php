@@ -30,8 +30,8 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @since 0.9.8
 	 */
 	public function __construct() {
-		// Disable unified handler to avoid conflicts with standard handler
-		// add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
+		// Enable unified handler for Direct SQL export
+		add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
 		add_action( 'wp_ajax_swift_csv_ajax_export_logs', [ $this, 'handle_ajax_export_logs' ] );
 	}
 
@@ -270,50 +270,9 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @return array Export result.
 	 */
 	private function handle_standard_export( $config ) {
-		// Debug: Log method entry
-		error_log( 'Swift CSV Unified: handle_standard_export called' );
-		error_log( 'Swift CSV Unified: POST data: ' . print_r( $_POST, true ) );
-
-		// Check if this is a batch request
-		$start_row      = intval( $_POST['start_row'] ?? 0 );
-		$export_session = sanitize_key( $_POST['export_session'] ?? '' );
-
-		error_log( 'Swift CSV Unified: start_row: ' . $start_row . ', export_session: ' . $export_session );
-
-		if ( $start_row === 0 && empty( $export_session ) ) {
-			// Initial request - create session and return session info
-			error_log( 'Swift CSV Unified: Initial request - creating session' );
-			$export_session = 'export_' . gmdate( 'Y-m-d_H-i-s' ) . '_' . wp_generate_uuid4();
-
-			// Initialize log store
-			$transient_key = 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
-			set_transient(
-				$transient_key,
-				[
-					'last_id' => 0,
-					'logs'    => [],
-				],
-				3600
-			);
-
-			// Store config for subsequent requests
-			$config_transient_key = 'swift_csv_export_config_' . get_current_user_id() . '_' . $export_session;
-			set_transient( $config_transient_key, $config, HOUR_IN_SECONDS );
-
-			$result = [
-				'export_session' => $export_session,
-				'export_method'  => 'standard',
-				'total_posts'    => $this->get_total_posts_count( $config ),
-				'batch_size'     => 500,
-			];
-
-			error_log( 'Swift CSV Unified: Initial result: ' . print_r( $result, true ) );
-			return $result;
-		}
-
-		// Batch processing request
-		error_log( 'Swift CSV Unified: Batch processing request' );
-		return $this->process_standard_export_batch( $config, $start_row, $export_session );
+		// Use existing standard export handler
+		$standard_handler = new Swift_CSV_Ajax_Export();
+		return $standard_handler->handle_ajax_export();
 	}
 
 	/**

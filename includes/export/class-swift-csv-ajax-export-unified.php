@@ -76,15 +76,7 @@ class Swift_CSV_AJAX_Export_Unified {
 					break;
 			}
 
-			// Try alternative response method
-			header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
-			echo wp_json_encode(
-				[
-					'success' => true,
-					'data'    => $result,
-				]
-			);
-			wp_die();
+			wp_send_json( $result );
 
 		} catch ( Exception $e ) {
 			error_log( 'Swift CSV Unified: exception caught: ' . $e->getMessage() );
@@ -113,20 +105,55 @@ class Swift_CSV_AJAX_Export_Unified {
 			return;
 		}
 
-		// Get logs directly instead of calling non-existent method
+		$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
+		if ( ! $enable_logs ) {
+			wp_send_json_success(
+				[
+					'last_id' => 0,
+					'logs'    => [],
+				]
+			);
+			return;
+		}
+
+		$after_id = isset( $_POST['after_id'] ) ? intval( $_POST['after_id'] ) : 0;
+		$limit    = isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 100;
+		$limit    = max( 1, min( 200, $limit ) );
+
+		// Get logs directly.
 		$transient_key = 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
 		$store         = get_transient( $transient_key );
 
 		if ( ! is_array( $store ) ) {
-			$logs = [
+			$payload = [
 				'last_id' => 0,
 				'logs'    => [],
 			];
 		} else {
-			$logs = $store;
+			$logs = [];
+			if ( ! empty( $store['logs'] ) && is_array( $store['logs'] ) ) {
+				foreach ( $store['logs'] as $entry ) {
+					if ( ! is_array( $entry ) || empty( $entry['id'] ) ) {
+						continue;
+					}
+					$entry_id = intval( $entry['id'] );
+					if ( $entry_id <= $after_id ) {
+						continue;
+					}
+					$logs[] = $entry;
+					if ( count( $logs ) >= $limit ) {
+						break;
+					}
+				}
+			}
+
+			$payload = [
+				'last_id' => intval( $store['last_id'] ?? 0 ),
+				'logs'    => $logs,
+			];
 		}
 
-		wp_send_json_success( $logs );
+		wp_send_json_success( $payload );
 	}
 
 	/**
@@ -226,9 +253,6 @@ class Swift_CSV_AJAX_Export_Unified {
 	 */
 	private function handle_direct_sql_export( $config ) {
 		try {
-			// Debug: Check export_limit value
-			error_log( 'Debug - Direct SQL export_limit: ' . ( $config['export_limit'] ?? 'NOT SET' ) );
-
 			// Get parameters similar to standard export
 			$start_row      = intval( $_POST['start_row'] ?? 0 );
 			$export_session = isset( $_POST['export_session'] ) ? sanitize_text_field( wp_unslash( $_POST['export_session'] ) ) : '';
@@ -260,9 +284,6 @@ class Swift_CSV_AJAX_Export_Unified {
 			// Get total posts count
 			$total_posts = $this->get_total_posts_count( $config );
 
-			// Debug: Check total posts
-			error_log( 'Debug - Total posts count: ' . $total_posts );
-
 			$batch_size = $this->get_export_batch_size( $total_posts, $config['post_type'], $config );
 
 			// Create Direct SQL Export instance
@@ -271,52 +292,74 @@ class Swift_CSV_AJAX_Export_Unified {
 			// Get posts for current batch
 			$posts_data = $export->get_posts_batch( $start_row, $batch_size );
 
-			// Debug: Check posts data
-			error_log( 'Debug - Posts data count: ' . count( $posts_data ) );
-
 			if ( empty( $posts_data ) ) {
-				// Export completed - return final CSV
-				$final_csv = $this->generate_final_csv( $export_session );
-
 				return [
 					'success'        => true,
-					'completed'      => true,
-					'csv_content'    => $final_csv,
-					'processed'      => $start_row,
-					'total_posts'    => $total_posts,
 					'export_session' => $export_session,
-					'export_method'  => 'direct_sql',
+					'processed'      => $start_row,
+					'total'          => $total_posts,
+					'continue'       => false,
+					'progress'       => 100,
+					'status'         => 'completed',
+					'csv_chunk'      => '',
 				];
 			}
 
 			// Generate CSV for this batch
 			$csv_chunk = $export->generate_csv_batch( $posts_data );
+			if ( 0 === $start_row ) {
+				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
+				$headers_line = get_transient( $headers_key );
+				if ( is_string( $headers_line ) && '' !== $headers_line ) {
+					$csv_chunk = $headers_line . "\n" . $csv_chunk;
+				}
+			}
 
 			// Store CSV chunk for final assembly
 			$this->store_csv_chunk( $export_session, $csv_chunk );
 
 			// Add log entry if logging enabled
 			if ( isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true ) ) {
+				$batch_number = floor( $start_row / $batch_size ) + 1;
+				$message      = sprintf(
+					/* translators: 1: Batch number, 2: Number of posts processed */
+					__( 'Batch %1$d: Bulk export %2$d posts', 'swift-csv' ),
+					$batch_number,
+					count( $posts_data )
+				);
 				$this->append_export_log(
 					$export_session,
 					[
 						'row'    => $start_row,
 						'status' => 'success',
-						'title'  => 'Batch processed: ' . count( $posts_data ) . ' posts',
+						'title'  => $message,
 						'time'   => current_time( 'mysql' ),
 					]
 				);
 			}
 
+			$next_row = $start_row + count( $posts_data );
+			$continue = $next_row < $total_posts;
+			$progress = $total_posts > 0 ? round( ( $next_row / $total_posts ) * 100, 2 ) : 100;
+			$progress = min( 100, max( 0, $progress ) );
+
+			if ( ! $continue ) {
+				$chunks_key  = 'swift_csv_csv_chunks_' . get_current_user_id() . '_' . $export_session;
+				$headers_key = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
+				delete_transient( $chunks_key );
+				delete_transient( $headers_key );
+			}
+
 			// Return batch progress
 			return [
 				'success'        => true,
-				'completed'      => false,
-				'processed'      => $start_row + count( $posts_data ),
-				'total_posts'    => $total_posts,
-				'batch_size'     => $batch_size,
 				'export_session' => $export_session,
-				'export_method'  => 'direct_sql',
+				'processed'      => $next_row,
+				'total'          => $total_posts,
+				'continue'       => $continue,
+				'progress'       => $progress,
+				'status'         => $continue ? 'processing' : 'completed',
+				'csv_chunk'      => $csv_chunk,
 			];
 
 		} catch ( Exception $e ) {
@@ -403,19 +446,12 @@ class Swift_CSV_AJAX_Export_Unified {
 		$headers_key = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
 		$headers     = get_transient( $headers_key );
 
-		// Debug: Check chunks
-		error_log( 'Debug - CSV chunks count: ' . ( is_array( $chunks ) ? count( $chunks ) : 0 ) );
-		error_log( 'Debug - Chunks data: ' . print_r( $chunks, true ) );
-
 		if ( ! $chunks ) {
 			return '';
 		}
 
 		// Generate headers
 		$final_csv = is_string( $headers ) && '' !== $headers ? $headers . "\n" : '';
-
-		// Debug: Check headers
-		error_log( 'Debug - CSV headers: ' . $headers );
 
 		// Combine all chunks
 		foreach ( $chunks as $chunk ) {
@@ -424,10 +460,6 @@ class Swift_CSV_AJAX_Export_Unified {
 				$final_csv .= "\n";
 			}
 		}
-
-		// Debug: Check final CSV
-		error_log( 'Debug - Final CSV length: ' . strlen( $final_csv ) );
-		error_log( 'Debug - Final CSV preview: ' . substr( $final_csv, 0, 500 ) );
 
 		// Clean up chunks
 		delete_transient( $chunks_key );
@@ -559,8 +591,10 @@ class Swift_CSV_AJAX_Export_Unified {
 		}
 
 		++$store['last_id'];
-		$detail['id']    = $store['last_id'];
-		$store['logs'][] = $detail;
+		$store['logs'][] = [
+			'id'     => $store['last_id'],
+			'detail' => $detail,
+		];
 
 		set_transient( $transient_key, $store, 3600 );
 		return $store['last_id'];

@@ -37,9 +37,17 @@ msgstr "バッチ %1$d : 一括出力 %2$d 記事"
 msgid "Starting high-speed export..."
 msgstr "高速エクスポート開始..."
 
+#: includes/admin/class-swift-csv-admin.php:242
+msgid "Starting export process (High-Speed)..."
+msgstr "エクスポート処理（高速）を開始します..."
+
 #: includes/admin/class-swift-csv-admin.php:241
 msgid "s"
 msgstr "秒"
+
+#: includes/admin/class-swift-csv-admin.php:244
+msgid "Row"
+msgstr "行"
 
 #: includes/class-swift-csv-admin.php:1119
 msgid "High-Speed Export"

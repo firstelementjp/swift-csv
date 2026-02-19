@@ -113,6 +113,28 @@ const SwiftCSVExportUnified = {
 	},
 
 	/**
+	 * Complete export process
+	 *
+	 * @param {string} finalCsv Final CSV content
+	 * @param {Object} formData Form data
+	 * @param {HTMLElement} button Export button
+	 */
+	completeExport: function (finalCsv, formData, button) {
+		// Export completed
+		this.enableDownloadButtonForExport(finalCsv, formData.post_type || 'post');
+		this.showComplete(button);
+
+		// Add success log
+		if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
+			window.SwiftCSVUtils.addLogEntry(
+				swiftCSV.messages.exportCompleted,
+				'success',
+				'export'
+			);
+		}
+	},
+
+	/**
 	 * Handle Direct SQL export
 	 *
 	 * @param {Object} formData Form data
@@ -130,8 +152,45 @@ const SwiftCSVExportUnified = {
 			window.SwiftCSVUtils &&
 			window.SwiftCSVUtils.addLogEntry
 		) {
+			// Add export settings log (same as standard export)
 			window.SwiftCSVUtils.addLogEntry(
-				swiftCSV.messages.startingDirectSqlExport || 'Starting high-speed export...',
+				swiftCSV.messages.postTypeExport + ' ' + formData.post_type,
+				'debug',
+				'export'
+			);
+
+			// Translate export scope
+			const exportScopeText =
+				formData.export_scope === 'basic'
+					? swiftCSV.messages.exportScopeBasic
+					: swiftCSV.messages.exportScopeAll;
+			window.SwiftCSVUtils.addLogEntry(
+				swiftCSV.messages.exportContent + ' ' + exportScopeText,
+				'debug',
+				'export'
+			);
+
+			window.SwiftCSVUtils.addLogEntry(
+				swiftCSV.messages.includePrivateMeta +
+					' ' +
+					(formData.include_private_meta === '1'
+						? swiftCSV.messages.yes
+						: swiftCSV.messages.no),
+				'debug',
+				'export'
+			);
+			window.SwiftCSVUtils.addLogEntry(
+				swiftCSV.messages.exportLimit +
+					' ' +
+					(formData.export_limit || swiftCSV.messages.noLimit),
+				'debug',
+				'export'
+			);
+
+			// Add starting message
+			window.SwiftCSVUtils.addLogEntry(
+				swiftCSV.messages.startingDirectSqlExport ||
+					'Starting export process (High-Speed)...',
 				'info',
 				'export'
 			);
@@ -261,32 +320,23 @@ const SwiftCSVExportUnified = {
 					// Stop polling first to avoid race conditions
 					stopExportLogPolling();
 
-					// Wait a bit then do final poll
-					setTimeout(() => {
-						pollExportLogs().finally(() => {
-							// Export completed
-							this.enableDownloadButtonForExport(
-								finalCsv,
-								formData.post_type || 'post'
-							);
-							this.showComplete(button);
-
-							// Add success log
-							if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
-								window.SwiftCSVUtils.addLogEntry(
-									swiftCSV.messages.exportCompleted,
-									'success',
-									'export'
-								);
-							}
-						});
-					}, 100);
+					// For single batch exports, skip final poll to avoid duplication
+					// Only do final poll if we had multiple batches (processed > batch_size)
+					const batchSize = 500; // Default batch size
+					if (processed > batchSize) {
+						// Wait a bit then do final poll for multi-batch exports
+						setTimeout(() => {
+							pollExportLogs().finally(() => {
+								this.completeExport(finalCsv, formData, button);
+							});
+						}, 100);
+					} else {
+						// Single batch - complete immediately
+						this.completeExport(finalCsv, formData, button);
+					}
 				} else {
 					stopExportLogPolling();
-
-					// Export completed
-					this.enableDownloadButtonForExport(finalCsv, formData.post_type || 'post');
-					this.showComplete(button);
+					this.completeExport(finalCsv, formData, button);
 				}
 			})
 			.catch(error => {

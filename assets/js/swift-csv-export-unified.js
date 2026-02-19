@@ -562,7 +562,9 @@ const SwiftCSVExportUnified = {
 			export_scope:
 				document.querySelector('input[name="swift_csv_export_scope"]:checked')?.value ||
 				'all',
-			include_private_meta: document.getElementById('swift_csv_include_private_meta')?.checked
+			include_private_meta: document.querySelector(
+				'input[name="swift_csv_include_private_meta"]'
+			)?.checked
 				? '1'
 				: '0',
 			export_limit: document.getElementById('swift_csv_export_limit')?.value || '0',

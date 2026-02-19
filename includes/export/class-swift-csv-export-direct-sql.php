@@ -41,7 +41,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	protected function get_posts_data() {
 		global $wpdb;
 
-		// Return cached data if available
+		// Return cached data if available.
 		if ( null !== $this->cached_posts_data ) {
 			return $this->cached_posts_data;
 		}
@@ -68,8 +68,8 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 						{$limit_clause}";
 
 			// Use call_user_func_array to pass all status parameters.
-			$params = array_merge( [ $this->config['post_type'] ], $statuses );
-			$query  = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $query ], $params ) );
+			$params = array_merge( array( $this->config['post_type'] ), $statuses );
+			$query  = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $query ), $params ) );
 		} else {
 			// Single status - disable taxonomy JOIN to restore server.
 			$query = "SELECT p.ID, p.post_title, p.post_content, p.post_status, 
@@ -115,13 +115,183 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		// Always include taxonomies for Direct SQL
 		$post_type   = $this->config['post_type'] ?? 'post';
 		$taxonomies  = get_object_taxonomies( $post_type, 'objects' );
-		$tax_headers = [];
+		$tax_headers = array();
 		foreach ( $taxonomies as $taxonomy ) {
 			$tax_headers[] = 'tax_' . $taxonomy->name;
 		}
 		$headers = array_merge( $headers, $tax_headers );
 
+		// Include custom fields (meta) for Direct SQL.
+		$cf_headers = $this->get_custom_field_headers();
+		if ( ! empty( $cf_headers ) ) {
+			$headers = array_merge( $headers, $cf_headers );
+		}
+
 		return $headers;
+	}
+
+	/**
+	 * Get CSV headers for Direct SQL export (public wrapper)
+	 *
+	 * This is used by AJAX handlers to generate the CSV header line
+	 * using the exact same logic as the export itself.
+	 *
+	 * @since 0.9.9
+	 * @return string[] CSV headers.
+	 */
+	public function get_csv_headers_public() {
+		return $this->get_csv_headers();
+	}
+
+	/**
+	 * Get custom field (meta) headers
+	 *
+	 * Matches the standard export behavior:
+	 * - Uses a sample post to discover meta keys.
+	 * - Supports meta key classification and header generation via hooks.
+	 * - Uses the "cf_" prefix for custom field columns.
+	 *
+	 * @since 0.9.9
+	 * @return string[] Custom field headers.
+	 */
+	private function get_custom_field_headers() {
+		global $wpdb;
+
+		$post_type            = $this->config['post_type'] ?? 'post';
+		$post_status          = $this->config['post_status'] ?? 'publish';
+		$export_scope         = $this->config['export_scope'] ?? 'basic';
+		$export_scope         = is_array( $export_scope ) ? ( $export_scope['scope'] ?? 'basic' ) : $export_scope;
+		$include_private_meta = ! empty( $this->config['include_private_meta'] );
+
+		$sample_args                         = array(
+			'post_type' => $post_type,
+			'context'   => 'meta_discovery',
+		);
+		$sample_query_args                   = array(
+			'post_type'      => $post_type,
+			'post_status'    => $post_status,
+			'posts_per_page' => 1,
+			'orderby'        => 'post_date',
+			'order'          => 'DESC',
+			'fields'         => 'ids',
+		);
+		$sample_query_args                   = apply_filters( 'swift_csv_sample_query_args', $sample_query_args, $sample_args );
+		$sample_query_args['posts_per_page'] = 1;
+		$sample_post_ids                     = get_posts( $sample_query_args );
+
+		$sample_filter_args = array(
+			'post_type'            => $post_type,
+			'export_scope'         => $export_scope,
+			'include_private_meta' => $include_private_meta,
+			'context'              => 'sample_posts_filter',
+		);
+		$sample_post_ids    = apply_filters( 'swift_csv_filter_sample_posts', $sample_post_ids, $sample_filter_args );
+
+		$all_meta_keys      = array();
+		$found_private_meta = false;
+		foreach ( (array) $sample_post_ids as $sample_post_id ) {
+			// Normalize sample post ID in case filters return WP_Post or arrays.
+			if ( is_object( $sample_post_id ) && isset( $sample_post_id->ID ) ) {
+				$sample_post_id = $sample_post_id->ID;
+			} elseif ( is_array( $sample_post_id ) && isset( $sample_post_id['ID'] ) ) {
+				$sample_post_id = $sample_post_id['ID'];
+			}
+			$sample_post_id = (int) $sample_post_id;
+			if ( 0 === $sample_post_id ) {
+				continue;
+			}
+			$post_meta = get_post_meta( $sample_post_id );
+			$meta_keys = array_keys( (array) $post_meta );
+			foreach ( $meta_keys as $meta_key ) {
+				if ( ! is_string( $meta_key ) || '' === $meta_key ) {
+					continue;
+				}
+				if ( ! in_array( $meta_key, $all_meta_keys, true ) ) {
+					$all_meta_keys[] = $meta_key;
+				}
+				if ( 0 === strpos( $meta_key, '_' ) ) {
+					$found_private_meta = true;
+				}
+			}
+			if ( $found_private_meta && ! $include_private_meta ) {
+				break;
+			}
+		}
+
+		$meta_classify_args   = array(
+			'post_type'            => $post_type,
+			'export_scope'         => $export_scope,
+			'include_private_meta' => $include_private_meta,
+			'context'              => 'meta_key_classification',
+		);
+		$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', $all_meta_keys, $meta_classify_args );
+
+		// Free behavior: if Pro version is not active, move ACF keys to regular.
+		if ( is_array( $classified_meta_keys ) && isset( $classified_meta_keys['acf'] ) ) {
+			// Move ACF keys to regular keys (they'll be treated as regular custom fields).
+			if ( isset( $classified_meta_keys['regular'] ) && is_array( $classified_meta_keys['regular'] ) ) {
+				$classified_meta_keys['regular'] = array_merge(
+					$classified_meta_keys['regular'],
+					$classified_meta_keys['acf'] ?? array()
+				);
+			}
+			unset( $classified_meta_keys['acf'] );
+		}
+
+		// Ensure classified structure exists.
+		if ( ! is_array( $classified_meta_keys ) || ! isset( $classified_meta_keys['regular'] ) ) {
+			$classified_meta_keys = array(
+				'regular' => array(),
+				'private' => array(),
+			);
+			foreach ( $all_meta_keys as $meta_key ) {
+				if ( 0 === strpos( (string) $meta_key, '_' ) ) {
+					$classified_meta_keys['private'][] = (string) $meta_key;
+				} else {
+					$classified_meta_keys['regular'][] = (string) $meta_key;
+				}
+			}
+		}
+
+		$custom_field_args    = array(
+			'post_type'            => $post_type,
+			'export_scope'         => $export_scope,
+			'include_private_meta' => $include_private_meta,
+			'context'              => 'custom_field_headers_generation',
+		);
+		$custom_field_headers = apply_filters( 'swift_csv_generate_custom_field_headers', array(), $classified_meta_keys, $custom_field_args );
+		$custom_field_headers = is_array( $custom_field_headers ) ? $custom_field_headers : array();
+
+		// Free behavior: only accept cf_ headers.
+		$cf_headers = array();
+		foreach ( $custom_field_headers as $header ) {
+			if ( ! is_string( $header ) || '' === $header ) {
+				continue;
+			}
+			if ( 0 !== strpos( $header, 'cf_' ) ) {
+				continue;
+			}
+			$cf_headers[] = $header;
+		}
+
+		// Always merge fallback cf_ headers from classified meta keys.
+		foreach ( (array) ( $classified_meta_keys['regular'] ?? array() ) as $meta_key ) {
+			if ( ! is_string( $meta_key ) || '' === $meta_key ) {
+				continue;
+			}
+			$cf_headers[] = 'cf_' . $meta_key;
+		}
+		if ( $include_private_meta ) {
+			foreach ( (array) ( $classified_meta_keys['private'] ?? array() ) as $meta_key ) {
+				if ( ! is_string( $meta_key ) || '' === $meta_key ) {
+					continue;
+				}
+				$cf_headers[] = 'cf_' . $meta_key;
+			}
+		}
+
+		$cf_headers = array_values( array_unique( array_filter( $cf_headers ) ) );
+		return $cf_headers;
 	}
 
 	/**
@@ -148,7 +318,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		global $wpdb;
 
 		if ( empty( $posts_data ) ) {
-			return [];
+			return array();
 		}
 
 		// Extract post IDs
@@ -162,13 +332,13 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 				WHERE tr.object_id IN ({$placeholders})";
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$query = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $query ], $post_ids ) );
+		$query = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $query ), $post_ids ) );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 		$results = $wpdb->get_results( $query, ARRAY_A );
 
 		$taxonomy_format = $this->config['taxonomy_format'] ?? 'name';
-		$taxonomy_data   = [];
+		$taxonomy_data   = array();
 		foreach ( $results as $row ) {
 			$post_id  = (int) ( $row['object_id'] ?? 0 );
 			$taxonomy = (string) ( $row['taxonomy'] ?? '' );
@@ -186,15 +356,15 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 
 		$post_type      = $this->config['post_type'] ?? 'post';
 		$taxonomy_names = get_object_taxonomies( $post_type, 'names' );
-		$taxonomy_names = is_array( $taxonomy_names ) ? array_values( array_filter( array_map( 'sanitize_key', $taxonomy_names ) ) ) : [];
+		$taxonomy_names = is_array( $taxonomy_names ) ? array_values( array_filter( array_map( 'sanitize_key', $taxonomy_names ) ) ) : array();
 		if ( ! empty( $taxonomy_names ) ) {
 			$taxonomy_format = $this->config['taxonomy_format'] ?? 'name';
 			$terms           = wp_get_object_terms(
 				$post_ids,
 				$taxonomy_names,
-				[
+				array(
 					'fields' => 'all_with_object_id',
-				]
+				)
 			);
 
 			if ( ! is_wp_error( $terms ) && is_array( $terms ) ) {
@@ -223,7 +393,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 				if ( ! empty( $taxonomy_data[ $post_id ] ) ) {
 					continue;
 				}
-				$post_terms = wp_get_object_terms( $post_id, $taxonomy_names, [ 'fields' => 'all' ] );
+				$post_terms = wp_get_object_terms( $post_id, $taxonomy_names, array( 'fields' => 'all' ) );
 				if ( is_wp_error( $post_terms ) || ! is_array( $post_terms ) ) {
 					continue;
 				}
@@ -253,14 +423,14 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @return array Merged data ready for CSV export.
 	 */
 	private function merge_posts_with_taxonomy( $posts_data, $taxonomy_data ) {
-		$merged_data = [];
+		$merged_data = array();
 
 		foreach ( $posts_data as $post ) {
 			$row = $post;
 
 			// Add taxonomy columns.
 			if ( isset( $taxonomy_data[ $post['ID'] ] ) && ! empty( $taxonomy_data[ $post['ID'] ] ) ) {
-				$taxonomies = [];
+				$taxonomies = array();
 				foreach ( $taxonomy_data[ $post['ID'] ] as $taxonomy_item ) {
 					if ( ! empty( $taxonomy_item ) ) {
 						$parts = explode( ':', $taxonomy_item, 2 );
@@ -305,13 +475,13 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 			// Adjust batch size if it would exceed the export limit
 			$remaining = $this->config['export_limit'] - $offset;
 			if ( $remaining <= 0 ) {
-				return []; // Export limit reached
+				return array(); // Export limit reached
 			}
 			$limit = min( $batch_size, $remaining );
 		}
 
 		// Build query for batch.
-		$all_status_values = [ 'any', 'all', 'all_status', 'all_statuses', 'all-statuses', '*' ];
+		$all_status_values = array( 'any', 'all', 'all_status', 'all_statuses', 'all-statuses', '*' );
 		$table_sql         = $wpdb->posts;
 		$base_select_sql   = 'SELECT ID, post_title, post_content, post_excerpt, post_status, post_date, post_modified, post_name, post_parent, menu_order, post_author, comment_count, post_type, comment_status, ping_status, post_password FROM ' . $table_sql;
 		$order_by_sql      = ' ORDER BY post_date DESC, ID DESC';
@@ -320,65 +490,104 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 			$post_status = array_values( array_filter( array_map( 'sanitize_key', $post_status ) ) );
 			if ( empty( $post_status ) ) {
 				$sql    = $base_select_sql . ' WHERE post_type = %s' . $order_by_sql . ' LIMIT %d OFFSET %d';
-				$params = [ $post_type, $limit, $offset ];
+				$params = array( $post_type, $limit, $offset );
 			} else {
 				$placeholders = implode( ',', array_fill( 0, count( $post_status ), '%s' ) );
 				$sql          = $base_select_sql . ' WHERE post_type = %s AND post_status IN (' . $placeholders . ')' . $order_by_sql . ' LIMIT %d OFFSET %d';
-				$params       = array_merge( [ $post_type ], $post_status, [ $limit, $offset ] );
+				$params       = array_merge( array( $post_type ), $post_status, array( $limit, $offset ) );
 			}
 		} elseif ( empty( $post_status ) || in_array( (string) $post_status, $all_status_values, true ) ) {
 			$sql    = $base_select_sql . ' WHERE post_type = %s' . $order_by_sql . ' LIMIT %d OFFSET %d';
-			$params = [ $post_type, $limit, $offset ];
+			$params = array( $post_type, $limit, $offset );
 		} else {
 			$sql    = $base_select_sql . ' WHERE post_type = %s AND post_status = %s' . $order_by_sql . ' LIMIT %d OFFSET %d';
-			$params = [ $post_type, $post_status, $limit, $offset ];
+			$params = array( $post_type, $post_status, $limit, $offset );
 		}
 
-		$query = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $sql ], $params ) );
+		$query = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql ), $params ) );
 
 		$posts = $wpdb->get_results( $query, ARRAY_A );
 
 		if ( empty( $posts ) ) {
-			return [];
+			return array();
 		}
 
-		// Get post meta for all posts in batch
-		$post_ids  = wp_list_pluck( $posts, 'ID' );
-		$headers   = $this->get_csv_headers();
-		$meta_keys = [];
-		foreach ( $headers as $header ) {
+		// Get post meta for all posts in batch.
+		$post_ids = wp_list_pluck( $posts, 'ID' );
+		$headers  = $this->get_csv_headers();
+
+		$meta_key_map = array();
+		foreach ( (array) $headers as $header ) {
 			if ( ! is_string( $header ) || '' === $header ) {
 				continue;
 			}
-			if ( 0 === strpos( $header, 'tax_' ) ) {
+			if ( 0 !== strpos( $header, 'cf_' ) ) {
 				continue;
 			}
-			if ( array_key_exists( $header, $posts[0] ) ) {
-				continue;
+			$meta_key = substr( $header, 3 );
+			if ( is_string( $meta_key ) && '' !== $meta_key ) {
+				$meta_key_map[ $header ] = array( $meta_key );
 			}
-			$meta_keys[] = $header;
+		}
+
+		$meta_keys = array();
+		foreach ( $meta_key_map as $candidate_keys ) {
+			foreach ( (array) $candidate_keys as $candidate_key ) {
+				if ( is_string( $candidate_key ) && '' !== $candidate_key ) {
+					$meta_keys[] = $candidate_key;
+				}
+			}
 		}
 		$meta_keys = array_values( array_unique( array_filter( $meta_keys ) ) );
-
 		$meta_data = $this->get_batch_post_meta( $post_ids, $meta_keys );
 
-		$sticky_posts = get_option( 'sticky_posts', [] );
-		$sticky_map   = is_array( $sticky_posts ) ? array_flip( array_map( 'intval', $sticky_posts ) ) : [];
+		$sticky_posts = get_option( 'sticky_posts', array() );
+		$sticky_map   = is_array( $sticky_posts ) ? array_flip( array_map( 'intval', $sticky_posts ) ) : array();
 
-		$taxonomy_data = [];
+		$taxonomy_data = array();
 		// Always include taxonomies for Direct SQL
 		$taxonomy_data = $this->get_taxonomy_data_for_posts( $posts );
 
 		// Merge post data with meta data.
-		$merged_data = [];
+		$merged_data = array();
 		foreach ( $posts as $post ) {
-			$post_meta          = isset( $meta_data[ $post['ID'] ] ) ? (array) $meta_data[ $post['ID'] ] : [];
-			$row                = array_merge( $post, $post_meta );
+			$post_id           = (int) ( $post['ID'] ?? 0 );
+			$post_meta_values  = isset( $meta_data[ $post_id ] ) ? (array) $meta_data[ $post_id ] : array();
+			$post_meta_columns = array();
+
+			foreach ( $meta_key_map as $column_header => $candidate_meta_keys ) {
+				if ( ! is_string( $column_header ) || '' === $column_header ) {
+					continue;
+				}
+				$candidate_meta_keys = (array) $candidate_meta_keys;
+				$meta_values         = null;
+				foreach ( $candidate_meta_keys as $candidate_key ) {
+					if ( ! is_string( $candidate_key ) || '' === $candidate_key ) {
+						continue;
+					}
+					if ( isset( $post_meta_values[ $candidate_key ] ) ) {
+						$meta_values = $post_meta_values[ $candidate_key ];
+						break;
+					}
+				}
+				if ( null === $meta_values ) {
+					$post_meta_columns[ $column_header ] = '';
+					continue;
+				}
+				if ( is_array( $meta_values ) ) {
+					$meta_values                         = array_values( array_filter( array_map( 'strval', (array) $meta_values ) ) );
+					$post_meta_columns[ $column_header ] = count( $meta_values ) > 1 ? implode( '|', $meta_values ) : ( $meta_values[0] ?? '' );
+				} else {
+					$post_meta_columns[ $column_header ] = (string) $meta_values;
+				}
+			}
+
+			$row                = array_merge( $post, $post_meta_columns );
 			$row['post_sticky'] = isset( $sticky_map[ (int) $post['ID'] ] ) ? '1' : '0';
 
 			// Add taxonomy data if needed.
 			if ( ! empty( $taxonomy_data ) && isset( $taxonomy_data[ $post['ID'] ] ) && ! empty( $taxonomy_data[ $post['ID'] ] ) ) {
-				$taxonomies = [];
+				$taxonomies = array();
 				foreach ( $taxonomy_data[ $post['ID'] ] as $taxonomy_item ) {
 					if ( empty( $taxonomy_item ) ) {
 						continue;
@@ -411,23 +620,64 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @return string CSV content.
 	 */
 	public function generate_csv_batch( $posts_data ) {
-		$csv = '';
+		$csv     = '';
+		$headers = $this->get_csv_headers();
 
-		foreach ( $posts_data as $post_data ) {
-			$row = [];
-
-			// Get headers order.
-			$headers = $this->get_csv_headers();
-
-			foreach ( $headers as $header ) {
-				$value = isset( $post_data[ $header ] ) ? $post_data[ $header ] : '';
-				$row[] = $this->escape_csv_field( $value );
+		foreach ( (array) $posts_data as $post_data ) {
+			if ( ! is_array( $post_data ) ) {
+				continue;
 			}
-
+			$row  = $this->build_csv_row_from_headers( $post_data, $headers );
 			$csv .= implode( ',', $row ) . "\n";
 		}
 
 		return $csv;
+	}
+
+	/**
+	 * Build a CSV row by iterating headers (standard-compatible flow)
+	 *
+	 * @since 0.9.9
+	 * @param array    $post_data Post data for a single row.
+	 * @param string[] $headers CSV headers.
+	 * @return string[] Escaped CSV row values.
+	 */
+	private function build_csv_row_from_headers( array $post_data, array $headers ) {
+		$row     = array();
+		$post_id = isset( $post_data['ID'] ) ? (int) $post_data['ID'] : 0;
+
+		foreach ( $headers as $header ) {
+			if ( ! is_string( $header ) || '' === $header ) {
+				$row[] = $this->escape_csv_field( '' );
+				continue;
+			}
+
+			$value = '';
+
+			if ( 'ID' === $header ) {
+				$value = $post_id;
+			} elseif ( 'post_author' === $header ) {
+				$author_id = isset( $post_data['post_author'] ) ? (int) $post_data['post_author'] : 0;
+				$author    = $author_id ? get_user_by( 'id', $author_id ) : false;
+				$value     = $author ? (string) $author->display_name : '';
+			} elseif ( array_key_exists( $header, $post_data ) && 0 !== strpos( $header, 'tax_' ) && 0 !== strpos( $header, 'cf_' ) ) {
+				$value = $post_data[ $header ];
+			} elseif ( 0 === strpos( $header, 'tax_' ) ) {
+				$value = $post_data[ $header ] ?? '';
+			} elseif ( 0 === strpos( $header, 'cf_' ) ) {
+				$value = $post_data[ $header ] ?? '';
+			} else {
+				$custom_args = array(
+					'post_type' => $this->config['post_type'] ?? 'post',
+					'context'   => 'export_data_processing',
+				);
+				$value       = apply_filters( 'swift_csv_process_custom_header', '', $header, $post_id, $custom_args );
+			}
+
+			$row[] = $this->escape_csv_field( (string) $value );
+		}
+
+		return $row;
 	}
 
 	/**
@@ -438,11 +688,11 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @param array $meta_keys Meta keys to fetch.
 	 * @return array Post meta data indexed by post ID.
 	 */
-	private function get_batch_post_meta( $post_ids, $meta_keys = [] ) {
+	private function get_batch_post_meta( $post_ids, $meta_keys = array() ) {
 		global $wpdb;
 
 		if ( empty( $post_ids ) ) {
-			return [];
+			return array();
 		}
 
 		$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
@@ -450,7 +700,16 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		$where_meta_key_sql = '';
 		$params             = $post_ids;
 		if ( ! empty( $meta_keys ) ) {
-			$meta_keys = array_values( array_filter( array_map( 'sanitize_key', $meta_keys ) ) );
+			$meta_keys = array_values(
+				array_filter(
+					array_map(
+						static function ( $key ) {
+							return is_string( $key ) ? $key : '';
+						},
+						(array) $meta_keys
+					)
+				)
+			);
 			if ( ! empty( $meta_keys ) ) {
 				$meta_key_placeholders = implode( ',', array_fill( 0, count( $meta_keys ), '%s' ) );
 				$where_meta_key_sql    = " AND meta_key IN ({$meta_key_placeholders})";
@@ -467,13 +726,20 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 			FROM {$wpdb->postmeta}
 			WHERE post_id IN ({$placeholders}){$where_private_sql}{$where_meta_key_sql}";
 
-		$query = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $sql ], $params ) );
+		$query = call_user_func_array( array( $wpdb, 'prepare' ), array_merge( array( $sql ), $params ) );
 
 		$meta_results = $wpdb->get_results( $query, ARRAY_A );
 
-		$meta_data = [];
-		foreach ( $meta_results as $meta ) {
-			$meta_data[ $meta['post_id'] ][ $meta['meta_key'] ] = $meta['meta_value'];
+		$meta_data = array();
+		foreach ( (array) $meta_results as $meta ) {
+			$post_id  = isset( $meta['post_id'] ) ? (int) $meta['post_id'] : 0;
+			$meta_key = isset( $meta['meta_key'] ) ? (string) $meta['meta_key'] : '';
+			if ( 0 === $post_id || '' === $meta_key ) {
+				continue;
+			}
+			$meta_value                           = isset( $meta['meta_value'] ) ? (string) $meta['meta_value'] : '';
+			$meta_value                           = wp_strip_all_tags( $meta_value );
+			$meta_data[ $post_id ][ $meta_key ][] = $meta_value;
 		}
 
 		return $meta_data;
@@ -488,7 +754,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 */
 	private function escape_csv_field( $field ) {
 		// Remove newlines and tabs
-		$field = str_replace( [ "\n", "\r", "\t" ], ' ', $field );
+		$field = str_replace( array( "\n", "\r", "\t" ), ' ', $field );
 
 		// Escape quotes
 		$field = str_replace( '"', '""', $field );
@@ -504,7 +770,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @return array CSV row data.
 	 */
 	protected function get_csv_row( $post ) {
-		$row_data = [];
+		$row_data = array();
 
 		// Get headers to match order
 		$headers = $this->get_csv_headers();
@@ -514,7 +780,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 			$value = $post[ $header ] ?? '';
 
 			// Handle text fields with CSV escaping
-			if ( in_array( $header, [ 'post_title', 'post_content', 'post_excerpt' ], true ) ) {
+			if ( in_array( $header, array( 'post_title', 'post_content', 'post_excerpt' ), true ) ) {
 				$value = '"' . str_replace( '"', '""', wp_strip_all_tags( $value ) ) . '"';
 			} elseif ( strpos( $header, 'tax_' ) === 0 ) {
 				// Taxonomy fields (already pipe-separated)

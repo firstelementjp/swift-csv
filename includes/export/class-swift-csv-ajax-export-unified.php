@@ -265,7 +265,17 @@ class Swift_CSV_AJAX_Export_Unified {
 			// Initialize on first batch
 			if ( 0 === $start_row ) {
 				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
-				$headers_line = $this->get_csv_headers_line( $config );
+				$export       = new Swift_CSV_Export_Direct_SQL( $config );
+				$headers      = $export->get_csv_headers_public();
+				$headers_line = implode(
+					',',
+					array_map(
+						static function ( $header ) {
+							return '"' . str_replace( '"', '""', (string) $header ) . '"';
+						},
+						(array) $headers
+					)
+				);
 				set_transient( $headers_key, $headers_line, HOUR_IN_SECONDS );
 
 				// Initialize log store if logging enabled
@@ -287,7 +297,7 @@ class Swift_CSV_AJAX_Export_Unified {
 			$batch_size = $this->get_export_batch_size( $total_posts, $config['post_type'], $config );
 
 			// Create Direct SQL Export instance
-			$export = new Swift_CSV_Export_Direct_SQL( $config );
+			$export = isset( $export ) && $export instanceof Swift_CSV_Export_Direct_SQL ? $export : new Swift_CSV_Export_Direct_SQL( $config );
 
 			// Get posts for current batch
 			$posts_data = $export->get_posts_batch( $start_row, $batch_size );

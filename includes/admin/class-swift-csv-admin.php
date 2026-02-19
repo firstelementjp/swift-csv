@@ -156,6 +156,14 @@ class Swift_CSV_Admin {
 				true
 			);
 
+			wp_register_script(
+				'swift-csv-export-original',
+				$script_url( 'assets/js/export/original.js' ),
+				[ 'swift-csv-core', 'swift-csv-export-unified' ],
+				SWIFT_CSV_VERSION . '.' . time(),
+				true
+			);
+
 			// Export functionality
 			wp_register_script(
 				'swift-csv-export-unified',
@@ -194,7 +202,13 @@ class Swift_CSV_Admin {
 			wp_register_script(
 				'swift-csv-main',
 				$script_url( 'assets/js/swift-csv-main.js' ),
-				[ 'swift-csv-core', 'swift-csv-export-unified', 'swift-csv-import', 'swift-csv-license' ],
+				[
+					'swift-csv-core',
+					'swift-csv-export-unified',
+					'swift-csv-export-original',
+					'swift-csv-import',
+					'swift-csv-license',
+				],
 				SWIFT_CSV_VERSION . '.' . time(),
 				true
 			);
@@ -318,6 +332,7 @@ class Swift_CSV_Admin {
 			wp_enqueue_script( 'swift-csv-export-unified-module-ui' );
 			wp_enqueue_script( 'swift-csv-export-unified-module-logs' );
 			wp_enqueue_script( 'swift-csv-export-unified' ); // New unified export script
+			wp_enqueue_script( 'swift-csv-export-original' );
 			wp_enqueue_script( 'swift-csv-import' );
 			wp_enqueue_script( 'swift-csv-license' );
 			wp_enqueue_script( 'swift-csv-main' );

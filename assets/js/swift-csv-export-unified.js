@@ -532,187 +532,217 @@ const SwiftCSVExportUnified = {
 	},
 };
 
-const SwiftCSVExportUnifiedDownload = {
-	enableDownloadButtonForExport: function (csvContent, postType) {
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-		const url = URL.createObjectURL(blob);
+const SwiftCSVExportUnifiedDownload =
+	window.SwiftCSVExportUnifiedModules && window.SwiftCSVExportUnifiedModules.Download
+		? window.SwiftCSVExportUnifiedModules.Download
+		: {
+				enableDownloadButtonForExport: function (csvContent, postType) {
+					const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+					const url = URL.createObjectURL(blob);
 
-		const now = new Date();
-		const dateStr =
-			String(now.getFullYear()) +
-			'-' +
-			String(now.getMonth() + 1).padStart(2, '0') +
-			'-' +
-			String(now.getDate()).padStart(2, '0') +
-			'-' +
-			String(now.getHours()).padStart(2, '0') +
-			'-' +
-			String(now.getMinutes()).padStart(2, '0') +
-			'-' +
-			String(now.getSeconds()).padStart(2, '0');
+					const now = new Date();
+					const dateStr =
+						String(now.getFullYear()) +
+						'-' +
+						String(now.getMonth() + 1).padStart(2, '0') +
+						'-' +
+						String(now.getDate()).padStart(2, '0') +
+						'-' +
+						String(now.getHours()).padStart(2, '0') +
+						'-' +
+						String(now.getMinutes()).padStart(2, '0') +
+						'-' +
+						String(now.getSeconds()).padStart(2, '0');
 
-		const filename = `swiftcsv_export_${postType}_${dateStr}.csv`;
+					const filename = `swiftcsv_export_${postType}_${dateStr}.csv`;
 
-		const downloadBtn = document.querySelector('#export-download-btn');
-		if (downloadBtn) {
-			downloadBtn.href = url;
-			downloadBtn.download = filename;
-			downloadBtn.classList.add('enabled');
-		}
-
-		if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
-			window.SwiftCSVUtils.addLogEntry(
-				swiftCSV.messages.downloadReady + ' ' + filename,
-				'info',
-				'export'
-			);
-		}
-	},
-
-	downloadCSV: function (csvContent, recordCount) {
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-		const link = document.createElement('a');
-		const url = URL.createObjectURL(blob);
-
-		const filename = 'unified-export-' + new Date().toISOString().slice(0, 10) + '.csv';
-
-		link.setAttribute('href', url);
-		link.setAttribute('download', filename);
-		link.style.visibility = 'hidden';
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-
-		URL.revokeObjectURL(url);
-	},
-};
-
-const SwiftCSVExportUnifiedAjax = {
-	postForm: function (formData, extraOptions) {
-		return fetch(
-			swiftCSV.ajaxUrl,
-			Object.assign(
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/x-www-form-urlencoded',
-					},
-					body: formData,
-				},
-				extraOptions || {}
-			)
-		);
-	},
-};
-
-const SwiftCSVExportUnifiedLogs = {
-	pollExportLogs: function ({ enableLogs, exportSession, afterId, setAfterId, buildLogMessage }) {
-		if (enableLogs !== '1') return Promise.resolve();
-		if (!exportSession) return Promise.resolve();
-
-		const logFormData = new URLSearchParams({
-			action: 'swift_csv_ajax_export_logs',
-			nonce: swiftCSV.nonce,
-			export_session: exportSession,
-			enable_logs: enableLogs,
-			after_id: String(afterId),
-			limit: '200',
-		});
-
-		return SwiftCSVExportUnifiedAjax.postForm(logFormData)
-			.then(response => response.json())
-			.then(data => {
-				if (!data || !data.success || !data.data) return;
-				const payload = data.data;
-				if (payload.last_id !== undefined) {
-					const nextAfterId = Number(payload.last_id) || afterId;
-					if (typeof setAfterId === 'function') {
-						setAfterId(nextAfterId);
+					const downloadBtn = document.querySelector('#export-download-btn');
+					if (downloadBtn) {
+						downloadBtn.href = url;
+						downloadBtn.download = filename;
+						downloadBtn.classList.add('enabled');
 					}
-				}
-				if (!payload.logs || !Array.isArray(payload.logs) || payload.logs.length === 0) {
-					return;
-				}
-				payload.logs.forEach(item => {
-					if (!item || !item.detail) return;
-					const detail = item.detail;
-					const logMessage =
-						typeof buildLogMessage === 'function'
-							? buildLogMessage(detail)
-							: String(detail.title || '');
+
 					if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
 						window.SwiftCSVUtils.addLogEntry(
-							logMessage,
-							detail.status === 'success' ? 'success' : 'error',
+							swiftCSV.messages.downloadReady + ' ' + filename,
+							'info',
 							'export'
 						);
 					}
-				});
-			})
-			.catch(() => {
-				// Silently handle polling errors.
-			});
-	},
-};
+				},
 
-const SwiftCSVExportUnifiedForm = {
-	getFormData: function () {
-		const postTypeElement = document.getElementById('swift_csv_export_post_type');
-		const postType = postTypeElement ? postTypeElement.value : 'post';
+				downloadCSV: function (csvContent, recordCount) {
+					const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+					const link = document.createElement('a');
+					const url = URL.createObjectURL(blob);
 
-		// Check if element exists and has value.
-		if (!postTypeElement || !postTypeElement.value) {
-			console.error('Post type element not found or has no value');
-			throw new Error('Post type selection is required');
-		}
+					const filename =
+						'unified-export-' + new Date().toISOString().slice(0, 10) + '.csv';
 
-		return {
-			action: 'swift_csv_ajax_export',
-			nonce: swiftCSV.nonce,
-			post_type: postType,
-			post_status:
-				document.querySelector('input[name="swift_csv_export_post_status"]:checked')
-					?.value || 'publish',
-			export_scope:
-				document.querySelector('input[name="swift_csv_export_scope"]:checked')?.value ||
-				'all',
-			include_private_meta: document.querySelector(
-				'input[name="swift_csv_include_private_meta"]'
-			)?.checked
-				? '1'
-				: '0',
-			export_limit: document.getElementById('swift_csv_export_limit')?.value || '0',
-			taxonomy_format:
-				document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name',
-			enable_logs: document.getElementById('swift_csv_export_enable_logs')?.checked
-				? '1'
-				: '0',
-		};
-	},
-};
+					link.setAttribute('href', url);
+					link.setAttribute('download', filename);
+					link.style.visibility = 'hidden';
+					document.body.appendChild(link);
+					link.click();
+					document.body.removeChild(link);
 
-const SwiftCSVExportUnifiedUI = {
-	showComplete: function (button) {
-		button.disabled = false;
-		button.textContent = swiftCSV.exportCompleteText;
+					URL.revokeObjectURL(url);
+				},
+			};
 
-		// Reset after delay.
-		setTimeout(function () {
-			button.textContent = swiftCSV.highSpeedExportText;
-		}, 3000);
-	},
+const SwiftCSVExportUnifiedAjax =
+	window.SwiftCSVExportUnifiedModules && window.SwiftCSVExportUnifiedModules.Ajax
+		? window.SwiftCSVExportUnifiedModules.Ajax
+		: {
+				postForm: function (formData, extraOptions) {
+					return fetch(
+						swiftCSV.ajaxUrl,
+						Object.assign(
+							{
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/x-www-form-urlencoded',
+								},
+								body: formData,
+							},
+							extraOptions || {}
+						)
+					);
+				},
+			};
 
-	showError: function (button, errorMessage) {
-		button.disabled = false;
-		button.textContent = swiftCSV.exportFailedText;
-		alert(swiftCSV.messages.failed + ': ' + errorMessage);
+const SwiftCSVExportUnifiedLogs =
+	window.SwiftCSVExportUnifiedModules && window.SwiftCSVExportUnifiedModules.Logs
+		? window.SwiftCSVExportUnifiedModules.Logs
+		: {
+				pollExportLogs: function ({
+					enableLogs,
+					exportSession,
+					afterId,
+					setAfterId,
+					buildLogMessage,
+				}) {
+					if (enableLogs !== '1') return Promise.resolve();
+					if (!exportSession) return Promise.resolve();
 
-		// Reset after delay.
-		setTimeout(function () {
-			button.textContent = swiftCSV.highSpeedExportText;
-		}, 3000);
-	},
-};
+					const logFormData = new URLSearchParams({
+						action: 'swift_csv_ajax_export_logs',
+						nonce: swiftCSV.nonce,
+						export_session: exportSession,
+						enable_logs: enableLogs,
+						after_id: String(afterId),
+						limit: '200',
+					});
+
+					return SwiftCSVExportUnifiedAjax.postForm(logFormData)
+						.then(response => response.json())
+						.then(data => {
+							if (!data || !data.success || !data.data) return;
+							const payload = data.data;
+							if (payload.last_id !== undefined) {
+								const nextAfterId = Number(payload.last_id) || afterId;
+								if (typeof setAfterId === 'function') {
+									setAfterId(nextAfterId);
+								}
+							}
+							if (
+								!payload.logs ||
+								!Array.isArray(payload.logs) ||
+								payload.logs.length === 0
+							) {
+								return;
+							}
+							payload.logs.forEach(item => {
+								if (!item || !item.detail) return;
+								const detail = item.detail;
+								const logMessage =
+									typeof buildLogMessage === 'function'
+										? buildLogMessage(detail)
+										: String(detail.title || '');
+								if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
+									window.SwiftCSVUtils.addLogEntry(
+										logMessage,
+										detail.status === 'success' ? 'success' : 'error',
+										'export'
+									);
+								}
+							});
+						})
+						.catch(() => {
+							// Silently handle polling errors.
+						});
+				},
+			};
+
+const SwiftCSVExportUnifiedForm =
+	window.SwiftCSVExportUnifiedModules && window.SwiftCSVExportUnifiedModules.Form
+		? window.SwiftCSVExportUnifiedModules.Form
+		: {
+				getFormData: function () {
+					const postTypeElement = document.getElementById('swift_csv_export_post_type');
+					const postType = postTypeElement ? postTypeElement.value : 'post';
+
+					// Check if element exists and has value.
+					if (!postTypeElement || !postTypeElement.value) {
+						console.error('Post type element not found or has no value');
+						throw new Error('Post type selection is required');
+					}
+
+					return {
+						action: 'swift_csv_ajax_export',
+						nonce: swiftCSV.nonce,
+						post_type: postType,
+						post_status:
+							document.querySelector(
+								'input[name="swift_csv_export_post_status"]:checked'
+							)?.value || 'publish',
+						export_scope:
+							document.querySelector('input[name="swift_csv_export_scope"]:checked')
+								?.value || 'all',
+						include_private_meta: document.querySelector(
+							'input[name="swift_csv_include_private_meta"]'
+						)?.checked
+							? '1'
+							: '0',
+						export_limit:
+							document.getElementById('swift_csv_export_limit')?.value || '0',
+						taxonomy_format:
+							document.querySelector('input[name="taxonomy_format"]:checked')
+								?.value || 'name',
+						enable_logs: document.getElementById('swift_csv_export_enable_logs')
+							?.checked
+							? '1'
+							: '0',
+					};
+				},
+			};
+
+const SwiftCSVExportUnifiedUI =
+	window.SwiftCSVExportUnifiedModules && window.SwiftCSVExportUnifiedModules.UI
+		? window.SwiftCSVExportUnifiedModules.UI
+		: {
+				showComplete: function (button) {
+					button.disabled = false;
+					button.textContent = swiftCSV.exportCompleteText;
+
+					// Reset after delay.
+					setTimeout(function () {
+						button.textContent = swiftCSV.highSpeedExportText;
+					}, 3000);
+				},
+
+				showError: function (button, errorMessage) {
+					button.disabled = false;
+					button.textContent = swiftCSV.exportFailedText;
+					alert(swiftCSV.messages.failed + ': ' + errorMessage);
+
+					// Reset after delay.
+					setTimeout(function () {
+						button.textContent = swiftCSV.highSpeedExportText;
+					}, 3000);
+				},
+			};
 
 // Initialize unified export handler
 document.addEventListener('DOMContentLoaded', function () {

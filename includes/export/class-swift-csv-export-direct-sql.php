@@ -740,7 +740,6 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 				continue;
 			}
 			$meta_value                           = isset( $meta['meta_value'] ) ? (string) $meta['meta_value'] : '';
-			$meta_value                           = wp_strip_all_tags( $meta_value );
 			$meta_data[ $post_id ][ $meta_key ][] = $meta_value;
 		}
 

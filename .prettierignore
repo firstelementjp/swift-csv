@@ -1,0 +1,27 @@
+# Ignore minified files
+*.min.js
+*.min.css
+
+# Ignore dependencies
+node_modules/
+vendor/
+
+# Ignore deprecated files
+_deprecated/
+
+# Ignore build outputs
+dist/
+build/
+
+# Ignore WordPress specific files
+*.pot
+*.mo
+
+# Ignore lock files
+package-lock.json
+composer.lock
+
+# Ignore config files that shouldn't be formatted
+.eslintrc.json
+.prettierrc
+.phpcs.xml.dist

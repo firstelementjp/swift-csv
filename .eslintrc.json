@@ -4,8 +4,8 @@
 		"prettier/prettier": "off",
 		"no-console": "off",
 		"no-alert": "off",
-		"no-undef": "off",
-		"no-unused-vars": "off",
+		"no-undef": "error",
+		"no-unused-vars": "warn",
 		"no-shadow": "off",
 		"object-shorthand": "off",
 		"jsdoc/check-line-alignment": "off",
@@ -29,7 +29,9 @@
 		"wp": "readonly",
 		"swiftCSV": "readonly",
 		"SwiftCSVCore": "readonly",
-		"addLogEntry": "readonly"
+		"addLogEntry": "readonly",
+		"clearLog": "readonly",
+		"handleAjaxExport": "readonly"
 	},
 	"env": {
 		"browser": true,

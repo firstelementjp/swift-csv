@@ -38,7 +38,7 @@ function initFileUpload() {
 
 	uploadArea.addEventListener(
 		'click',
-		function (e) {
+		function () {
 			if (isClicking) {
 				return;
 			}
@@ -190,12 +190,6 @@ function pollImportLogs() {
 	return importLogPollingPromise;
 }
 
-function startImportLogPolling() {
-	if (importLogPollingTimer) return;
-	pollImportLogs();
-	importLogPollingTimer = setInterval(() => pollImportLogs(), 500);
-}
-
 function flushImportLogsAfterComplete({ attempts = 3, delayMs = 300 } = {}) {
 	let chain = Promise.resolve();
 	for (let i = 0; i < attempts; i++) {
@@ -323,7 +317,6 @@ function handleAjaxImport(e) {
 			const progressContainer = document.querySelector('.swift-csv-progress');
 			if (progressContainer) {
 				const progressFill = progressContainer.querySelector('.progress-bar-fill');
-				const progressStats = progressContainer.querySelector('.progress-stats');
 
 				if (progressFill) {
 					progressFill.style.width = '0%';
@@ -511,9 +504,8 @@ function processImportChunk(
  * Update AJAX progress for import
  *
  * @param {Object} data Progress data
- * @param {number} startTime Start time
  */
-function updateImportProgress(data, startTime) {
+function updateImportProgress(data) {
 	// Find progress elements in the new UI structure
 	const progressContainer = document.querySelector('.swift-csv-progress');
 	if (!progressContainer) {

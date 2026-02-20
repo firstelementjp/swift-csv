@@ -391,7 +391,7 @@ const SwiftCSVExportUnified = {
 					throw new Error((response && response.data) || 'Batch processing failed');
 				}
 
-				processed = Number(response.processed || 0);
+				const processed = Number(response.processed || 0);
 				csvContent += response.csv_chunk || '';
 				this.updateDirectSqlProgress(
 					processed,
@@ -640,7 +640,6 @@ const getSwiftCSVExportUnifiedModule = function (name) {
 let SwiftCSVExportUnifiedDownload;
 let SwiftCSVExportUnifiedAjax;
 let SwiftCSVExportUnifiedLogs;
-let SwiftCSVExportUnifiedForm;
 let SwiftCSVExportUnifiedUI;
 
 let SwiftCSVExportUnifiedModulesReady = false;
@@ -649,7 +648,6 @@ try {
 	SwiftCSVExportUnifiedDownload = getSwiftCSVExportUnifiedModule('Download');
 	SwiftCSVExportUnifiedAjax = getSwiftCSVExportUnifiedModule('Ajax');
 	SwiftCSVExportUnifiedLogs = getSwiftCSVExportUnifiedModule('Logs');
-	SwiftCSVExportUnifiedForm = getSwiftCSVExportUnifiedModule('Form');
 	SwiftCSVExportUnifiedUI = getSwiftCSVExportUnifiedModule('UI');
 	SwiftCSVExportUnifiedModulesReady = true;
 } catch (e) {

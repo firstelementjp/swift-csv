@@ -368,9 +368,8 @@ function handleAjaxExport(e) {
  * Update AJAX progress for export
  *
  * @param {Object} data Progress data
- * @param {number} startTime Start time
  */
-function updateAjaxProgress(data, startTime) {
+function updateAjaxProgress(data) {
 	// Find progress elements in the new UI structure
 	const progressContainer = document.querySelector('.swift-csv-progress');
 	if (!progressContainer) {

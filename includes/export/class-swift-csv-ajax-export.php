@@ -191,8 +191,8 @@ class Swift_CSV_Ajax_Export {
 	 * Get export cancel option name
 	 *
 	 * @since 0.9.0
-	 * @param string $export_session Export session identifier
-	 * @return string Option name
+	 * @param string $export_session Export session identifier.
+	 * @return string Option name.
 	 */
 	private function get_cancel_option_name( string $export_session ): string {
 		return 'swift_csv_export_cancelled_' . get_current_user_id() . '_' . $export_session;
@@ -225,10 +225,10 @@ class Swift_CSV_Ajax_Export {
 	 * Get dynamic batch size for export processing
 	 *
 	 * @since 0.9.7
-	 * @param int    $total_count Total number of posts to export
-	 * @param string $post_type Post type being exported
-	 * @param array  $config Export configuration
-	 * @return int Dynamic batch size
+	 * @param int    $total_count Total number of posts to export.
+	 * @param string $post_type Post type being exported.
+	 * @param array  $config Export configuration.
+	 * @return int Dynamic batch size.
 	 */
 	private function get_export_batch_size( int $total_count, string $post_type, array $config ): int {
 		$export_limit           = isset( $config['export_limit'] ) ? (int) $config['export_limit'] : 0;
@@ -275,8 +275,8 @@ class Swift_CSV_Ajax_Export {
 	 * - A direct DB read avoids stale get_option() cache within the same PHP request.
 	 *
 	 * @since 0.9.0
-	 * @param string $export_session Export session identifier
-	 * @return bool True if the current export should be cancelled
+	 * @param string $export_session Export session identifier.
+	 * @return bool True if the current export should be cancelled.
 	 */
 	private function is_cancelled( string $export_session ): bool {
 		if ( connection_aborted() ) {
@@ -319,8 +319,8 @@ class Swift_CSV_Ajax_Export {
 	 * eliminating duplicates, and ensuring 'ID' is always the first header.
 	 *
 	 * @since 0.9.0
-	 * @param string[] $headers Array of CSV header strings
-	 * @return string[] Normalized headers array with ID as first element
+	 * @param string[] $headers Array of CSV header strings.
+	 * @return string[] Normalized headers array with ID as first element.
 	 */
 	private function normalize_headers( array $headers ): array {
 		$headers = array_values( array_filter( array_map( 'trim', (array) $headers ), 'strlen' ) );
@@ -350,8 +350,8 @@ class Swift_CSV_Ajax_Export {
 	 * value for WP_Query post_status parameter.
 	 *
 	 * @since 0.9.0
-	 * @param string $post_type The post type being exported
-	 * @param string $post_status The user's selection ('publish', 'any', 'custom')
+	 * @param string $post_type The post type being exported.
+	 * @param string $post_status The user's selection ('publish', 'any', 'custom').
 	 * @return string|array The post status value for WP_Query
 	 */
 	private function get_post_status_for_query( string $post_type, string $post_status ) {
@@ -400,7 +400,7 @@ class Swift_CSV_Ajax_Export {
 	 * essential fields, while 'all' scope includes additional metadata fields.
 	 *
 	 * @since 0.9.0
-	 * @param string $export_scope The export scope ('basic', 'all')
+	 * @param string $export_scope The export scope ('basic', 'all').
 	 * @return string[] Array of allowed post field names
 	 */
 	private function get_allowed_post_fields( string $export_scope = 'basic' ): array {
@@ -466,10 +466,10 @@ class Swift_CSV_Ajax_Export {
 	 * private meta field inclusion options.
 	 *
 	 * @since 0.9.0
-	 * @param string $post_type The post type to export
-	 * @param string $export_scope The export scope ('basic', 'all', 'custom')
-	 * @param bool   $include_private_meta Whether to include private meta fields
-	 * @param string $post_status The post status to query
+	 * @param string $post_type The post type to export.
+	 * @param string $export_scope The export scope ('basic', 'all', 'custom').
+	 * @param bool   $include_private_meta Whether to include private meta fields.
+	 * @param string $post_status The post status to query.
 	 * @return string[] Array of CSV header strings
 	 */
 	private function build_headers( string $post_type, string $export_scope = 'basic', bool $include_private_meta = false, string $post_status = 'publish' ): array {
@@ -700,8 +700,8 @@ class Swift_CSV_Ajax_Export {
 	 * PHP's built-in fputcsv function with proper escaping and quoting.
 	 *
 	 * @since 0.9.0
-	 * @param mixed[] $row Array of values to convert to CSV
-	 * @return string CSV formatted string
+	 * @param mixed[] $row Array of values to convert to CSV.
+	 * @return string CSV formatted string.
 	 */
 	private function fputcsv_row( array $row ): string {
 		$fh = fopen( 'php://temp', 'r+' );
@@ -720,8 +720,8 @@ class Swift_CSV_Ajax_Export {
 	 * with literal backslashes before quotes.
 	 *
 	 * @since 0.9.0
-	 * @param string $field The field value to normalize
-	 * @return string The normalized field value
+	 * @param string $field The field value to normalize.
+	 * @return string The normalized field value.
 	 */
 	private function normalize_quotes( string $field ): string {
 		// Fix double escaped quotes that are already properly escaped

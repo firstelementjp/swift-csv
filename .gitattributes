@@ -7,7 +7,7 @@ assets/js/*.js export-ignore
 assets/js/export/**/*.js export-ignore
 
 # Exclude deprecated files from release artifacts.
-_deprecated/ export-ignore
+_deprecated/** export-ignore
 
 # Exclude development and build files
 composer.json export-ignore

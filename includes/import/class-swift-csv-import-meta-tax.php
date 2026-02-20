@@ -48,7 +48,7 @@ class Swift_CSV_Import_Meta_Tax {
 	): array {
 		$dry_run_log = &$counters['dry_run_log'];
 
-		// Process custom fields and taxonomies like original Swift CSV
+		// Process custom fields and taxonomies like original Swift CSV.
 		$collected_fields = $this->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
 		/**
 		 * Filter collected fields before processing.
@@ -77,10 +77,10 @@ class Swift_CSV_Import_Meta_Tax {
 			'taxonomy_format_validation' => $taxonomy_format_validation,
 		];
 
-		// Process taxonomies
+		// Process taxonomies.
 		$this->apply_taxonomies_for_post( $post_id, $taxonomies, $context, $dry_run_log );
 
-		// Process custom fields with multi-value support
+		// Process custom fields with multi-value support.
 		$this->apply_meta_fields_for_post( $wpdb, $post_id, $meta_fields, $context, $dry_run_log );
 
 		return [
@@ -101,28 +101,29 @@ class Swift_CSV_Import_Meta_Tax {
 		$taxonomies        = [];
 		$taxonomy_term_ids = [];
 
-		for ( $j = 0; $j < count( $headers ); $j++ ) {
+		$headers_count = count( $headers );
+		for ( $j = 0; $j < $headers_count; $j++ ) {
 			$header_name            = $headers[ $j ] ?? '';
 			$header_name_normalized = $this->normalize_field_name( (string) $header_name );
 
-			// Skip empty headers and ID
-			if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
+			// Skip empty headers and ID.
+			if ( '' === $header_name_normalized || 'ID' === $header_name_normalized ) {
 				continue;
 			}
 
-			if ( strpos( $header_name_normalized, 'tax_' ) !== 0 ) {
+			if ( 0 !== strpos( $header_name_normalized, 'tax_' ) ) {
 				continue;
 			}
 
 			if ( empty( trim( $data[ $j ] ?? '' ) ) ) {
-				continue; // Skip empty fields
+				continue; // Skip empty fields.
 			}
 
 			$meta_value = (string) ( $data[ $j ] ?? '' );
 
-			// Handle taxonomy (pipe-separated)
+			// Handle taxonomy (pipe-separated).
 			$terms                        = array_values( array_filter( array_map( 'trim', explode( '|', $meta_value ) ), 'strlen' ) );
-			$taxonomy_name                = substr( $header_name_normalized, 4 ); // Remove 'tax_'
+			$taxonomy_name                = substr( $header_name_normalized, 4 ); // Remove 'tax_'.
 			$taxonomies[ $taxonomy_name ] = $terms;
 
 			if ( taxonomy_exists( $taxonomy_name ) ) {
@@ -159,12 +160,13 @@ class Swift_CSV_Import_Meta_Tax {
 	public function collect_meta_fields_from_row( array $headers, array $data, array $allowed_post_fields ): array {
 		$meta_fields = [];
 
-		for ( $j = 0; $j < count( $headers ); $j++ ) {
+		$headers_count = count( $headers );
+		for ( $j = 0; $j < $headers_count; $j++ ) {
 			$header_name            = $headers[ $j ] ?? '';
 			$header_name_normalized = $this->normalize_field_name( (string) $header_name );
 
-			// Skip empty headers and post fields
-			if ( $header_name_normalized === '' || $header_name_normalized === 'ID' ) {
+			// Skip empty headers and post fields.
+			if ( '' === $header_name_normalized || 'ID' === $header_name_normalized ) {
 				continue;
 			}
 			if ( in_array( $header_name_normalized, $allowed_post_fields, true ) ) {
@@ -172,14 +174,14 @@ class Swift_CSV_Import_Meta_Tax {
 			}
 
 			if ( empty( trim( $data[ $j ] ?? '' ) ) ) {
-				continue; // Skip empty fields
+				continue; // Skip empty fields.
 			}
 
 			$meta_value = (string) ( $data[ $j ] ?? '' );
 
-			// Handle regular custom fields (cf_<field> => <field>) ONLY
-			if ( strpos( $header_name_normalized, 'cf_' ) !== 0 ) {
-				continue; // Skip non-cf_ fields
+			// Handle regular custom fields (cf_<field> => <field>) ONLY.
+			if ( 0 !== strpos( $header_name_normalized, 'cf_' ) ) {
+				continue; // Skip non-cf_ fields.
 			}
 
 			$clean_field_name                 = substr( $header_name_normalized, 3 );
@@ -223,7 +225,7 @@ class Swift_CSV_Import_Meta_Tax {
 		$term_ids = [];
 		foreach ( $terms as $term_value ) {
 			$term_value = trim( (string) $term_value );
-			if ( $term_value === '' ) {
+			if ( '' === $term_value ) {
 				continue;
 			}
 
@@ -328,8 +330,8 @@ class Swift_CSV_Import_Meta_Tax {
 		$dry_run = $context['dry_run'];
 
 		foreach ( $meta_fields as $key => $value ) {
-			// Skip empty values
-			if ( $value === '' || $value === null ) {
+			// Skip empty values.
+			if ( '' === $value || null === $value ) {
 				continue;
 			}
 
@@ -338,11 +340,11 @@ class Swift_CSV_Import_Meta_Tax {
 			}
 
 			if ( $dry_run ) {
-				// Handle multi-value custom fields (pipe-separated)
+				// Handle multi-value custom fields (pipe-separated).
 				if ( strpos( $value, '|' ) !== false ) {
 					$values = array_map( 'trim', explode( '|', $value ) );
 					foreach ( $values as $single_value ) {
-						if ( $single_value !== '' ) {
+						if ( '' !== $single_value ) {
 							$dry_run_log[] = sprintf(
 								/* translators: 1: field name, 2: field value */
 								__( 'Custom field (multi-value): %1$s = %2$s', 'swift-csv' ),
@@ -362,6 +364,7 @@ class Swift_CSV_Import_Meta_Tax {
 				continue;
 			}
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$wpdb->postmeta} 
@@ -375,13 +378,14 @@ class Swift_CSV_Import_Meta_Tax {
 			if ( strpos( $value, '|' ) !== false ) {
 				$values = array_map( 'trim', explode( '|', $value ) );
 				foreach ( $values as $single_value ) {
-					if ( $single_value !== '' ) {
+					if ( '' !== $single_value ) {
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 						$wpdb->insert(
 							$wpdb->postmeta,
 							[
 								'post_id'    => $post_id,
-								'meta_key'   => $key,
-								'meta_value' => $single_value,
+								'meta_key'   => $key, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+								'meta_value' => $single_value, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 							],
 							[ '%d', '%s', '%s' ]
 						);
@@ -390,12 +394,13 @@ class Swift_CSV_Import_Meta_Tax {
 				continue;
 			}
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 			$wpdb->insert(
 				$wpdb->postmeta,
 				[
 					'post_id'    => $post_id,
-					'meta_key'   => $key,
-					'meta_value' => is_string( $value ) ? $value : maybe_serialize( $value ),
+					'meta_key'   => $key, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+					'meta_value' => is_string( $value ) ? $value : maybe_serialize( $value ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 				],
 				[ '%d', '%s', '%s' ]
 			);

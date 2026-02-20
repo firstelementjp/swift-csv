@@ -5,6 +5,7 @@
 **Symptom**: WP-CLI cannot connect to database, or environment variables not working properly.
 
 **Cause**: Two common issues with `.envrc` configuration:
+
 1. Database variables with double quotes cause WP-CLI connection failures
 2. Paths with spaces break WP-CLI commands
 

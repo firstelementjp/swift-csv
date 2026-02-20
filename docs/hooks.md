@@ -887,7 +887,7 @@ function show_analytics_content( $tab, $import_results ) {
   $query_args['order'] = 'DESC';
   }
 
-              return $query_args;
+                return $query_args;
 
     }
 

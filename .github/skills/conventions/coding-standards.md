@@ -51,8 +51,8 @@ Each JS file exports via `window.*` global:
 ```javascript
 // At end of file
 window.SwiftCSVExport = {
-    handleAjaxExport,
-    // ...
+	handleAjaxExport,
+	// ...
 };
 ```
 

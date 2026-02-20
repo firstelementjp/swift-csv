@@ -18,27 +18,27 @@
 
 ### Header Hooks
 
-| Hook | Parameters | Purpose |
-|------|-----------|---------|
-| `swift_csv_basic_post_fields` | `$fields, $scope` | Customize basic export fields (ID, title, content, etc.) |
-| `swift_csv_additional_post_fields` | `$fields, $scope` | Customize 'all' scope additional fields |
-| `swift_csv_filter_taxonomy_objects` | `$taxonomy_objects, $args` | Filter taxonomy objects before header creation |
-| `swift_csv_filter_custom_field_headers` | `$headers, $meta_keys, $args` | Customize custom field headers (Pro: ACF integration) |
+| Hook                                    | Parameters                    | Purpose                                                  |
+| --------------------------------------- | ----------------------------- | -------------------------------------------------------- |
+| `swift_csv_basic_post_fields`           | `$fields, $scope`             | Customize basic export fields (ID, title, content, etc.) |
+| `swift_csv_additional_post_fields`      | `$fields, $scope`             | Customize 'all' scope additional fields                  |
+| `swift_csv_filter_taxonomy_objects`     | `$taxonomy_objects, $args`    | Filter taxonomy objects before header creation           |
+| `swift_csv_filter_custom_field_headers` | `$headers, $meta_keys, $args` | Customize custom field headers (Pro: ACF integration)    |
 
 ### Query Hooks
 
-| Hook | Parameters | Purpose |
-|------|-----------|---------|
+| Hook                          | Parameters           | Purpose                                        |
+| ----------------------------- | -------------------- | ---------------------------------------------- |
 | `swift_csv_sample_query_args` | `$query_args, $args` | Customize sample post query for meta discovery |
-| `swift_csv_export_query_args` | `$query_args, $args` | Customize main export query |
+| `swift_csv_export_query_args` | `$query_args, $args` | Customize main export query                    |
 
 ### Import Hooks
 
-| Hook | Parameters | Purpose |
-|------|-----------|---------|
-| `swift_csv_before_import` | `$args` | Pre-import preparation |
-| `swift_csv_import_row` | `$row_data, $args` | Per-row data transformation |
-| `swift_csv_after_import` | `$stats, $args` | Post-import cleanup |
+| Hook                      | Parameters         | Purpose                     |
+| ------------------------- | ------------------ | --------------------------- |
+| `swift_csv_before_import` | `$args`            | Pre-import preparation      |
+| `swift_csv_import_row`    | `$row_data, $args` | Per-row data transformation |
+| `swift_csv_after_import`  | `$stats, $args`    | Post-import cleanup         |
 
 ## Design Principles
 
@@ -58,6 +58,7 @@ add_filter('swift_csv_classify_meta_keys', [$this, 'classify_acf_keys'], 10, 2);
 ```
 
 Pro uses a three-stage custom field pipeline:
+
 1. **Sample post filtering** — `swift_csv_filter_sample_posts`
 2. **Meta key classification** — `swift_csv_classify_meta_keys` (returns `['acf' => [], 'regular' => [], 'private' => []]`)
 3. **Header generation** — `swift_csv_generate_custom_field_headers`

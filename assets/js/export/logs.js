@@ -36,7 +36,11 @@
 							setAfterId(nextAfterId);
 						}
 					}
-					if (!payload.logs || !Array.isArray(payload.logs) || payload.logs.length === 0) {
+					if (
+						!payload.logs ||
+						!Array.isArray(payload.logs) ||
+						payload.logs.length === 0
+					) {
 						return;
 					}
 					payload.logs.forEach(item => {

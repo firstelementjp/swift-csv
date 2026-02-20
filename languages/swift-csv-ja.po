@@ -693,6 +693,9 @@ msgstr "行 %d からチャンクを処理中"
 msgid "Processed"
 msgstr "処理済み"
 
+msgid "rows"
+msgstr "行"
+
 msgid "Created: %d"
 msgstr "新規作成: %d"
 

@@ -505,9 +505,10 @@ function processImportChunk(
 /**
  * Update AJAX progress for import
  *
- * @param {Object} data Progress data
+ * @param {Object} data      Progress data
+ * @param {number} startTime Start time
  */
-function updateImportProgress(data) {
+function updateImportProgress(data, startTime) {
 	// Find progress elements in the new UI structure
 	const progressContainer = document.querySelector('.swift-csv-progress');
 	if (!progressContainer) {
@@ -517,9 +518,7 @@ function updateImportProgress(data) {
 
 	const progressBar = progressContainer.querySelector('.progress-bar');
 	const progressFill = progressContainer.querySelector('.progress-bar-fill');
-	const processedEl = progressContainer.querySelector('.processed-rows');
-	const totalEl = progressContainer.querySelector('.total-rows');
-	const percentageEl = progressContainer.querySelector('.percentage');
+	const progressStats = progressContainer.querySelector('.progress-stats');
 
 	// Add processing state animation
 	if (progressBar && data.status === 'processing') {
@@ -541,14 +540,18 @@ function updateImportProgress(data) {
 	}
 
 	// Update stats
-	if (processedEl && data.processed !== undefined) {
-		processedEl.textContent = data.processed;
-	}
-	if (totalEl && data.total !== undefined) {
-		totalEl.textContent = data.total;
-	}
-	if (percentageEl && data.progress !== undefined) {
-		percentageEl.textContent = data.progress;
+	if (progressStats && data.processed !== undefined && data.total !== undefined) {
+		const percentage =
+			data.progress !== undefined
+				? Math.round(Number(data.progress))
+				: data.total > 0
+					? Math.round((data.processed / data.total) * 100)
+					: 0;
+		const elapsedSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+		const processedLabel = swiftCSV.messages.processedInfo || 'Processed';
+		const rowsLabel = swiftCSV.messages.rowsLabel || 'rows';
+		const secondsLabel = swiftCSV.messages.secondsLabel || 's';
+		progressStats.textContent = `${percentage}% ${processedLabel} ${data.processed}/${data.total} ${rowsLabel} (${elapsedSeconds}${secondsLabel})`;
 	}
 
 	// Update detail counts

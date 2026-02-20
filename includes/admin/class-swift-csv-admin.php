@@ -283,10 +283,11 @@ class Swift_CSV_Admin {
 						'updateExistingInfo'      => esc_html__( 'Update Existing:', 'swift-csv' ),
 						'processingChunk'         => esc_html__( 'Chunk processing start position (row):', 'swift-csv' ),
 						'processedInfo'           => esc_html__( 'Processed', 'swift-csv' ),
+						'rowsLabel'               => esc_html__( 'rows', 'swift-csv' ),
 						'createdInfo'             => esc_html__( 'Created:', 'swift-csv' ),
 						'updatedInfo'             => esc_html__( 'Updated:', 'swift-csv' ),
 						'errorsInfo'              => esc_html__( 'Errors:', 'swift-csv' ),
-						'importCompleted'         => esc_html__( 'Import completed!', 'swift-csv' ),
+						'syncProgress'            => esc_html__( 'Sync Progress', 'swift-csv' ),
 						'importCancelledByUser'   => esc_html__( 'Import cancelled by user', 'swift-csv' ),
 						'importError'             => esc_html__( 'Import error:', 'swift-csv' ),
 						// Dry Run messages.

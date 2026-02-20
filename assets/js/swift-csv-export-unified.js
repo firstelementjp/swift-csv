@@ -498,8 +498,10 @@ const SwiftCSVExportUnified = {
 		}
 
 		if (progressStats) {
+			const processedLabel = swiftCSV.messages.processedInfo || 'Processed';
+			const rowsLabel = swiftCSV.messages.rowsLabel || 'rows';
 			const secondsLabel = swiftCSV.messages.secondsLabel || 's';
-			progressStats.textContent = `${percentage}% - ${swiftCSV.messages.processedInfo} ${processed}/${total} (${elapsedSeconds}${secondsLabel})`;
+			progressStats.textContent = `${percentage}% ${processedLabel} ${processed}/${total} ${rowsLabel} (${elapsedSeconds}${secondsLabel})`;
 		}
 	},
 

@@ -41,9 +41,9 @@ class Swift_CSV_Import_Persister {
 		$result    = $this->execute_post_db_operation( $wpdb, $is_update, $post_id, $post_data, $dry_run, $dry_run_log );
 
 		return [
-			'success'   => ( $result !== false ),
+			'success'   => ( false !== $result ),
 			'operation' => $is_update ? 'update' : 'insert',
-			'post_id'   => $post_id === null ? null : (int) $post_id,
+			'post_id'   => null === $post_id ? null : (int) $post_id,
 			'db_result' => $result,
 		];
 	}
@@ -157,6 +157,7 @@ class Swift_CSV_Import_Persister {
 			return 1;
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		return $wpdb->update(
 			$wpdb->posts,
 			$post_data,
@@ -193,8 +194,9 @@ class Swift_CSV_Import_Persister {
 			return 1;
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$result = $wpdb->insert( $wpdb->posts, $post_data, $post_data_formats );
-		if ( $result !== false ) {
+		if ( false !== $result ) {
 			$post_id = $wpdb->insert_id;
 		}
 		return $result;

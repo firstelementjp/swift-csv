@@ -1,8 +1,8 @@
 (function () {
-	window.SwiftCSVExportUnifiedModules = window.SwiftCSVExportUnifiedModules || {};
+	window.SwiftCSVExportUnifiedModules = window.SwiftCSVExportUnifiedModules || {}
 
 	window.SwiftCSVExportUnifiedModules.Ajax = {
-		postForm: function (formData, extraOptions) {
+		postForm (formData, extraOptions) {
 			return fetch(
 				swiftCSV.ajaxUrl,
 				Object.assign(
@@ -15,7 +15,7 @@
 					},
 					extraOptions || {}
 				)
-			);
+			)
 		},
-	};
-})();
+	}
+})()

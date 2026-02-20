@@ -16,10 +16,10 @@
  */
 function __(text, domain = 'swift-csv') {
 	if (window.wp && window.wp.i18n && window.wp.i18n.__) {
-		return window.wp.i18n.__(text, domain);
+		return window.wp.i18n.__(text, domain)
 	}
 	// Fallback: return original text (will be translated by PHP if needed)
-	return text;
+	return text
 }
 
 /**
@@ -32,18 +32,18 @@ function __(text, domain = 'swift-csv') {
  */
 function swiftCSVLog(message, type = 'info') {
 	if (window.swiftCSV && window.swiftCSV.debug) {
-		const timestamp = new Date().toISOString();
-		const logMessage = `[Swift CSV] ${message}`;
+		const timestamp = new Date().toISOString()
+		const logMessage = `[Swift CSV] ${message}`
 
 		switch (type) {
-			case 'warn':
-				console.warn(logMessage, timestamp);
-				break;
-			case 'error':
-				console.error(logMessage, timestamp);
-				break;
-			default:
-				console.info(logMessage, timestamp);
+		case 'warn':
+			console.warn(logMessage, timestamp)
+			break
+		case 'error':
+			console.error(logMessage, timestamp)
+			break
+		default:
+			console.info(logMessage, timestamp)
 		}
 	}
 }
@@ -66,13 +66,13 @@ function initLoggingSystem() {
  * @return {string} Formatted file size
  */
 function formatFileSize(bytes) {
-	if (bytes === 0) return '0 Bytes';
+	if (bytes === 0) return '0 Bytes'
 
-	const k = 1024;
-	const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
+	const k = 1024
+	const sizes = ['Bytes', 'KB', 'MB', 'GB']
+	const i = Math.floor(Math.log(bytes) / Math.log(k))
 
-	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+	return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
 /**
@@ -84,9 +84,9 @@ function formatFileSize(bytes) {
  */
 async function wpPost(action, data) {
 	const formData = new URLSearchParams({
-		action: action,
+		action,
 		...data,
-	});
+	})
 
 	return fetch(swiftCSV.ajaxUrl, {
 		method: 'POST',
@@ -94,7 +94,7 @@ async function wpPost(action, data) {
 			'Content-Type': 'application/x-www-form-urlencoded',
 		},
 		body: formData,
-	});
+	})
 }
 
 // Export for use in other modules
@@ -104,4 +104,4 @@ window.SwiftCSVCore = {
 	initLoggingSystem,
 	formatFileSize,
 	wpPost,
-};
+}

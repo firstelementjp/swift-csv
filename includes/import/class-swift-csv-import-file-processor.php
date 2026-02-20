@@ -32,7 +32,7 @@ class Swift_CSV_Import_File_Processor {
 	 * @since 0.9.8
 	 */
 	public function __construct() {
-		// Initialize dependencies
+		// Initialize dependencies.
 	}
 
 	/**
@@ -46,20 +46,22 @@ class Swift_CSV_Import_File_Processor {
 	 */
 	public function handle_upload(): ?array {
 		// Verify nonce.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		$nonce = wp_unslash( $_POST['nonce'] ?? '' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 		if ( ! Swift_CSV_Helper::verify_nonce( $nonce ) ) {
 			Swift_CSV_Helper::send_security_error();
 			return null;
 		}
 
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+
 		// Handle file upload securely using wp_handle_upload.
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		if ( ! isset( $_FILES['csv_file'] ) ) {
-			// For batch requests (start_row > 0), use existing file
+			// For batch requests (start_row > 0), use existing file.
 			$start_row = isset( $_POST['start_row'] ) ? intval( $_POST['start_row'] ) : 0;
 			if ( $start_row > 0 ) {
-				// Return existing temp file path for batch processing
+				// Return existing temp file path for batch processing.
 				$temp_dir = Swift_CSV_Helper::create_temp_directory();
 				$files    = scandir( $temp_dir );
 				foreach ( $files as $file ) {
@@ -99,21 +101,25 @@ class Swift_CSV_Import_File_Processor {
 		// Copy uploaded file to temp location.
 		if ( ! copy( $uploaded_file['file'], $temp_file ) ) {
 			Swift_CSV_Helper::send_error_response( 'Failed to save file' );
+			// phpcs:enable WordPress.Security.NonceVerification.Missing
 			return null;
 		}
 
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		return [ 'file_path' => $temp_file ];
 	}
 
 	/**
 	 * Validate uploaded file.
 	 *
+	 * Placeholder implementation.
+	 *
 	 * @since 0.9.8
 	 * @param array $file Uploaded file data.
 	 * @return array{valid:bool,error:string|null} Validation result.
 	 */
-	private function validate_file( array $file ): array {
-		// Placeholder implementation
+	private function validate_file( array $file ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+		// Placeholder implementation.
 		return [
 			'valid' => false,
 			'error' => 'Not implemented',
@@ -127,20 +133,22 @@ class Swift_CSV_Import_File_Processor {
 	 * @return string Temporary file path.
 	 */
 	private function create_temp_file_path(): string {
-		// Placeholder implementation
+		// Placeholder implementation.
 		return '';
 	}
 
 	/**
 	 * Save uploaded file.
 	 *
+	 * Placeholder implementation.
+	 *
 	 * @since 0.9.8
 	 * @param array  $file Uploaded file data.
 	 * @param string $temp_file Temporary file path.
 	 * @return bool Success status.
 	 */
-	private function save_file( array $file, string $temp_file ): bool {
-		// Placeholder implementation
+	private function save_file( array $file, string $temp_file ): bool { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		// Placeholder implementation.
 		return false;
 	}
 }

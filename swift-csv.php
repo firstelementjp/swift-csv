@@ -34,7 +34,7 @@ define( 'SWIFT_CSV_DOCS_URL', 'https://firstelementjp.github.io/swift-csv/#/' );
 define( 'SWIFT_CSV_DEEPWIKI_URL', 'https://deepwiki.com/firstelementjp/swift-csv' );
 
 /**
- * Custom autoloader for Swift CSV classes.
+ * Custom autoloader for Swift CSV classes
  *
  * Automatically loads classes following WordPress naming convention:
  * Swift_CSV_Admin → includes/admin/class-swift-csv-admin.php
@@ -98,7 +98,7 @@ add_action( 'init', 'swift_csv_load_textdomain', 0 );
 add_action( 'init', 'swift_csv_init', 10 );
 
 /**
- * Load plugin textdomain.
+ * Load plugin textdomain
  *
  * Loads the plugin text domain for internationalization.
  *

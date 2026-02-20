@@ -172,6 +172,7 @@ function handleAjaxExport(e) {
 	}
 
 	const exportBtn = document.querySelector('#ajax-export-csv-btn');
+	const directSqlBtn = document.querySelector('#direct-sql-export-btn');
 	const cancelBtn = document.querySelector('#ajax-export-cancel-btn');
 	const startTime = Date.now();
 	let isCancelled = false;
@@ -180,6 +181,9 @@ function handleAjaxExport(e) {
 	if (exportBtn) {
 		exportBtn.disabled = true;
 		exportBtn.value = swiftCSV.messages.exporting;
+	}
+	if (directSqlBtn) {
+		directSqlBtn.disabled = true;
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'inline-block';
@@ -225,8 +229,7 @@ function handleAjaxExport(e) {
 			});
 
 			if (ajax) {
-				ajax
-					.postForm(cancelFormData)
+				ajax.postForm(cancelFormData)
 					.then(() => {
 						// Ignore response.
 					})
@@ -238,6 +241,9 @@ function handleAjaxExport(e) {
 			if (exportBtn) {
 				exportBtn.disabled = false;
 				exportBtn.value = swiftCSV.messages.exportCsv;
+			}
+			if (directSqlBtn) {
+				directSqlBtn.disabled = false;
 			}
 			if (cancelBtn) {
 				cancelBtn.style.display = 'none';
@@ -345,6 +351,9 @@ function handleAjaxExport(e) {
 					exportBtn.disabled = false;
 					exportBtn.value = swiftCSV.messages.exportCsv;
 				}
+				if (directSqlBtn) {
+					directSqlBtn.disabled = false;
+				}
 				if (cancelBtn) {
 					cancelBtn.style.display = 'none';
 				}
@@ -417,6 +426,8 @@ function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
 		window.SwiftCSVUtils.addLogEntry(swiftCSV.messages.exportCompleted, 'success', 'export');
 	}
 
+	const directSqlBtn = document.querySelector('#direct-sql-export-btn');
+
 	// Create download link
 	const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 	const url = URL.createObjectURL(blob);
@@ -450,6 +461,9 @@ function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
 	if (exportBtn) {
 		exportBtn.disabled = false;
 		exportBtn.value = swiftCSV.messages.startExport;
+	}
+	if (directSqlBtn) {
+		directSqlBtn.disabled = false;
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'none';

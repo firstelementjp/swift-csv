@@ -55,9 +55,6 @@ class Swift_CSV_AJAX_Export_Unified {
 			return;
 		}
 
-		// Rate limiting.
-		$this->check_rate_limit();
-
 		// Get export method.
 		$export_method = isset( $_POST['export_method'] ) ? sanitize_text_field( wp_unslash( $_POST['export_method'] ) ) : 'standard';
 
@@ -65,6 +62,11 @@ class Swift_CSV_AJAX_Export_Unified {
 		$config = $this->get_export_config();
 
 		try {
+			// Rate limiting (Direct SQL only).
+			if ( 'direct_sql' === $export_method ) {
+				$this->check_rate_limit();
+			}
+
 			// Route to appropriate export method.
 			switch ( $export_method ) {
 				case 'direct_sql':
@@ -77,7 +79,6 @@ class Swift_CSV_AJAX_Export_Unified {
 			}
 
 			wp_send_json( $result );
-
 		} catch ( Exception $e ) {
 			error_log( 'Swift CSV Unified: exception caught: ' . $e->getMessage() );
 			wp_send_json_error( 'Export failed: ' . wp_kses_post( $e->getMessage() ) );
@@ -163,20 +164,26 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @throws Exception When rate limit exceeded.
 	 */
 	private function check_rate_limit() {
-		// Clear any existing concurrent export flags for testing
-		$session_id = session_id();
-		$cache_key  = 'swift_csv_concurrent_export_' . $session_id;
-		delete_transient( $cache_key );
-
-		// Check for concurrent exports in the same session
+		// Check for concurrent exports in the same session.
+		$session_id   = session_id();
+		$cache_key    = 'swift_csv_concurrent_export_' . $session_id;
 		$is_exporting = get_transient( $cache_key );
 
 		if ( $is_exporting ) {
 			throw new Exception( 'Another export is already in progress. Please wait for it to complete.' );
 		}
 
-		// Set concurrent export flag (expires after 5 minutes)
+		// Set concurrent export flag.
+		// This lock is released at request shutdown to allow batched requests.
 		set_transient( $cache_key, true, 5 * MINUTE_IN_SECONDS );
+
+		register_shutdown_function(
+			static function () use ( $cache_key ) {
+				delete_transient( $cache_key );
+			}
+		);
+
+		return $cache_key;
 	}
 
 	/**
@@ -611,6 +618,19 @@ class Swift_CSV_AJAX_Export_Unified {
 	}
 
 	/**
+	 * Get export cancel option name
+	 *
+	 * Uses the same key format as the standard export handler to keep behavior consistent.
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @return string Option name.
+	 */
+	private function get_cancel_option_name( string $export_session ): string {
+		return 'swift_csv_export_cancelled_' . get_current_user_id() . '_' . $export_session;
+	}
+
+	/**
 	 * Check if export is cancelled
 	 *
 	 * @since 0.9.8
@@ -618,8 +638,22 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @return bool True if cancelled.
 	 */
 	private function is_cancelled( $export_session ) {
-		$cancel_key = 'swift_csv_cancel_export_' . get_current_user_id();
-		return (bool) get_transient( $cancel_key );
+		if ( empty( $export_session ) ) {
+			return false;
+		}
+
+		$cancel_option_name = $this->get_cancel_option_name( (string) $export_session );
+
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$option_value = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1",
+				$cancel_option_name
+			)
+		);
+
+		return ! empty( $option_value );
 	}
 
 	/**
@@ -644,12 +678,9 @@ class Swift_CSV_AJAX_Export_Unified {
 
 		$query = new WP_Query( $args );
 
-		// Debug: Check found posts vs export limit
 		$found_posts  = $query->found_posts;
 		$export_limit = $config['export_limit'] ?? 0;
 		$total_posts  = $export_limit > 0 ? min( $found_posts, $export_limit ) : $found_posts;
-
-		error_log( "Debug - Found posts: {$found_posts}, Export limit: {$export_limit}, Total posts: {$total_posts}" );
 
 		return $total_posts;
 	}

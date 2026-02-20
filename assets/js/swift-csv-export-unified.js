@@ -109,10 +109,20 @@ const SwiftCSVExportUnified = {
 	 */
 	handleDirectSqlExport: function (formData) {
 		const button = document.getElementById('direct-sql-export-btn');
+		const standardBtn = document.getElementById('ajax-export-csv-btn');
+		const cancelBtn = document.getElementById('ajax-export-cancel-btn');
 
 		// Disable button and show loading
 		button.disabled = true;
 		button.textContent = swiftCSV.messages.exporting;
+
+		// Prevent concurrent exports
+		if (standardBtn) {
+			standardBtn.disabled = true;
+		}
+		if (cancelBtn) {
+			cancelBtn.style.display = 'inline-block';
+		}
 
 		// Add log entry if logging is enabled
 		if (
@@ -173,7 +183,7 @@ const SwiftCSVExportUnified = {
 		}
 
 		// Start batch processing
-		this.startDirectSqlBatchExport(formData, button);
+		this.startDirectSqlBatchExport(formData, button, { standardBtn, cancelBtn });
 	},
 
 	/**
@@ -182,12 +192,15 @@ const SwiftCSVExportUnified = {
 	 * @param {Object} formData Form data
 	 * @param {HTMLElement} button Button element
 	 */
-	startDirectSqlBatchExport: function (formData, button) {
+	startDirectSqlBatchExport: function (formData, button, ui) {
 		const startTime = Date.now();
 		let csvContent = '';
 		let processed = 0;
 		let totalPosts = 0;
 		let exportSession = '';
+		let isCancelled = false;
+		let currentAbortController = null;
+		let cancelHandler = null;
 		let exportLogLastId = 0;
 		let exportLogPollingTimer = null;
 
@@ -221,8 +234,49 @@ const SwiftCSVExportUnified = {
 			exportLogPollingTimer = setInterval(pollExportLogs, 2000);
 		};
 
+		const cleanupUi = function () {
+			if (ui && ui.standardBtn) {
+				ui.standardBtn.disabled = false;
+			}
+			if (ui && ui.cancelBtn) {
+				ui.cancelBtn.style.display = 'none';
+			}
+		};
+
+		const sendCancelSignal = function () {
+			if (!exportSession) return;
+			const cancelFormData = new URLSearchParams({
+				action: 'swift_csv_cancel_export',
+				nonce: swiftCSV.nonce,
+				export_session: exportSession,
+			});
+			SwiftCSVExportUnifiedAjax.postForm(cancelFormData).catch(() => {
+				// ignore
+			});
+		};
+
+		if (ui && ui.cancelBtn) {
+			cancelHandler = () => {
+				isCancelled = true;
+				stopExportLogPolling();
+				sendCancelSignal();
+				if (currentAbortController) {
+					currentAbortController.abort();
+				}
+				cleanupUi();
+				button.disabled = false;
+				button.textContent = swiftCSV.messages.directSqlExport || 'High-Speed Export';
+			};
+			ui.cancelBtn.addEventListener('click', cancelHandler, { once: true });
+		}
+
 		// Process batches
-		this.processDirectSqlBatch(formData, 0, exportSession)
+		this.processDirectSqlBatch(formData, 0, exportSession, {
+			getIsCancelled: () => isCancelled,
+			setAbortController: c => {
+				currentAbortController = c;
+			},
+		})
 			.then(response => {
 				if (!response || !response.success) {
 					throw new Error((response && response.data) || 'Direct SQL export failed');
@@ -243,7 +297,13 @@ const SwiftCSVExportUnified = {
 						processed,
 						button,
 						startTime,
-						csvContent
+						csvContent,
+						{
+							getIsCancelled: () => isCancelled,
+							setAbortController: c => {
+								currentAbortController = c;
+							},
+						}
 					);
 				}
 
@@ -263,19 +323,26 @@ const SwiftCSVExportUnified = {
 						setTimeout(() => {
 							pollExportLogs().finally(() => {
 								this.completeExport(finalCsv, formData, button);
+								cleanupUi();
 							});
 						}, 100);
 					} else {
 						// Single batch - complete immediately
 						this.completeExport(finalCsv, formData, button);
+						cleanupUi();
 					}
 				} else {
 					stopExportLogPolling();
 					this.completeExport(finalCsv, formData, button);
+					cleanupUi();
 				}
 			})
 			.catch(error => {
 				stopExportLogPolling();
+				cleanupUi();
+				if (isCancelled) {
+					return;
+				}
 				// Add error log
 				if (
 					formData.enable_logs === '1' &&
@@ -293,6 +360,7 @@ const SwiftCSVExportUnified = {
 				}
 
 				this.showError(button, error.message || swiftCSV.messages.failed);
+				button.disabled = false;
 			});
 	},
 
@@ -312,30 +380,39 @@ const SwiftCSVExportUnified = {
 		startRow,
 		button,
 		startTime,
-		csvContent = ''
+		csvContent = '',
+		control
 	) {
-		return this.processDirectSqlBatch(formData, startRow, exportSession).then(response => {
-			if (!response || !response.success) {
-				throw new Error((response && response.data) || 'Batch processing failed');
-			}
+		return this.processDirectSqlBatch(formData, startRow, exportSession, control).then(
+			response => {
+				if (!response || !response.success) {
+					throw new Error((response && response.data) || 'Batch processing failed');
+				}
 
-			processed = Number(response.processed || 0);
-			csvContent += response.csv_chunk || '';
-			this.updateDirectSqlProgress(processed, Number(response.total || 0), button, startTime);
-
-			if (response.continue) {
-				return this.processDirectSqlBatches(
-					formData,
-					exportSession,
+				processed = Number(response.processed || 0);
+				csvContent += response.csv_chunk || '';
+				this.updateDirectSqlProgress(
 					processed,
+					Number(response.total || 0),
 					button,
-					startTime,
-					csvContent
+					startTime
 				);
-			}
 
-			return csvContent;
-		});
+				if (response.continue) {
+					return this.processDirectSqlBatches(
+						formData,
+						exportSession,
+						processed,
+						button,
+						startTime,
+						csvContent,
+						control
+					);
+				}
+
+				return csvContent;
+			}
+		);
 	},
 
 	/**
@@ -346,7 +423,11 @@ const SwiftCSVExportUnified = {
 	 * @param {string} exportSession Export session
 	 * @return {Promise} Batch response
 	 */
-	processDirectSqlBatch: function (formData, startRow, exportSession) {
+	processDirectSqlBatch: function (formData, startRow, exportSession, control) {
+		if (control && typeof control.getIsCancelled === 'function' && control.getIsCancelled()) {
+			return Promise.reject(new Error(swiftCSV.messages.exportCancelledByUser));
+		}
+
 		const batchFormData = new FormData();
 		batchFormData.append('action', 'swift_csv_ajax_export');
 		batchFormData.append('nonce', swiftCSV.nonce);
@@ -367,7 +448,12 @@ const SwiftCSVExportUnified = {
 			}
 		});
 
-		return this.sendAjaxRequest(batchFormData);
+		const abortController = new AbortController();
+		if (control && typeof control.setAbortController === 'function') {
+			control.setAbortController(abortController);
+		}
+
+		return this.sendAjaxRequest(batchFormData, { signal: abortController.signal });
 	},
 
 	/**
@@ -420,14 +506,14 @@ const SwiftCSVExportUnified = {
 	 * @param {Object} data Request data
 	 * @returns {Promise} Promise with response
 	 */
-	sendAjaxRequest: function (data) {
+	sendAjaxRequest: function (data, extraOptions) {
 		return new Promise((resolve, reject) => {
 			console.log('Debug - Sending data:', data);
 
 			const formData = new URLSearchParams(data);
 			console.log('Debug - FormData string:', formData.toString());
 
-			SwiftCSVExportUnifiedAjax.postForm(formData)
+			SwiftCSVExportUnifiedAjax.postForm(formData, extraOptions)
 				.then(response => response.json())
 				.then(data => {
 					if (data.success) {

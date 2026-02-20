@@ -64,3 +64,7 @@ phpunit.xml export-ignore
 # Exclude build artifacts
 *.tar.gz export-ignore
 *.zip export-ignore
+
+# Exclude local development helpers
+test-release.sh export-ignore
+test-release/ export-ignore

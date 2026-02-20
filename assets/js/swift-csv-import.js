@@ -11,8 +11,6 @@
 function initFileUpload() {
 	const uploadArea = document.querySelector('#csv-file-upload')
 	const fileInput = document.querySelector('#ajax_csv_file')
-	const fileInfo = document.querySelector('#csv-file-info')
-	const removeBtn = document.querySelector('#remove-file-btn')
 
 	if (!uploadArea || !fileInput) {
 		return
@@ -25,6 +23,9 @@ function initFileUpload() {
 
 	// Mark as initialized
 	uploadArea.dataset.swiftCsvInitialized = 'true'
+
+	const fileInfo = document.querySelector('#csv-file-info')
+	const removeBtn = document.querySelector('#remove-file-btn')
 
 	// File selection change event first
 	fileInput.addEventListener('change', e => {

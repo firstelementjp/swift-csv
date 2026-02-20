@@ -10,13 +10,12 @@
  *
  * Provides fallback for WordPress i18n when not available.
  *
- * @param {string} text   - The text to translate
- * @param {string} domain - The text domain
+ * @param {string} text - The text to translate
  * @return {string} The translated text or original text
  */
-function __(text, domain = 'swift-csv') {
+function __(text) {
 	if (window.wp && window.wp.i18n && window.wp.i18n.__) {
-		return window.wp.i18n.__(text, domain)
+		return window.wp.i18n.__('swift-csv', text)
 	}
 	// Fallback: return original text (will be translated by PHP if needed)
 	return text

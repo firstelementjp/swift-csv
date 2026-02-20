@@ -7,6 +7,7 @@
  * import/export interface.
  *
  * @since   0.9.1
+ * @package Swift_CSV
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -107,7 +108,7 @@ class Swift_CSV_Admin {
 				return SWIFT_CSV_PLUGIN_URL . ltrim( $relative_path, '/' );
 			};
 
-			// Core utilities (must be loaded first)
+			// Core utilities (must be loaded first).
 			wp_register_script(
 				'swift-csv-core',
 				$script_url( 'assets/js/swift-csv-core.js' ),
@@ -164,7 +165,7 @@ class Swift_CSV_Admin {
 				true
 			);
 
-			// Export functionality
+			// Export functionality.
 			wp_register_script(
 				'swift-csv-export-unified',
 				$script_url( 'assets/js/swift-csv-export-unified.js' ),
@@ -180,7 +181,7 @@ class Swift_CSV_Admin {
 				true
 			);
 
-			// Import functionality
+			// Import functionality.
 			wp_register_script(
 				'swift-csv-import',
 				$script_url( 'assets/js/swift-csv-import.js' ),
@@ -189,7 +190,7 @@ class Swift_CSV_Admin {
 				true
 			);
 
-			// License functionality
+			// License functionality.
 			wp_register_script(
 				'swift-csv-license',
 				$script_url( 'assets/js/swift-csv-license.js' ),
@@ -198,7 +199,7 @@ class Swift_CSV_Admin {
 				true
 			);
 
-			// Main entry point (must be loaded last)
+			// Main entry point (must be loaded last).
 			wp_register_script(
 				'swift-csv-main',
 				$script_url( 'assets/js/swift-csv-main.js' ),
@@ -213,10 +214,10 @@ class Swift_CSV_Admin {
 				true
 			);
 
-			// Set script translations for core module
+			// Set script translations for core module.
 			wp_set_script_translations( 'swift-csv-core', 'swift-csv', SWIFT_CSV_PLUGIN_DIR . 'languages' );
 
-			// Localize script data (attached to core module)
+			// Localize script data (attached to core module).
 			wp_localize_script(
 				'swift-csv-core',
 				'swiftCSV',
@@ -235,7 +236,7 @@ class Swift_CSV_Admin {
 					 * @return int Modified maximum entries.
 					 */
 					'maxLogEntries'       => apply_filters( 'swift_csv_max_log_entries', 30 ),
-					// Button text for export
+					// Button text for export.
 					'highSpeedExportText' => esc_html__( 'High-Speed Export', 'swift-csv' ),
 					'standardExportText'  => esc_html__( 'Standard Export (WP Compatible)', 'swift-csv' ),
 					'exportCompleteText'  => esc_html__( 'Export Complete', 'swift-csv' ),
@@ -261,7 +262,7 @@ class Swift_CSV_Admin {
 						'custom'                  => esc_html__( 'Custom', 'swift-csv' ),
 						'customHelp'              => /* translators: 1: Hook name, 2: Documentation link */ esc_html__( 'Use the %1$s hook to specify custom export items and order. See %2$s for details.', 'swift-csv' ),
 						'documentation'           => esc_html__( 'documentation', 'swift-csv' ),
-						// Log messages
+						// Log messages.
 						'startingImport'          => esc_html__( 'Starting import process...', 'swift-csv' ),
 						'fileInfo'                => esc_html__( 'File:', 'swift-csv' ),
 						'fileSize'                => esc_html__( 'File Size:', 'swift-csv' ),
@@ -275,24 +276,24 @@ class Swift_CSV_Admin {
 						'importCompleted'         => esc_html__( 'Import completed!', 'swift-csv' ),
 						'importCancelledByUser'   => esc_html__( 'Import cancelled by user', 'swift-csv' ),
 						'importError'             => esc_html__( 'Import error:', 'swift-csv' ),
-						// Dry Run messages
+						// Dry Run messages.
 						'dryRunNotice'            => esc_html__( 'Test import without creating posts or modifying data.', 'swift-csv' ),
 						'dryRunCompleted'         => esc_html__( 'Test completed!', 'swift-csv' ),
 						'dryRunCreated'           => esc_html__( 'Created posts:', 'swift-csv' ),
 						'dryRunUpdated'           => esc_html__( 'Updated posts:', 'swift-csv' ),
 						'dryRunErrors'            => esc_html__( 'Errors:', 'swift-csv' ),
-						// Log prefixes
+						// Log prefixes.
 						'dryRunPrefix'            => esc_html__( 'Dry Run', 'swift-csv' ),
 						'importPrefix'            => esc_html__( 'Import', 'swift-csv' ),
-						// Action texts
+						// Action texts.
 						'createAction'            => esc_html__( 'New', 'swift-csv' ),
 						'updateAction'            => esc_html__( 'Update', 'swift-csv' ),
 						'noFileSelected'          => esc_html__( 'No file selected', 'swift-csv' ),
 						'removeFile'              => esc_html__( 'Remove', 'swift-csv' ),
-						// Export scope mappings
+						// Export scope mappings.
 						'exportScopeBasic'        => esc_html__( 'Basic Fields', 'swift-csv' ),
 						'exportScopeAll'          => esc_html__( 'All Fields', 'swift-csv' ),
-						// Export messages
+						// Export messages.
 						'startingExport'          => esc_html__( 'Starting export process...', 'swift-csv' ),
 						'postTypeExport'          => esc_html__( 'Post Type:', 'swift-csv' ),
 						'exportContent'           => esc_html__( 'Export Content:', 'swift-csv' ),
@@ -309,21 +310,21 @@ class Swift_CSV_Admin {
 						'startingDirectSqlExport' => esc_html__( 'Starting export process (High-Speed)...', 'swift-csv' ),
 						'secondsLabel'            => esc_html__( 's', 'swift-csv' ),
 						'rowLabel'                => esc_html__( 'Row', 'swift-csv' ),
-						// Common messages
+						// Common messages.
 						'yes'                     => esc_html__( 'Yes', 'swift-csv' ),
 						'no'                      => esc_html__( 'No', 'swift-csv' ),
 						'noLimit'                 => esc_html__( 'No limit', 'swift-csv' ),
 						'errorOccurred'           => esc_html__( 'An error occurred. Please try again.', 'swift-csv' ),
 						'totalImported'           => esc_html__( 'Imported', 'swift-csv' ),
 						'totalErrors'             => esc_html__( 'Errors', 'swift-csv' ),
-						// License UI
+						// License UI.
 						'show'                    => esc_html__( 'Show', 'swift-csv' ),
 						'hide'                    => esc_html__( 'Hide', 'swift-csv' ),
 					],
 				]
 			);
 
-			// Enqueue all scripts in correct order
+			// Enqueue all scripts in correct order.
 			wp_enqueue_script( 'jquery' );
 			wp_enqueue_script( 'swift-csv-core' );
 			wp_enqueue_script( 'swift-csv-export-unified-module-ajax' );
@@ -331,7 +332,7 @@ class Swift_CSV_Admin {
 			wp_enqueue_script( 'swift-csv-export-unified-module-form' );
 			wp_enqueue_script( 'swift-csv-export-unified-module-ui' );
 			wp_enqueue_script( 'swift-csv-export-unified-module-logs' );
-			wp_enqueue_script( 'swift-csv-export-unified' ); // New unified export script
+			wp_enqueue_script( 'swift-csv-export-unified' ); // New unified export script.
 			wp_enqueue_script( 'swift-csv-export-original' );
 			wp_enqueue_script( 'swift-csv-import' );
 			wp_enqueue_script( 'swift-csv-license' );
@@ -349,7 +350,7 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	public function register_settings() {
-		// Export settings section
+		// Export settings section.
 		add_settings_section(
 			'swift_csv_export_section',
 			__( 'Export Settings', 'swift-csv' ),
@@ -413,7 +414,7 @@ class Swift_CSV_Admin {
 			'swift_csv_export_section'
 		);
 
-		// Import settings section
+		// Import settings section.
 		add_settings_section(
 			'swift_csv_import_section',
 			__( 'Import Settings', 'swift-csv' ),
@@ -461,7 +462,7 @@ class Swift_CSV_Admin {
 			'swift_csv_import_section'
 		);
 
-		// License settings section
+		// License settings section.
 		add_settings_section(
 			'swift_csv_license_section',
 			'',
@@ -565,6 +566,7 @@ class Swift_CSV_Admin {
 				<div id="custom-post-status-help" class="swift-csv-custom-help">
 					<?php
 					printf(
+						/* translators: 1: Hook name, 2: Documentation link */
 						esc_html__( 'Use the %1$s hook to specify target post status. See %2$s for details.', 'swift-csv' ),
 						'<code>swift_csv_export_post_status_query</code>',
 						'<a href="' . esc_url( SWIFT_CSV_DOCS_URL ) . 'hooks" target="_blank">' . esc_html__( 'documentation', 'swift-csv' ) . '</a>'
@@ -604,6 +606,7 @@ class Swift_CSV_Admin {
 				<div id="custom-export-help" class="swift-csv-custom-help">
 					<?php
 					printf(
+						/* translators: 1: Hook name, 2: Documentation link */
 						esc_html__( 'Use the %1$s hook to specify export content and order. See %2$s for details.', 'swift-csv' ),
 						'<code>swift_csv_export_columns</code>',
 						'<a href="' . esc_url( SWIFT_CSV_DOCS_URL ) . 'hooks" target="_blank">' . esc_html__( 'documentation', 'swift-csv' ) . '</a>'
@@ -841,18 +844,18 @@ class Swift_CSV_Admin {
 			wp_send_json_error( [ 'message' => 'Permission denied.' ] );
 		}
 
-		$license_key = isset( $_POST['license_key'] ) ? sanitize_text_field( $_POST['license_key'] ) : '';
-		$action      = isset( $_POST['license_action'] ) ? sanitize_key( $_POST['license_action'] ) : '';
+		$license_key = isset( $_POST['license_key'] ) ? sanitize_text_field( wp_unslash( $_POST['license_key'] ) ) : '';
+		$action      = isset( $_POST['license_action'] ) ? sanitize_key( wp_unslash( $_POST['license_action'] ) ) : '';
 
 		if ( empty( $license_key ) || empty( $action ) ) {
 			wp_send_json_error( [ 'message' => 'Missing license key or action.' ] );
 		}
 
-		// Perform the license action (handled by Free version)
+		// Perform the license action (handled by Free version).
 		$handler = new Swift_CSV_License_Handler();
 		$result  = ( 'activate' === $action ) ? $handler->activate( $license_key ) : $handler->deactivate( $license_key );
 
-		// Determine the product ID from the remote response
+		// Determine the product ID from the remote response.
 		$product_id = 328;
 		if ( isset( $result['data']['data']['productId'] ) ) {
 			$product_id = (int) $result['data']['data']['productId'];
@@ -862,7 +865,7 @@ class Swift_CSV_Admin {
 
 		$all_licenses = get_option( 'swift_csv_pro_license', [] );
 
-		// Ensure we have a proper array
+		// Ensure we have a proper array.
 		if ( ! is_array( $all_licenses ) ) {
 			$all_licenses = [];
 		}
@@ -872,7 +875,7 @@ class Swift_CSV_Admin {
 		}
 
 		if ( $result && $result['success'] ) {
-			// Determine the local license status based on the requested action
+			// Determine the local license status based on the requested action.
 			$local_status = ( 'activate' === $action ) ? 'active' : 'inactive';
 
 			if ( $product_id > 0 ) {
@@ -903,149 +906,6 @@ class Swift_CSV_Admin {
 	}
 
 	/**
-	 * Get PHP upload limits
-	 *
-	 * @return array Upload limit information
-	 */
-	private function get_upload_limits() {
-		$upload_max = ini_get( 'upload_max_filesize' );
-		$post_max   = ini_get( 'post_max_size' );
-
-		// Convert to bytes
-		$upload_max_bytes = $this->parse_ini_size( $upload_max );
-		$post_max_bytes   = $this->parse_ini_size( $post_max );
-
-		// Get the smaller limit
-		$max_file_size       = min( $upload_max_bytes, $post_max_bytes );
-		$max_file_size_human = $this->format_bytes( $max_file_size );
-
-		return [
-			'upload_max_filesize'   => $upload_max,
-			'post_max_size'         => $post_max,
-			'effective_limit'       => $max_file_size,
-			'effective_limit_human' => $max_file_size_human,
-		];
-	}
-
-	/**
-	 * Parse PHP ini size string to bytes
-	 *
-	 * @param string $size Size string (e.g., "2M", "8M")
-	 * @return int Size in bytes
-	 */
-	private function parse_ini_size( $size ) {
-		$unit  = strtoupper( substr( $size, -1 ) );
-		$value = (int) substr( $size, 0, -1 );
-
-		switch ( $unit ) {
-			case 'G':
-				return $value * 1024 * 1024 * 1024;
-			case 'M':
-				return $value * 1024 * 1024;
-			case 'K':
-				return $value * 1024;
-			default:
-				return (int) $size;
-		}
-	}
-
-	/**
-	 * Format bytes to human readable format
-	 *
-	 * @param int $bytes Bytes
-	 * @return string Formatted size
-	 */
-	private function format_bytes( $bytes ) {
-		if ( $bytes >= 1024 * 1024 * 1024 ) {
-			return round( $bytes / 1024 / 1024 / 1024, 1 ) . 'GB';
-		} elseif ( $bytes >= 1024 * 1024 ) {
-			return round( $bytes / 1024 / 1024, 1 ) . 'MB';
-		} elseif ( $bytes >= 1024 ) {
-			return round( $bytes / 1024, 1 ) . 'KB';
-		} else {
-			return $bytes . 'B';
-		}
-	}
-
-	/**
-	 * Displays professional header with version info and support links .
-	 *
-	 * @since  0.9.0
-	 * @return void
-	 */
-	private function render_plugin_header() {
-		$forum_url = 'https://github.com/firstelementjp/swift-csv/issues';
-		?>
-		<div id="plugin_header">
-			<div id="plugin_header_upper">
-				<div id="plugin_header_title">Swift <span>CSV</span></div>
-				<a href="https://www.firstelement.co.jp/" id="plugin_logo" target="_blank" title="Go to the developer's website">
-					<img src="<?php echo esc_url( SWIFT_CSV_PLUGIN_URL . 'assets/images/logo-feas-white-shadow-s@2x-min.png' ); ?>" width="106" height="27" alt="FirstElement">
-				</a>
-			</div>
-			<div id="plugin_version">
-				version <?php echo esc_html( SWIFT_CSV_VERSION ); ?>
-			</div>
-			<div id="plugin_support">
-				<a href="<?php echo esc_url( SWIFT_CSV_DOCS_URL ); ?>"
-					target="_blank"
-					title="<?php esc_attr_e( 'Go to the instruction manual', 'swift-csv' ); ?>">
-					<?php esc_html_e( 'Documentation', 'swift-csv' ); ?>
-				</a>
-				<a href="<?php echo esc_url( SWIFT_CSV_DEEPWIKI_URL ); ?>"
-					target="_blank"
-					title="<?php esc_attr_e( 'Go to DeepWiki documentation', 'swift-csv' ); ?>">
-					<?php esc_html_e( 'DeepWiki', 'swift-csv' ); ?>
-				</a>
-				<a href="https://github.com/firstelementjp/swift-csv"
-					target="_blank"
-					title="<?php esc_attr_e( 'Go to GitHub repository', 'swift-csv' ); ?>"
-					class="icon icon_gh">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						width="16"
-						height="16"
-					>
-						<g transform="translate(-140 -7559)" fill="currentColor" fill-rule="evenodd">
-							<g transform="translate(56 160)">
-								<path d="M94,7399 C99.523,7399 104,7403.59 104,7409.253 C104,7413.782 101.138,7417.624 97.167,7418.981 C96.66,7419.082 96.48,7418.762 96.48,7418.489 C96.48,7418.151 96.492,7417.047 96.492,7415.675 C96.492,7414.719 96.172,7414.095 95.813,7413.777 C98.04,7413.523 100.38,7412.656 100.38,7408.718 C100.38,7407.598 99.992,7406.684 99.35,7405.966 C99.454,7405.707 99.797,7404.664 99.252,7403.252 C99.252,7403.252 98.414,7402.977 96.505,7404.303 C95.706,7404.076 94.85,7403.962 94,7403.958 C93.15,7403.962 92.295,7404.076 91.497,7404.303 C89.586,7402.977 88.746,7403.252 88.746,7403.252 C88.203,7404.664 88.546,7405.707 88.649,7405.966 C88.01,7406.684 87.619,7407.598 87.619,7408.718 C87.619,7412.646 89.954,7413.526 92.175,7413.785 C91.889,7414.041 91.63,7414.493 91.54,7415.156 C90.97,7415.418 89.522,7415.871 88.63,7414.304 C88.63,7414.304 88.101,7413.319 87.097,7413.247 C87.097,7413.247 86.122,7413.234 87.029,7413.87 C87.029,7413.87 87.684,7414.185 88.139,7415.37 C88.139,7415.37 88.726,7417.2 91.508,7416.58 C91.513,7417.437 91.522,7418.245 91.522,7418.489 C91.522,7418.76 91.338,7419.077 90.839,7418.982 C86.865,7417.627 84,7413.783 84,7409.253 C84,7403.59 88.478,7399 94,7399" />
-							</g>
-						</g>
-					</svg>
-				</a>
-				<a href="https://x.com/firstelement"
-					target="_blank"
-					title="<?php esc_attr_e( 'Go to X', 'swift-csv' ); ?>"
-					class="icon icon_tw">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 1226.37 1226.37"
-						width="20"
-						height="20"
-					>
-						<path
-							fill="currentColor"
-							d="m727.348 519.284 446.727-519.284h-105.86l-387.893 450.887-309.809-450.887h-357.328l468.492 681.821-468.492 544.549h105.866l409.625-476.152 327.181 476.152h357.328l-485.863-707.086zm-144.998 168.544-47.468-67.894-377.686-540.24h162.604l304.797 435.991 47.468 67.894 396.2 566.721h-162.604l-323.311-462.446z"
-						/>
-					</svg>
-				</a>
-				<a href="https://www.facebook.com/firstelementjp"
-					target="_blank"
-					title="<?php esc_attr_e( 'Go to Facebook page', 'swift-csv' ); ?>"
-					class="icon icon_fb">
-				</a>
-				<a href="https://www.firstelement.co.jp/contact"
-					target="_blank"
-					title="<?php esc_attr_e( 'Go to contact form', 'swift-csv' ); ?>"
-					class="icon icon_mail">
-				</a>
-			</div>
-		</div>
-		<?php
-	}
-
-	/**
 	 * Render main admin page
 	 *
 	 * Displays the main interface with export/import tabs.
@@ -1054,28 +914,33 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	public function render_main_page() {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		// Sanitize and validate tab parameter.
-		$tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'export';
+		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'export';
 
-		// Allow custom tabs (like Pro version tabs) - don't restrict to export/import only
-		// The validation will be handled by the individual tab rendering logic
+		// Allow custom tabs (like Pro version tabs) - don't restrict to export/import only.
+		// The validation will be handled by the individual tab rendering logic.
 
-		// Check for batch processing
-		$batch_id = isset( $_GET['batch'] ) ? sanitize_text_field( $_GET['batch'] ) : '';
+		// Check for batch processing.
+		$batch_id = isset( $_GET['batch'] ) ? sanitize_text_field( wp_unslash( $_GET['batch'] ) ) : '';
 
-		// Check for import results
+		// Check for import results.
 		$import_results = [];
 		if ( isset( $_GET['imported'] ) ) {
+			$updated        = isset( $_GET['updated'] ) ? absint( wp_unslash( $_GET['updated'] ) ) : 0;
+			$errors         = isset( $_GET['errors'] ) ? absint( wp_unslash( $_GET['errors'] ) ) : 0;
 			$import_results = [
-				'imported' => intval( $_GET['imported'] ),
-				'updated'  => intval( $_GET['updated'] ),
-				'errors'   => intval( $_GET['errors'] ),
+				'imported' => absint( wp_unslash( $_GET['imported'] ) ),
+				'updated'  => $updated,
+				'errors'   => $errors,
 			];
 
 			if ( isset( $_GET['error_details'] ) ) {
-				$import_results['error_details'] = explode( '|', urldecode( $_GET['error_details'] ) );
+				$error_details                   = sanitize_text_field( wp_unslash( $_GET['error_details'] ) );
+				$import_results['error_details'] = explode( '|', urldecode( $error_details ) );
 			}
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		?>
 		<div class="wrap swift-csv">
@@ -1089,13 +954,13 @@ class Swift_CSV_Admin {
 					<?php esc_html_e( 'Import', 'swift-csv' ); ?>
 				</a>
 				<?php
-				// Add license tab directly as default tab
+				// Add license tab directly as default tab.
 				$icon = '';
 				if ( class_exists( 'Swift_CSV_Pro_Admin' ) && ! Swift_CSV_License_Handler::is_pro_active() ) {
 					$icon = '<span class="dashicons dashicons-warning" style="color: #f59e0b;"></span>';
 				}
 
-				// Custom allowed HTML list for safe output
+				// Custom allowed HTML list for safe output.
 				$allowed_html = [
 					'span' => [
 						'class' => true,
@@ -1137,7 +1002,7 @@ class Swift_CSV_Admin {
 				} elseif ( 'license' === $tab ) {
 					$this->render_license_tab_content();
 				}
-				// Custom tabs (like Pro version) will be handled by the hook below
+				// Custom tabs (like Pro version) will be handled by the hook below.
 				/**
 				 * Fires within the main settings form to add custom tab content panels.
 				 *
@@ -1157,84 +1022,6 @@ class Swift_CSV_Admin {
 	}
 
 	/**
-	 * Render export tab content
-	 *
-	 * Displays the export form using WordPress Settings API.
-	 *
-	 * @since  0.9.0
-	 * @return void
-	 */
-	private function render_export_tab_content() {
-		?>
-		<div class="swift-csv-layout">
-			<!-- Left Column: Settings -->
-			<div class="swift-csv-settings">
-				<div class="card">
-					<h3><?php esc_html_e( 'Export Settings', 'swift-csv' ); ?></h3>
-
-					<form id="swift-csv-ajax-export-form" onsubmit="return false;">
-						<?php
-						/**
-						 * Filter the export form action URL
-						 *
-						 * @since 0.9.6
-						 * @param string $action_url The form action URL
-						 */
-						$action_url = apply_filters( 'swift_csv_export_form_action', '' );
-						if ( $action_url ) {
-							echo '<input type="hidden" name="action" value="' . esc_attr( $action_url ) . '">';
-						}
-						?>
-
-						<?php do_settings_fields( 'swift-csv', 'swift_csv_export_section' ); ?>
-
-						<p class="submit">
-							<button type="button" class="button button-primary" id="direct-sql-export-btn">
-								<?php esc_html_e( 'High-Speed Export', 'swift-csv' ); ?>
-							</button>
-							<input type="submit" name="ajax_export_csv" class="button button-secondary" id="ajax-export-csv-btn" value="<?php esc_html_e( 'Standard Export (WP Compatible)', 'swift-csv' ); ?>" style="margin-left: 10px;">
-							<button type="button" class="button" id="ajax-export-cancel-btn" style="display: none;">
-					<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
-				</button>
-						</p>
-					</form>
-				</div>
-			</div>
-
-			<!-- Right Column: Log + Progress -->
-			<div class="swift-csv-log">
-				<div class="card">
-					<h3><?php esc_html_e( 'Export Log', 'swift-csv' ); ?></h3>
-
-					<!-- Log Area -->
-					<div class="swift-csv-log-area">
-						<div class="log-content" id="export-log-content">
-							<div class="log-entry log-info"><?php esc_html_e( 'Ready to start export...', 'swift-csv' ); ?></div>
-						</div>
-					</div>
-
-					<!-- Progress Bar -->
-					<div class="swift-csv-progress">
-						<div class="progress-bar">
-							<div class="progress-bar-fill"></div>
-						</div>
-						<div class="progress-stats">
-							<span class="processed-rows">0</span> / <span class="total-rows">0</span> <?php esc_html_e( 'rows processed', 'swift-csv' ); ?> (<span class="percentage">0</span>%)
-						</div>
-						<div class="swift-csv-download-section">
-							<a href="#" id="export-download-btn" class="swift-csv-download-btn" download="">
-								<span class="dashicons dashicons-download"></span>
-								<?php esc_html_e( 'Download CSV', 'swift-csv' ); ?>
-							</a>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<?php
-	}
-
-	/**
 	 * Render import tab content
 	 *
 	 * @since  0.9.0
@@ -1245,7 +1032,7 @@ class Swift_CSV_Admin {
 		// Get all public post types for selection.
 		$post_types = get_post_types( [ 'public' => true ], 'objects' );
 
-		// Display import results if available
+		// Display import results if available.
 		if ( ! empty( $import_results ) ) {
 			$this->render_import_results( $import_results );
 		}
@@ -1271,6 +1058,7 @@ class Swift_CSV_Admin {
 								<?php
 									$limits = $this->get_upload_limits();
 									printf(
+									/* translators: %s: File size (e.g., 10MB) */
 										esc_html__( 'Maximum file size: %s', 'swift-csv' ),
 										esc_html( $limits['effective_limit_human'] )
 									);
@@ -1459,7 +1247,7 @@ class Swift_CSV_Admin {
 					</p>
 
 					<?php
-					// Get license data from the correct structure (LMFWC response)
+					// Get license data from the correct structure (LMFWC response).
 					$pro_data            = is_array( $pro_product ) ? ( $pro_product['data'] ?? [] ) : [];
 					$expires_at          = $pro_data['expiresAt'] ?? '';
 					$times_activated     = $pro_data['timesActivated'] ?? 0;
@@ -1481,12 +1269,12 @@ class Swift_CSV_Admin {
 
 					$expires_text = '';
 					if ( ! empty( $expires_at ) ) {
-						// Format as Y-m-d for display with remaining days
+						// Format as Y-m-d for display with remaining days.
 						$expires_text = sprintf(
-							/* translators: 1: expiration date, 2: remaining days */
+						/* translators: 1: expiration date, 2: remaining days */
 							esc_html__( 'License expiration date: %1$s (remaining %2$s days)', 'swift-csv' ),
 							esc_html( date_i18n( 'Y-m-d', strtotime( $expires_at ) ) ),
-							$remaining_days !== '' ? esc_html( (string) $remaining_days ) : '600'
+							'' !== $remaining_days ? esc_html( (string) $remaining_days ) : '600'
 						);
 					}
 					?>

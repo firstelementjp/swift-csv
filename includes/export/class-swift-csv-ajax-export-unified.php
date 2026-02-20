@@ -30,7 +30,7 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @since 0.9.8
 	 */
 	public function __construct() {
-		// Enable unified handler for Direct SQL export
+		// Enable unified handler for Direct SQL export.
 		add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
 		add_action( 'wp_ajax_swift_csv_ajax_export_logs', [ $this, 'handle_ajax_export_logs' ] );
 	}
@@ -43,7 +43,7 @@ class Swift_CSV_AJAX_Export_Unified {
 	 */
 	public function handle_ajax_export() {
 		// Verify nonce.
-		$nonce = isset( $_POST['nonce'] ) ? wp_unslash( $_POST['nonce'] ) : '';
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'swift_csv_ajax_nonce' ) ) {
 			wp_send_json_error( 'Security check failed.' );
 			return;
@@ -80,7 +80,6 @@ class Swift_CSV_AJAX_Export_Unified {
 
 			wp_send_json( $result );
 		} catch ( Exception $e ) {
-			error_log( 'Swift CSV Unified: exception caught: ' . $e->getMessage() );
 			wp_send_json_error( 'Export failed: ' . wp_kses_post( $e->getMessage() ) );
 		}
 	}
@@ -93,7 +92,7 @@ class Swift_CSV_AJAX_Export_Unified {
 	 */
 	public function handle_ajax_export_logs() {
 		// Verify nonce.
-		$nonce = isset( $_POST['nonce'] ) ? wp_unslash( $_POST['nonce'] ) : '';
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'swift_csv_ajax_nonce' ) ) {
 			wp_send_json_error( 'Security check failed.' );
 			return;
@@ -193,61 +192,58 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @return array Export configuration.
 	 */
 	private function get_export_config() {
-		try {
-			// Get basic configuration.
-			$config = [
-				'post_type'            => sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) ),
-				'post_status'          => sanitize_text_field( wp_unslash( $_POST['post_status'] ?? 'publish' ) ),
-				'export_scope'         => sanitize_text_field( wp_unslash( $_POST['export_scope'] ?? 'all' ) ),
-				'include_private_meta' => isset( $_POST['include_private_meta'] ) ? (bool) $_POST['include_private_meta'] : false,
-				'export_limit'         => isset( $_POST['export_limit'] ) ? absint( $_POST['export_limit'] ) : 0,
-				'taxonomy_format'      => sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) ),
-				'enable_logs'          => isset( $_POST['enable_logs'] ) ? (bool) $_POST['enable_logs'] : false,
-			];
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		// Get basic configuration.
+		$config = [
+			'post_type'            => sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) ),
+			'post_status'          => sanitize_text_field( wp_unslash( $_POST['post_status'] ?? 'publish' ) ),
+			'export_scope'         => sanitize_text_field( wp_unslash( $_POST['export_scope'] ?? 'all' ) ),
+			'include_private_meta' => isset( $_POST['include_private_meta'] ) ? (bool) $_POST['include_private_meta'] : false,
+			'export_limit'         => isset( $_POST['export_limit'] ) ? absint( $_POST['export_limit'] ) : 0,
+			'taxonomy_format'      => sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) ),
+			'enable_logs'          => isset( $_POST['enable_logs'] ) ? (bool) $_POST['enable_logs'] : false,
+		];
 
 			// Handle custom post status.
-			if ( 'custom' === $config['post_status'] ) {
-				// Apply filter for custom post statuses with default fallback.
-				$custom_statuses = apply_filters( 'swift_csv_custom_post_statuses', [ 'publish' ] );
+		if ( 'custom' === $config['post_status'] ) {
+			// Apply filter for custom post statuses with default fallback.
+			$custom_statuses = apply_filters( 'swift_csv_custom_post_statuses', [ 'publish' ] );
 
-				// Ensure we have valid statuses.
-				if ( is_array( $custom_statuses ) && ! empty( $custom_statuses ) ) {
-					$config['post_status'] = $custom_statuses;
-				} else {
-					// Fallback to publish if filter returns invalid data.
-					$config['post_status'] = [ 'publish' ];
-				}
+			// Ensure we have valid statuses.
+			if ( is_array( $custom_statuses ) && ! empty( $custom_statuses ) ) {
+				$config['post_status'] = $custom_statuses;
+			} else {
+				// Fallback to publish if filter returns invalid data.
+				$config['post_status'] = [ 'publish' ];
 			}
+		}
 
 			// Handle custom export scope.
-			if ( 'custom' === $config['export_scope'] ) {
-				// Define default export fields.
-				$default_fields = [
-					'ID',
-					'post_title',
-					'post_content',
-					'post_status',
-					'post_date',
-					'post_modified',
-				];
+		if ( 'custom' === $config['export_scope'] ) {
+			// Define default export fields.
+			$default_fields = [
+				'ID',
+				'post_title',
+				'post_content',
+				'post_status',
+				'post_date',
+				'post_modified',
+			];
 
-				// Apply filter for custom export fields with default fallback.
-				$custom_fields = apply_filters( 'swift_csv_custom_export_fields', $default_fields );
+			// Apply filter for custom export fields with default fallback.
+			$custom_fields = apply_filters( 'swift_csv_custom_export_fields', $default_fields );
 
-				// Ensure we have valid fields.
-				if ( is_array( $custom_fields ) && ! empty( $custom_fields ) ) {
-					$config['export_fields'] = $custom_fields;
-				} else {
-					// Fallback to default fields if filter returns invalid data.
-					$config['export_fields'] = $default_fields;
-				}
+			// Ensure we have valid fields.
+			if ( is_array( $custom_fields ) && ! empty( $custom_fields ) ) {
+				$config['export_fields'] = $custom_fields;
+			} else {
+				// Fallback to default fields if filter returns invalid data.
+				$config['export_fields'] = $default_fields;
 			}
-
-			return $config;
-		} catch ( Exception $e ) {
-			wp_send_json_error( 'Configuration error: ' . $e->getMessage() );
-			exit;
 		}
+
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		return $config;
 	}
 
 	/**
@@ -259,17 +255,18 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @throws Exception When export fails.
 	 */
 	private function handle_direct_sql_export( $config ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		try {
-			// Get parameters similar to standard export
+			// Get parameters similar to standard export.
 			$start_row      = intval( $_POST['start_row'] ?? 0 );
 			$export_session = isset( $_POST['export_session'] ) ? sanitize_text_field( wp_unslash( $_POST['export_session'] ) ) : '';
 
-			// Initialize session if first request
+			// Initialize session if first request.
 			if ( '' === $export_session ) {
 				$export_session = 'direct_sql_export_' . gmdate( 'Ymd_His' ) . '_' . wp_generate_uuid4();
 			}
 
-			// Initialize on first batch
+			// Initialize on first batch.
 			if ( 0 === $start_row ) {
 				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
 				$export       = new Swift_CSV_Export_Direct_SQL( $config );
@@ -285,28 +282,28 @@ class Swift_CSV_AJAX_Export_Unified {
 				);
 				set_transient( $headers_key, $headers_line, HOUR_IN_SECONDS );
 
-				// Initialize log store if logging enabled
+				// Initialize log store if logging enabled.
 				$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
 				if ( $enable_logs ) {
 					$this->init_export_log_store( $export_session );
 				}
 			}
 
-			// Check for cancellation
+			// Check for cancellation.
 			if ( $this->is_cancelled( $export_session ) ) {
 				wp_send_json_error( 'Export cancelled by user' );
 				return;
 			}
 
-			// Get total posts count
+			// Get total posts count.
 			$total_posts = $this->get_total_posts_count( $config );
 
 			$batch_size = $this->get_export_batch_size( $total_posts, $config['post_type'], $config );
 
-			// Create Direct SQL Export instance
+			// Create Direct SQL Export instance.
 			$export = isset( $export ) && $export instanceof Swift_CSV_Export_Direct_SQL ? $export : new Swift_CSV_Export_Direct_SQL( $config );
 
-			// Get posts for current batch
+			// Get posts for current batch.
 			$posts_data = $export->get_posts_batch( $start_row, $batch_size );
 
 			if ( empty( $posts_data ) ) {
@@ -322,7 +319,7 @@ class Swift_CSV_AJAX_Export_Unified {
 				];
 			}
 
-			// Generate CSV for this batch
+			// Generate CSV for this batch.
 			$csv_chunk = $export->generate_csv_batch( $posts_data );
 			if ( 0 === $start_row ) {
 				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
@@ -332,10 +329,10 @@ class Swift_CSV_AJAX_Export_Unified {
 				}
 			}
 
-			// Store CSV chunk for final assembly
+			// Store CSV chunk for final assembly.
 			$this->store_csv_chunk( $export_session, $csv_chunk );
 
-			// Add log entry if logging enabled
+			// Add log entry if logging enabled.
 			if ( isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true ) ) {
 				$batch_number = floor( $start_row / $batch_size ) + 1;
 				$message      = sprintf(
@@ -367,7 +364,7 @@ class Swift_CSV_AJAX_Export_Unified {
 				delete_transient( $headers_key );
 			}
 
-			// Return batch progress
+			// Return batch progress.
 			return [
 				'success'        => true,
 				'export_session' => $export_session,
@@ -380,13 +377,9 @@ class Swift_CSV_AJAX_Export_Unified {
 			];
 
 		} catch ( Exception $e ) {
-			// Clear concurrent export flag on error too
-			$session_id = session_id();
-			$cache_key  = 'swift_csv_concurrent_export_' . $session_id;
-			delete_transient( $cache_key );
-
 			throw new Exception( 'Direct SQL export failed: ' . esc_html( $e->getMessage() ) );
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 	}
 
 	/**
@@ -396,8 +389,8 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @param array $config Export configuration.
 	 * @return array Export result.
 	 */
-	private function handle_standard_export( $config ) {
-		// Use existing standard export handler
+	private function handle_standard_export( $config ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+		// Use existing standard export handler.
 		$standard_handler = new Swift_CSV_Ajax_Export();
 		return $standard_handler->handle_ajax_export();
 	}
@@ -412,10 +405,10 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @return int Batch size.
 	 */
 	private function get_export_batch_size( $total_count, $post_type, $config ) {
-		// Default batch size
+		// Default batch size.
 		$batch_size = 1000;
 
-		// Dynamic batch size based on total count
+		// Dynamic batch size based on total count.
 		if ( $total_count > 10000 ) {
 			$batch_size = 2000;
 		} elseif ( $total_count > 5000 ) {
@@ -426,7 +419,7 @@ class Swift_CSV_AJAX_Export_Unified {
 			$batch_size = 500;
 		}
 
-		// Apply filter for customization
+		// Apply filter for customization.
 		return apply_filters( 'swift_csv_direct_sql_batch_size', $batch_size, $total_count, $post_type, $config );
 	}
 
@@ -467,10 +460,10 @@ class Swift_CSV_AJAX_Export_Unified {
 			return '';
 		}
 
-		// Generate headers
+		// Generate headers.
 		$final_csv = is_string( $headers ) && '' !== $headers ? $headers . "\n" : '';
 
-		// Combine all chunks
+		// Combine all chunks.
 		foreach ( $chunks as $chunk ) {
 			$final_csv .= $chunk;
 			if ( substr( $chunk, -1 ) !== "\n" ) {
@@ -478,7 +471,7 @@ class Swift_CSV_AJAX_Export_Unified {
 			}
 		}
 
-		// Clean up chunks
+		// Clean up chunks.
 		delete_transient( $chunks_key );
 		delete_transient( $headers_key );
 
@@ -539,7 +532,7 @@ class Swift_CSV_AJAX_Export_Unified {
 			}
 		}
 
-		// Always include taxonomies for Direct SQL
+		// Always include taxonomies for Direct SQL.
 		$post_type  = $config['post_type'] ?? 'post';
 		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
 		foreach ( $taxonomies as $taxonomy ) {
@@ -671,7 +664,7 @@ class Swift_CSV_AJAX_Export_Unified {
 			'fields'         => 'ids',
 		];
 
-		// Apply export limit if specified
+		// Apply export limit if specified.
 		if ( ! empty( $config['export_limit'] ) && $config['export_limit'] > 0 ) {
 			$args['posts_per_page'] = $config['export_limit'];
 		}
@@ -694,10 +687,10 @@ class Swift_CSV_AJAX_Export_Unified {
 	 * @param string $export_session Export session identifier.
 	 * @return array Batch processing result.
 	 */
-	private function process_standard_export_batch( $config, $start_row, $export_session ) {
+	private function process_standard_export_batch( $config, $start_row, $export_session ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		$batch_size = 500;
 
-		// Get posts for this batch
+		// Get posts for this batch.
 		$args = [
 			'post_type'      => $config['post_type'],
 			'post_status'    => $config['post_status'],
@@ -723,8 +716,8 @@ class Swift_CSV_AJAX_Export_Unified {
 			];
 		}
 
-		// Generate CSV for this batch
-		$csv_content = $this->generate_csv_for_posts( $post_ids, $config, $start_row === 0 );
+		// Generate CSV for this batch.
+		$csv_content = $this->generate_csv_for_posts( $post_ids, $config, 0 === $start_row );
 
 		return [
 			'success'     => true,

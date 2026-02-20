@@ -23,7 +23,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    swift-csv
  * @subpackage Core
  */
-
 class Swift_CSV_License_Handler {
 
 	/**
@@ -60,7 +59,7 @@ class Swift_CSV_License_Handler {
 	public function activate( $license_key ) {
 		$result = $this->call_license_api( 'activate', $license_key );
 
-		// Clear cache after license change
+		// Clear cache after license change.
 		if ( $result['success'] ?? false ) {
 			self::clear_cache();
 		}
@@ -76,9 +75,9 @@ class Swift_CSV_License_Handler {
 	 * @return array The response from the license server.
 	 */
 	public function deactivate( $license_key ) {
-		// If Pro version is not available, deactivate locally only
+		// If Pro version is not available, deactivate locally only.
 		if ( ! defined( 'SWIFT_CSV_LICENSE_API_URL' ) || empty( SWIFT_CSV_LICENSE_API_URL ) ) {
-			// Remove local license data
+			// Remove local license data.
 			delete_option( 'swift_csv_pro_license' );
 			self::clear_cache();
 
@@ -91,7 +90,7 @@ class Swift_CSV_License_Handler {
 
 		$result = $this->call_license_api( 'deactivate', $license_key );
 
-		// Clear cache after license change
+		// Clear cache after license change.
 		self::clear_cache();
 
 		return $result;
@@ -107,21 +106,21 @@ class Swift_CSV_License_Handler {
 	 */
 	private function call_license_api( $action, $license_key ) {
 		if ( ! defined( 'SWIFT_CSV_LICENSE_API_URL' ) || empty( SWIFT_CSV_LICENSE_API_URL ) ) {
-			// Check if Swift CSV Pro is installed and active
+			// Check if Swift CSV Pro is installed and active.
 			$pro_plugin_path = 'swift-csv-pro/swift-csv-pro.php';
 			$is_pro_active   = is_plugin_active( $pro_plugin_path );
 
-			// Check if Pro plugin files exist
+			// Check if Pro plugin files exist.
 			$pro_plugin_exists = file_exists( WP_PLUGIN_DIR . '/' . $pro_plugin_path );
 
 			if ( ! $pro_plugin_exists ) {
-				// Pro plugin is not installed at all
+				// Pro plugin is not installed at all.
 				$message = __( 'Swift CSV Pro is not installed. Please install Swift CSV Pro to use license features.', 'swift-csv' );
 			} elseif ( ! $is_pro_active ) {
-				// Pro plugin exists but is not active
+				// Pro plugin exists but is not active.
 				$message = __( 'Swift CSV Pro is installed but not activated. Please activate Swift CSV Pro to use license features.', 'swift-csv' );
 			} else {
-				// Pro plugin is active but license server is not configured
+				// Pro plugin is active but license server is not configured.
 				$message = __( 'License server is not configured. Please contact support.', 'swift-csv' );
 			}
 

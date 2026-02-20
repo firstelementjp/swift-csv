@@ -43,9 +43,9 @@ class Swift_CSV_Ajax_Export {
 	 * @since 0.9.0
 	 */
 	public function __construct() {
-		// Disable standard handler - unified handler now handles both methods
+		// Disable standard handler - unified handler now handles both methods.
 		// add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
-		// add_action( 'wp_ajax_swift_csv_ajax_export_logs', [ $this, 'handle_ajax_export_logs' ] );
+		// add_action( 'wp_ajax_swift_csv_ajax_export_logs', [ $this, 'handle_ajax_export_logs' ] );.
 		add_action( 'wp_ajax_swift_csv_cancel_export', [ $this, 'handle_ajax_export_cancel' ] );
 	}
 
@@ -213,6 +213,7 @@ class Swift_CSV_Ajax_Export {
 		$prefix  = 'swift_csv_export_cancelled_' . $user_id . '_';
 		$like    = $wpdb->esc_like( $prefix ) . '%';
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
@@ -286,6 +287,7 @@ class Swift_CSV_Ajax_Export {
 		$cancel_option_name = $this->get_cancel_option_name( $export_session );
 
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$option_value = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1",
@@ -330,7 +332,7 @@ class Swift_CSV_Ajax_Export {
 			array_filter(
 				$headers,
 				function ( $h ) {
-					return $h !== 'ID';
+					return 'ID' !== $h;
 				}
 			)
 		);
@@ -357,8 +359,8 @@ class Swift_CSV_Ajax_Export {
 	private function get_post_status_for_query( string $post_type, string $post_status ) {
 		switch ( $post_status ) {
 			case 'publish':
-				// For attachment type, use 'inherit' instead of 'publish'
-				return $post_type === 'attachment' ? 'inherit' : 'publish';
+				// For attachment type, use 'inherit' instead of 'publish'.
+				return 'attachment' === $post_type ? 'inherit' : 'publish';
 
 			case 'any':
 				return 'any';
@@ -383,12 +385,12 @@ class Swift_CSV_Ajax_Export {
 
 				$custom_status = apply_filters( 'swift_csv_export_post_status_query', 'publish', $custom_args );
 
-				// Ensure we return a valid value
+				// Ensure we return a valid value.
 				return is_array( $custom_status ) ? $custom_status : (string) $custom_status;
 
 			default:
-				// Fallback to publish for safety
-				return $post_type === 'attachment' ? 'inherit' : 'publish';
+				// Fallback to publish for safety.
+				return 'attachment' === $post_type ? 'inherit' : 'publish';
 		}
 	}
 
@@ -476,12 +478,12 @@ class Swift_CSV_Ajax_Export {
 		$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 		$include_private_meta = (bool) $include_private_meta;
 
-		// Get allowed post fields using common function
+		// Get allowed post fields using common function.
 		$headers = $this->get_allowed_post_fields( $export_scope );
 
 		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
 
-		// Hook for taxonomy object filtering
+		// Hook for taxonomy object filtering.
 		/**
 		 * Filter taxonomy objects for export header generation
 		 *
@@ -502,7 +504,7 @@ class Swift_CSV_Ajax_Export {
 		];
 		$taxonomies           = apply_filters( 'swift_csv_filter_taxonomy_objects', $taxonomies, $taxonomy_filter_args );
 
-		// Build taxonomy headers from filtered taxonomy objects
+		// Build taxonomy headers from filtered taxonomy objects.
 		$taxonomy_headers = [];
 		foreach ( $taxonomies as $taxonomy ) {
 			if ( $taxonomy->public ) {
@@ -510,10 +512,10 @@ class Swift_CSV_Ajax_Export {
 			}
 		}
 
-		// Merge post fields and taxonomies
+		// Merge post fields and taxonomies.
 		$headers = array_merge( $headers, $taxonomy_headers );
 
-		// Apply sample query hook for meta field discovery
+		// Apply sample query hook for meta field discovery.
 		/**
 		 * Filter sample query arguments for meta field discovery
 		 *
@@ -538,10 +540,10 @@ class Swift_CSV_Ajax_Export {
 			'fields'         => 'ids',
 		];
 		$sample_query_args                   = apply_filters( 'swift_csv_sample_query_args', $sample_query_args, $sample_args );
-		$sample_query_args['posts_per_page'] = 1; // Ensure only 1 post
+		$sample_query_args['posts_per_page'] = 1; // Ensure only 1 post.
 		$sample_post_ids                     = get_posts( $sample_query_args );
 
-		// Hook for sample post filtering (Pro version optimization)
+		// Hook for sample post filtering (Pro version optimization).
 		/**
 		 * Filter sample posts for meta key discovery
 		 *
@@ -571,7 +573,7 @@ class Swift_CSV_Ajax_Export {
 			$meta_keys      = array_keys( (array) $post_meta );
 
 			foreach ( $meta_keys as $meta_key ) {
-				if ( ! in_array( $meta_key, $all_meta_keys ) ) {
+				if ( ! in_array( $meta_key, $all_meta_keys, true ) ) {
 					$all_meta_keys[] = $meta_key;
 				}
 				if ( str_starts_with( $meta_key, '_' ) ) {
@@ -580,11 +582,11 @@ class Swift_CSV_Ajax_Export {
 			}
 
 			if ( $found_private_meta && ! $include_private_meta ) {
-				break; // Found what we need
+				break; // Found what we need.
 			}
 		}
 
-		// Hook for meta key classification
+		// Hook for meta key classification.
 		/**
 		 * Filter and classify discovered meta keys
 		 *
@@ -606,11 +608,11 @@ class Swift_CSV_Ajax_Export {
 
 		$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', $all_meta_keys, $meta_classify_args );
 
-		// License check: Only allow ACF processing if Pro version is active and licensed
+		// License check: Only allow ACF processing if Pro version is active and licensed.
 		if ( ! $this->is_pro_version_licensed() ) {
-			// Remove ACF keys from classification if not licensed
+			// Remove ACF keys from classification if not licensed.
 			if ( isset( $classified_meta_keys['acf'] ) ) {
-				// Move ACF keys to regular keys (they'll be treated as regular custom fields)
+				// Move ACF keys to regular keys (they'll be treated as regular custom fields).
 				if ( isset( $classified_meta_keys['regular'] ) && is_array( $classified_meta_keys['regular'] ) ) {
 					$classified_meta_keys['regular'] = array_merge(
 						$classified_meta_keys['regular'],
@@ -621,9 +623,9 @@ class Swift_CSV_Ajax_Export {
 			}
 		}
 
-		// Ensure classified structure exists
+		// Ensure classified structure exists.
 		if ( ! is_array( $classified_meta_keys ) || ! isset( $classified_meta_keys['regular'] ) ) {
-			// Fallback: create basic classification
+			// Fallback: create basic classification.
 			$classified_meta_keys = [
 				'regular' => [],
 				'private' => [],
@@ -638,7 +640,7 @@ class Swift_CSV_Ajax_Export {
 			}
 		}
 
-		// Hook for custom field headers generation
+		// Hook for custom field headers generation.
 		/**
 		 * Generate custom field headers for export
 		 *
@@ -660,22 +662,22 @@ class Swift_CSV_Ajax_Export {
 
 		$custom_field_headers = apply_filters( 'swift_csv_generate_custom_field_headers', [], $classified_meta_keys, $custom_field_args );
 
-		// Fallback: if no hook implementation, use basic processing
+		// Fallback: if no hook implementation, use basic processing.
 		if ( empty( $custom_field_headers ) ) {
 			$custom_field_headers = [];
 
-			// Process regular fields
+			// Process regular fields.
 			foreach ( $classified_meta_keys['regular'] as $meta_key ) {
-				if ( ! is_string( $meta_key ) || $meta_key === '' ) {
+				if ( ! is_string( $meta_key ) || '' === $meta_key ) {
 					continue;
 				}
 				$custom_field_headers[] = 'cf_' . $meta_key;
 			}
 
-			// Process private fields if allowed
+			// Process private fields if allowed.
 			if ( $include_private_meta ) {
 				foreach ( $classified_meta_keys['private'] as $meta_key ) {
-					if ( ! is_string( $meta_key ) || $meta_key === '' ) {
+					if ( ! is_string( $meta_key ) || '' === $meta_key ) {
 						continue;
 					}
 					$custom_field_headers[] = 'cf_' . $meta_key;
@@ -683,7 +685,7 @@ class Swift_CSV_Ajax_Export {
 			}
 		}
 
-		// Merge all three header types
+		// Merge all three header types.
 		$headers = array_merge( $headers, $custom_field_headers );
 
 		return $this->normalize_headers( $headers );
@@ -704,10 +706,12 @@ class Swift_CSV_Ajax_Export {
 	 * @return string CSV formatted string.
 	 */
 	private function fputcsv_row( array $row ): string {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 		$fh = fopen( 'php://temp', 'r+' );
 		fputcsv( $fh, $row );
 		rewind( $fh );
 		$csv = stream_get_contents( $fh );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 		fclose( $fh );
 		return $csv;
 	}
@@ -724,14 +728,14 @@ class Swift_CSV_Ajax_Export {
 	 * @return string The normalized field value.
 	 */
 	private function normalize_quotes( string $field ): string {
-		// Fix double escaped quotes that are already properly escaped
-		$field = preg_replace( '/\\\\"\\\\"/', '""', $field );
+		// Fix double escaped quotes that are already properly escaped.
+		$field = preg_replace( '/\\"\\"/', '""', $field );
 
-		// Convert remaining escaped quotes to regular quotes
+		// Convert remaining escaped quotes to regular quotes.
 		$field = str_replace( '\\"', '"', $field );
 
-		// Handle edge case of literal backslash before quote
-		$field = preg_replace( '/\\\\\\\\(")/', '\\\\"$1', $field );
+		// Handle edge case of literal backslash before quote.
+		$field = preg_replace( '/\\\\(" )/', '\\\\"$1', $field );
 
 		return $field;
 	}
@@ -748,20 +752,22 @@ class Swift_CSV_Ajax_Export {
 	 */
 	public function handle_ajax_export(): void {
 		try {
-			// Security check
+			// Security check.
 			check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 			ignore_user_abort( false );
 
-			// Get parameters
-			$post_type            = sanitize_text_field( $_POST['post_type'] ?? 'post' );
-			$post_status          = sanitize_text_field( $_POST['post_status'] ?? 'publish' );
-			$export_scope         = sanitize_text_field( $_POST['export_scope'] ?? 'basic' );
-			$include_private_meta = ! empty( $_POST['include_private_meta'] ) && (string) $_POST['include_private_meta'] === '1';
-			$export_limit         = ! empty( $_POST['export_limit'] ) ? intval( $_POST['export_limit'] ) : 0;
-			$taxonomy_format      = sanitize_text_field( $_POST['taxonomy_format'] ?? 'name' );
-			$enable_logs          = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
-			$start_row            = intval( $_POST['start_row'] ?? 0 );
-			$export_session       = sanitize_key( $_POST['export_session'] ?? '' );
+			// Get parameters.
+			$post_type       = sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) );
+			$post_status     = sanitize_text_field( wp_unslash( $_POST['post_status'] ?? 'publish' ) );
+			$export_scope    = sanitize_text_field( wp_unslash( $_POST['export_scope'] ?? 'basic' ) );
+			$taxonomy_format = sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) );
+			$export_session  = sanitize_key( wp_unslash( $_POST['export_session'] ?? '' ) );
+			$start_row       = absint( wp_unslash( $_POST['start_row'] ?? 0 ) );
+			$export_limit    = absint( wp_unslash( $_POST['export_limit'] ?? 0 ) );
+
+			$include_private_meta_value = sanitize_text_field( wp_unslash( $_POST['include_private_meta'] ?? '' ) );
+			$include_private_meta       = '1' === $include_private_meta_value;
+			$enable_logs                = isset( $_POST['enable_logs'] ) && in_array( (string) wp_unslash( $_POST['enable_logs'] ), [ '1', 'true' ], true );
 
 			if ( '' === $export_session ) {
 				$export_session = 'export_' . gmdate( 'Y-m-d_H-i-s' ) . '_' . wp_generate_uuid4();
@@ -779,16 +785,13 @@ class Swift_CSV_Ajax_Export {
 				return;
 			}
 
-			// Validate post type
-			error_log( 'Debug - Post type received: ' . $post_type );
-			error_log( 'Debug - Post type exists: ' . ( post_type_exists( $post_type ) ? 'true' : 'false' ) );
-			error_log( 'Debug - Available post types: ' . print_r( get_post_types(), true ) );
+			// Validate post type.
 
 			if ( ! post_type_exists( $post_type ) ) {
 				wp_send_json_error( 'Invalid post type' );
 			}
 
-			// Get total posts count with limit
+			// Get total posts count with limit.
 			$query_post_status      = $this->get_post_status_for_query( $post_type, $post_status );
 			$total_posts_query_args = [
 				'post_type'      => $post_type,
@@ -797,7 +800,7 @@ class Swift_CSV_Ajax_Export {
 				'fields'         => 'ids',
 			];
 
-			// Apply export query filter for full export
+			// Apply export query filter for full export.
 			/**
 			 * Filter export query arguments for count retrieval
 			 *
@@ -816,19 +819,19 @@ class Swift_CSV_Ajax_Export {
 			];
 			$filtered_args     = apply_filters( 'swift_csv_export_count_query_args', $total_posts_query_args, $export_query_args );
 
-			// Preserve export limit regardless of filter modifications
+			// Preserve export limit regardless of filter modifications.
 			$filtered_args['posts_per_page'] = $export_limit > 0 ? $export_limit : -1;
 
 			$total_posts_query_args = $filtered_args;
 
-			// Use WP_Query for efficient count retrieval
+			// Use WP_Query for efficient count retrieval.
 			$total_query = new WP_Query( $total_posts_query_args );
 			$total_count = $total_query->found_posts;
 
-			// Define max_posts_to_process
+			// Define max_posts_to_process.
 			$max_posts_to_process = $export_limit > 0 ? $export_limit : $total_count;
 
-			// Get dynamic batch size for export
+			// Get dynamic batch size for export.
 			$export_config = [
 				'post_type'    => $post_type,
 				'export_limit' => $export_limit,
@@ -836,7 +839,7 @@ class Swift_CSV_Ajax_Export {
 			];
 			$batch_size    = $this->get_export_batch_size( $total_count, $post_type, $export_config );
 
-			// Get posts for current batch
+			// Get posts for current batch.
 			$posts_query_args = [
 				'post_type'      => $post_type,
 				'post_status'    => $query_post_status,
@@ -858,12 +861,12 @@ class Swift_CSV_Ajax_Export {
 			 */
 			$posts_query_args = apply_filters( 'swift_csv_export_data_query_args', $posts_query_args, [ 'post_type' => $post_type ] );
 
-			// Force our limit regardless of filter
+			// Force our limit regardless of filter.
 			$posts_query_args['posts_per_page'] = min( $batch_size, $max_posts_to_process - $start_row );
 			$posts_query_args['offset']         = $start_row;
 			$posts_query_args['fields']         = 'ids';
 
-			// Stop if we've reached the limit
+			// Stop if we've reached the limit.
 			if ( $start_row >= $max_posts_to_process ) {
 				wp_send_json(
 					[
@@ -881,7 +884,7 @@ class Swift_CSV_Ajax_Export {
 
 			$posts = get_posts( $posts_query_args );
 
-			// Additional safety check: ensure we don't exceed the limit
+			// Additional safety check: ensure we don't exceed the limit.
 			$actual_batch_size = min( count( $posts ), $max_posts_to_process - $start_row );
 			if ( $actual_batch_size < count( $posts ) ) {
 				$posts = array_slice( $posts, 0, $actual_batch_size );
@@ -902,17 +905,17 @@ class Swift_CSV_Ajax_Export {
 				return;
 			}
 
-			// Simple CSV generation with headers
+			// Simple CSV generation with headers.
 			$csv_chunk      = '';
 			$headers        = $this->build_headers( $post_type, $export_scope, $include_private_meta, $query_post_status );
 			$export_details = []; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 
-			// Add headers for first chunk
-			if ( $start_row === 0 ) {
+			// Add headers for first chunk.
+			if ( 0 === $start_row ) {
 				$csv_chunk .= $this->fputcsv_row( $headers );
 			}
 
-			// Process each post and collect details (like import)
+			// Process each post and collect details (like import).
 			$processed_count = 0;
 			foreach ( $posts as $post_id ) {
 				if ( $this->is_cancelled( $export_session ) ) {
@@ -920,16 +923,16 @@ class Swift_CSV_Ajax_Export {
 					return;
 				}
 
-				// Get post data for logging
+				// Get post data for logging.
 				$post       = get_post( $post_id );
 				$post_title = $post ? $post->post_title : 'Untitled';
 
-				// Get all meta data at once for performance and to preserve serialized values
+				// Get all meta data at once for performance and to preserve serialized values.
 				$all_meta = get_post_meta( $post_id );
 
 				$row = [];
 
-				// Pass taxonomy_format to inner scope
+				// Pass taxonomy_format to inner scope.
 				$current_taxonomy_format = $taxonomy_format;
 
 				foreach ( $headers as $header ) {
@@ -940,11 +943,11 @@ class Swift_CSV_Ajax_Export {
 
 					$value = '';
 
-					// Handle ID field
-					if ( $header === 'ID' ) {
+					// Handle ID field.
+					if ( 'ID' === $header ) {
 						$value = $post_id;
 
-					} elseif ( $header === 'post_author' ) {
+					} elseif ( 'post_author' === $header ) {
 						$author = get_user_by( 'id', get_post_field( 'post_author', $post_id ) );
 						$value  = $author ? $author->display_name : '';
 
@@ -957,21 +960,21 @@ class Swift_CSV_Ajax_Export {
 						if ( $terms && ! is_wp_error( $terms ) ) {
 							$term_values = array_map(
 								function ( $term ) use ( $current_taxonomy_format ) {
-									$result = $current_taxonomy_format === 'id' ? $term->term_id : $term->name;
+									$result = 'id' === $current_taxonomy_format ? $term->term_id : $term->name;
 									return $result;
 								},
 								$terms
 							);
 							$value       = implode( '|', $term_values );
 						}
-						$clean_value = strip_tags( (string) $value );
+						$clean_value = strip_tags( (string) $value ); // phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags
 						$clean_value = $this->normalize_quotes( $clean_value );
 						$value       = $clean_value;
 
 					} elseif ( str_starts_with( $header, 'cf_' ) ) {
 						$meta_key = substr( $header, 3 );
 
-						// Get meta values from bulk data to preserve serialized values
+						// Get meta values from bulk data to preserve serialized values.
 						$meta_value = '';
 						if ( isset( $all_meta[ $meta_key ] ) ) {
 							$meta_values = $all_meta[ $meta_key ];
@@ -983,11 +986,11 @@ class Swift_CSV_Ajax_Export {
 									$meta_value = $meta_values[0] ?? '';
 								}
 							} else {
-								$meta_value = $meta_values; // String value
+								$meta_value = $meta_values; // String value.
 							}
 						}
 
-						$clean_value = strip_tags( (string) $meta_value );
+						$clean_value = strip_tags( (string) $meta_value ); // phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags
 						$clean_value = $this->normalize_quotes( $clean_value );
 						$value       = $clean_value;
 
@@ -1013,7 +1016,7 @@ class Swift_CSV_Ajax_Export {
 
 						$value = apply_filters( 'swift_csv_process_custom_header', '', $header, $post_id, $custom_args );
 
-						// Fallback: simple field value if no hook implementation
+						// Fallback: simple field value if no hook implementation.
 						if ( '' === $value ) {
 							$value = get_post_field( $header, $post_id ) ?? '';
 						}
@@ -1038,7 +1041,7 @@ class Swift_CSV_Ajax_Export {
 				++$processed_count;
 			}
 
-			// Send batch response (like import)
+			// Send batch response (like import).
 			$next_row = $start_row + count( $posts );
 			$continue = $next_row < $max_posts_to_process;
 			$progress = round( ( $next_row / $max_posts_to_process ) * 100, 2 );
@@ -1050,7 +1053,7 @@ class Swift_CSV_Ajax_Export {
 
 			wp_send_json(
 				[
-					'success'         => true ,
+					'success'         => true,
 					'processed'       => $start_row + count( $posts ),
 					'total'           => $max_posts_to_process,
 					'continue'        => $continue,

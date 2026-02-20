@@ -22,6 +22,12 @@ Thumbs.db
 /dist/
 /build/
 
+# Minified files (build artifacts)
+*.min.js
+*.min.css
+assets/js/*.min.js
+assets/css/*.min.css
+
 # Logs
 *.log
 npm-debug.log*

@@ -19,8 +19,9 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-// Custom debug log path
+// Custom debug log path.
 $log_file = plugin_dir_path( __FILE__ ) . 'debug.log';
+// phpcs:ignore WordPress.PHP.IniSet.Risky
 ini_set( 'error_log', $log_file );
 
 // Define plugin constants.
@@ -124,12 +125,12 @@ function swift_csv_load_textdomain() {
 function swift_csv_init() {
 	new Swift_CSV_Admin();
 	new Swift_CSV_Ajax_Import();
-	new Swift_CSV_Ajax_Export(); // Add missing standard export handler
+	new Swift_CSV_Ajax_Export(); // Add missing standard export handler.
 
-	// Manually include base export class first
+	// Manually include base export class first.
 	require_once SWIFT_CSV_PLUGIN_DIR . 'includes/export/class-swift-csv-export-base.php';
 	require_once SWIFT_CSV_PLUGIN_DIR . 'includes/export/class-swift-csv-ajax-export-unified.php';
-	new Swift_CSV_AJAX_Export_Unified(); // Unified export handler
+	new Swift_CSV_Ajax_Export_Unified(); // Unified export handler.
 
 	new Swift_CSV_Updater( __FILE__ );
 }

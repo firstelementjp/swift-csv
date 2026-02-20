@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 0.9.8
  * @package Swift_CSV
  */
-class Swift_CSV_AJAX_Export_Unified {
+class Swift_CSV_Ajax_Export_Unified {
 
 	/**
 	 * Constructor
@@ -752,4 +752,8 @@ class Swift_CSV_AJAX_Export_Unified {
 
 		return $csv;
 	}
+}
+
+if ( ! class_exists( 'Swift_CSV_AJAX_Export_Unified' ) ) {
+	class_alias( 'Swift_CSV_Ajax_Export_Unified', 'Swift_CSV_AJAX_Export_Unified' );
 }

@@ -66,6 +66,7 @@ abstract class Swift_CSV_Export_Base {
 		$required = [ 'post_type', 'post_status', 'export_scope' ];
 		foreach ( $required as $field ) {
 			if ( empty( $config[ $field ] ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 				throw new InvalidArgumentException( "Missing required field: {$field}" );
 			}
 		}
@@ -92,10 +93,10 @@ abstract class Swift_CSV_Export_Base {
 	 */
 	protected function set_performance_limits() {
 		// Increase memory limit for large exports.
-		@ini_set( 'memory_limit', '256M' );
+		wp_raise_memory_limit( 'admin' );
 
 		// Set time limit.
-		@set_time_limit( 300 ); // 5 minutes
+		set_time_limit( 300 ); // 5 minutes.
 	}
 
 	/**
@@ -106,7 +107,7 @@ abstract class Swift_CSV_Export_Base {
 	 * @return string|array Sanitized post status(es).
 	 */
 	protected function sanitize_post_status( $post_status ) {
-		// Handle array input (from custom processing)
+		// Handle array input (from custom processing).
 		if ( is_array( $post_status ) ) {
 			$sanitized = [];
 			foreach ( $post_status as $status ) {

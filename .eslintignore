@@ -1,7 +1,14 @@
+# Ignore dependencies
 node_modules/
 vendor/
+
+# Ignore deprecated files
 _deprecated/
+
+# Ignore minified files
 **/*.min.js
 **/*.min.css
+
+# Ignore build outputs
 assets/css/*.min.css
 assets/js/*.min.js

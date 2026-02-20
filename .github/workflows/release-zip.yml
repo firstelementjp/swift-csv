@@ -44,6 +44,7 @@ jobs:
                   cp -f assets/js/export/swift-csv/*.min.js release/swift-csv/assets/js/export/swift-csv/ || true
 
                   cd release
+                  rm -f ../swift-csv-${{ github.ref_name }}.zip
                   zip -r ../swift-csv-${{ github.ref_name }}.zip swift-csv
 
             - name: Create Release

@@ -4,6 +4,7 @@ set -euo pipefail
 
 TAG="v0.9.8-test"
 RELEASE_DIR="test-release"
+ZIP_NAME="swift-csv-$TAG.zip"
 
 echo "Testing release process for tag: $TAG"
 
@@ -33,7 +34,8 @@ echo "Source CSS files (should be 0):"
 find "$RELEASE_DIR/swift-csv/assets" -name "*.css" -not -name "*.min.css" | wc -l
 
 echo "=== Create ZIP ==="
-( cd "$RELEASE_DIR" && zip -qr "../swift-csv-$TAG.zip" swift-csv )
+rm -f "$ZIP_NAME"
+( cd "$RELEASE_DIR" && zip -qr "../$ZIP_NAME" swift-csv )
 
-echo "Release archive created: swift-csv-$TAG.zip"
-echo "Size: $(du -h swift-csv-$TAG.zip | cut -f1)"
+echo "Release archive created: $ZIP_NAME"
+echo "Size: $(du -h "$ZIP_NAME" | cut -f1)"

@@ -783,7 +783,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 
 			// Handle text fields with CSV escaping.
 			if ( in_array( $header, [ 'post_title', 'post_content', 'post_excerpt' ], true ) ) {
-				$value = '"' . str_replace( '"', '""', wp_strip_all_tags( $value ) ) . '"';
+				$value = '"' . str_replace( '"', '""', $value ) . '"';
 			} elseif ( strpos( $header, 'tax_' ) === 0 ) {
 				// Taxonomy fields (already pipe-separated).
 				$value = '"' . str_replace( '"', '""', $value ) . '"';

@@ -3,7 +3,6 @@
  *
  * Loads and initializes all Swift CSV modules.
  *
- * @package SwiftCSV
  */
 
 document.addEventListener('DOMContentLoaded', function () {

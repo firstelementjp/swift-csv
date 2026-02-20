@@ -3,7 +3,6 @@
  *
  * Handles license activation and deactivation functionality.
  *
- * @package SwiftCSV
  */
 
 /**

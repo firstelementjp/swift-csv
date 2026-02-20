@@ -1,7 +1,6 @@
 /**
  * Swift CSV Admin Scripts - Export (Original)
  *
- * @package SwiftCSV
  */
 
 /**

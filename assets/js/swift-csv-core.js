@@ -3,16 +3,16 @@
  *
  * Common utilities and functions shared across all modules.
  *
- * @package SwiftCSV
  */
 
 /**
  * WordPress i18n fallback function
  *
  * Provides fallback for WordPress i18n when not available.
- * @param {string} text - The text to translate
+ *
+ * @param {string} text   - The text to translate
  * @param {string} domain - The text domain
- * @returns {string} The translated text or original text
+ * @return {string} The translated text or original text
  */
 function __(text, domain = 'swift-csv') {
 	if (window.wp && window.wp.i18n && window.wp.i18n.__) {
@@ -26,8 +26,9 @@ function __(text, domain = 'swift-csv') {
  * Debug logging function
  *
  * Logs messages to console when debug mode is enabled.
+ *
  * @param {string} message - The message to log
- * @param {string} type - Log type (info, warn, error)
+ * @param {string} type    - Log type (info, warn, error)
  */
 function swiftCSVLog(message, type = 'info') {
 	if (window.swiftCSV && window.swiftCSV.debug) {
@@ -78,8 +79,8 @@ function formatFileSize(bytes) {
  * WordPress POST request helper
  *
  * @param {string} action - WordPress AJAX action
- * @param {Object} data - Data to send
- * @returns {Promise} Response promise
+ * @param {Object} data   - Data to send
+ * @return {Promise} Response promise
  */
 async function wpPost(action, data) {
 	const formData = new URLSearchParams({

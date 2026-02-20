@@ -1,7 +1,6 @@
 /**
  * Swift CSV Admin Scripts - Export (Original)
  *
- * @package SwiftCSV
  */
 
 /**
@@ -225,8 +224,7 @@ function handleAjaxExport(e) {
 			});
 
 			if (ajax) {
-				ajax
-					.postForm(cancelFormData)
+				ajax.postForm(cancelFormData)
 					.then(() => {
 						// Ignore response.
 					})

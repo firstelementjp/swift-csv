@@ -1,0 +1,7 @@
+node_modules/
+vendor/
+_deprecated/
+**/*.min.js
+**/*.min.css
+assets/css/*.min.css
+assets/js/*.min.js

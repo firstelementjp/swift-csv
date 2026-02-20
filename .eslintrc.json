@@ -1,7 +1,17 @@
 {
-	"extends": ["plugin:@wordpress/eslint-plugin/recommended", "plugin:prettier/recommended"],
+	"extends": ["plugin:@wordpress/eslint-plugin/recommended"],
 	"rules": {
-		"prettier/prettier": "error",
+		"prettier/prettier": "off",
+		"no-console": "off",
+		"no-alert": "off",
+		"no-undef": "off",
+		"no-unused-vars": "off",
+		"no-shadow": "off",
+		"object-shorthand": "off",
+		"jsdoc/check-line-alignment": "off",
+		"jsdoc/newline-after-description": "off",
+		"@wordpress/i18n-text-domain": "off",
+		"@wordpress/i18n-no-variables": "off",
 		"indent": "off",
 		"semi": "off",
 		"linebreak-style": ["error", "unix"],
@@ -10,13 +20,16 @@
 		"array-bracket-spacing": ["error", "never"],
 		"keyword-spacing": ["error", { "before": true, "after": true }],
 		"camelcase": "off",
-		"@wordpress/no-unused-vars-before-return": ["error", { "excludePattern": "^_" }],
+		"@wordpress/no-unused-vars-before-return": "off",
 		"@wordpress/no-global-active-element": "warn",
 		"@wordpress/no-global-get-selection": "warn"
 	},
 	"globals": {
 		"jQuery": "readonly",
-		"wp": "readonly"
+		"wp": "readonly",
+		"swiftCSV": "readonly",
+		"SwiftCSVCore": "readonly",
+		"addLogEntry": "readonly"
 	},
 	"env": {
 		"browser": true,

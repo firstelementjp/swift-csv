@@ -3,7 +3,6 @@
  *
  * Handles CSV import functionality with AJAX chunked processing.
  *
- * @package SwiftCSV
  */
 
 /**
@@ -374,6 +373,7 @@ function handleAjaxImport(e) {
  * @param {string} updateExisting Update existing flag
  * @param {string} taxonomyFormat Taxonomy format
  * @param {string} dryRun Dry run flag
+ * @param {string} enableLogs Enable logs flag
  * @param {HTMLElement} importBtn Import button element
  * @param {HTMLElement} cancelBtn Cancel button element
  * @param {number} startTime Start time

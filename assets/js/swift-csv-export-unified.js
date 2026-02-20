@@ -4,7 +4,6 @@
  * Handles CSV export functionality with AJAX chunked processing.
  * Supports both standard export and Direct SQL export methods.
  *
- * @package SwiftCSV
  */
 
 /**
@@ -191,6 +190,7 @@ const SwiftCSVExportUnified = {
 	 *
 	 * @param {Object} formData Form data
 	 * @param {HTMLElement} button Button element
+	 * @param {Object} ui UI elements
 	 */
 	startDirectSqlBatchExport: function (formData, button, ui) {
 		const startTime = Date.now();
@@ -372,6 +372,8 @@ const SwiftCSVExportUnified = {
 	 * @param {number} startRow Starting row
 	 * @param {HTMLElement} button Button element
 	 * @param {number} startTime Start time
+	 * @param {string} csvContent Current CSV content
+	 * @param {Object} control Control object
 	 * @return {Promise} CSV content
 	 */
 	processDirectSqlBatches: function (
@@ -421,6 +423,7 @@ const SwiftCSVExportUnified = {
 	 * @param {Object} formData Form data
 	 * @param {number} startRow Starting row
 	 * @param {string} exportSession Export session
+	 * @param {Object} control Control object
 	 * @return {Promise} Batch response
 	 */
 	processDirectSqlBatch: function (formData, startRow, exportSession, control) {
@@ -504,7 +507,8 @@ const SwiftCSVExportUnified = {
 	 * Send AJAX request
 	 *
 	 * @param {Object} data Request data
-	 * @returns {Promise} Promise with response
+	 * @param {Object} extraOptions Extra options
+	 * @return {Promise} Promise with response
 	 */
 	sendAjaxRequest: function (data, extraOptions) {
 		return new Promise((resolve, reject) => {
@@ -543,7 +547,7 @@ const SwiftCSVExportUnified = {
 	/**
 	 * Get form data
 	 *
-	 * @returns {Object} Form data object
+	 * @return {Object} Form data object
 	 */
 	getFormData: function () {
 		const postTypeElement = document.getElementById('swift_csv_export_post_type');

@@ -33,7 +33,7 @@ class Swift_CSV_Import_Response_Manager {
 	 * @since 0.9.8
 	 */
 	public function __construct() {
-		// Initialize dependencies
+		// Initialize dependencies.
 	}
 
 	/**
@@ -70,7 +70,7 @@ class Swift_CSV_Import_Response_Manager {
 		array $dry_run_log,
 		array $dry_run_details
 	): void {
-		$next_row = $start_row + $processed; // Use actual processed count
+		$next_row = $start_row + $processed; // Use actual processed count.
 		$continue = $next_row < $total_rows;
 
 		wp_send_json(
@@ -105,7 +105,9 @@ class Swift_CSV_Import_Response_Manager {
 	 */
 	public function send_error_and_cleanup( string $message, string $file_path = null ): void {
 		if ( ! empty( $file_path ) ) {
-			@unlink( $file_path );
+			if ( file_exists( $file_path ) ) {
+				wp_delete_file( $file_path );
+			}
 		}
 		Swift_CSV_Helper::send_error_response( $message );
 	}
@@ -118,9 +120,9 @@ class Swift_CSV_Import_Response_Manager {
 	 * @param string $file_path Temporary file path.
 	 * @return void
 	 */
-	public function cleanup_temp_file_if_complete( bool $continue, string $file_path ): void {
+	public function cleanup_temp_file_if_complete( bool $continue, string $file_path ): void { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.continueFound
 		if ( ! $continue && $file_path && file_exists( $file_path ) ) {
-			unlink( $file_path );
+			wp_delete_file( $file_path );
 		}
 	}
 
@@ -131,10 +133,12 @@ class Swift_CSV_Import_Response_Manager {
 	 * @return array Cumulative counts.
 	 */
 	public function get_cumulative_counts(): array {
-		// Get cumulative counts from POST data (AJAX request)
-		$previous_created = isset( $_POST['cumulative_created'] ) ? intval( $_POST['cumulative_created'] ) : 0;
-		$previous_updated = isset( $_POST['cumulative_updated'] ) ? intval( $_POST['cumulative_updated'] ) : 0;
-		$previous_errors  = isset( $_POST['cumulative_errors'] ) ? intval( $_POST['cumulative_errors'] ) : 0;
+		// Get cumulative counts from POST data (AJAX request).
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$previous_created = isset( $_POST['cumulative_created'] ) ? absint( wp_unslash( $_POST['cumulative_created'] ) ) : 0;
+		$previous_updated = isset( $_POST['cumulative_updated'] ) ? absint( wp_unslash( $_POST['cumulative_updated'] ) ) : 0;
+		$previous_errors  = isset( $_POST['cumulative_errors'] ) ? absint( wp_unslash( $_POST['cumulative_errors'] ) ) : 0;
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		return [
 			'created' => $previous_created,

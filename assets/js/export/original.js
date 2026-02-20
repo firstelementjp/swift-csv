@@ -247,6 +247,7 @@ function handleAjaxExport(e) {
 
 	/**
 	 * Handles chunked export processing for large datasets.
+	 *
 	 * @param {number} startRow - Starting row number
 	 */
 	function processChunk(startRow = 0) {
@@ -404,10 +405,10 @@ function updateAjaxProgress(data) {
 /**
  * Complete AJAX export
  *
- * @param {string} csvContent Complete CSV content
- * @param {HTMLElement} exportBtn Export button
- * @param {HTMLElement} cancelBtn Cancel button
- * @param {string} postType Post type
+ * @param {string}      csvContent Complete CSV content
+ * @param {HTMLElement} exportBtn  Export button
+ * @param {HTMLElement} cancelBtn  Cancel button
+ * @param {string}      postType   Post type
  */
 function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
 	if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {

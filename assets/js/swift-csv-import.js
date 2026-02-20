@@ -357,20 +357,20 @@ function handleAjaxImport(e) {
 /**
  * Process import chunk
  *
- * @param {number} startRow Starting row
- * @param {number} cumulativeCreated Cumulative created count
- * @param {number} cumulativeUpdated Cumulative updated count
- * @param {number} cumulativeErrors Cumulative error count
- * @param {File} file Selected file
- * @param {string} postType Post type
- * @param {string} updateExisting Update existing flag
- * @param {string} taxonomyFormat Taxonomy format
- * @param {string} dryRun Dry run flag
- * @param {string} enableLogs Enable logs flag
- * @param {HTMLElement} importBtn Import button element
- * @param {HTMLElement} cancelBtn Cancel button element
- * @param {number} startTime Start time
- * @param {AbortController} abortController Abort controller for cancelling fetch
+ * @param {number}          startRow          Starting row
+ * @param {number}          cumulativeCreated Cumulative created count
+ * @param {number}          cumulativeUpdated Cumulative updated count
+ * @param {number}          cumulativeErrors  Cumulative error count
+ * @param {File}            file              Selected file
+ * @param {string}          postType          Post type
+ * @param {string}          updateExisting    Update existing flag
+ * @param {string}          taxonomyFormat    Taxonomy format
+ * @param {string}          dryRun            Dry run flag
+ * @param {string}          enableLogs        Enable logs flag
+ * @param {HTMLElement}     importBtn         Import button element
+ * @param {HTMLElement}     cancelBtn         Cancel button element
+ * @param {number}          startTime         Start time
+ * @param {AbortController} abortController   Abort controller for cancelling fetch
  */
 function processImportChunk(
 	startRow = 0,
@@ -570,7 +570,7 @@ function updateImportProgress(data) {
 /**
  * Complete AJAX import
  *
- * @param {Object} data Import results
+ * @param {Object}      data      Import results
  * @param {HTMLElement} importBtn Import button
  * @param {HTMLElement} cancelBtn Cancel button
  */

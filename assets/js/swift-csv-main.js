@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
  * Add log entry to the log display
  *
  * @param {string} message - The log message
- * @param {string} level - Log level (info, success, warning, error, debug)
+ * @param {string} level   - Log level (info, success, warning, error, debug)
  * @param {string} context - Log context (export, import)
  */
 function addLogEntry(message, level = 'info', context = 'export') {

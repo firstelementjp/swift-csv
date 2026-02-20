@@ -24,7 +24,7 @@ const SwiftCSVExportUnified = {
 	 * Enable download button for export
 	 *
 	 * @param {string} csvContent CSV content
-	 * @param {string} postType Post type
+	 * @param {string} postType   Post type
 	 */
 	enableDownloadButtonForExport (csvContent, postType) {
 		SwiftCSVExportUnifiedDownload.enableDownloadButtonForExport(csvContent, postType)
@@ -82,9 +82,9 @@ const SwiftCSVExportUnified = {
 	/**
 	 * Complete export process
 	 *
-	 * @param {string} finalCsv Final CSV content
-	 * @param {Object} formData Form data
-	 * @param {HTMLElement} button Export button
+	 * @param {string}      finalCsv Final CSV content
+	 * @param {Object}      formData Form data
+	 * @param {HTMLElement} button   Export button
 	 */
 	completeExport (finalCsv, formData, button) {
 		// Export completed
@@ -188,9 +188,9 @@ const SwiftCSVExportUnified = {
 	/**
 	 * Start Direct SQL batch export
 	 *
-	 * @param {Object} formData Form data
-	 * @param {HTMLElement} button Button element
-	 * @param {Object} ui UI elements
+	 * @param {Object}      formData Form data
+	 * @param {HTMLElement} button   Button element
+	 * @param {Object}      ui       UI elements
 	 */
 	startDirectSqlBatchExport (formData, button, ui) {
 		const startTime = Date.now()
@@ -367,13 +367,13 @@ const SwiftCSVExportUnified = {
 	/**
 	 * Process Direct SQL batches
 	 *
-	 * @param {Object} formData Form data
-	 * @param {string} exportSession Export session
-	 * @param {number} startRow Starting row
-	 * @param {HTMLElement} button Button element
-	 * @param {number} startTime Start time
-	 * @param {string} csvContent Current CSV content
-	 * @param {Object} control Control object
+	 * @param {Object}      formData      Form data
+	 * @param {string}      exportSession Export session
+	 * @param {number}      startRow      Starting row
+	 * @param {HTMLElement} button        Button element
+	 * @param {number}      startTime     Start time
+	 * @param {string}      csvContent    Current CSV content
+	 * @param {Object}      control       Control object
 	 * @return {Promise} CSV content
 	 */
 	processDirectSqlBatches (
@@ -420,10 +420,10 @@ const SwiftCSVExportUnified = {
 	/**
 	 * Process Direct SQL batch
 	 *
-	 * @param {Object} formData Form data
-	 * @param {number} startRow Starting row
+	 * @param {Object} formData      Form data
+	 * @param {number} startRow      Starting row
 	 * @param {string} exportSession Export session
-	 * @param {Object} control Control object
+	 * @param {Object} control       Control object
 	 * @return {Promise} Batch response
 	 */
 	processDirectSqlBatch (formData, startRow, exportSession, control) {
@@ -462,10 +462,10 @@ const SwiftCSVExportUnified = {
 	/**
 	 * Update Direct SQL progress
 	 *
-	 * @param {number} processed Processed count
-	 * @param {number} total Total count
-	 * @param {HTMLElement} button Button element
-	 * @param {number} startTime Start time
+	 * @param {number}      processed Processed count
+	 * @param {number}      total     Total count
+	 * @param {HTMLElement} button    Button element
+	 * @param {number}      startTime Start time
 	 */
 	updateDirectSqlProgress (processed, total, button, startTime) {
 		const percentage = total > 0 ? Math.round((processed / total) * 100) : 0
@@ -506,7 +506,7 @@ const SwiftCSVExportUnified = {
 	/**
 	 * Send AJAX request
 	 *
-	 * @param {Object} data Request data
+	 * @param {Object} data         Request data
 	 * @param {Object} extraOptions Extra options
 	 * @return {Promise} Promise with response
 	 */
@@ -607,8 +607,8 @@ const SwiftCSVExportUnified = {
 	/**
 	 * Show error state
 	 *
-	 * @param {HTMLElement} button Button element
-	 * @param {string} errorMessage Error message
+	 * @param {HTMLElement} button       Button element
+	 * @param {string}      errorMessage Error message
 	 */
 	showError (button, errorMessage) {
 		SwiftCSVExportUnifiedUI.showError(button, errorMessage)
@@ -617,7 +617,7 @@ const SwiftCSVExportUnified = {
 	/**
 	 * Download CSV file
 	 *
-	 * @param {string} csvContent CSV content
+	 * @param {string} csvContent  CSV content
 	 * @param {number} recordCount Number of records
 	 */
 	downloadCSV (csvContent, recordCount) {

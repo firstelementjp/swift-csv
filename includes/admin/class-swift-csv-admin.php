@@ -74,10 +74,15 @@ class Swift_CSV_Admin {
 		if ( 'tools_page_swift-csv' === $hook ) {
 			$debug_mode = defined( 'WP_DEBUG' ) && WP_DEBUG;
 			$suffix     = $debug_mode ? '' : '.min';
+			$css_path   = 'assets/css/swift-csv-style' . $suffix . '.css';
+			$css_fs     = SWIFT_CSV_PLUGIN_DIR . ltrim( $css_path, '/' );
+			if ( '' === $suffix && ! file_exists( $css_fs ) ) {
+				$css_path = 'assets/css/swift-csv-style.min.css';
+			}
 
 			wp_enqueue_style(
 				'swift-csv-admin',
-				SWIFT_CSV_PLUGIN_URL . 'assets/css/swift-csv-style' . $suffix . '.css',
+				SWIFT_CSV_PLUGIN_URL . ltrim( $css_path, '/' ),
 				[],
 				SWIFT_CSV_VERSION
 			);
@@ -100,11 +105,19 @@ class Swift_CSV_Admin {
 			$suffix     = $debug_mode ? '' : '.min';
 
 			$script_url = static function ( $relative_path ) use ( $suffix ) {
-				$min_path = preg_replace( '/\.js$/', $suffix . '.js', $relative_path );
-				$fs_path  = SWIFT_CSV_PLUGIN_DIR . ltrim( $min_path, '/' );
-				if ( '.min' === $suffix && file_exists( $fs_path ) ) {
+				$min_path      = preg_replace( '/\.js$/', $suffix . '.js', $relative_path );
+				$preferred_fs  = SWIFT_CSV_PLUGIN_DIR . ltrim( $min_path, '/' );
+				$fallback_path = preg_replace( '/\.js$/', '.min.js', $relative_path );
+				$fallback_fs   = SWIFT_CSV_PLUGIN_DIR . ltrim( $fallback_path, '/' );
+
+				if ( file_exists( $preferred_fs ) ) {
 					return SWIFT_CSV_PLUGIN_URL . ltrim( $min_path, '/' );
 				}
+
+				if ( '' === $suffix && file_exists( $fallback_fs ) ) {
+					return SWIFT_CSV_PLUGIN_URL . ltrim( $fallback_path, '/' );
+				}
+
 				return SWIFT_CSV_PLUGIN_URL . ltrim( $relative_path, '/' );
 			};
 

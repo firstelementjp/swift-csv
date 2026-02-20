@@ -965,8 +965,7 @@ class Swift_CSV_Ajax_Export {
 							);
 							$value       = implode( '|', $term_values );
 						}
-						$clean_value = strip_tags( (string) $value ); // phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags
-						$clean_value = $this->normalize_quotes( $clean_value );
+						$clean_value = $this->normalize_quotes( (string) $value );
 						$value       = $clean_value;
 
 					} elseif ( str_starts_with( $header, 'cf_' ) ) {
@@ -988,8 +987,7 @@ class Swift_CSV_Ajax_Export {
 							}
 						}
 
-						$clean_value = strip_tags( (string) $meta_value ); // phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags
-						$clean_value = $this->normalize_quotes( $clean_value );
+						$clean_value = $this->normalize_quotes( (string) $meta_value );
 						$value       = $clean_value;
 
 					} else {

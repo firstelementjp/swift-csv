@@ -1,14 +1,14 @@
 (function () {
-	window.SwiftCSVExportUnifiedModules = window.SwiftCSVExportUnifiedModules || {}
+	window.SwiftCSVExportUnifiedModules = window.SwiftCSVExportUnifiedModules || {};
 
 	window.SwiftCSVExportUnifiedModules.Form = {
-		getFormData () {
-			const postTypeElement = document.getElementById('swift_csv_export_post_type')
-			const postType = postTypeElement ? postTypeElement.value : 'post'
+		getFormData() {
+			const postTypeElement = document.getElementById('swift_csv_export_post_type');
+			const postType = postTypeElement ? postTypeElement.value : 'post';
 
 			if (!postTypeElement || !postTypeElement.value) {
-				console.error('Post type element not found or has no value')
-				throw new Error('Post type selection is required')
+				console.error('Post type element not found or has no value');
+				throw new Error('Post type selection is required');
 			}
 
 			return {
@@ -33,7 +33,7 @@
 				enable_logs: document.getElementById('swift_csv_export_enable_logs')?.checked
 					? '1'
 					: '0',
-			}
+			};
 		},
-	}
-})()
+	};
+})();

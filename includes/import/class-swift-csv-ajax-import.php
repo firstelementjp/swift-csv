@@ -133,7 +133,7 @@ class Swift_CSV_Ajax_Import {
 	 * @since 0.9.0
 	 */
 	public function __construct() {
-		// Only use import_handler to avoid duplicate file processing
+		// Only use import_handler to avoid duplicate file processing.
 		add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'import_handler' ] );
 		add_action( 'wp_ajax_swift_csv_ajax_import_logs', [ $this, 'handle_ajax_import_logs' ] );
 	}
@@ -542,7 +542,7 @@ class Swift_CSV_Ajax_Import {
 	public function import_handler() {
 		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 
-		// Get file path from file-processor first
+		// Get file path from file-processor first.
 		$file_processor = new Swift_CSV_Import_File_Processor();
 		$file_result    = $file_processor->handle_upload();
 		if ( null === $file_result ) {
@@ -579,20 +579,20 @@ class Swift_CSV_Ajax_Import {
 			$csv_content = '';
 		}
 
-		// Extract and validate parameters
+		// Extract and validate parameters.
 		$batch_size      = isset( $_POST['batch_size'] ) ? intval( $_POST['batch_size'] ) : 10;
 		$post_type       = sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) );
 		$update_existing = sanitize_text_field( wp_unslash( $_POST['update_existing'] ?? 'no' ) );
 		$taxonomy_format = sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) );
 		$dry_run         = isset( $_POST['dry_run'] ) && in_array( (string) $_POST['dry_run'], [ '1', 'true' ], true );
 
-		// Validate post type
+		// Validate post type.
 		if ( ! post_type_exists( $post_type ) ) {
 			Swift_CSV_Helper::send_error_response( 'Invalid post type: ' . $post_type );
 			return;
 		}
 
-		// Create config array
+		// Create config array.
 		$config = [
 			'file_path'       => $file_path,
 			'start_row'       => $start_row,
@@ -654,7 +654,7 @@ class Swift_CSV_Ajax_Import {
 			'dry_run_details' => [], // New: detailed row-by-row results.
 		];
 
-		// For dry run, reset cumulative counts to prevent log accumulation
+		// For dry run, reset cumulative counts to prevent log accumulation.
 		if ( $config['dry_run'] ) {
 			$cumulative_counts = [
 				'created' => 0,

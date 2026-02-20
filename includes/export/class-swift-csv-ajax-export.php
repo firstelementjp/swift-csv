@@ -950,8 +950,24 @@ class Swift_CSV_Ajax_Export {
 						$value  = $author ? $author->display_name : '';
 
 					} elseif ( in_array( $header, $this->get_allowed_post_fields( 'basic' ), true ) ) {
-						$value = get_post_field( $header, $post_id );
-
+						// For post_content, get raw content to avoid the_content filter.
+						if ( 'post_content' === $header ) {
+							global $wpdb;
+							$cache_key = "swift_csv_post_content_{$post_id}";
+							$value     = wp_cache_get( $cache_key );
+							if ( false === $value ) {
+								// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+								$value = $wpdb->get_var(
+									$wpdb->prepare(
+										"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d",
+										$post_id
+									)
+								);
+								wp_cache_set( $cache_key, $value, '', 300 ); // 5 minutes cache
+							}
+						} else {
+							$value = get_post_field( $header, $post_id );
+						}
 					} elseif ( str_starts_with( $header, 'tax_' ) ) {
 						$taxonomy_name = substr( $header, 4 );
 						$terms         = get_the_terms( $post_id, $taxonomy_name );

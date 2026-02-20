@@ -614,8 +614,15 @@ class Swift_CSV_Ajax_Import {
 			}
 			set_transient( $csv_store_key, $csv_data, $this->import_log_store_ttl );
 		} elseif ( ! is_array( $csv_data ) ) {
-				Swift_CSV_Helper::send_error_response( 'Missing CSV cache for import session' );
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$csv_content = (string) file_get_contents( $file_path );
+			$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content );
+			$csv_data    = $this->get_csv_parser_util()->parse_and_validate_csv( $csv_content, $config, $file_path );
+			if ( null === $csv_data ) {
+				$this->cleanup_import_log_store( $import_session );
 				return;
+			}
+			set_transient( $csv_store_key, $csv_data, $this->import_log_store_ttl );
 		}
 
 		/**

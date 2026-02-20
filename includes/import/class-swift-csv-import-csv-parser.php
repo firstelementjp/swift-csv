@@ -136,7 +136,8 @@ class Swift_CSV_Import_Csv_Parser {
 
 						$meta_value = $row[ $j ] ?? '';
 						if ( '' !== $meta_value ) {
-							$term_values     = array_map( 'trim', explode( ',', $meta_value ) );
+							$term_values     = preg_split( '/[\|,]/', (string) $meta_value );
+							$term_values     = array_values( array_filter( array_map( 'trim', (array) $term_values ), 'strlen' ) );
 							$format_analysis = Swift_CSV_Helper::analyze_term_values_format( $term_values );
 
 							$taxonomy_format_validation[ $taxonomy_name ] = array_merge(

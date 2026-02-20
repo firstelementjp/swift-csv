@@ -906,6 +906,32 @@ class Swift_CSV_Admin {
 	}
 
 	/**
+	 * Render plugin header
+	 *
+	 * Displays a header section with version information and support links.
+	 *
+	 * @since  0.9.0
+	 * @return void
+	 */
+	private function render_plugin_header() {
+		$forum_url = 'https://github.com/firstelementjp/swift-csv/issues';
+		?>
+		<div id="plugin_header">
+			<div id="plugin_header_upper">
+				<div id="plugin_header_title">Swift <span>CSV</span></div>
+				<a href="https://www.firstelement.co.jp/" id="plugin_logo" target="_blank" title="Go to the developer's website">
+					<img src="<?php echo esc_url( SWIFT_CSV_PLUGIN_URL . 'assets/images/logo-feas-white-shadow-s@2x-min.png' ); ?>" width="106" height="27" alt="FirstElement">
+				</a>
+			</div>
+			<div id="plugin_version">
+				version <?php echo esc_html( SWIFT_CSV_VERSION ); ?>
+				<a href="<?php echo esc_url( $forum_url ); ?>" target="_blank" class="forum_link">GitHub</a>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Render main admin page
 	 *
 	 * Displays the main interface with export/import tabs.

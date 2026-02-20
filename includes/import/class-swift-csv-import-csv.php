@@ -49,13 +49,13 @@ class Swift_CSV_Import_Csv {
 	 */
 	public function read_and_normalize_headers( array &$lines, string $delimiter ): array {
 		$headers = str_getcsv( (string) array_shift( $lines ), $delimiter );
-		// Normalize headers - remove BOM and control characters
+		// Normalize headers - remove BOM and control characters.
 		$headers = array_map(
 			function ( $header ): string {
 				$header = (string) $header;
-				// Remove BOM (UTF-8 BOM is \xEF\xBB\xBF)
+				// Remove BOM (UTF-8 BOM is \xEF\xBB\xBF).
 				$header = preg_replace( '/^\xEF\xBB\xBF/', '', $header );
-				// Remove other control characters
+				// Remove other control characters.
 				return preg_replace( '/[\x00-\x1F\x7F]/u', '', trim( $header ?? '' ) );
 			},
 			$headers

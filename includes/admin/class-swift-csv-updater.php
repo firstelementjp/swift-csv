@@ -114,23 +114,23 @@ class Swift_CSV_Updater {
 			return $transient;
 		}
 
-		// Get current plugin data
+		// Get current plugin data.
 		$plugin_data = get_plugin_data( $this->plugin_file );
 		$plugin_slug = plugin_basename( $this->plugin_file );
 
-		// Get latest release from GitHub
+		// Get latest release from GitHub.
 		$latest_release = $this->get_latest_release();
 
 		if ( ! $latest_release || ! isset( $latest_release->tag_name ) ) {
 			return $transient;
 		}
 
-		// Compare versions
+		// Compare versions.
 		$current_version = $plugin_data['Version'];
 		$latest_version  = ltrim( $latest_release->tag_name, 'v' );
 
 		if ( version_compare( $latest_version, $current_version, '>' ) ) {
-			// Update available
+			// Update available.
 			$transient->response[ $plugin_slug ] = (object) [
 				'slug'          => dirname( $plugin_slug ),
 				'new_version'   => $latest_version,
@@ -164,7 +164,7 @@ class Swift_CSV_Updater {
 		$cache_key = 'swift_csv_latest_release';
 		$cached    = get_site_transient( $cache_key );
 
-		if ( $cached !== false ) {
+		if ( false !== $cached ) {
 			return $cached;
 		}
 
@@ -192,7 +192,7 @@ class Swift_CSV_Updater {
 			return false;
 		}
 
-		// Cache for 12 hours
+		// Cache for 12 hours.
 		set_site_transient( $cache_key, $release, 12 * HOUR_IN_SECONDS );
 
 		return $release;
@@ -216,7 +216,7 @@ class Swift_CSV_Updater {
 
 		$plugin_slug = plugin_basename( $this->plugin_file );
 
-		if ( ! isset( $args->slug ) || $args->slug !== dirname( $plugin_slug ) ) {
+		if ( ! isset( $args->slug ) || dirname( $plugin_slug ) !== $args->slug ) {
 			return $res;
 		}
 
@@ -265,15 +265,15 @@ class Swift_CSV_Updater {
 	 * @return string Formatted changelog.
 	 */
 	private function format_changelog( $body ) {
-		// Convert markdown to basic HTML
+		// Convert markdown to basic HTML.
 		$body = make_clickable( esc_html( $body ) );
 		$body = nl2br( $body );
 
-		// Convert markdown headers
+		// Convert markdown headers.
 		$body = preg_replace( '/^##\s*(.+)$/m', '<h3>$1</h3>', $body );
 		$body = preg_replace( '/^#\s*(.+)$/m', '<h2>$1</h2>', $body );
 
-		// Convert markdown lists
+		// Convert markdown lists.
 		$body = preg_replace( '/^\*\s+(.+)$/m', '<li>$1</li>', $body );
 		$body = preg_replace( '/(<li>.*<\/li>)/s', '<ul>$1</ul>', $body );
 
@@ -301,12 +301,12 @@ class Swift_CSV_Updater {
 			return;
 		}
 
-		// Clear cache and force update check
+		// Clear cache and force update check.
 		delete_site_transient( 'swift_csv_latest_release' );
 		delete_site_transient( 'update_plugins' );
 
-		// Log update
-		// Update successful - plugin is now at the latest version
+		// Log update.
+		// Update successful - plugin is now at the latest version.
 	}
 
 	/**

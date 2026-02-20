@@ -260,7 +260,8 @@ function handleAjaxImport(e) {
 		? '1'
 		: '0';
 	const taxonomyFormat =
-		document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name';
+		document.querySelector('input[name="swift_csv_import_taxonomy_format"]:checked')?.value ||
+		'name';
 	const dryRun = document.querySelector('input[name="swift_csv_import_dry_run"]')?.checked
 		? '1'
 		: '0';

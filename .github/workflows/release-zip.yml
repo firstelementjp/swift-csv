@@ -31,40 +31,25 @@ jobs:
 
             - name: Create ZIP
               run: |
-                  # Create release directory
-                  mkdir release
-                  git archive --format=tar --prefix=swift-csv/ ${{ github.ref_name }} | tar -x -C release
+                  rm -rf release
+                  mkdir -p release
 
-                  # Keep only necessary files
-                  cd release/swift-csv
+                  # Create release tree from git (respects .gitattributes export-ignore).
+                  git archive --format=tar --prefix=swift-csv/ --worktree-attributes ${{ github.ref_name }} | tar -x -C release
 
-                  # Keep minified assets
-                  find assets -name "*.min.js" -o -name "*.min.css" | head -20
+                  # Copy built/minified assets from working directory into the release tree.
+                  mkdir -p release/swift-csv/assets/js/export/swift-csv
+                  cp -f assets/js/*.min.js release/swift-csv/assets/js/ || true
+                  cp -f assets/css/*.min.css release/swift-csv/assets/css/ || true
+                  cp -f assets/js/export/swift-csv/*.min.js release/swift-csv/assets/js/export/swift-csv/ || true
 
-                  # Remove development files
-                  find assets -name "*.js" -not -name "*.min.js" -delete
-                  find assets -name "*.css" -not -name "*.min.css" -delete
-
-                  # Remove development directories
-                  rm -rf node_modules vendor .github _deprecated
-
-                  # Remove development files
-                  rm -f package.json package-lock.json composer.json composer.lock
-                  rm -f .gitignore .gitattributes .eslintrc.json .prettierrc phpcs.xml*
-                  rm -f debug.php* .envrc*
-
-                  # Remove documentation
-                  rm -rf docs phpdoc
-                  rm -f CONTRIBUTING.md
-
-                  # Create final ZIP
-                  cd ..
-                  tar -czf swift-csv-${{ github.ref_name }}.tar.gz swift-csv
+                  cd release
+                  zip -r ../swift-csv-${{ github.ref_name }}.zip swift-csv
 
             - name: Create Release
               uses: softprops/action-gh-release@v1
               with:
-                  files: swift-csv-${{ github.ref_name }}.tar.gz
+                  files: swift-csv-${{ github.ref_name }}.zip
                   generate_release_notes: true
                   draft: false
                   prerelease: false

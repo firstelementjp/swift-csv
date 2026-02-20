@@ -1,59 +1,39 @@
 #!/bin/bash
 
-# Test release script
+set -euo pipefail
+
 TAG="v0.9.8-test"
 RELEASE_DIR="test-release"
 
 echo "Testing release process for tag: $TAG"
 
-# Clean up
-rm -rf $RELEASE_DIR
-mkdir $RELEASE_DIR
+echo "=== Build assets in working directory ==="
+npm run build >/dev/null
 
-# Extract archive
-git archive --format=tar --prefix=swift-csv/ $TAG | tar -x -C $RELEASE_DIR
+rm -rf "$RELEASE_DIR"
+mkdir -p "$RELEASE_DIR"
 
-cd $RELEASE_DIR/swift-csv
+echo "=== Create release tree from git archive (worktree attributes) ==="
+git archive --format=tar --prefix=swift-csv/ --worktree-attributes "$TAG" | tar -x -C "$RELEASE_DIR"
 
-echo "=== Before filtering ==="
-echo "JS files:"
-find assets -name "*.js" | wc -l
-echo "CSS files:"
-find assets -name "*.css" | wc -l
+echo "=== Inject built minified assets into release tree ==="
+mkdir -p "$RELEASE_DIR/swift-csv/assets/js/export/swift-csv"
+cp -f assets/js/*.min.js "$RELEASE_DIR/swift-csv/assets/js/" 2>/dev/null || true
+cp -f assets/css/*.min.css "$RELEASE_DIR/swift-csv/assets/css/" 2>/dev/null || true
+cp -f assets/js/export/swift-csv/*.min.js "$RELEASE_DIR/swift-csv/assets/js/export/swift-csv/" 2>/dev/null || true
+
+echo "=== Sanity checks in release tree ==="
 echo "Minified JS files:"
-find assets -name "*.min.js" | wc -l
+find "$RELEASE_DIR/swift-csv/assets" -name "*.min.js" | wc -l
 echo "Minified CSS files:"
-find assets -name "*.min.css" | wc -l
+find "$RELEASE_DIR/swift-csv/assets" -name "*.min.css" | wc -l
+echo "Source JS files (should be 0):"
+find "$RELEASE_DIR/swift-csv/assets" -name "*.js" -not -name "*.min.js" | wc -l
+echo "Source CSS files (should be 0):"
+find "$RELEASE_DIR/swift-csv/assets" -name "*.css" -not -name "*.min.css" | wc -l
 
-# Remove development files
-find assets -name "*.js" -not -name "*.min.js" -delete
-find assets -name "*.css" -not -name "*.min.css" -delete
+echo "=== Create ZIP ==="
+( cd "$RELEASE_DIR" && zip -qr "../swift-csv-$TAG.zip" swift-csv )
 
-# Remove development directories
-rm -rf node_modules vendor .github _deprecated
-
-# Remove development files
-rm -f package.json package-lock.json composer.json composer.lock
-rm -f .gitignore .gitattributes .eslintrc.json .prettierrc phpcs.xml*
-rm -f debug.php* .envrc*
-
-# Remove documentation
-rm -rf docs phpdoc
-rm -f CONTRIBUTING.md
-
-echo "=== After filtering ==="
-echo "JS files:"
-find assets -name "*.js" | wc -l
-echo "CSS files:"
-find assets -name "*.css" | wc -l
-echo "Minified JS files:"
-find assets -name "*.min.js" | wc -l
-echo "Minified CSS files:"
-find assets -name "*.min.css" | wc -l
-
-# Create final archive
-cd ..
-tar -czf swift-csv-$TAG.tar.gz swift-csv
-
-echo "Release archive created: swift-csv-$TAG.tar.gz"
-echo "Size: $(du -h swift-csv-$TAG.tar.gz | cut -f1)"
+echo "Release archive created: swift-csv-$TAG.zip"
+echo "Size: $(du -h swift-csv-$TAG.zip | cut -f1)"

@@ -1,45 +1,13 @@
 # Distribution files for git archive (release ZIP)
-# Include only necessary files for plugin distribution
+# This file controls what is excluded from git archive.
 
-# Include minified assets
-assets/css/swift-csv-style.min.css
-assets/css/swift-csv-admin-style.min.css
-assets/css/swift-csv-pro-admin-style.min.css
-assets/js/swift-csv-core.min.js
-assets/js/swift-csv-export-unified.min.js
-assets/js/swift-csv-import.min.js
-assets/js/swift-csv-license.min.js
-assets/js/swift-csv-main.min.js
-assets/js/swift-csv-admin-scripts.min.js
-assets/js/swift-csv-pro-admin-scripts.min.js
+# Exclude source JS/CSS (built/minified assets are provided by the release workflow).
+assets/css/*.css export-ignore
+assets/js/*.js export-ignore
+assets/js/export/**/*.js export-ignore
 
-# Export modules
-assets/js/export/swift-csv-ajax.min.js
-assets/js/export/swift-csv-download.min.js
-assets/js/export/swift-csv-form.min.js
-assets/js/export/swift-csv-logs.min.js
-assets/js/export/swift-csv-original.min.js
-assets/js/export/swift-csv-ui.min.js
-
-# Exclude development files but keep minified assets
-assets/css/swift-csv-style.css export-ignore
-assets/css/swift-csv-admin-style.css export-ignore
-assets/css/swift-csv-pro-admin-style.css export-ignore
-assets/js/swift-csv-core.js export-ignore
-assets/js/swift-csv-export-unified.js export-ignore
-assets/js/swift-csv-import.js export-ignore
-assets/js/swift-csv-license.js export-ignore
-assets/js/swift-csv-main.js export-ignore
-assets/js/swift-csv-admin-scripts.js export-ignore
-assets/js/swift-csv-pro-admin-scripts.js export-ignore
-
-# Export development files
-assets/js/export/ajax.js export-ignore
-assets/js/export/download.js export-ignore
-assets/js/export/form.js export-ignore
-assets/js/export/logs.js export-ignore
-assets/js/export/original.js export-ignore
-assets/js/export/ui.js export-ignore
+# Exclude deprecated files from release artifacts.
+_deprecated/ export-ignore
 
 # Exclude development and build files
 composer.json export-ignore

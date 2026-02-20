@@ -35,7 +35,7 @@ class Swift_CSV_Import_Row_Context {
 	 * @param Swift_CSV_Import_Csv|null $csv_util CSV utility.
 	 */
 	public function __construct( ?Swift_CSV_Import_Csv $csv_util = null ) {
-		$this->csv_util = $csv_util ?: new Swift_CSV_Import_Csv();
+		$this->csv_util = null !== $csv_util ? $csv_util : new Swift_CSV_Import_Csv();
 	}
 
 	/**
@@ -89,7 +89,7 @@ class Swift_CSV_Import_Row_Context {
 			return null;
 		}
 
-		// Run row validation hook
+		// Run row validation hook.
 		$row_validation = [
 			'valid'    => true,
 			'errors'   => [],
@@ -126,13 +126,13 @@ class Swift_CSV_Import_Row_Context {
 			]
 		);
 
-		// Handle row validation errors
-		if ( ! $row_validation['valid'] ) {
-			// For now, we'll continue processing even with validation errors
-			// In a future version, this could skip the row or stop processing
+		// Handle row validation errors.
+		if ( ! $row_validation['valid'] ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
+			// For now, we'll continue processing even with validation errors.
+			// In a future version, this could skip the row or stop processing.
 		}
 
-		// Run data filtering hook
+		// Run data filtering hook.
 		/**
 		 * Filter and preprocess CSV row data before final processing
 		 *
@@ -164,7 +164,7 @@ class Swift_CSV_Import_Row_Context {
 			]
 		);
 
-		// Use filtered data
+		// Use filtered data.
 		$data                 = $filtered_data['data'];
 		$post_fields_from_csv = $filtered_data['post_fields_from_csv'];
 
@@ -222,13 +222,8 @@ class Swift_CSV_Import_Row_Context {
 	public function get_post_id_from_csv_row( array $data ): string {
 		$first_col = $data[0] ?? '';
 
-		// First check if this looks like an ID row (first column is numeric ID)
-		if ( is_numeric( $first_col ) && strlen( (string) $first_col ) <= 6 ) {
-			// This is normal - most rows have ID in first column
-			// Don't skip - process the actual data
-		} else {
-			// Continue processing anyway
-		}
+		// First check if this looks like an ID row (first column is numeric ID).
+		// Continue processing regardless.
 
 		return (string) $first_col;
 	}
@@ -327,7 +322,7 @@ class Swift_CSV_Import_Row_Context {
 	 * @return bool
 	 */
 	public function should_skip_row_due_to_missing_title( string $update_existing, array $post_fields_from_csv ): bool {
-		return $update_existing !== '1' && empty( $post_fields_from_csv['post_title'] );
+		return '1' !== $update_existing && empty( $post_fields_from_csv['post_title'] );
 	}
 
 	/**
@@ -354,9 +349,10 @@ class Swift_CSV_Import_Row_Context {
 	 */
 	public function collect_post_fields_from_csv_row( $headers, $data, $allowed_post_fields ) {
 		$post_fields_from_csv = [];
-		for ( $j = 0; $j < count( $headers ); $j++ ) {
+		$headers_count        = count( $headers );
+		for ( $j = 0; $j < $headers_count; $j++ ) {
 			$header = trim( (string) $headers[ $j ] );
-			if ( $header === '' || $header === 'ID' ) {
+			if ( '' === $header || 'ID' === $header ) {
 				continue;
 			}
 			if ( ! in_array( $header, $allowed_post_fields, true ) ) {
@@ -366,7 +362,7 @@ class Swift_CSV_Import_Row_Context {
 				continue;
 			}
 			$value = (string) $data[ $j ];
-			if ( $value === '' ) {
+			if ( '' === $value ) {
 				continue;
 			}
 			if ( str_starts_with( $value, '"' ) && str_ends_with( $value, '"' ) ) {
@@ -392,7 +388,8 @@ class Swift_CSV_Import_Row_Context {
 		$post_id   = null;
 		$is_update = false;
 
-		if ( $update_existing === '1' && $post_id_from_csv !== '' ) {
+		if ( '1' === $update_existing && '' !== $post_id_from_csv ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$post_id = $wpdb->get_var(
 				$wpdb->prepare(
 					"SELECT ID FROM {$wpdb->posts} WHERE ID = %d AND post_type = %s",

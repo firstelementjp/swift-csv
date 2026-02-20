@@ -697,21 +697,22 @@ class Swift_CSV_Ajax_Export {
 	 * Generate a CSV row string from an array of values
 	 *
 	 * Converts an array of values into a properly formatted CSV string using
-	 * PHP's built-in fputcsv function with proper escaping and quoting.
+	 * manual generation to preserve original line breaks in content.
 	 *
 	 * @since 0.9.0
 	 * @param mixed[] $row Array of values to convert to CSV.
 	 * @return string CSV formatted string.
 	 */
 	private function fputcsv_row( array $row ): string {
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
-		$fh = fopen( 'php://temp', 'r+' );
-		fputcsv( $fh, $row );
-		rewind( $fh );
-		$csv = stream_get_contents( $fh );
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
-		fclose( $fh );
-		return $csv;
+		// Manual CSV generation to preserve line breaks in content.
+		$csv_row = [];
+		foreach ( $row as $field ) {
+			// Escape quotes by doubling them.
+			$escaped_field = str_replace( '"', '""', (string) $field );
+			// Enclose in quotes.
+			$csv_row[] = '"' . $escaped_field . '"';
+		}
+		return implode( ',', $csv_row ) . "\n";
 	}
 
 	/**

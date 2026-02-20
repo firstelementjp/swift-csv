@@ -699,45 +699,19 @@ class Swift_CSV_Ajax_Export {
 	 * Converts an array of values into a properly formatted CSV string using
 	 * PHP's built-in fputcsv function with proper escaping and quoting.
 	 *
-	 * @since 0.9.0.
+	 * @since 0.9.0
 	 * @param mixed[] $row Array of values to convert to CSV.
 	 * @return string CSV formatted string.
 	 */
 	private function fputcsv_row( array $row ): string {
-		// Check if this row contains post_content that needs line break preservation.
-		$has_post_content   = false;
-		$post_content_index = -1;
-
-		foreach ( $row as $index => $field ) {
-			if ( is_string( $field ) && strpos( $field, "\n" ) !== false ) {
-				// Likely post_content or similar field with line breaks.
-				$has_post_content   = true;
-				$post_content_index = $index;
-				break;
-			}
-		}
-
-		if ( ! $has_post_content ) {
-			// Use standard fputcsv for rows without line breaks.
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen.
-			$fh = fopen( 'php://temp', 'r+' );
-			fputcsv( $fh, $row );
-			rewind( $fh );
-			$csv = stream_get_contents( $fh );
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose.
-			fclose( $fh );
-			return $csv;
-		}
-
-		// Manual CSV generation for rows with line breaks to preserve them.
-		$csv_row = [];
-		foreach ( $row as $field ) {
-			// Escape quotes by doubling them.
-			$escaped_field = str_replace( '"', '""', (string) $field );
-			// Enclose in quotes.
-			$csv_row[] = '"' . $escaped_field . '"';
-		}
-		return implode( ',', $csv_row ) . "\n";
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+		$fh = fopen( 'php://temp', 'r+' );
+		fputcsv( $fh, $row );
+		rewind( $fh );
+		$csv = stream_get_contents( $fh );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+		fclose( $fh );
+		return $csv;
 	}
 
 	/**
@@ -758,8 +732,8 @@ class Swift_CSV_Ajax_Export {
 		// Convert remaining escaped quotes to regular quotes.
 		$field = str_replace( '\\"', '"', $field );
 
-		// Handle edge case of literal backslash before quote (fixed pattern).
-		$field = preg_replace( '/\\\\(")/', '\\\\"$1', $field );
+		// Handle edge case of literal backslash before quote.
+		$field = preg_replace( '/\\\\(" )/', '\\\\"$1', $field );
 
 		return $field;
 	}
@@ -976,21 +950,9 @@ class Swift_CSV_Ajax_Export {
 						$value  = $author ? $author->display_name : '';
 
 					} elseif ( in_array( $header, $this->get_allowed_post_fields( 'basic' ), true ) ) {
-						// For post_content, get raw content to avoid the_content filter.
-						if ( 'post_content' === $header ) {
-							global $wpdb;
-							$cache_key = "swift_csv_post_content_{$post_id}";
-							$value     = wp_cache_get( $cache_key );
-							if ( false === $value ) {
-								// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-								$value = $wpdb->get_var(
-									$wpdb->prepare(
-										"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d",
-										$post_id
-									)
-								);
-								wp_cache_set( $cache_key, $value, '', 300 ); // 5 minutes cache
-							}
+						$raw_post_fields = [ 'post_content', 'post_excerpt' ];
+						if ( in_array( $header, $raw_post_fields, true ) ) {
+							$value = get_post_field( $header, $post_id, 'raw' );
 						} else {
 							$value = get_post_field( $header, $post_id );
 						}

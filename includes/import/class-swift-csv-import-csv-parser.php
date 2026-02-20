@@ -41,7 +41,7 @@ class Swift_CSV_Import_Csv_Parser {
 	 * @since 0.9.8
 	 */
 	public function __construct() {
-		// Initialize dependencies
+		// Initialize dependencies.
 	}
 
 	/**
@@ -56,16 +56,16 @@ class Swift_CSV_Import_Csv_Parser {
 	 * @return array|null Parsed CSV data or null on error (sends JSON response).
 	 */
 	public function parse_and_validate_csv( string $csv_content, array $config, string $file_path ): ?array {
-		// Parse CSV content line by line to handle quoted fields with newlines
+		// Parse CSV content line by line to handle quoted fields with newlines.
 		$lines = $this->get_csv_util()->parse_csv_lines_preserving_quoted_newlines( $csv_content );
 
-		// Detect CSV delimiter from first line
+		// Detect CSV delimiter from first line.
 		$delimiter = $this->get_csv_util()->detect_csv_delimiter( $lines );
 
-		// Read and normalize headers
+		// Read and normalize headers.
 		$headers = $this->get_csv_util()->read_and_normalize_headers( $lines, $delimiter );
 
-		// Detect taxonomy format validation
+		// Detect taxonomy format validation.
 		$taxonomy_format_validation = $this->detect_taxonomy_format_validation_or_send_error_and_cleanup(
 			$lines,
 			$delimiter,
@@ -78,15 +78,15 @@ class Swift_CSV_Import_Csv_Parser {
 			return null;
 		}
 
-		// Count total rows
+		// Count total rows.
 		$total_rows = $this->get_csv_util()->count_total_rows( $lines );
 
 		return [
-			'lines'                     => $lines,
-			'delimiter'                 => $delimiter,
-			'headers'                   => $headers,
+			'lines'                      => $lines,
+			'delimiter'                  => $delimiter,
+			'headers'                    => $headers,
 			'taxonomy_format_validation' => $taxonomy_format_validation,
-			'total_rows'                => $total_rows,
+			'total_rows'                 => $total_rows,
 		];
 	}
 
@@ -111,31 +111,31 @@ class Swift_CSV_Import_Csv_Parser {
 		$taxonomy_format_validation = [];
 		$first_row_processed        = false;
 
-		// Process first row for format detection
+		// Process first row for format detection.
 		$data = [];
 		foreach ( $lines as $line ) {
 			$row = str_getcsv( $line, $delimiter );
 			if ( count( $row ) !== count( $headers ) ) {
-				continue; // Skip malformed rows
+				continue; // Skip malformed rows.
 			}
 			$data[] = $row;
 
-			// Process taxonomies for format detection on first data row only
+			// Process taxonomies for format detection on first data row only.
 			if ( ! $first_row_processed ) {
 				foreach ( $headers as $j => $header_name ) {
 					$header_name_normalized = strtolower( trim( $header_name ) );
 
 					if ( strpos( $header_name_normalized, 'tax_' ) === 0 ) {
-						$taxonomy_name = substr( $header_name_normalized, 4 ); // Remove tax_
+						$taxonomy_name = substr( $header_name_normalized, 4 ); // Remove tax_.
 
-						// Get taxonomy object to validate
+						// Get taxonomy object to validate.
 						$taxonomy_obj = get_taxonomy( $taxonomy_name );
 						if ( ! $taxonomy_obj ) {
-							continue; // Skip invalid taxonomy
+							continue; // Skip invalid taxonomy.
 						}
 
 						$meta_value = $row[ $j ] ?? '';
-						if ( $meta_value !== '' ) {
+						if ( '' !== $meta_value ) {
 							$term_values     = array_map( 'trim', explode( ',', $meta_value ) );
 							$format_analysis = Swift_CSV_Helper::analyze_term_values_format( $term_values );
 
@@ -153,7 +153,7 @@ class Swift_CSV_Import_Csv_Parser {
 			}
 		}
 
-		// Validate format consistency
+		// Validate format consistency.
 		foreach ( $taxonomy_format_validation as $taxonomy_name => $validation ) {
 			$consistency_result = Swift_CSV_Helper::validate_taxonomy_format_consistency( $taxonomy_format, $validation, $file_path );
 			if ( ! $consistency_result['valid'] ) {

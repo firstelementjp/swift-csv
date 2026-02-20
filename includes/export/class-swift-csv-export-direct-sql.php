@@ -754,9 +754,6 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @return string Escaped field.
 	 */
 	private function escape_csv_field( $field ) {
-		// Remove newlines and tabs.
-		$field = str_replace( [ "\n", "\r", "\t" ], ' ', $field );
-
 		// Escape quotes.
 		$field = str_replace( '"', '""', $field );
 

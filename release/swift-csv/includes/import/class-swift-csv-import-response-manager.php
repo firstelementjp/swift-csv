@@ -54,7 +54,6 @@ class Swift_CSV_Import_Response_Manager {
 	 * @param bool  $dry_run Dry run flag.
 	 * @param array $dry_run_log Dry run log.
 	 * @param array $dry_run_details Detailed dry run results.
-	 * @param array $recent_logs Recent logs by type for UI display.
 	 * @return void
 	 */
 	public function send_import_progress_response(
@@ -69,8 +68,7 @@ class Swift_CSV_Import_Response_Manager {
 		int $previous_errors,
 		bool $dry_run,
 		array $dry_run_log,
-		array $dry_run_details,
-		array $recent_logs = []
+		array $dry_run_details
 	): void {
 		$next_row = $start_row + $processed; // Use actual processed count.
 		$continue = $next_row < $total_rows;
@@ -93,7 +91,6 @@ class Swift_CSV_Import_Response_Manager {
 				'dry_run'            => $dry_run,
 				'dry_run_log'        => $dry_run_log,
 				'dry_run_details'    => $dry_run_details,
-				'recent_logs'        => $recent_logs,
 			]
 		);
 	}

@@ -266,54 +266,6 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get recent logs by type for UI display.
-	 *
-	 * @since 0.9.8
-	 * @param string $import_session Import session ID.
-	 * @param string $type Log type: 'created', 'updated', 'errors'.
-	 * @param int    $limit Maximum logs to return.
-	 * @return array{items:array,total:int} Logs and total count.
-	 */
-	private function get_recent_logs_by_type( string $import_session, string $type, int $limit ): array {
-		$all_logs = $this->fetch_import_logs_since( $import_session, 0, 500 );
-		$filtered = [];
-
-		foreach ( $all_logs['logs'] as $log_item ) {
-			if ( ! isset( $log_item['detail']['status'] ) || ! isset( $log_item['detail']['action'] ) ) {
-				continue;
-			}
-
-			$detail   = $log_item['detail'];
-			$is_match = false;
-
-			switch ( $type ) {
-				case 'created':
-					$is_match = ( 'success' === $detail['status'] && 'create' === $detail['action'] );
-					break;
-				case 'updated':
-					$is_match = ( 'success' === $detail['status'] && 'update' === $detail['action'] );
-					break;
-				case 'errors':
-					$is_match = ( 'error' === $detail['status'] );
-					break;
-			}
-
-			if ( $is_match ) {
-				$filtered[] = [
-					'row'     => $detail['row'],
-					'title'   => $detail['title'],
-					'details' => $detail['details'] ?? '',
-				];
-			}
-		}
-
-		return [
-			'items' => array_slice( $filtered, 0, $limit ),
-			'total' => count( $filtered ),
-		];
-	}
-
-	/**
 	 * Get the transient key for CSV parsed data store.
 	 *
 	 * @since 0.9.8
@@ -744,16 +696,6 @@ class Swift_CSV_Ajax_Import {
 			$this->cleanup_import_csv_store( $import_session );
 		}
 
-		// Prepare recent logs for UI display on completion.
-		$recent_logs = [];
-		if ( ! $continue ) {
-			$recent_logs = [
-				'created' => $this->get_recent_logs_by_type( $import_session, 'created', 30 ),
-				'updated' => $this->get_recent_logs_by_type( $import_session, 'updated', 30 ),
-				'errors'  => $this->get_recent_logs_by_type( $import_session, 'errors', 30 ),
-			];
-		}
-
 		$this->get_response_manager_util()->send_import_progress_response(
 			$config['start_row'],
 			$counters['processed'],
@@ -766,8 +708,7 @@ class Swift_CSV_Ajax_Import {
 			$previous_errors,
 			$config['dry_run'],
 			$counters['dry_run_log'],
-			[],
-			$recent_logs
+			[]
 		);
 	}
 

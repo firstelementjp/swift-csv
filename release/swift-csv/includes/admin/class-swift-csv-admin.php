@@ -1329,25 +1329,10 @@ class Swift_CSV_Admin {
 				<div class="card">
 					<h3><?php esc_html_e( 'Import Log', 'swift-csv' ); ?></h3>
 
-					<!-- Import Logs Section -->
-					<div class="swift-csv-import-logs">
-						<div class="progress-details">
-							<div class="log-tab created" data-tab="created"><?php esc_html_e( 'Created:', 'swift-csv' ); ?> <span class="created-count">0</span></div>
-							<div class="log-tab modified" data-tab="updated"><?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <span class="updated-count">0</span></div>
-							<div class="log-tab errors" data-tab="errors"><?php esc_html_e( 'Errors:', 'swift-csv' ); ?> <span class="error-count">0</span></div>
-						</div>
-						<div class="log-panels">
-							<div class="log-panel" data-panel="created">
-								<div class="log-content" id="import-log-content">
-									<div class="log-entry log-info"><?php esc_html_e( 'Ready to start import...', 'swift-csv' ); ?></div>
-								</div>
-							</div>
-							<div class="log-panel" data-panel="updated">
-								<div class="log-content"></div>
-							</div>
-							<div class="log-panel" data-panel="errors">
-								<div class="log-content"></div>
-							</div>
+					<!-- Log Area -->
+					<div class="swift-csv-log-area">
+						<div class="log-content" id="import-log-content">
+							<div class="log-entry log-info"><?php esc_html_e( 'Ready to start import...', 'swift-csv' ); ?></div>
 						</div>
 					</div>
 
@@ -1358,6 +1343,11 @@ class Swift_CSV_Admin {
 						</div>
 						<div class="progress-stats">
 							<span class="processed-rows">0</span> / <span class="total-rows">0</span> <?php esc_html_e( 'rows processed', 'swift-csv' ); ?> (<span class="percentage">0</span>%)
+						</div>
+						<div class="progress-details">
+							<div class="created"><?php esc_html_e( 'Created:', 'swift-csv' ); ?> <span class="created-count">0</span></div>
+							<div class="modified"><?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <span class="updated-count">0</span></div>
+							<div class="errors"><?php esc_html_e( 'Errors:', 'swift-csv' ); ?> <span class="error-count">0</span></div>
 						</div>
 					</div>
 				</div>

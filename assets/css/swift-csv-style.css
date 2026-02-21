@@ -307,9 +307,10 @@ a.nav-tab:last-of-type {
 	font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 	font-size: 12px;
 	line-height: 1.4;
-	max-height: 300px;
+	min-height: 550px;
+	/* max-height: 300px; */
 	overflow-y: auto;
-	border: 1px solid #ddd;
+	/* border: 1px solid #ddd; */
 	border-radius: 4px;
 	padding: 10px;
 	background-color: #f9f9f9;
@@ -459,22 +460,118 @@ a.nav-tab:last-of-type {
 	margin-top: 10px;
 }
 
-.swift-csv-progress .progress-details div {
-	padding: 5px 10px;
-	background-color: #f9f9f9;
+/* Import Logs Section */
+.swift-csv-import-logs {
+	border: 1px solid #ddd;
 	border-radius: 4px;
-	text-align: center;
+	background-color: #fff;
+	margin-bottom: 1rem;
 }
 
-.swift-csv-progress .created {
+.swift-csv-import-logs .progress-details {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0;
+	font-size: 12px;
+	margin: 0;
+	background-color: #f9f9f9;
+	border-bottom: 1px solid #ddd;
+}
+
+.swift-csv-import-logs .progress-details .log-tab {
+	padding: 10px;
+	background-color: transparent;
+	border-radius: 0;
+	text-align: center;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+	border-right: 1px solid #ddd;
+}
+
+.swift-csv-import-logs .progress-details .log-tab:last-child {
+	border-right: none;
+}
+
+.swift-csv-import-logs .progress-details .log-tab:hover {
+	background-color: #f0f0f0;
+}
+
+.swift-csv-import-logs .progress-details .log-tab.active {
+	background-color: #fff;
+	font-weight: bold;
+	border-bottom: 2px solid #0073aa;
+}
+
+.swift-csv-import-logs .created {
 	color: #46b450;
 }
 
-.swift-csv-progress .modified {
-	color: #ffb900;
+.swift-csv-import-logs .modified {
+	color: #2271b1;
 }
 
-.swift-csv-progress .errors {
+.swift-csv-import-logs .errors {
+	color: #dc3232;
+}
+
+.swift-csv-import-logs .progress-details .log-tab.active.created {
+	border-bottom-color: #46b450;
+}
+
+.swift-csv-import-logs .progress-details .log-tab.active.modified {
+	border-bottom-color: #2271b1;
+}
+
+.swift-csv-import-logs .progress-details .log-tab.active.errors {
+	border-bottom-color: #dc3232;
+}
+
+/* Log Panels */
+.swift-csv-import-logs .log-panels {
+	/* max-height: 550px; */
+	height: 550px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.swift-csv-import-logs .log-panel {
+	display: none;
+	flex: 1;
+	overflow-y: auto;
+}
+
+.swift-csv-import-logs .log-panel.active {
+	display: block;
+}
+
+/* Use existing log-entry styles */
+.swift-csv-import-logs .log-entry {
+	padding: 4px 8px;
+	border-bottom: 1px solid #f0f0f0;
+	font-size: 12px;
+	line-height: 1.4;
+	font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.swift-csv-import-logs .log-entry:last-child {
+	border-bottom: none;
+}
+
+.swift-csv-import-logs .log-time {
+	color: #666;
+	margin-right: 8px;
+}
+
+.swift-csv-import-logs .log-message {
+	color: #333;
+}
+
+.swift-csv-import-logs .log-entry.log-success .log-message {
+	color: #46b450;
+}
+
+.swift-csv-import-logs .log-entry.log-error .log-message {
 	color: #dc3232;
 }
 

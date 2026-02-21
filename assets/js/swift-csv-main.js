@@ -112,7 +112,20 @@ document.addEventListener('DOMContentLoaded', function () {
  * @param {string} context - Log context (export, import)
  */
 function addLogEntry(message, level = 'info', context = 'export') {
-	const logContent = document.querySelector(`#${context}-log-content`);
+	let logContent = null;
+	if ('import' === context) {
+		logContent = document.querySelector(
+			'.swift-csv-import-logs .log-panel.active .log-content'
+		);
+		if (!logContent) {
+			logContent = document.querySelector(
+				'.swift-csv-import-logs .log-panel[data-panel="created"] .log-content'
+			);
+		}
+	}
+	if (!logContent) {
+		logContent = document.querySelector(`#${context}-log-content`);
+	}
 	if (!logContent) return;
 
 	// Get max log entries from localized data (default: 30)
@@ -143,6 +156,15 @@ function clearLog(context = 'all') {
 		const logContents = document.querySelectorAll('.log-content');
 		logContents.forEach(content => (content.innerHTML = ''));
 	} else {
+		if ('import' === context) {
+			const logContents = document.querySelectorAll(
+				'.swift-csv-import-logs .log-panel .log-content'
+			);
+			if (logContents.length) {
+				logContents.forEach(content => (content.innerHTML = ''));
+				return;
+			}
+		}
 		const logContent = document.querySelector(`#${context}-log-content`);
 		if (logContent) {
 			logContent.innerHTML = '';

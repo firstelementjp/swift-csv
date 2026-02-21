@@ -102,6 +102,41 @@ let importLogPollingAbortController = null;
 let importLogPollingPromise = null;
 let isImportCancelled = false;
 
+function appendImportRealtimeLog({ message, level, action, status }) {
+	const panelsRoot = document.querySelector('.swift-csv-import-logs');
+	if (!panelsRoot) {
+		addLogEntry(message, level, 'import');
+		return;
+	}
+
+	let panelKey = 'created';
+	if ('error' === status) {
+		panelKey = 'errors';
+	} else if ('update' === action) {
+		panelKey = 'updated';
+	}
+
+	const logContent = document.querySelector(
+		`.swift-csv-import-logs .log-panel[data-panel="${panelKey}"] .log-content`
+	);
+	if (!logContent) {
+		addLogEntry(message, level, 'import');
+		return;
+	}
+
+	const maxLogEntries = swiftCSV.maxLogEntries || 30;
+	if (logContent.children.length >= maxLogEntries) {
+		logContent.removeChild(logContent.firstChild);
+	}
+
+	const logEntry = document.createElement('div');
+	logEntry.className = `log-entry log-${level} log-import`;
+	const timestamp = new Date().toLocaleTimeString();
+	logEntry.innerHTML = `<span class="log-time">[${timestamp}]</span> <span class="log-message">${message}</span>`;
+	logContent.appendChild(logEntry);
+	logContent.scrollTop = logContent.scrollHeight;
+}
+
 function stopImportLogPolling({ abortRequest = true } = {}) {
 	if (importLogPollingTimer) {
 		clearInterval(importLogPollingTimer);
@@ -175,11 +210,12 @@ function pollImportLogs() {
 							? `[${swiftCSV.messages.dryRunPrefix}]`
 							: `[${swiftCSV.messages.importPrefix}]`;
 					const logMessage = `${prefix} ${statusIcon} ${swiftCSV.messages.rowLabel}${detail.row}: ${actionText} - "${detail.title}"`;
-					addLogEntry(
-						logMessage,
-						detail.status === 'success' ? 'success' : 'error',
-						'import'
-					);
+					appendImportRealtimeLog({
+						message: logMessage,
+						level: detail.status === 'success' ? 'success' : 'error',
+						action: detail.action,
+						status: detail.status,
+					});
 				});
 			}
 		})
@@ -232,6 +268,10 @@ function handleFileSelect(file) {
  */
 function handleAjaxImport(e) {
 	e.preventDefault();
+
+	// Reset flags for new import
+	window.swiftCSVLogsDisplayed = false;
+	window.swiftCSVLogTabsInitialized = false;
 
 	// Clear import log
 	clearLog('import');
@@ -447,22 +487,22 @@ function processImportChunk(
 						startTime,
 						abortController
 					);
-				} else {
-					// Import complete
-					if (data.dry_run) {
-						addLogEntry(swiftCSV.messages.dryRunComplete, 'success', 'import');
-					} else {
-						addLogEntry(swiftCSV.messages.importComplete, 'success', 'import');
-					}
-					if (enableLogs === '1') {
-						flushImportLogsAfterComplete({ attempts: 3, delayMs: 300 }).finally(() => {
-							stopImportLogPolling({ abortRequest: false });
-							completeAjaxImport(data, importBtn, cancelBtn);
-						});
-					} else {
+				} else if (enableLogs === '1') {
+					flushImportLogsAfterComplete({ attempts: 3, delayMs: 300 }).finally(() => {
 						stopImportLogPolling({ abortRequest: false });
+						if (data.recent_logs && !window.swiftCSVLogsDisplayed) {
+							displayImportLogs(data.recent_logs);
+							window.swiftCSVLogsDisplayed = true;
+						}
 						completeAjaxImport(data, importBtn, cancelBtn);
+					});
+				} else {
+					stopImportLogPolling({ abortRequest: false });
+					if (data.recent_logs && !window.swiftCSVLogsDisplayed) {
+						displayImportLogs(data.recent_logs);
+						window.swiftCSVLogsDisplayed = true;
 					}
+					completeAjaxImport(data, importBtn, cancelBtn);
 				}
 			} else {
 				// Handle error
@@ -529,11 +569,6 @@ function updateImportProgress(data, startTime) {
 		progressBar.classList.add('completed');
 	}
 
-	// Find detail count elements
-	const createdEl = progressContainer.querySelector('.created-count');
-	const updatedEl = progressContainer.querySelector('.updated-count');
-	const errorEl = progressContainer.querySelector('.error-count');
-
 	// Update progress bar
 	if (progressFill && data.progress !== undefined) {
 		progressFill.style.width = data.progress + '%';
@@ -541,12 +576,14 @@ function updateImportProgress(data, startTime) {
 
 	// Update stats
 	if (progressStats && data.processed !== undefined && data.total !== undefined) {
-		const percentage =
-			data.progress !== undefined
-				? Math.round(Number(data.progress))
-				: data.total > 0
-					? Math.round((data.processed / data.total) * 100)
-					: 0;
+		let percentage;
+		if (data.progress !== undefined) {
+			percentage = Math.round(Number(data.progress));
+		} else if (data.total > 0) {
+			percentage = Math.round((data.processed / data.total) * 100);
+		} else {
+			percentage = 0;
+		}
 		const elapsedSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
 		const processedLabel = swiftCSV.messages.processedInfo || 'Processed';
 		const rowsLabel = swiftCSV.messages.rowsLabel || 'rows';
@@ -554,21 +591,28 @@ function updateImportProgress(data, startTime) {
 		progressStats.textContent = `${percentage}% ${processedLabel} ${data.processed}/${data.total} ${rowsLabel} (${elapsedSeconds}${secondsLabel})`;
 	}
 
-	// Update detail counts
-	if (createdEl && data.created !== undefined) {
-		// Use cumulative value for proper display
-		createdEl.textContent =
+	// Update tab counts in logs section
+	const logCreatedEl = document.querySelector('.swift-csv-import-logs .created-count');
+	const logUpdatedEl = document.querySelector('.swift-csv-import-logs .updated-count');
+	const logErrorEl = document.querySelector('.swift-csv-import-logs .error-count');
+
+	if (logCreatedEl && data.created !== undefined) {
+		logCreatedEl.textContent =
 			data.cumulative_created !== undefined ? data.cumulative_created : data.created;
 	}
-	if (updatedEl && data.updated !== undefined) {
-		// Use cumulative value for proper display
-		updatedEl.textContent =
+	if (logUpdatedEl && data.updated !== undefined) {
+		logUpdatedEl.textContent =
 			data.cumulative_updated !== undefined ? data.cumulative_updated : data.updated;
 	}
-	if (errorEl && data.errors !== undefined) {
-		// Use cumulative value for proper display
-		errorEl.textContent =
+	if (logErrorEl && data.errors !== undefined) {
+		logErrorEl.textContent =
 			data.cumulative_errors !== undefined ? data.cumulative_errors : data.errors;
+	}
+
+	// Initialize tabs if not already done
+	if (!window.swiftCSVLogTabsInitialized) {
+		initializeLogTabs();
+		window.swiftCSVLogTabsInitialized = true;
 	}
 }
 
@@ -583,6 +627,9 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	// Check if this was a Dry Run
 	const isDryRun = data.dry_run || false;
 
+	// If the tabbed import log UI exists, completion/summary logs are rendered by displayImportLogs.
+	const hasTabbedImportLogs = !!document.querySelector('.swift-csv-import-logs');
+
 	// Set progress bar to completed state
 	const progressContainer = document.querySelector('.swift-csv-progress');
 	if (progressContainer) {
@@ -594,39 +641,43 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	}
 
 	// Add appropriate completion message
-	if (isDryRun) {
-		addLogEntry('[Dry Run] ' + swiftCSV.messages.dryRunCompleted, 'success', 'import');
-	} else {
-		addLogEntry(swiftCSV.messages.importCompleted, 'success', 'import');
+	if (!hasTabbedImportLogs) {
+		if (isDryRun) {
+			addLogEntry('[Dry Run] ' + swiftCSV.messages.dryRunCompleted, 'success', 'import');
+		} else {
+			addLogEntry(swiftCSV.messages.importCompleted, 'success', 'import');
+		}
 	}
 
 	// Log final results - use cumulative values
-	if (data.cumulative_created !== undefined) {
-		const createdMessage = isDryRun
-			? '[Dry Run] ' + swiftCSV.messages.dryRunCreated + ' '
-			: (
-					swiftCSV.messages.dryRunCreated ||
-					swiftCSV.messages.createdInfo ||
-					swiftCSV.messages.totalImported ||
-					''
-				).replace(/:\s*$/, '') + ' ';
-		addLogEntry(createdMessage + data.cumulative_created, 'success', 'import');
-	}
-	if (data.cumulative_updated !== undefined) {
-		const updatedMessage = isDryRun
-			? '[Dry Run] ' + swiftCSV.messages.dryRunUpdated + ' '
-			: swiftCSV.messages.totalUpdated + ' ';
-		addLogEntry(updatedMessage + data.cumulative_updated, 'success', 'import');
-	}
-	if (data.cumulative_errors !== undefined) {
-		const errorMessage = isDryRun
-			? '[Dry Run] ' + swiftCSV.messages.dryRunErrors + ' '
-			: swiftCSV.messages.totalErrors + ' ';
-		addLogEntry(
-			errorMessage + data.cumulative_errors,
-			data.cumulative_errors > 0 ? 'warning' : 'success',
-			'import'
-		);
+	if (!hasTabbedImportLogs) {
+		if (data.cumulative_created !== undefined) {
+			const createdMessage = isDryRun
+				? '[Dry Run] ' + swiftCSV.messages.dryRunCreated + ' '
+				: (
+						swiftCSV.messages.dryRunCreated ||
+						swiftCSV.messages.createdInfo ||
+						swiftCSV.messages.totalImported ||
+						''
+					).replace(/:\s*$/, '') + ' ';
+			addLogEntry(createdMessage + data.cumulative_created, 'success', 'import');
+		}
+		if (data.cumulative_updated !== undefined) {
+			const updatedMessage = isDryRun
+				? '[Dry Run] ' + swiftCSV.messages.dryRunUpdated + ' '
+				: swiftCSV.messages.totalUpdated + ' ';
+			addLogEntry(updatedMessage + data.cumulative_updated, 'success', 'import');
+		}
+		if (data.cumulative_errors !== undefined) {
+			const errorMessage = isDryRun
+				? '[Dry Run] ' + swiftCSV.messages.dryRunErrors + ' '
+				: swiftCSV.messages.totalErrors + ' ';
+			addLogEntry(
+				errorMessage + data.cumulative_errors,
+				data.cumulative_errors > 0 ? 'warning' : 'success',
+				'import'
+			);
+		}
 	}
 
 	// Reset buttons
@@ -651,6 +702,226 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	}
 	if (fileInfo) {
 		fileInfo.classList.remove('visible');
+	}
+}
+
+/**
+ * Display import logs in tabs
+ *
+ * @param {Object} recentLogs Recent logs by type
+ */
+function displayImportLogs(recentLogs) {
+	const createdPanel = document.querySelector('.log-panel[data-panel="created"] .log-content');
+	const updatedPanel = document.querySelector('.log-panel[data-panel="updated"] .log-content');
+	const errorsPanel = document.querySelector('.log-panel[data-panel="errors"] .log-content');
+
+	function sanitizeSummaryLabel(label) {
+		return String(label || '').replace(/[：:]\s*$/, '');
+	}
+
+	const dryRunPrefixText = swiftCSV.messages.dryRunPrefix || 'テスト実行';
+	const importPrefixText = swiftCSV.messages.importPrefix || 'インポート';
+	const rowLabelText = swiftCSV.messages.rowLabel || '行';
+	const dryRunCompleteText = swiftCSV.messages.dryRunComplete || 'テスト完了！';
+	const importCompleteText = swiftCSV.messages.importComplete || 'インポート完了！';
+	const createdLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunCreated || '新規作成');
+	const updatedLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunUpdated || '更新');
+	const errorsLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunErrors || 'エラー');
+
+	// Clear all panels first
+	if (createdPanel) createdPanel.innerHTML = '';
+	if (updatedPanel) updatedPanel.innerHTML = '';
+	if (errorsPanel) errorsPanel.innerHTML = '';
+
+	// Check if this is dry run by checking the AJAX response data
+	const isDryRun =
+		recentLogs.created?.items?.[0]?.details === 'Processed successfully' ||
+		recentLogs.updated?.items?.[0]?.details === 'Processed successfully' ||
+		recentLogs.errors?.items?.[0]?.details === 'Processed successfully';
+
+	// Helper function to create log entry HTML
+	function createLogEntry(message, level = 'success') {
+		const timestamp = new Date().toLocaleTimeString();
+		const className = `log-entry log-${level} log-import`;
+		return `<div class="${className}"><span class="log-time">[${timestamp}]</span> <span class="log-message">${message}</span></div>`;
+	}
+
+	// Get update checkbox state
+	const updateExisting = document.querySelector(
+		'input[name="swift_csv_import_update_existing"]'
+	)?.checked;
+
+	// Add start log to appropriate panel
+	if (isDryRun) {
+		const startMessage = `[${dryRunPrefixText}] ${swiftCSV.messages.startingImport || ''}`;
+
+		if (updateExisting) {
+			// When update is checked, put logs in updated panel
+			if (updatedPanel) {
+				updatedPanel.innerHTML = createLogEntry(startMessage, 'info');
+			}
+		} else if (createdPanel) {
+			// When update is not checked, put logs in created panel
+			createdPanel.innerHTML = createLogEntry(startMessage, 'info');
+		}
+	} else {
+		const startMessage = `[${importPrefixText}] ${swiftCSV.messages.startingImport || ''}`;
+
+		if (updateExisting) {
+			if (updatedPanel) {
+				updatedPanel.innerHTML = createLogEntry(startMessage, 'info');
+			}
+		} else if (createdPanel) {
+			createdPanel.innerHTML = createLogEntry(startMessage, 'info');
+		}
+	}
+
+	// Render created logs
+	if (createdPanel && recentLogs.created && recentLogs.created.items) {
+		const createdLogs = recentLogs.created.items
+			.map(log => {
+				const prefix = isDryRun ? `[${dryRunPrefixText}]` : `[${importPrefixText}]`;
+				const message = `${prefix} ✓ ${rowLabelText}${log.row}: Create - "${log.title}"`;
+				return createLogEntry(message, 'success');
+			})
+			.join('');
+
+		// Append to existing content
+		createdPanel.innerHTML += createdLogs;
+	}
+
+	// Render updated logs
+	if (updatedPanel && recentLogs.updated && recentLogs.updated.items) {
+		const updatedLogs = recentLogs.updated.items
+			.map(log => {
+				const prefix = isDryRun ? `[${dryRunPrefixText}]` : `[${importPrefixText}]`;
+				const message = `${prefix} ✓ ${rowLabelText}${log.row}: Update - "${log.title}"`;
+				return createLogEntry(message, 'success');
+			})
+			.join('');
+
+		// Append to existing content
+		updatedPanel.innerHTML += updatedLogs;
+	}
+
+	// Render error logs with "other X items" indicator
+	if (errorsPanel && recentLogs.errors) {
+		const items = recentLogs.errors.items || [];
+		const total = recentLogs.errors.total || 0;
+		const otherCount = total - items.length;
+
+		const errorLogs = items
+			.map(log => {
+				const prefix = isDryRun ? `[${dryRunPrefixText}]` : `[${importPrefixText}]`;
+				const message = `${prefix} ✗ ${rowLabelText}${log.row}: Error - "${log.title}" - ${log.details}`;
+				return createLogEntry(message, 'error');
+			})
+			.join('');
+
+		errorsPanel.innerHTML = errorLogs;
+
+		if (otherCount > 0) {
+			const prefix = isDryRun ? `[${dryRunPrefixText}]` : `[${importPrefixText}]`;
+			const message = `${prefix} + ${otherCount} more errors`;
+			errorsPanel.innerHTML += createLogEntry(message, 'error');
+		}
+	}
+
+	// Add completion log and summary to appropriate panel
+	const summaryPrefix = isDryRun ? `[${dryRunPrefixText}]` : `[${importPrefixText}]`;
+
+	// Add completion message
+	const completeMessage = isDryRun
+		? `${summaryPrefix} ${dryRunCompleteText}`
+		: `${summaryPrefix} ${importCompleteText}`;
+
+	if (updateExisting) {
+		if (updatedPanel) {
+			updatedPanel.innerHTML += createLogEntry(completeMessage, 'info');
+		}
+	} else if (createdPanel) {
+		createdPanel.innerHTML += createLogEntry(completeMessage, 'info');
+	}
+
+	// Add summary logs to respective panels
+	if (recentLogs.created && recentLogs.created.total > 0) {
+		const createdSummary = `${summaryPrefix} ${createdLabelText}: ${recentLogs.created.total}`;
+		if (createdPanel) {
+			createdPanel.innerHTML += createLogEntry(createdSummary, 'info');
+		}
+	}
+
+	if (recentLogs.updated && recentLogs.updated.total > 0) {
+		const updatedSummary = `${summaryPrefix} ${updatedLabelText}: ${recentLogs.updated.total}`;
+		if (updatedPanel) {
+			updatedPanel.innerHTML += createLogEntry(updatedSummary, 'info');
+		}
+	}
+
+	if (recentLogs.errors && recentLogs.errors.total > 0) {
+		const errorSummary = `${summaryPrefix} ${errorsLabelText}: ${recentLogs.errors.total}`;
+		if (errorsPanel) {
+			errorsPanel.innerHTML += createLogEntry(
+				errorSummary,
+				recentLogs.errors.total > 0 ? 'warning' : 'info'
+			);
+		}
+	}
+}
+
+/**
+ * Initialize log tabs functionality
+ */
+function initializeLogTabs() {
+	const tabs = document.querySelectorAll('.swift-csv-import-logs .log-tab');
+	const panels = document.querySelectorAll('.swift-csv-import-logs .log-panel');
+
+	// Function to set active tab
+	function setActiveTab(targetTab) {
+		// Remove active class from all tabs and panels
+		tabs.forEach(tab => tab.classList.remove('active'));
+		panels.forEach(panel => panel.classList.remove('active'));
+
+		// Add active class to target tab and corresponding panel
+		targetTab.classList.add('active');
+		const targetPanelKey = targetTab.dataset.tab;
+		const targetPanel = document.querySelector(`.log-panel[data-panel="${targetPanelKey}"]`);
+		if (targetPanel) {
+			targetPanel.classList.add('active');
+		}
+	}
+
+	// Set default active tab based on update checkbox state
+	const updateExisting = document.querySelector(
+		'input[name="swift_csv_import_update_existing"]'
+	)?.checked;
+	const defaultTab = document.querySelector(
+		updateExisting ? '.log-tab[data-tab="updated"]' : '.log-tab[data-tab="created"]'
+	);
+	if (defaultTab) {
+		setActiveTab(defaultTab);
+	}
+
+	// Add click event listeners to tabs
+	tabs.forEach(tab => {
+		tab.addEventListener('click', () => {
+			setActiveTab(tab);
+		});
+	});
+
+	// Add change listener to update checkbox to switch default tab
+	const updateCheckbox = document.querySelector('input[name="swift_csv_import_update_existing"]');
+	if (updateCheckbox) {
+		updateCheckbox.addEventListener('change', () => {
+			const newDefaultTab = document.querySelector(
+				updateCheckbox.checked
+					? '.log-tab[data-tab="updated"]'
+					: '.log-tab[data-tab="created"]'
+			);
+			if (newDefaultTab) {
+				setActiveTab(newDefaultTab);
+			}
+		});
 	}
 }
 

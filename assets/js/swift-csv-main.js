@@ -140,7 +140,7 @@ function addLogEntry(message, level = 'info', context = 'export') {
 	logEntry.className = `log-entry log-${level} log-${context}`;
 
 	const timestamp = new Date().toLocaleTimeString();
-	logEntry.innerHTML = `<span class="log-time">[${timestamp}]</span> <span class="log-message">${message}</span>`;
+	logEntry.innerHTML = `<span class="log-time">[${timestamp}]</span><span class="log-message">${message}</span>`;
 
 	logContent.appendChild(logEntry);
 	logContent.scrollTop = logContent.scrollHeight;

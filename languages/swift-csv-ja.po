@@ -208,7 +208,16 @@ msgstr "チェックすると既存投稿が更新されます。チェックし
 
 #: includes/class-swift-csv-admin.php:527
 msgid "Dry Run"
-msgstr "テスト実行"
+msgstr "テスト"
+
+msgid "New"
+msgstr "新規"
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Error"
+msgstr "エラー"
 
 #: includes/class-swift-csv-admin.php:531
 msgid "Test import without creating posts"

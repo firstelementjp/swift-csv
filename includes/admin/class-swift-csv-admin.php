@@ -302,6 +302,7 @@ class Swift_CSV_Admin {
 						// Action texts.
 						'createAction'            => esc_html__( 'New', 'swift-csv' ),
 						'updateAction'            => esc_html__( 'Update', 'swift-csv' ),
+						'errorAction'             => esc_html__( 'Error', 'swift-csv' ),
 						'noFileSelected'          => esc_html__( 'No file selected', 'swift-csv' ),
 						'removeFile'              => esc_html__( 'Remove', 'swift-csv' ),
 						// Export scope mappings.

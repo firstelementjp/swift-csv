@@ -102,6 +102,14 @@ let importLogPollingAbortController = null;
 let importLogPollingPromise = null;
 let isImportCancelled = false;
 
+// Helper function to truncate title to 20 characters
+function truncateTitle(title, maxLength = 20) {
+	if (!title || title.length <= maxLength) {
+		return title;
+	}
+	return title.substring(0, maxLength) + '...';
+}
+
 function appendImportRealtimeLog({ message, level, action, status }) {
 	const panelsRoot = document.querySelector('.swift-csv-import-logs');
 	if (!panelsRoot) {
@@ -132,7 +140,7 @@ function appendImportRealtimeLog({ message, level, action, status }) {
 	const logEntry = document.createElement('div');
 	logEntry.className = `log-entry log-${level} log-import`;
 	const timestamp = new Date().toLocaleTimeString();
-	logEntry.innerHTML = `<span class="log-time">[${timestamp}]</span> <span class="log-message">${message}</span>`;
+	logEntry.innerHTML = `<span class="log-time">[${timestamp}]</span><span class="log-message">${message}</span>`;
 	logContent.appendChild(logEntry);
 	logContent.scrollTop = logContent.scrollHeight;
 }
@@ -200,16 +208,16 @@ function pollImportLogs() {
 				payload.logs.forEach(item => {
 					if (!item || !item.detail) return;
 					const detail = item.detail;
-					const statusIcon = detail.status === 'success' ? '✓' : '✗';
+					const dryRunPrefixText = String(swiftCSV.messages.dryRunPrefix || '');
+					const importPrefixText = String(swiftCSV.messages.importPrefix || '');
 					const actionText =
 						detail.action === 'create'
-							? swiftCSV.messages.createAction
-							: swiftCSV.messages.updateAction;
+							? String(swiftCSV.messages.createAction || '').replace(/[：:]\s*$/, '')
+							: String(swiftCSV.messages.updateAction || '').replace(/[：:]\s*$/, '');
 					const prefix =
-						currentDryRun === '1'
-							? `[${swiftCSV.messages.dryRunPrefix}]`
-							: `[${swiftCSV.messages.importPrefix}]`;
-					const logMessage = `${prefix} ${statusIcon} ${swiftCSV.messages.rowLabel}${detail.row}: ${actionText} - "${detail.title}"`;
+						currentDryRun === '1' ? `${dryRunPrefixText}:` : `${importPrefixText}:`;
+					const truncatedTitle = truncateTitle(detail.title);
+					const logMessage = `${prefix}${swiftCSV.messages.rowLabel}${detail.row}:${actionText}:${truncatedTitle}`;
 					appendImportRealtimeLog({
 						message: logMessage,
 						level: detail.status === 'success' ? 'success' : 'error',
@@ -722,7 +730,11 @@ function displayImportLogs(recentLogs) {
 		return String(label || '').replace(/[：:]\s*$/, '');
 	}
 
-	const dryRunPrefixText = swiftCSV.messages.dryRunPrefix || 'テスト実行';
+	function sanitizeActionLabel(label) {
+		return String(label || '').replace(/[：:]\s*$/, '');
+	}
+
+	const dryRunPrefixText = swiftCSV.messages.dryRunPrefix || 'テスト';
 	const importPrefixText = swiftCSV.messages.importPrefix || 'インポート';
 	const rowLabelText = swiftCSV.messages.rowLabel || '行';
 	const dryRunCompleteText = swiftCSV.messages.dryRunComplete || 'テスト完了！';
@@ -746,7 +758,7 @@ function displayImportLogs(recentLogs) {
 	function createLogEntry(message, level = 'success') {
 		const timestamp = new Date().toLocaleTimeString();
 		const className = `log-entry log-${level} log-import`;
-		return `<div class="${className}"><span class="log-time">[${timestamp}]</span> <span class="log-message">${message}</span></div>`;
+		return `<div class="${className}"><span class="log-time">[${timestamp}]</span><span class="log-message">${message}</span></div>`;
 	}
 
 	// Get update checkbox state
@@ -756,7 +768,7 @@ function displayImportLogs(recentLogs) {
 
 	// Add start log to appropriate panel
 	if (isDryRun) {
-		const startMessage = `[${dryRunPrefixText}] ${swiftCSV.messages.startingImport || ''}`;
+		const startMessage = `${dryRunPrefixText}:${swiftCSV.messages.startingImport || ''}`;
 
 		if (updateExisting) {
 			// When update is checked, put logs in updated panel
@@ -768,7 +780,7 @@ function displayImportLogs(recentLogs) {
 			createdPanel.innerHTML = createLogEntry(startMessage, 'info');
 		}
 	} else {
-		const startMessage = `[${importPrefixText}] ${swiftCSV.messages.startingImport || ''}`;
+		const startMessage = `${importPrefixText}:${swiftCSV.messages.startingImport || ''}`;
 
 		if (updateExisting) {
 			if (updatedPanel) {
@@ -783,8 +795,11 @@ function displayImportLogs(recentLogs) {
 	if (createdPanel && recentLogs.created && recentLogs.created.items) {
 		const createdLogs = recentLogs.created.items
 			.map(log => {
-				const prefix = isDryRun ? `[${dryRunPrefixText}]` : `[${importPrefixText}]`;
-				const message = `${prefix} ✓ ${rowLabelText}${log.row}: Create - "${log.title}"`;
+				const prefix = isDryRun ? `${dryRunPrefixText}:` : `${importPrefixText}:`;
+				const truncatedTitle = truncateTitle(log.title);
+				const message = `${prefix}${rowLabelText}${log.row}:${sanitizeActionLabel(
+					swiftCSV.messages.createAction
+				)}:${truncatedTitle}`;
 				return createLogEntry(message, 'success');
 			})
 			.join('');
@@ -797,8 +812,11 @@ function displayImportLogs(recentLogs) {
 	if (updatedPanel && recentLogs.updated && recentLogs.updated.items) {
 		const updatedLogs = recentLogs.updated.items
 			.map(log => {
-				const prefix = isDryRun ? `[${dryRunPrefixText}]` : `[${importPrefixText}]`;
-				const message = `${prefix} ✓ ${rowLabelText}${log.row}: Update - "${log.title}"`;
+				const prefix = isDryRun ? `${dryRunPrefixText}:` : `${importPrefixText}:`;
+				const truncatedTitle = truncateTitle(log.title);
+				const message = `${prefix}${rowLabelText}${log.row}:${sanitizeActionLabel(
+					swiftCSV.messages.updateAction
+				)}:${truncatedTitle}`;
 				return createLogEntry(message, 'success');
 			})
 			.join('');
@@ -815,8 +833,11 @@ function displayImportLogs(recentLogs) {
 
 		const errorLogs = items
 			.map(log => {
-				const prefix = isDryRun ? `[${dryRunPrefixText}]` : `[${importPrefixText}]`;
-				const message = `${prefix} ✗ ${rowLabelText}${log.row}: Error - "${log.title}" - ${log.details}`;
+				const prefix = isDryRun ? `${dryRunPrefixText}:` : `${importPrefixText}:`;
+				const truncatedTitle = truncateTitle(log.title);
+				const message = `${prefix}${rowLabelText}${log.row}:${sanitizeActionLabel(
+					swiftCSV.messages.errorAction
+				)}:${truncatedTitle}-${log.details}`;
 				return createLogEntry(message, 'error');
 			})
 			.join('');
@@ -824,19 +845,19 @@ function displayImportLogs(recentLogs) {
 		errorsPanel.innerHTML = errorLogs;
 
 		if (otherCount > 0) {
-			const prefix = isDryRun ? `[${dryRunPrefixText}]` : `[${importPrefixText}]`;
-			const message = `${prefix} + ${otherCount} more errors`;
+			const prefix = isDryRun ? `${dryRunPrefixText}:` : `${importPrefixText}:`;
+			const message = `${prefix}+${otherCount}more errors`;
 			errorsPanel.innerHTML += createLogEntry(message, 'error');
 		}
 	}
 
 	// Add completion log and summary to appropriate panel
-	const summaryPrefix = isDryRun ? `[${dryRunPrefixText}]` : `[${importPrefixText}]`;
+	const summaryPrefix = isDryRun ? `${dryRunPrefixText}:` : `${importPrefixText}:`;
 
 	// Add completion message
 	const completeMessage = isDryRun
-		? `${summaryPrefix} ${dryRunCompleteText}`
-		: `${summaryPrefix} ${importCompleteText}`;
+		? `${summaryPrefix}${dryRunCompleteText}`
+		: `${summaryPrefix}${importCompleteText}`;
 
 	if (updateExisting) {
 		if (updatedPanel) {
@@ -848,21 +869,21 @@ function displayImportLogs(recentLogs) {
 
 	// Add summary logs to respective panels
 	if (recentLogs.created && recentLogs.created.total > 0) {
-		const createdSummary = `${summaryPrefix} ${createdLabelText}: ${recentLogs.created.total}`;
+		const createdSummary = `${summaryPrefix}${createdLabelText} ${recentLogs.created.total}`;
 		if (createdPanel) {
 			createdPanel.innerHTML += createLogEntry(createdSummary, 'info');
 		}
 	}
 
 	if (recentLogs.updated && recentLogs.updated.total > 0) {
-		const updatedSummary = `${summaryPrefix} ${updatedLabelText}: ${recentLogs.updated.total}`;
+		const updatedSummary = `${summaryPrefix}${updatedLabelText} ${recentLogs.updated.total}`;
 		if (updatedPanel) {
 			updatedPanel.innerHTML += createLogEntry(updatedSummary, 'info');
 		}
 	}
 
 	if (recentLogs.errors && recentLogs.errors.total > 0) {
-		const errorSummary = `${summaryPrefix} ${errorsLabelText}: ${recentLogs.errors.total}`;
+		const errorSummary = `${summaryPrefix}${errorsLabelText} ${recentLogs.errors.total}`;
 		if (errorsPanel) {
 			errorsPanel.innerHTML += createLogEntry(
 				errorSummary,

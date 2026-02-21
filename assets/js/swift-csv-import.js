@@ -584,7 +584,10 @@ function updateImportProgress(data, startTime) {
 		} else {
 			percentage = 0;
 		}
-		const elapsedSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+		// Ensure startTime is valid, fallback to current time if needed
+		const effectiveStartTime =
+			startTime && typeof startTime === 'number' ? startTime : Date.now();
+		const elapsedSeconds = Math.floor((Date.now() - effectiveStartTime) / 1000);
 		const processedLabel = swiftCSV.messages.processedInfo || 'Processed';
 		const rowsLabel = swiftCSV.messages.rowsLabel || 'rows';
 		const secondsLabel = swiftCSV.messages.secondsLabel || 's';

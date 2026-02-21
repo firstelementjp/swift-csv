@@ -256,6 +256,11 @@ class Swift_CSV_Admin {
 					'exportFailedText'    => esc_html__( 'Export Failed', 'swift-csv' ),
 					'csvContentNotFound'  => esc_html__( 'CSV content not found in response', 'swift-csv' ),
 					'unknownError'        => esc_html__( 'Unknown error', 'swift-csv' ),
+					// Button text for import.
+					'highSpeedImportText' => esc_html__( 'High-Speed Import', 'swift-csv' ),
+					'standardImportText'  => esc_html__( 'Standard Import (WP Compatible)', 'swift-csv' ),
+					'importCompleteText'  => esc_html__( 'Import Complete', 'swift-csv' ),
+					'importFailedText'    => esc_html__( 'Import Failed', 'swift-csv' ),
 					'messages'            => [
 						'exportCsv'               => esc_html__( 'Export CSV', 'swift-csv' ),
 						'startExport'             => esc_html__( 'Start Export', 'swift-csv' ),
@@ -1314,12 +1319,15 @@ class Swift_CSV_Admin {
 						<?php do_settings_fields( 'swift-csv', 'swift_csv_import_section' ); ?>
 
 						<p class="submit">
-							<button type="submit" class="button button-primary" id="ajax-import-csv-btn">
-								<?php esc_html_e( 'Start Import', 'swift-csv' ); ?>
+							<button type="button" class="button button-secondary" id="high-speed-import-btn" disabled>
+								<?php esc_html_e( 'High-Speed Import', 'swift-csv' ); ?>
+							</button>
+							<button type="submit" name="ajax_import_csv" class="button button-primary" id="ajax-import-csv-btn" style="margin-left: 10px;">
+								<?php esc_html_e( 'Standard Import (WP Compatible)', 'swift-csv' ); ?>
 							</button>
 							<button type="button" class="button" id="ajax-import-cancel-btn" style="display: none; margin-left: 10px;">
-					<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
-				</button>
+								<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
+							</button>
 						</p>
 					</form>
 				</div>
@@ -1333,21 +1341,25 @@ class Swift_CSV_Admin {
 					<!-- Import Logs Section -->
 					<div class="swift-csv-import-logs">
 						<div class="progress-details">
-							<div class="log-tab created" data-tab="created"><?php esc_html_e( 'Created:', 'swift-csv' ); ?> <span class="created-count">0</span></div>
+							<div class="log-tab created active" data-tab="created"><?php esc_html_e( 'Created:', 'swift-csv' ); ?> <span class="created-count">0</span></div>
 							<div class="log-tab modified" data-tab="updated"><?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <span class="updated-count">0</span></div>
 							<div class="log-tab errors" data-tab="errors"><?php esc_html_e( 'Errors:', 'swift-csv' ); ?> <span class="error-count">0</span></div>
 						</div>
 						<div class="log-panels">
-							<div class="log-panel" data-panel="created">
+							<div class="log-panel active" data-panel="created">
 								<div class="log-content" id="import-log-content">
-									<div class="log-entry log-info"><?php esc_html_e( 'Ready to start import...', 'swift-csv' ); ?></div>
+									<div class="log-entry log-info log-import"><span class="log-time">[00:00:00]</span><span class="log-message"><?php esc_html_e( 'Ready to start import...', 'swift-csv' ); ?></span></div>
 								</div>
 							</div>
 							<div class="log-panel" data-panel="updated">
-								<div class="log-content"></div>
+								<div class="log-content">
+									<div class="log-entry log-info log-import"><span class="log-time">[00:00:00]</span><span class="log-message"><?php esc_html_e( 'Ready to start import...', 'swift-csv' ); ?></span></div>
+								</div>
 							</div>
 							<div class="log-panel" data-panel="errors">
-								<div class="log-content"></div>
+								<div class="log-content">
+									<div class="log-entry log-info log-import"><span class="log-time">[00:00:00]</span><span class="log-message"><?php esc_html_e( 'Ready to start import...', 'swift-csv' ); ?></span></div>
+								</div>
 							</div>
 						</div>
 					</div>

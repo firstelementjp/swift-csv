@@ -332,6 +332,11 @@ a.nav-tab:last-of-type {
 	background-color: rgba(70, 180, 80, 0.1);
 }
 
+.log-entry.log-update {
+	color: #2271b1;
+	background-color: rgba(34, 113, 177, 0.1);
+}
+
 .log-entry.log-warning {
 	color: #ffb900;
 	background-color: rgba(255, 185, 0, 0.1);
@@ -569,6 +574,10 @@ a.nav-tab:last-of-type {
 
 .swift-csv-import-logs .log-entry.log-success .log-message {
 	color: #46b450;
+}
+
+.swift-csv-import-logs .log-entry.log-update .log-message {
+	color: #2271b1;
 }
 
 .swift-csv-import-logs .log-entry.log-error .log-message {
@@ -936,9 +945,9 @@ a.nav-tab:last-of-type {
 
 .swift-csv-settings dd .description {
 	margin-top: 0.5em;
-	font-style: italic;
 	color: #666;
-	font-size: 13px;
+	font-style: normal;
+	font-size: 0.9em;
 }
 
 /* Layout for the Pro feature list */

@@ -93,14 +93,21 @@ function initFileUpload() {
 	}
 }
 
-let importSession = '';
-let currentDryRun = '0';
-let currentEnableLogs = '0';
-let importLogLastId = 0;
+// Global variables for import state
+let importSession = null;
 let importLogPollingTimer = null;
 let importLogPollingAbortController = null;
 let importLogPollingPromise = null;
+let importLogLastId = 0;
 let isImportCancelled = false;
+let currentEnableLogs = '0';
+let currentDryRun = '0';
+const currentStartRow = 0;
+
+// Global cumulative counters for accurate tracking
+let globalCumulativeCreated = 0;
+let globalCumulativeUpdated = 0;
+let globalCumulativeErrors = 0;
 
 // Helper function to truncate title to 20 characters
 function truncateTitle(title, maxLength = 20) {
@@ -138,7 +145,8 @@ function appendImportRealtimeLog({ message, level, action, status }) {
 	}
 
 	const logEntry = document.createElement('div');
-	logEntry.className = `log-entry log-${level} log-import`;
+	const actualLevel = action === 'update' ? 'update' : level;
+	logEntry.className = `log-entry log-${actualLevel} log-import`;
 	const timestamp = new Date().toLocaleTimeString();
 	logEntry.innerHTML = `<span class="log-time">[${timestamp}]</span><span class="log-message">${message}</span>`;
 	logContent.appendChild(logEntry);
@@ -280,6 +288,11 @@ function handleAjaxImport(e) {
 	// Reset flags for new import
 	window.swiftCSVLogsDisplayed = false;
 	window.swiftCSVLogTabsInitialized = false;
+
+	// Reset global cumulative counters
+	globalCumulativeCreated = 0;
+	globalCumulativeUpdated = 0;
+	globalCumulativeErrors = 0;
 
 	// Clear import log
 	clearLog('import');
@@ -602,22 +615,40 @@ function updateImportProgress(data, startTime) {
 		progressStats.textContent = `${percentage}% ${processedLabel} ${data.processed}/${data.total} ${rowsLabel} (${elapsedSeconds}${secondsLabel})`;
 	}
 
-	// Update tab counts in logs section
+	// Update tab counts in logs section - use global cumulative counters for accurate tracking
 	const logCreatedEl = document.querySelector('.swift-csv-import-logs .created-count');
 	const logUpdatedEl = document.querySelector('.swift-csv-import-logs .updated-count');
 	const logErrorEl = document.querySelector('.swift-csv-import-logs .error-count');
 
-	if (logCreatedEl && data.created !== undefined) {
-		logCreatedEl.textContent =
-			data.cumulative_created !== undefined ? data.cumulative_created : data.created;
+	// Update global cumulative counters with current batch data
+	if (data.created !== undefined) {
+		globalCumulativeCreated += data.created;
 	}
-	if (logUpdatedEl && data.updated !== undefined) {
-		logUpdatedEl.textContent =
-			data.cumulative_updated !== undefined ? data.cumulative_updated : data.updated;
+	if (data.updated !== undefined) {
+		globalCumulativeUpdated += data.updated;
 	}
-	if (logErrorEl && data.errors !== undefined) {
-		logErrorEl.textContent =
-			data.cumulative_errors !== undefined ? data.cumulative_errors : data.errors;
+	if (data.errors !== undefined) {
+		globalCumulativeErrors += data.errors;
+	}
+
+	// Debug: Log cumulative values
+	console.log('Debug - Tab counts update:', {
+		batch_created: data.created,
+		batch_updated: data.updated,
+		batch_errors: data.errors,
+		global_cumulative_created: globalCumulativeCreated,
+		global_cumulative_updated: globalCumulativeUpdated,
+		global_cumulative_errors: globalCumulativeErrors,
+	});
+
+	if (logCreatedEl) {
+		logCreatedEl.textContent = globalCumulativeCreated;
+	}
+	if (logUpdatedEl) {
+		logUpdatedEl.textContent = globalCumulativeUpdated;
+	}
+	if (logErrorEl) {
+		logErrorEl.textContent = globalCumulativeErrors;
 	}
 
 	// Initialize tabs if not already done
@@ -734,19 +765,33 @@ function displayImportLogs(recentLogs) {
 		return String(label || '').replace(/[：:]\s*$/, '');
 	}
 
-	const dryRunPrefixText = swiftCSV.messages.dryRunPrefix || 'テスト';
-	const importPrefixText = swiftCSV.messages.importPrefix || 'インポート';
-	const rowLabelText = swiftCSV.messages.rowLabel || '行';
-	const dryRunCompleteText = swiftCSV.messages.dryRunComplete || 'テスト完了！';
-	const importCompleteText = swiftCSV.messages.importComplete || 'インポート完了！';
-	const createdLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunCreated || '新規作成');
-	const updatedLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunUpdated || '更新');
-	const errorsLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunErrors || 'エラー');
+	const dryRunPrefixText = swiftCSV.messages.dryRunPrefix || 'Test';
+	const importPrefixText = swiftCSV.messages.importPrefix || 'Import';
+	const rowLabelText = swiftCSV.messages.rowLabel || 'Row';
+	const dryRunCompleteText = swiftCSV.messages.dryRunComplete || 'Test Complete!';
+	const importCompleteText = swiftCSV.messages.importComplete || 'Import Complete!';
+	const createdLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunCreated || 'Created');
+	const updatedLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunUpdated || 'Updated');
+	const errorsLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunErrors || 'Errors');
 
 	// Clear all panels first
 	if (createdPanel) createdPanel.innerHTML = '';
 	if (updatedPanel) updatedPanel.innerHTML = '';
 	if (errorsPanel) errorsPanel.innerHTML = '';
+
+	// Add initial "Ready to start import..." message if no logs exist
+	const hasAnyLogs =
+		recentLogs.created?.items?.length > 0 ||
+		recentLogs.updated?.items?.length > 0 ||
+		recentLogs.errors?.items?.length > 0;
+
+	if (!hasAnyLogs) {
+		const readyMessage = swiftCSV.messages.readyToImport || 'Ready to start import...';
+		if (createdPanel) createdPanel.innerHTML = createLogEntry(readyMessage, 'info');
+		if (updatedPanel) updatedPanel.innerHTML = createLogEntry(readyMessage, 'info');
+		if (errorsPanel) errorsPanel.innerHTML = createLogEntry(readyMessage, 'info');
+		return;
+	}
 
 	// Check if this is dry run by checking the AJAX response data
 	const isDryRun =
@@ -817,7 +862,7 @@ function displayImportLogs(recentLogs) {
 				const message = `${prefix}${rowLabelText}${log.row}:${sanitizeActionLabel(
 					swiftCSV.messages.updateAction
 				)}:${truncatedTitle}`;
-				return createLogEntry(message, 'success');
+				return createLogEntry(message, 'update');
 			})
 			.join('');
 

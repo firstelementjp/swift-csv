@@ -53,9 +53,14 @@ msgstr "行"
 msgid "High-Speed Export"
 msgstr "高速エクスポート"
 
-#: includes/class-swift-csv-admin.php:1121
 msgid "Standard Export (WP Compatible)"
 msgstr "標準エクスポート（WP互換）"
+
+msgid "High-Speed Import"
+msgstr "高速インポート"
+
+msgid "Standard Import (WP Compatible)"
+msgstr "標準インポート（WP互換）"
 
 #: includes/class-swift-csv-admin.php:490
 msgid "Taxonomy Format"

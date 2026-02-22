@@ -308,7 +308,7 @@ class Swift_CSV_Ajax_Import {
 		}
 
 		return [
-			'items' => array_slice( $filtered, 0, $limit ),
+			'items' => array_slice( $filtered, -1 * $limit ),
 			'total' => count( $filtered ),
 		];
 	}

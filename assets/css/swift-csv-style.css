@@ -543,10 +543,6 @@ a.nav-tab:last-of-type {
 	border-bottom: none;
 }
 
-.swift-csv-logs-area .log-time {
-	margin-right: 8px;
-}
-
 .swift-csv-logs-area .log-entry.log-success .log-message {
 	color: #46b450;
 }
@@ -557,6 +553,14 @@ a.nav-tab:last-of-type {
 
 .swift-csv-logs-area .log-entry.log-error .log-message {
 	color: #dc3232;
+}
+
+.swift-csv-logs-area .log-meta {
+	margin-right: 4px;
+}
+
+.swift-csv-logs-area .log-title {
+	word-break: break-word;
 }
 
 /* Export-specific log styles */

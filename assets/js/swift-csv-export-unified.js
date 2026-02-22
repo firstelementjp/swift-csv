@@ -91,13 +91,9 @@ const SwiftCSVExportUnified = {
 		this.enableDownloadButtonForExport(finalCsv, formData.post_type || 'post');
 		this.showComplete(button);
 
-		// Add success log
+		// Add completion log
 		if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
-			window.SwiftCSVUtils.addLogEntry(
-				swiftCSV.messages.exportCompleted,
-				'success',
-				'export'
-			);
+			window.SwiftCSVUtils.addLogEntry(swiftCSV.messages.exportCompleted, 'info', 'export');
 		}
 	},
 
@@ -220,9 +216,11 @@ const SwiftCSVExportUnified = {
 					exportLogLastId = nextAfterId;
 				},
 				buildLogMessage(detail) {
-					const statusIcon = detail.status === 'success' ? '✓' : '✗';
-					const prefix = `[${swiftCSV.messages.exportPrefix || 'Export'}]`;
-					return `${prefix} ${statusIcon} ${detail.title}`;
+					const prefixText = swiftCSV.messages.exportPrefix || 'Export';
+					const rowLabelText = swiftCSV.messages.rowLabel || 'Row';
+					const rowText = `${rowLabelText}${detail.row}`;
+					const truncatedTitle = SwiftCSVExportUnified.truncateTitle(detail.title, 20);
+					return `[${prefixText}:${rowText}]${truncatedTitle}`;
 				},
 			});
 		};

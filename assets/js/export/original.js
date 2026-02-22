@@ -3,6 +3,13 @@
  *
  */
 
+function truncateTitle(title, maxLength = 20) {
+	if (!title || title.length <= maxLength) {
+		return title;
+	}
+	return title.substring(0, maxLength) + '...';
+}
+
 /**
  * Handle AJAX export form submission (original functionality)
  *
@@ -116,9 +123,11 @@ function handleAjaxExport(e) {
 					payload.logs.forEach(item => {
 						if (!item || !item.detail) return;
 						const detail = item.detail;
-						const statusIcon = detail.status === 'success' ? '✓' : '✗';
-						const prefix = `[${swiftCSV.messages.exportPrefix || 'Export'}]`;
-						const logMessage = `${prefix} ${statusIcon} ${swiftCSV.messages.rowLabel || 'Row'} ${detail.row}: ${detail.title}`;
+						const prefixText = swiftCSV.messages.exportPrefix || 'Export';
+						const rowLabelText = swiftCSV.messages.rowLabel || 'Row';
+						const rowText = `${rowLabelText}${detail.row}`;
+						const truncatedTitle = truncateTitle(detail.title, 20);
+						const logMessage = `[${prefixText}:${rowText}]${truncatedTitle}`;
 
 						if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
 							window.SwiftCSVUtils.addLogEntry(
@@ -358,7 +367,8 @@ function handleAjaxExport(e) {
 /**
  * Update AJAX progress for export
  *
- * @param {Object} data Progress data
+ * @param {Object} data      Progress data
+ * @param          startTime
  */
 function updateAjaxProgress(data, startTime) {
 	// Find progress elements in the new UI structure
@@ -414,7 +424,7 @@ function updateAjaxProgress(data, startTime) {
  */
 function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
 	if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
-		window.SwiftCSVUtils.addLogEntry(swiftCSV.messages.exportCompleted, 'success', 'export');
+		window.SwiftCSVUtils.addLogEntry(swiftCSV.messages.exportCompleted, 'info', 'export');
 	}
 
 	// Create download link

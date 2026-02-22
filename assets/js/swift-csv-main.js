@@ -139,11 +139,37 @@ function addLogEntry(message, level = 'info', context = 'export') {
 		logContent.removeChild(logContent.firstChild);
 	}
 
+	const escapeHtml = function (str) {
+		return String(str)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	};
+
+	const splitMetaAndTitle = function (text) {
+		const msg = String(text || '');
+		if (msg.startsWith('[')) {
+			const closeIndex = msg.indexOf(']');
+			if (closeIndex > 0) {
+				return {
+					meta: msg.slice(0, closeIndex + 1),
+					title: msg.slice(closeIndex + 1),
+				};
+			}
+		}
+		return { meta: '', title: msg };
+	};
+
 	const logEntry = document.createElement('div');
 	logEntry.className = `log-entry log-${level} log-${context}`;
 
 	const timestamp = new Date().toLocaleTimeString();
-	logEntry.innerHTML = `<span class="log-time">[${timestamp}]</span><span class="log-message">${message}</span>`;
+	const parts = splitMetaAndTitle(message);
+	const safeMeta = escapeHtml(parts.meta);
+	const safeTitle = escapeHtml(parts.title);
+	logEntry.innerHTML = `<span class="log-time">[${timestamp}]</span><span class="log-message"><span class="log-meta">${safeMeta}</span><span class="log-title">${safeTitle}</span></span>`;
 
 	logContent.appendChild(logEntry);
 	logContent.scrollTop = logContent.scrollHeight;

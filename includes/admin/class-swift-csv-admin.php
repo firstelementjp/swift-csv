@@ -403,14 +403,6 @@ class Swift_CSV_Admin {
 		);
 
 		add_settings_field(
-			'swift_csv_export_enable_logs',
-			'',
-			[ $this, 'export_enable_logs_field_html' ],
-			'swift-csv',
-			'swift_csv_export_section'
-		);
-
-		add_settings_field(
 			'swift_csv_export_taxonomy_format',
 			'',
 			[ $this, 'export_taxonomy_format_field_html' ],
@@ -430,6 +422,14 @@ class Swift_CSV_Admin {
 			'swift_csv_export_limit',
 			'',
 			[ $this, 'export_limit_field_html' ],
+			'swift-csv',
+			'swift_csv_export_section'
+		);
+
+		add_settings_field(
+			'swift_csv_export_enable_logs',
+			'',
+			[ $this, 'export_enable_logs_field_html' ],
 			'swift-csv',
 			'swift_csv_export_section'
 		);
@@ -549,7 +549,7 @@ class Swift_CSV_Admin {
 			</dt>
 			<dd>
 				<label>
-					<input type="checkbox" id="swift_csv_export_enable_logs" name="swift_csv_export_enable_logs" value="1">
+					<input type="checkbox" id="swift_csv_export_enable_logs" name="swift_csv_export_enable_logs" value="1" checked>
 					<?php esc_html_e( 'Output logs during export', 'swift-csv' ); ?>
 				</label>
 				<p class="description"><?php esc_html_e( 'If checked, detailed per-row logs will be generated and displayed. Disable for maximum speed.', 'swift-csv' ); ?></p>
@@ -803,7 +803,7 @@ class Swift_CSV_Admin {
 			</dt>
 			<dd>
 				<label>
-					<input type="checkbox" id="swift_csv_import_enable_logs" name="swift_csv_import_enable_logs" value="1">
+					<input type="checkbox" id="swift_csv_import_enable_logs" name="swift_csv_import_enable_logs" value="1" checked>
 					<?php esc_html_e( 'Output logs during import', 'swift-csv' ); ?>
 				</label>
 				<p class="description"><?php esc_html_e( 'If checked, detailed per-row logs will be generated and displayed. Disable for maximum speed.', 'swift-csv' ); ?></p>

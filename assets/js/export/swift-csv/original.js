@@ -28,6 +28,14 @@ function handleAjaxExport(e) {
 		}
 	}
 
+	const exportBtn = document.querySelector('#ajax-export-csv-btn');
+	const cancelBtn = document.querySelector('#ajax-export-cancel-btn');
+
+	// Store original button text
+	if (exportBtn) {
+		exportBtn.dataset.originalText = exportBtn.value;
+	}
+
 	const postType = document.querySelector('#swift_csv_export_post_type')?.value;
 	const postStatus =
 		document.querySelector('input[name="swift_csv_export_post_status"]:checked')?.value ||
@@ -179,9 +187,7 @@ function handleAjaxExport(e) {
 		);
 	}
 
-	const exportBtn = document.querySelector('#ajax-export-csv-btn');
 	const directSqlBtn = document.querySelector('#direct-sql-export-btn');
-	const cancelBtn = document.querySelector('#ajax-export-cancel-btn');
 	const startTime = Date.now();
 	let isCancelled = false;
 
@@ -468,7 +474,7 @@ function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
 	// Reset buttons
 	if (exportBtn) {
 		exportBtn.disabled = false;
-		exportBtn.value = swiftCSV.messages.startExport;
+		exportBtn.value = exportBtn.dataset.originalText || swiftCSV.messages.startExport;
 	}
 	if (directSqlBtn) {
 		directSqlBtn.disabled = false;

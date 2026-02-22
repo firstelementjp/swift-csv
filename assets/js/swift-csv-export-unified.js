@@ -107,6 +107,11 @@ const SwiftCSVExportUnified = {
 		const standardBtn = document.getElementById('ajax-export-csv-btn');
 		const cancelBtn = document.getElementById('ajax-export-cancel-btn');
 
+		// Store original button text
+		if (button) {
+			button.dataset.originalText = button.textContent;
+		}
+
 		// Disable button and show loading
 		button.disabled = true;
 		button.textContent = swiftCSV.messages.exporting;
@@ -470,8 +475,8 @@ const SwiftCSVExportUnified = {
 		const elapsed = Date.now() - startTime;
 		const elapsedSeconds = Math.floor(elapsed / 1000);
 
-		// Update button text
-		button.textContent = `${swiftCSV.messages.exporting} (${percentage}% - ${processed}/${total})`;
+		// Keep button text as "Exporting..." (don't update with progress)
+		// button.textContent remains as swiftCSV.messages.exporting
 
 		// Update progress bar if exists
 		const progressContainer = document.querySelector('.swift-csv-progress');

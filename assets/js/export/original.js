@@ -28,6 +28,14 @@ function handleAjaxExport(e) {
 		}
 	}
 
+	const exportBtn = document.querySelector('#ajax-export-csv-btn');
+	const cancelBtn = document.querySelector('#ajax-export-cancel-btn');
+
+	// Store original button text
+	if (exportBtn) {
+		exportBtn.dataset.originalText = exportBtn.value;
+	}
+
 	const postType = document.querySelector('#swift_csv_export_post_type')?.value;
 	const postStatus =
 		document.querySelector('input[name="swift_csv_export_post_status"]:checked')?.value ||
@@ -179,8 +187,6 @@ function handleAjaxExport(e) {
 		);
 	}
 
-	const exportBtn = document.querySelector('#ajax-export-csv-btn');
-	const cancelBtn = document.querySelector('#ajax-export-cancel-btn');
 	const startTime = Date.now();
 	let isCancelled = false;
 
@@ -368,7 +374,7 @@ function handleAjaxExport(e) {
  * Update AJAX progress for export
  *
  * @param {Object} data      Progress data
- * @param          startTime
+ * @param {number} startTime Start time
  */
 function updateAjaxProgress(data, startTime) {
 	// Find progress elements in the new UI structure
@@ -400,12 +406,14 @@ function updateAjaxProgress(data, startTime) {
 
 	// Update stats
 	if (progressStats && data.processed !== undefined && data.total !== undefined) {
-		const percentage =
-			data.progress !== undefined
-				? Math.round(Number(data.progress))
-				: data.total > 0
-					? Math.round((data.processed / data.total) * 100)
-					: 0;
+		let percentage;
+		if (data.progress !== undefined) {
+			percentage = Math.round(Number(data.progress));
+		} else if (data.total > 0) {
+			percentage = Math.round((data.processed / data.total) * 100);
+		} else {
+			percentage = 0;
+		}
 		const elapsedSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
 		const processedLabel = swiftCSV.messages.processedInfo || 'Processed';
 		const rowsLabel = swiftCSV.messages.rowsLabel || 'rows';
@@ -459,7 +467,7 @@ function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
 	// Reset buttons
 	if (exportBtn) {
 		exportBtn.disabled = false;
-		exportBtn.value = swiftCSV.messages.startExport;
+		exportBtn.value = exportBtn.dataset.originalText || swiftCSV.messages.startExport;
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'none';

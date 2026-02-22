@@ -102,7 +102,6 @@ let importLogLastId = 0;
 let isImportCancelled = false;
 let currentEnableLogs = '0';
 let currentDryRun = '0';
-const currentStartRow = 0;
 
 // Global cumulative counters for accurate tracking
 let globalCumulativeCreated = 0;
@@ -365,9 +364,17 @@ function handleAjaxImport(e) {
 	currentEnableLogs = enableLogs;
 	importLogLastId = 0;
 	stopImportLogPolling({ abortRequest: true });
-	if (enableLogs === '1') {
-		pollImportLogs();
+
+	const importBtn = document.querySelector('#ajax-import-csv-btn');
+	const cancelBtn = document.querySelector('#ajax-import-cancel-btn');
+
+	// Store original button text
+	if (importBtn) {
+		importBtn.dataset.originalText = importBtn.textContent;
 	}
+
+	// Clear import logs
+	clearLog('import');
 
 	// Log import settings
 	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.fileInfo + ' ' + file.name, 'debug');
@@ -384,8 +391,6 @@ function handleAjaxImport(e) {
 		'import'
 	);
 
-	const importBtn = document.querySelector('#ajax-import-csv-btn');
-	const cancelBtn = document.querySelector('#ajax-import-cancel-btn');
 	const startTime = Date.now();
 	const abortController = new AbortController();
 	isImportCancelled = false;
@@ -420,7 +425,8 @@ function handleAjaxImport(e) {
 
 			if (importBtn) {
 				importBtn.disabled = false;
-				importBtn.textContent = swiftCSV.messages.startImport;
+				importBtn.textContent =
+					importBtn.dataset.originalText || swiftCSV.messages.startImport;
 			}
 			if (cancelBtn) {
 				cancelBtn.style.display = 'none';
@@ -585,7 +591,8 @@ function processImportChunk(
 
 			if (importBtn) {
 				importBtn.disabled = false;
-				importBtn.textContent = swiftCSV.messages.startImport;
+				importBtn.textContent =
+					importBtn.dataset.originalText || swiftCSV.messages.startImport;
 			}
 			if (cancelBtn) {
 				cancelBtn.style.display = 'none';
@@ -755,7 +762,7 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	// Reset buttons
 	if (importBtn) {
 		importBtn.disabled = false;
-		importBtn.textContent = swiftCSV.messages.startImport;
+		importBtn.textContent = importBtn.dataset.originalText || swiftCSV.messages.startImport;
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'none';

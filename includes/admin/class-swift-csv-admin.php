@@ -1234,10 +1234,14 @@ class Swift_CSV_Admin {
 				<div class="card">
 					<h3><?php esc_html_e( 'Export Log', 'swift-csv' ); ?></h3>
 
-					<!-- Log Area -->
-					<div class="swift-csv-log-area">
-						<div class="log-content" id="export-log-content">
-							<div class="log-entry log-info"><?php esc_html_e( 'Ready to start export...', 'swift-csv' ); ?></div>
+					<!-- Export Logs Section -->
+					<div class="swift-csv-logs-area">
+						<div class="log-panels">
+							<div class="log-panel active" data-panel="export">
+								<div class="log-content" id="export-log-content">
+									<div class="log-entry log-info log-export"><span class="log-time">[00:00:00]</span><span class="log-message"><?php esc_html_e( 'Ready to start export...', 'swift-csv' ); ?></span></div>
+								</div>
+							</div>
 						</div>
 					</div>
 
@@ -1339,7 +1343,7 @@ class Swift_CSV_Admin {
 					<h3><?php esc_html_e( 'Import Log', 'swift-csv' ); ?></h3>
 
 					<!-- Import Logs Section -->
-					<div class="swift-csv-import-logs">
+					<div class="swift-csv-logs-area">
 						<div class="progress-details">
 							<div class="log-tab created active" data-tab="created"><?php esc_html_e( 'Created:', 'swift-csv' ); ?> <span class="created-count">0</span></div>
 							<div class="log-tab modified" data-tab="updated"><?php esc_html_e( 'Updated:', 'swift-csv' ); ?> <span class="updated-count">0</span></div>

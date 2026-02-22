@@ -118,7 +118,7 @@ function truncateTitle(title, maxLength = 20) {
 }
 
 function appendImportRealtimeLog({ message, level, action, status }) {
-	const panelsRoot = document.querySelector('.swift-csv-import-logs');
+	const panelsRoot = document.querySelector('.swift-csv-logs-area');
 	if (!panelsRoot) {
 		addLogEntry(message, level, 'import');
 		return;
@@ -132,7 +132,7 @@ function appendImportRealtimeLog({ message, level, action, status }) {
 	}
 
 	const logContent = document.querySelector(
-		`.swift-csv-import-logs .log-panel[data-panel="${panelKey}"] .log-content`
+		`.swift-csv-logs-area .log-panel[data-panel="${panelKey}"] .log-content`
 	);
 	if (!logContent) {
 		addLogEntry(message, level, 'import');
@@ -616,9 +616,9 @@ function updateImportProgress(data, startTime) {
 	}
 
 	// Update tab counts in logs section - use global cumulative counters for accurate tracking
-	const logCreatedEl = document.querySelector('.swift-csv-import-logs .created-count');
-	const logUpdatedEl = document.querySelector('.swift-csv-import-logs .updated-count');
-	const logErrorEl = document.querySelector('.swift-csv-import-logs .error-count');
+	const logCreatedEl = document.querySelector('.swift-csv-logs-area .created-count');
+	const logUpdatedEl = document.querySelector('.swift-csv-logs-area .updated-count');
+	const logErrorEl = document.querySelector('.swift-csv-logs-area .error-count');
 
 	// Update global cumulative counters with current batch data
 	if (data.created !== undefined) {
@@ -942,8 +942,8 @@ function displayImportLogs(recentLogs) {
  * Initialize log tabs functionality
  */
 function initializeLogTabs() {
-	const tabs = document.querySelectorAll('.swift-csv-import-logs .log-tab');
-	const panels = document.querySelectorAll('.swift-csv-import-logs .log-panel');
+	const tabs = document.querySelectorAll('.swift-csv-logs-area .log-tab');
+	const panels = document.querySelectorAll('.swift-csv-logs-area .log-panel');
 
 	// Function to set active tab
 	function setActiveTab(targetTab) {

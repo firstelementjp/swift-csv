@@ -114,14 +114,17 @@ document.addEventListener('DOMContentLoaded', function () {
 function addLogEntry(message, level = 'info', context = 'export') {
 	let logContent = null;
 	if ('import' === context) {
-		logContent = document.querySelector(
-			'.swift-csv-import-logs .log-panel.active .log-content'
-		);
+		logContent = document.querySelector('.swift-csv-logs-area .log-panel.active .log-content');
 		if (!logContent) {
 			logContent = document.querySelector(
-				'.swift-csv-import-logs .log-panel[data-panel="created"] .log-content'
+				'.swift-csv-logs-area .log-panel[data-panel="created"] .log-content'
 			);
 		}
+	} else if ('export' === context) {
+		// Use new unified structure for export
+		logContent = document.querySelector(
+			'.swift-csv-logs-area .log-panel[data-panel="export"] .log-content'
+		);
 	}
 	if (!logContent) {
 		logContent = document.querySelector(`#${context}-log-content`);

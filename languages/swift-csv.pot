@@ -38,8 +38,7 @@ msgstr ""
 msgid "Include private meta fields"
 msgstr ""
 
-#: includes/admin/class-swift-csv-admin.php:687
-msgid "Export Content is set to Custom. Use hooks to specify export columns."
+msgid "Hook-based customization is active. Export fields may be modified by code."
 msgstr ""
 
 #: includes/class-swift-csv-admin.php:417

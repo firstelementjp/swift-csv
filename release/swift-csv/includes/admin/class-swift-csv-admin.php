@@ -599,6 +599,7 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	public function export_scope_field_html() {
+		$has_custom_hook = has_filter( 'swift_csv_export_post_fields' );
 		?>
 		<dl>
 			<dt>
@@ -613,20 +614,11 @@ class Swift_CSV_Admin {
 					<input type="radio" name="swift_csv_export_scope" id="swift_csv_export_scope_all" value="all">
 					<?php esc_html_e( 'All Fields', 'swift-csv' ); ?>
 				</label>
-				<label class="swift-csv-block-label">
-					<input type="radio" name="swift_csv_export_scope" id="swift_csv_export_scope_custom" value="custom">
-					<?php esc_html_e( 'Custom', 'swift-csv' ); ?>
-				</label>
-				<div id="custom-export-help" class="swift-csv-custom-help">
-					<?php
-					printf(
-						/* translators: 1: Hook name, 2: Documentation link */
-						esc_html__( 'Use the %1$s hook to specify export content and order. See %2$s for details.', 'swift-csv' ),
-						'<code>swift_csv_export_columns</code>',
-						'<a href="' . esc_url( SWIFT_CSV_DOCS_URL ) . 'hooks" target="_blank">' . esc_html__( 'documentation', 'swift-csv' ) . '</a>'
-					);
-					?>
-				</div>
+				<?php if ( $has_custom_hook ) : ?>
+					<p class="description">
+						<?php esc_html_e( 'Hook-based customization is active. Export fields may be modified by code.', 'swift-csv' ); ?>
+					</p>
+				<?php endif; ?>
 			</dd>
 		</dl>
 		<?php

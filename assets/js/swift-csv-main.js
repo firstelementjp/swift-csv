@@ -16,45 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		SwiftCSVCore.initLoggingSystem();
 	}
 
-	// Export scope toggle for custom help
-	const exportScopeRadios = document.querySelectorAll('input[name="swift_csv_export_scope"]');
-	const customHelp = document.getElementById('custom-export-help');
-	const includePrivateMetaCheckbox = document.getElementById('swift_csv_include_private_meta');
-	const privateMetaHelp = document.getElementById(
-		'swift-csv-export-custom-scope-private-meta-help'
-	);
-
-	if (exportScopeRadios.length && customHelp) {
-		if (window.SwiftCSVCore && window.swiftCSV && window.swiftCSV.debug) {
-			SwiftCSVCore.swiftCSVLog('Export scope toggle initialized');
-		}
-		exportScopeRadios.forEach(radio => {
-			radio.addEventListener('change', function () {
-				const isCustom = this.value === 'custom';
-				customHelp.style.display = isCustom ? 'block' : 'none';
-				if (includePrivateMetaCheckbox) {
-					includePrivateMetaCheckbox.disabled = isCustom;
-				}
-				if (privateMetaHelp) {
-					privateMetaHelp.style.display = isCustom ? 'block' : 'none';
-				}
-			});
-		});
-
-		// Set initial state.
-		const checkedScope = document.querySelector('input[name="swift_csv_export_scope"]:checked');
-		if (checkedScope) {
-			const isCustom = checkedScope.value === 'custom';
-			customHelp.style.display = isCustom ? 'block' : 'none';
-			if (includePrivateMetaCheckbox) {
-				includePrivateMetaCheckbox.disabled = isCustom;
-			}
-			if (privateMetaHelp) {
-				privateMetaHelp.style.display = isCustom ? 'block' : 'none';
-			}
-		}
-	}
-
 	// Post status toggle for custom help
 	const postStatusRadios = document.querySelectorAll(
 		'input[name="swift_csv_export_post_status"]'

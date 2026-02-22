@@ -153,22 +153,14 @@ abstract class Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Sanitize export scope and handle custom columns
+	 * Sanitize export scope
 	 *
 	 * @since 0.9.8
 	 * @param string $export_scope Export scope value.
-	 * @return array Export scope configuration with custom columns.
+	 * @return string Sanitized export scope.
 	 */
 	protected function sanitize_export_scope( $export_scope ) {
-		$sanitized_scope = sanitize_text_field( $export_scope );
-
-		// Get custom columns from hook.
-		$custom_columns = apply_filters( 'swift_csv_export_columns', [] );
-
-		return [
-			'scope'          => $sanitized_scope,
-			'custom_columns' => is_array( $custom_columns ) ? $custom_columns : [],
-		];
+		return sanitize_text_field( $export_scope );
 	}
 
 	/**
@@ -178,9 +170,8 @@ abstract class Swift_CSV_Export_Base {
 	 * @return array CSV headers.
 	 */
 	protected function get_csv_headers() {
-		$export_scope   = $this->config['export_scope'];
-		$scope          = is_array( $export_scope ) ? $export_scope['scope'] : $export_scope;
-		$custom_columns = is_array( $export_scope ) ? $export_scope['custom_columns'] : [];
+		$export_scope = $this->config['export_scope'];
+		$scope        = $export_scope;
 
 		// Basic headers - use actual DB column names.
 		$basic_headers = [
@@ -223,13 +214,6 @@ abstract class Swift_CSV_Export_Base {
 				break;
 		}
 
-		// Add custom column headers.
-		if ( ! empty( $custom_columns ) ) {
-			foreach ( $custom_columns as $column_key => $column_label ) {
-				$headers[] = $column_label;
-			}
-		}
-
 		/**
 		 * Filter CSV headers
 		 *
@@ -248,9 +232,8 @@ abstract class Swift_CSV_Export_Base {
 	 * @return array CSV row data.
 	 */
 	protected function get_csv_row( $post ) {
-		$export_scope   = $this->config['export_scope'];
-		$scope          = is_array( $export_scope ) ? $export_scope['scope'] : $export_scope;
-		$custom_columns = is_array( $export_scope ) ? $export_scope['custom_columns'] : [];
+		$export_scope = $this->config['export_scope'];
+		$scope        = $export_scope;
 
 		// Basic row data.
 		$basic_row = [
@@ -291,14 +274,6 @@ abstract class Swift_CSV_Export_Base {
 			default:
 				$row = $basic_row;
 				break;
-		}
-
-		// Add custom column data.
-		if ( ! empty( $custom_columns ) ) {
-			foreach ( $custom_columns as $column_key => $column_label ) {
-				$custom_value = $this->get_custom_column_value( $post, $column_key );
-				$row[]        = '"' . str_replace( '"', '""', $custom_value ) . '"';
-			}
 		}
 
 		return apply_filters( 'swift_csv_export_row', $row, $post, $scope );

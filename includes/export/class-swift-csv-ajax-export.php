@@ -428,34 +428,23 @@ class Swift_CSV_Ajax_Export {
 				'post_type',
 			];
 
-			/**
-			 * Filter additional post fields for 'all' export scope
-			 *
-			 * Allows developers to modify the additional fields included in 'all' scope exports.
-			 *
-			 * @since 0.9.0
-			 * @param array $additional_fields Array of additional field names
-			 * @param string $export_scope The current export scope
-			 * @return array Modified additional fields array
-			 */
-			$additional_fields = apply_filters( 'swift_csv_additional_post_fields', $additional_fields, $export_scope );
-
-			return array_merge( $basic_fields, $additional_fields );
+			$fields = array_merge( $basic_fields, $additional_fields );
+		} else {
+			$fields = $basic_fields;
 		}
 
 		/**
-		 * Filter basic post fields for CSV export
+		 * Filter post fields for CSV export based on scope
 		 *
-		 * Allows developers to modify the basic fields included in exports.
+		 * Allows developers to modify the fields included in exports for any scope.
+		 * The $export_scope parameter allows conditional filtering based on the selected scope.
 		 *
 		 * @since 0.9.0
-		 * @param array $basic_fields Array of basic field names
-		 * @param string $export_scope The current export scope
-		 * @return array Modified basic fields array
+		 * @param array  $fields Array of field names.
+		 * @param string $export_scope The export scope ('basic', 'all').
+		 * @return array Modified fields array.
 		 */
-		$basic_fields = apply_filters( 'swift_csv_basic_post_fields', $basic_fields, $export_scope );
-
-		return $basic_fields;
+		return apply_filters( 'swift_csv_export_post_fields', $fields, $export_scope );
 	}
 
 	/**

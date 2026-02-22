@@ -486,9 +486,8 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @return array CSV headers.
 	 */
 	private function get_csv_headers_array( array $config ): array {
-		$export_scope   = $config['export_scope'] ?? 'basic';
-		$scope          = is_array( $export_scope ) ? ( $export_scope['scope'] ?? 'basic' ) : $export_scope;
-		$custom_columns = is_array( $export_scope ) ? ( $export_scope['custom_columns'] ?? [] ) : [];
+		$export_scope = $config['export_scope'] ?? 'basic';
+		$scope        = is_string( $export_scope ) ? $export_scope : 'basic';
 
 		$basic_headers = [
 			'ID',
@@ -524,12 +523,6 @@ class Swift_CSV_Ajax_Export_Unified {
 			default:
 				$headers = $basic_headers;
 				break;
-		}
-
-		if ( ! empty( $custom_columns ) && is_array( $custom_columns ) ) {
-			foreach ( $custom_columns as $column_key => $column_label ) {
-				$headers[] = $column_label;
-			}
 		}
 
 		// Always include taxonomies for Direct SQL.

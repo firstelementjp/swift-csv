@@ -621,7 +621,7 @@ class Swift_CSV_Admin {
 					<?php esc_html_e( 'All Fields', 'swift-csv' ); ?>
 				</label>
 				<?php if ( $has_custom_hook ) : ?>
-					<p class="description">
+					<p class="description swift-csv-hook-active-description">
 						<?php esc_html_e( 'Hook-based customization is active. Export fields may be modified by code.', 'swift-csv' ); ?>
 					</p>
 				<?php endif; ?>

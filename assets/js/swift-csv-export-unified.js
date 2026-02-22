@@ -40,7 +40,6 @@ const SwiftCSVExportUnified = {
 		document.addEventListener('click', function (e) {
 			if (e.target && e.target.id === 'ajax-export-csv-btn') {
 				e.preventDefault();
-				console.log('Debug - Standard Export button clicked');
 				self.handleExport('standard');
 			}
 		});
@@ -49,16 +48,9 @@ const SwiftCSVExportUnified = {
 		document.addEventListener('click', function (e) {
 			if (e.target && e.target.id === 'direct-sql-export-btn') {
 				e.preventDefault();
-				console.log('Debug - Direct SQL Export button clicked');
 				self.handleExport('direct_sql');
 			}
 		});
-
-		// Debug: Check if buttons exist
-		const standardBtn = document.getElementById('ajax-export-csv-btn');
-		const directSqlBtn = document.getElementById('direct-sql-export-btn');
-		console.log('Debug - Standard Export button exists:', !!standardBtn);
-		console.log('Debug - Direct SQL Export button exists:', !!directSqlBtn);
 	},
 
 	/**
@@ -517,10 +509,7 @@ const SwiftCSVExportUnified = {
 	 */
 	sendAjaxRequest(data, extraOptions) {
 		return new Promise((resolve, reject) => {
-			console.log('Debug - Sending data:', data);
-
 			const formData = new URLSearchParams(data);
-			console.log('Debug - FormData string:', formData.toString());
 
 			SwiftCSVExportUnifiedAjax.postForm(formData, extraOptions)
 				.then(response => response.json())
@@ -539,12 +528,8 @@ const SwiftCSVExportUnified = {
 
 	/**
 	 * Handle Standard export (original functionality)
-	 *
-	 * @param {Object} formData Form data
 	 */
-	handleStandardExport(formData) {
-		console.log('Debug - Starting Standard Export with formData:', formData);
-
+	handleStandardExport() {
 		// Use original handleAjaxExport function
 		handleAjaxExport({ preventDefault: () => {} });
 	},
@@ -557,18 +542,6 @@ const SwiftCSVExportUnified = {
 	getFormData() {
 		const postTypeElement = document.getElementById('swift_csv_export_post_type');
 		const postType = postTypeElement ? postTypeElement.value : 'post';
-
-		console.log('Debug - Post Type Element:', postTypeElement);
-		console.log('Debug - Post Type Value:', postType);
-		console.log('Debug - All form elements:', {
-			postTypeElement,
-			postStatusElement: document.querySelector(
-				'input[name="swift_csv_export_post_status"]:checked'
-			),
-			exportScopeElement: document.querySelector(
-				'input[name="swift_csv_export_scope"]:checked'
-			),
-		});
 
 		// Check if element exists and has value
 		if (!postTypeElement || !postTypeElement.value) {

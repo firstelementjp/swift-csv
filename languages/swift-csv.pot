@@ -38,6 +38,10 @@ msgstr ""
 msgid "Include private meta fields"
 msgstr ""
 
+#: includes/admin/class-swift-csv-admin.php:687
+msgid "Export Content is set to Custom. Use hooks to specify export columns."
+msgstr ""
+
 #: includes/class-swift-csv-admin.php:417
 msgid "Post Status"
 msgstr ""

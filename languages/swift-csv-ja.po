@@ -86,6 +86,10 @@ msgstr "カスタムフィールド"
 msgid "Include private meta fields"
 msgstr "プライベートメタを含める"
 
+#: includes/admin/class-swift-csv-admin.php:687
+msgid "Export Content is set to Custom. Use hooks to specify export columns."
+msgstr "エクスポート内容 が カスタム に設定されています。フックを使用してエクスポート列を指定してください。"
+
 #: includes/class-swift-csv-admin.php:456
 msgid "Export Content"
 msgstr "エクスポート内容"

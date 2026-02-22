@@ -668,16 +668,6 @@ function updateImportProgress(data, startTime) {
 		globalCumulativeErrors += data.errors;
 	}
 
-	// Debug: Log cumulative values
-	console.log('Debug - Tab counts update:', {
-		batch_created: data.created,
-		batch_updated: data.updated,
-		batch_errors: data.errors,
-		global_cumulative_created: globalCumulativeCreated,
-		global_cumulative_updated: globalCumulativeUpdated,
-		global_cumulative_errors: globalCumulativeErrors,
-	});
-
 	if (logCreatedEl) {
 		logCreatedEl.textContent = globalCumulativeCreated;
 	}

@@ -679,9 +679,12 @@ class Swift_CSV_Admin {
 			</dt>
 			<dd>
 				<label>
-					<input type="checkbox" name="swift_csv_include_private_meta" value="1">
+					<input type="checkbox" id="swift_csv_include_private_meta" name="swift_csv_include_private_meta" value="1">
 					<?php esc_html_e( 'Include private meta fields', 'swift-csv' ); ?>
 				</label>
+				<p class="description" id="swift-csv-export-custom-scope-private-meta-help" style="display: none;">
+					<?php esc_html_e( 'Export Content is set to Custom. Use hooks to specify export columns.', 'swift-csv' ); ?>
+				</p>
 			</dd>
 		</dl>
 		<?php

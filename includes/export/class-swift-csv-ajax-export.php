@@ -659,29 +659,28 @@ class Swift_CSV_Ajax_Export {
 		];
 
 		$custom_field_headers = apply_filters( 'swift_csv_generate_custom_field_headers', [], $classified_meta_keys, $custom_field_args );
+		$custom_field_headers = is_array( $custom_field_headers ) ? $custom_field_headers : [];
 
-		// Fallback: if no hook implementation, use basic processing.
-		if ( empty( $custom_field_headers ) ) {
-			$custom_field_headers = [];
-
-			// Process regular fields.
-			foreach ( $classified_meta_keys['regular'] as $meta_key ) {
+		// Always merge fallback cf_ headers from classified meta keys.
+		// This ensures private meta headers are not lost even if filters return partial results.
+		$fallback_custom_field_headers = [];
+		foreach ( (array) ( $classified_meta_keys['regular'] ?? [] ) as $meta_key ) {
+			if ( ! is_string( $meta_key ) || '' === $meta_key ) {
+				continue;
+			}
+			$fallback_custom_field_headers[] = 'cf_' . $meta_key;
+		}
+		if ( $include_private_meta ) {
+			foreach ( (array) ( $classified_meta_keys['private'] ?? [] ) as $meta_key ) {
 				if ( ! is_string( $meta_key ) || '' === $meta_key ) {
 					continue;
 				}
-				$custom_field_headers[] = 'cf_' . $meta_key;
-			}
-
-			// Process private fields if allowed.
-			if ( $include_private_meta ) {
-				foreach ( $classified_meta_keys['private'] as $meta_key ) {
-					if ( ! is_string( $meta_key ) || '' === $meta_key ) {
-						continue;
-					}
-					$custom_field_headers[] = 'cf_' . $meta_key;
-				}
+				$fallback_custom_field_headers[] = 'cf_' . $meta_key;
 			}
 		}
+
+		$custom_field_headers = array_merge( $custom_field_headers, $fallback_custom_field_headers );
+		$custom_field_headers = array_values( array_unique( array_filter( array_map( 'trim', (array) $custom_field_headers ), 'strlen' ) ) );
 
 		// Merge all three header types.
 		$headers = array_merge( $headers, $custom_field_headers );

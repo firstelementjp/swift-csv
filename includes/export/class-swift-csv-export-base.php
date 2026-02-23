@@ -163,7 +163,7 @@ abstract class Swift_CSV_Export_Base {
 	 */
 	protected function get_complete_headers( array $config, array $query_spec = [], string $context = 'standard' ) {
 		// Start with post headers.
-		$headers = $this->get_post_headers();
+		$headers = self::get_post_headers();
 
 		// Add taxonomy headers if enabled.
 		if ( ! empty( $config['include_taxonomies'] ) ) {
@@ -463,7 +463,7 @@ abstract class Swift_CSV_Export_Base {
 	 */
 	protected function generate_csv( $posts_data ) {
 		// Get headers based on export scope.
-		$headers = $this->get_post_headers();
+		$headers = self::get_post_headers();
 		$csv     = implode( ',', $headers ) . "\n";
 
 		// Add data rows.

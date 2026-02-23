@@ -73,14 +73,15 @@ abstract class Swift_CSV_Export_Base {
 
 		// Sanitize configuration.
 		$validated_config = [
-			'post_type'            => sanitize_text_field( $config['post_type'] ),
-			'post_status'          => $this->sanitize_post_status( $config['post_status'] ),
-			'export_scope'         => $this->sanitize_export_scope( $config['export_scope'] ),
-			'include_private_meta' => isset( $config['include_private_meta'] ) ? (bool) $config['include_private_meta'] : false,
-			'include_taxonomies'   => isset( $config['include_taxonomies'] ) ? (bool) $config['include_taxonomies'] : false,
-			'export_limit'         => isset( $config['export_limit'] ) ? absint( $config['export_limit'] ) : 0,
-			'taxonomy_format'      => isset( $config['taxonomy_format'] ) ? sanitize_text_field( $config['taxonomy_format'] ) : 'name',
-			'enable_logs'          => isset( $config['enable_logs'] ) ? (bool) $config['enable_logs'] : false,
+			'post_type'             => sanitize_text_field( $config['post_type'] ),
+			'post_status'           => $this->sanitize_post_status( $config['post_status'] ),
+			'export_scope'          => $this->sanitize_export_scope( $config['export_scope'] ),
+			'include_private_meta'  => isset( $config['include_private_meta'] ) ? (bool) $config['include_private_meta'] : false,
+			'include_taxonomies'    => isset( $config['include_taxonomies'] ) ? (bool) $config['include_taxonomies'] : true,
+			'include_custom_fields' => isset( $config['include_custom_fields'] ) ? (bool) $config['include_custom_fields'] : true,
+			'export_limit'          => isset( $config['export_limit'] ) ? absint( $config['export_limit'] ) : 0,
+			'taxonomy_format'       => isset( $config['taxonomy_format'] ) ? sanitize_text_field( $config['taxonomy_format'] ) : 'name',
+			'enable_logs'           => isset( $config['enable_logs'] ) ? (bool) $config['enable_logs'] : false,
 		];
 
 		return $validated_config;

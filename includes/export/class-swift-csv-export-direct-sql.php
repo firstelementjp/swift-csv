@@ -112,19 +112,21 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	protected function get_csv_headers() {
 		$headers = parent::get_csv_headers();
 
-		// Always include taxonomies for Direct SQL.
-		$post_type   = $this->config['post_type'] ?? 'post';
-		$taxonomies  = get_object_taxonomies( $post_type, 'objects' );
-		$tax_headers = [];
-		foreach ( $taxonomies as $taxonomy ) {
-			$tax_headers[] = 'tax_' . $taxonomy->name;
+		if ( ! empty( $this->config['include_taxonomies'] ) ) {
+			$post_type   = $this->config['post_type'] ?? 'post';
+			$taxonomies  = get_object_taxonomies( $post_type, 'objects' );
+			$tax_headers = [];
+			foreach ( $taxonomies as $taxonomy ) {
+				$tax_headers[] = 'tax_' . $taxonomy->name;
+			}
+			$headers = array_merge( $headers, $tax_headers );
 		}
-		$headers = array_merge( $headers, $tax_headers );
 
-		// Include custom fields (meta) for Direct SQL.
-		$cf_headers = $this->get_custom_field_headers();
-		if ( ! empty( $cf_headers ) ) {
-			$headers = array_merge( $headers, $cf_headers );
+		if ( ! empty( $this->config['include_custom_fields'] ) ) {
+			$cf_headers = $this->get_custom_field_headers();
+			if ( ! empty( $cf_headers ) ) {
+				$headers = array_merge( $headers, $cf_headers );
+			}
 		}
 
 		return $headers;
@@ -513,41 +515,44 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 			return [];
 		}
 
-		// Get post meta for all posts in batch.
 		$post_ids = wp_list_pluck( $posts, 'ID' );
 		$headers  = $this->get_csv_headers();
 
 		$meta_key_map = [];
-		foreach ( (array) $headers as $header ) {
-			if ( ! is_string( $header ) || '' === $header ) {
-				continue;
-			}
-			if ( 0 !== strpos( $header, 'cf_' ) ) {
-				continue;
-			}
-			$meta_key = substr( $header, 3 );
-			if ( is_string( $meta_key ) && '' !== $meta_key ) {
-				$meta_key_map[ $header ] = [ $meta_key ];
-			}
-		}
-
-		$meta_keys = [];
-		foreach ( $meta_key_map as $candidate_keys ) {
-			foreach ( (array) $candidate_keys as $candidate_key ) {
-				if ( is_string( $candidate_key ) && '' !== $candidate_key ) {
-					$meta_keys[] = $candidate_key;
+		$meta_data    = [];
+		if ( ! empty( $this->config['include_custom_fields'] ) ) {
+			foreach ( (array) $headers as $header ) {
+				if ( ! is_string( $header ) || '' === $header ) {
+					continue;
+				}
+				if ( 0 !== strpos( $header, 'cf_' ) ) {
+					continue;
+				}
+				$meta_key = substr( $header, 3 );
+				if ( is_string( $meta_key ) && '' !== $meta_key ) {
+					$meta_key_map[ $header ] = [ $meta_key ];
 				}
 			}
+
+			$meta_keys = [];
+			foreach ( $meta_key_map as $candidate_keys ) {
+				foreach ( (array) $candidate_keys as $candidate_key ) {
+					if ( is_string( $candidate_key ) && '' !== $candidate_key ) {
+						$meta_keys[] = $candidate_key;
+					}
+				}
+			}
+			$meta_keys = array_values( array_unique( array_filter( $meta_keys ) ) );
+			$meta_data = $this->get_batch_post_meta( $post_ids, $meta_keys );
 		}
-		$meta_keys = array_values( array_unique( array_filter( $meta_keys ) ) );
-		$meta_data = $this->get_batch_post_meta( $post_ids, $meta_keys );
 
 		$sticky_posts = get_option( 'sticky_posts', [] );
 		$sticky_map   = is_array( $sticky_posts ) ? array_flip( array_map( 'intval', $sticky_posts ) ) : [];
 
 		$taxonomy_data = [];
-		// Always include taxonomies for Direct SQL.
-		$taxonomy_data = $this->get_taxonomy_data_for_posts( $posts );
+		if ( ! empty( $this->config['include_taxonomies'] ) ) {
+			$taxonomy_data = $this->get_taxonomy_data_for_posts( $posts );
+		}
 
 		// Merge post data with meta data.
 		$merged_data = [];

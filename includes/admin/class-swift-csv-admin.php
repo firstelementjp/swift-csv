@@ -403,9 +403,25 @@ class Swift_CSV_Admin {
 		);
 
 		add_settings_field(
+			'swift_csv_include_taxonomies',
+			'',
+			[ $this, 'export_include_taxonomies_field_html' ],
+			'swift-csv',
+			'swift_csv_export_section'
+		);
+
+		add_settings_field(
 			'swift_csv_export_taxonomy_format',
 			'',
 			[ $this, 'export_taxonomy_format_field_html' ],
+			'swift-csv',
+			'swift_csv_export_section'
+		);
+
+		add_settings_field(
+			'swift_csv_include_custom_fields',
+			'',
+			[ $this, 'export_include_custom_fields_field_html' ],
 			'swift-csv',
 			'swift_csv_export_section'
 		);
@@ -536,6 +552,29 @@ class Swift_CSV_Admin {
 	}
 
 	/**
+	 * Export include custom fields field callback
+	 *
+	 * @since 0.9.10
+	 * @return void
+	 */
+	public function export_include_custom_fields_field_html() {
+		?>
+		<dl>
+			<dt>
+				<?php esc_html_e( 'Custom Fields', 'swift-csv' ); ?>
+			</dt>
+			<dd>
+				<label>
+					<input type="checkbox" id="swift_csv_include_custom_fields" name="swift_csv_include_custom_fields" value="1" checked>
+					<?php esc_html_e( 'Include custom field columns', 'swift-csv' ); ?>
+				</label>
+				<p class="description"><?php esc_html_e( 'If unchecked, custom field columns are omitted for faster exports.', 'swift-csv' ); ?></p>
+			</dd>
+		</dl>
+		<?php
+	}
+
+	/**
 	 * Export enable logs field callback
 	 *
 	 * @since 0.9.8
@@ -579,20 +618,29 @@ class Swift_CSV_Admin {
 					<input type="radio" name="swift_csv_export_post_status" id="swift_csv_post_status_any" value="any">
 					<?php esc_html_e( 'All statuses', 'swift-csv' ); ?>
 				</label>
-				<label class="swift-csv-block-label">
-					<input type="radio" name="swift_csv_export_post_status" id="swift_csv_post_status_custom" value="custom">
-					<?php esc_html_e( 'Custom', 'swift-csv' ); ?>
+			</dd>
+		</dl>
+		<?php
+	}
+
+	/**
+	 * Export include taxonomies field callback
+	 *
+	 * @since 0.9.10
+	 * @return void
+	 */
+	public function export_include_taxonomies_field_html() {
+		?>
+		<dl>
+			<dt>
+				<?php esc_html_e( 'Taxonomies', 'swift-csv' ); ?>
+			</dt>
+			<dd>
+				<label>
+					<input type="checkbox" id="swift_csv_include_taxonomies" name="swift_csv_include_taxonomies" value="1" checked>
+					<?php esc_html_e( 'Include taxonomy columns', 'swift-csv' ); ?>
 				</label>
-				<div id="custom-post-status-help" class="swift-csv-custom-help">
-					<?php
-					printf(
-						/* translators: 1: Hook name, 2: Documentation link */
-						esc_html__( 'Use the %1$s hook to specify target post status. See %2$s for details.', 'swift-csv' ),
-						'<code>swift_csv_export_post_status_query</code>',
-						'<a href="' . esc_url( SWIFT_CSV_DOCS_URL ) . 'hooks" target="_blank">' . esc_html__( 'documentation', 'swift-csv' ) . '</a>'
-					);
-					?>
-				</div>
+				<p class="description"><?php esc_html_e( 'If unchecked, taxonomy columns are omitted for faster exports.', 'swift-csv' ); ?></p>
 			</dd>
 		</dl>
 		<?php

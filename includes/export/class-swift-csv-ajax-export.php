@@ -412,14 +412,14 @@ class Swift_CSV_Ajax_Export {
 	 * @param string $post_status The post status to query.
 	 * @return string[] Array of CSV header strings
 	 */
-	private function build_headers( string $post_type, string $export_scope = 'basic', bool $include_private_meta = false, string $post_status = 'publish' ): array {
+	private function build_headers( string $post_type, string $export_scope = 'basic', bool $include_private_meta = false, string $post_status = 'publish', bool $include_taxonomies = true, bool $include_custom_fields = true ): array {
 		$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 		$include_private_meta = (bool) $include_private_meta;
 
 		// Get allowed post fields using common function.
 		$headers = $this->get_allowed_post_fields( $export_scope );
 
-		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+		$taxonomies = $include_taxonomies ? get_object_taxonomies( $post_type, 'objects' ) : [];
 
 		// Hook for taxonomy object filtering.
 		/**
@@ -451,7 +451,9 @@ class Swift_CSV_Ajax_Export {
 		}
 
 		// Merge post fields and taxonomies.
-		$headers = array_merge( $headers, $taxonomy_headers );
+		if ( $include_taxonomies ) {
+			$headers = array_merge( $headers, $taxonomy_headers );
+		}
 
 		// Apply sample query hook for meta field discovery.
 		/**
@@ -598,7 +600,7 @@ class Swift_CSV_Ajax_Export {
 			'context'              => 'custom_field_headers_generation',
 		];
 
-		$custom_field_headers = apply_filters( 'swift_csv_generate_custom_field_headers', [], $classified_meta_keys, $custom_field_args );
+		$custom_field_headers = $include_custom_fields ? apply_filters( 'swift_csv_generate_custom_field_headers', [], $classified_meta_keys, $custom_field_args ) : [];
 		$custom_field_headers = is_array( $custom_field_headers ) ? $custom_field_headers : [];
 
 		// Always merge fallback cf_ headers from classified meta keys.
@@ -619,11 +621,15 @@ class Swift_CSV_Ajax_Export {
 			}
 		}
 
-		$custom_field_headers = array_merge( $custom_field_headers, $fallback_custom_field_headers );
+		if ( $include_custom_fields ) {
+			$custom_field_headers = array_merge( $custom_field_headers, $fallback_custom_field_headers );
+		}
 		$custom_field_headers = array_values( array_unique( array_filter( array_map( 'trim', (array) $custom_field_headers ), 'strlen' ) ) );
 
 		// Merge all three header types.
-		$headers = array_merge( $headers, $custom_field_headers );
+		if ( $include_custom_fields ) {
+			$headers = array_merge( $headers, $custom_field_headers );
+		}
 
 		return $this->normalize_headers( $headers );
 	}
@@ -727,6 +733,11 @@ class Swift_CSV_Ajax_Export {
 			$export_session  = sanitize_key( wp_unslash( $_POST['export_session'] ?? '' ) );
 			$start_row       = absint( wp_unslash( $_POST['start_row'] ?? 0 ) );
 			$export_limit    = absint( wp_unslash( $_POST['export_limit'] ?? 0 ) );
+
+			$include_taxonomies_value    = sanitize_text_field( wp_unslash( $_POST['include_taxonomies'] ?? '1' ) );
+			$include_custom_fields_value = sanitize_text_field( wp_unslash( $_POST['include_custom_fields'] ?? '1' ) );
+			$include_taxonomies          = in_array( $include_taxonomies_value, [ '1', 'true' ], true );
+			$include_custom_fields       = in_array( $include_custom_fields_value, [ '1', 'true' ], true );
 
 			$include_private_meta_value = sanitize_text_field( wp_unslash( $_POST['include_private_meta'] ?? '' ) );
 			$include_private_meta       = '1' === $include_private_meta_value;
@@ -870,7 +881,7 @@ class Swift_CSV_Ajax_Export {
 
 			// Simple CSV generation with headers.
 			$csv_chunk      = '';
-			$headers        = $this->build_headers( $post_type, $export_scope, $include_private_meta, $post_status_for_query );
+			$headers        = $this->build_headers( $post_type, $export_scope, $include_private_meta, $post_status_for_query, $include_taxonomies, $include_custom_fields );
 			$export_details = []; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 
 			// Add headers for first chunk.

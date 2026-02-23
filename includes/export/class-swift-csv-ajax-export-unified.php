@@ -42,15 +42,26 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @return void
 	 */
 	public function handle_ajax_export() {
+		$initial_ob_level = function_exists( 'ob_get_level' ) ? ob_get_level() : 0;
+		if ( function_exists( 'ob_start' ) ) {
+			ob_start();
+		}
+
 		// Verify nonce.
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'swift_csv_ajax_nonce' ) ) {
+			while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
+				ob_end_clean();
+			}
 			wp_send_json_error( 'Security check failed.' );
 			return;
 		}
 
 		// Check user capabilities.
 		if ( ! current_user_can( 'export' ) ) {
+			while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
+				ob_end_clean();
+			}
 			wp_send_json_error( 'Insufficient permissions.' );
 			return;
 		}
@@ -78,8 +89,14 @@ class Swift_CSV_Ajax_Export_Unified {
 					break;
 			}
 
+			while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
+				ob_end_clean();
+			}
 			wp_send_json( $result );
 		} catch ( Exception $e ) {
+			while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
+				ob_end_clean();
+			}
 			wp_send_json_error( 'Export failed: ' . wp_kses_post( $e->getMessage() ) );
 		}
 	}
@@ -195,30 +212,18 @@ class Swift_CSV_Ajax_Export_Unified {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		// Get basic configuration.
 		$config = [
-			'post_type'            => sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) ),
-			'post_status'          => sanitize_text_field( wp_unslash( $_POST['post_status'] ?? 'publish' ) ),
-			'export_scope'         => sanitize_text_field( wp_unslash( $_POST['export_scope'] ?? 'all' ) ),
-			'include_private_meta' => isset( $_POST['include_private_meta'] ) ? (bool) $_POST['include_private_meta'] : false,
-			'export_limit'         => isset( $_POST['export_limit'] ) ? absint( $_POST['export_limit'] ) : 0,
-			'taxonomy_format'      => sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) ),
-			'enable_logs'          => isset( $_POST['enable_logs'] ) ? (bool) $_POST['enable_logs'] : false,
+			'post_type'             => sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) ),
+			'post_status'           => sanitize_text_field( wp_unslash( $_POST['post_status'] ?? 'publish' ) ),
+			'export_scope'          => sanitize_text_field( wp_unslash( $_POST['export_scope'] ?? 'all' ) ),
+			'include_taxonomies'    => isset( $_POST['include_taxonomies'] ) && in_array( (string) wp_unslash( $_POST['include_taxonomies'] ), [ '1', 'true' ], true ),
+			'include_custom_fields' => isset( $_POST['include_custom_fields'] ) && in_array( (string) wp_unslash( $_POST['include_custom_fields'] ), [ '1', 'true' ], true ),
+			'include_private_meta'  => isset( $_POST['include_private_meta'] ) ? (bool) $_POST['include_private_meta'] : false,
+			'export_limit'          => isset( $_POST['export_limit'] ) ? absint( $_POST['export_limit'] ) : 0,
+			'taxonomy_format'       => sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) ),
+			'enable_logs'           => isset( $_POST['enable_logs'] ) ? (bool) $_POST['enable_logs'] : false,
 		];
 
-			// Handle custom post status.
-		if ( 'custom' === $config['post_status'] ) {
-			// Apply filter for custom post statuses with default fallback.
-			$custom_statuses = apply_filters( 'swift_csv_custom_post_statuses', [ 'publish' ] );
-
-			// Ensure we have valid statuses.
-			if ( is_array( $custom_statuses ) && ! empty( $custom_statuses ) ) {
-				$config['post_status'] = $custom_statuses;
-			} else {
-				// Fallback to publish if filter returns invalid data.
-				$config['post_status'] = [ 'publish' ];
-			}
-		}
-
-			// Handle custom export scope.
+		// Handle custom export scope.
 		if ( 'custom' === $config['export_scope'] ) {
 			// Define default export fields.
 			$default_fields = [
@@ -269,18 +274,13 @@ class Swift_CSV_Ajax_Export_Unified {
 			// Initialize on first batch.
 			if ( 0 === $start_row ) {
 				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
-				$export       = new Swift_CSV_Export_Direct_SQL( $config );
-				$headers      = $export->get_csv_headers_public();
-				$headers_line = implode(
-					',',
-					array_map(
-						static function ( $header ) {
-							return '"' . str_replace( '"', '""', (string) $header ) . '"';
-						},
-						(array) $headers
-					)
-				);
-				set_transient( $headers_key, $headers_line, HOUR_IN_SECONDS );
+				$headers_line = get_transient( $headers_key );
+				if ( ! is_string( $headers_line ) || '' === $headers_line ) {
+					$export       = new Swift_CSV_Export_Direct_SQL( $config );
+					$headers      = $export->get_csv_headers_public();
+					$headers_line = implode( ',', array_map( [ $this, 'escape_csv_field' ], $headers ) );
+					set_transient( $headers_key, $headers_line, HOUR_IN_SECONDS );
+				}
 
 				// Initialize log store if logging enabled.
 				$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
@@ -342,14 +342,11 @@ class Swift_CSV_Ajax_Export_Unified {
 				}
 			}
 
-			// Store CSV chunk for final assembly.
-			$this->store_csv_chunk( $export_session, $csv_chunk );
-
 			// Add log entry if logging enabled.
 			if ( isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true ) ) {
 				$batch_number = floor( $start_row / $batch_size ) + 1;
 				$message      = sprintf(
-					/* translators: 1: Batch number, 2: Number of posts processed */
+				/* translators: 1: Batch number, 2: Number of posts processed */
 					__( 'Batch %1$d: Bulk export %2$d posts', 'swift-csv' ),
 					$batch_number,
 					count( $posts_data )
@@ -371,9 +368,7 @@ class Swift_CSV_Ajax_Export_Unified {
 			$progress = min( 100, max( 0, $progress ) );
 
 			if ( ! $continue ) {
-				$chunks_key  = 'swift_csv_csv_chunks_' . get_current_user_id() . '_' . $export_session;
 				$headers_key = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
-				delete_transient( $chunks_key );
 				delete_transient( $headers_key );
 			}
 
@@ -388,7 +383,6 @@ class Swift_CSV_Ajax_Export_Unified {
 				'status'         => $continue ? 'processing' : 'completed',
 				'csv_chunk'      => $csv_chunk,
 			];
-
 		} catch ( Exception $e ) {
 			throw new Exception( 'Direct SQL export failed: ' . esc_html( $e->getMessage() ) );
 		}
@@ -489,6 +483,19 @@ class Swift_CSV_Ajax_Export_Unified {
 		delete_transient( $headers_key );
 
 		return $final_csv;
+	}
+
+	/**
+	 * Escape CSV field
+	 *
+	 * @since 0.9.8
+	 * @param string $field Field value.
+	 * @return string Escaped field.
+	 */
+	private function escape_csv_field( $field ) {
+		$field = (string) $field;
+		$field = str_replace( '"', '""', $field );
+		return '"' . $field . '"';
 	}
 
 	/**

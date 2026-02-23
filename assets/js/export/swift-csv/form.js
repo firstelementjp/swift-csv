@@ -21,6 +21,16 @@
 				export_scope:
 					document.querySelector('input[name="swift_csv_export_scope"]:checked')?.value ||
 					'all',
+				include_taxonomies: document.querySelector(
+					'input[name="swift_csv_include_taxonomies"]'
+				)?.checked
+					? '1'
+					: '0',
+				include_custom_fields: document.querySelector(
+					'input[name="swift_csv_include_custom_fields"]'
+				)?.checked
+					? '1'
+					: '0',
 				include_private_meta: document.querySelector(
 					'input[name="swift_csv_include_private_meta"]'
 				)?.checked

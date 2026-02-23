@@ -42,6 +42,15 @@ function handleAjaxExport(e) {
 		'publish';
 	const exportScope =
 		document.querySelector('input[name="swift_csv_export_scope"]:checked')?.value || 'basic';
+	const includeTaxonomies = document.querySelector('input[name="swift_csv_include_taxonomies"]')
+		?.checked
+		? '1'
+		: '0';
+	const includeCustomFields = document.querySelector(
+		'input[name="swift_csv_include_custom_fields"]'
+	)?.checked
+		? '1'
+		: '0';
 	const includePrivateMeta = document.querySelector(
 		'input[name="swift_csv_include_private_meta"]'
 	)?.checked
@@ -285,6 +294,8 @@ function handleAjaxExport(e) {
 			post_type: postType,
 			post_status: postStatus,
 			export_scope: exportScope,
+			include_taxonomies: includeTaxonomies,
+			include_custom_fields: includeCustomFields,
 			include_private_meta: includePrivateMeta,
 			taxonomy_format: taxonomyFormat,
 			export_limit: exportLimit,

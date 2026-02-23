@@ -229,40 +229,13 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @return array CSV headers.
 	 */
 	protected function get_csv_headers() {
-		$headers = parent::get_csv_headers();
-
-		if ( ! empty( $this->config['include_taxonomies'] ) ) {
-			$post_type   = $this->config['post_type'] ?? 'post';
-			$taxonomies  = get_object_taxonomies( $post_type, 'objects' );
-			$tax_headers = [];
-			foreach ( $taxonomies as $taxonomy ) {
-				$tax_headers[] = 'tax_' . $taxonomy->name;
-			}
-			$headers = array_merge( $headers, $tax_headers );
+		// Get query_spec for consistent sample selection.
+		$query_spec = [];
+		if ( isset( $this->config['query_spec'] ) && is_array( $this->config['query_spec'] ) ) {
+			$query_spec = $this->config['query_spec'];
 		}
 
-		if ( ! empty( $this->config['include_custom_fields'] ) ) {
-			$cf_headers = $this->get_custom_field_headers();
-			if ( ! empty( $cf_headers ) ) {
-				$headers = array_merge( $headers, $cf_headers );
-			}
-		}
-
-		/**
-		 * Filter CSV headers for Direct SQL export
-		 *
-		 * Allows developers to modify the CSV headers before export.
-		 * This filter is applied to both the header row and data processing.
-		 *
-		 * @since 0.9.9
-		 * @param array  $headers CSV headers.
-		 * @param array  $config Export configuration.
-		 * @param string $context Export context (direct_sql).
-		 * @return array Modified headers.
-		 */
-		$headers = apply_filters( 'swift_csv_export_headers', $headers, $this->config, 'direct_sql' );
-
-		return $headers;
+		return $this->get_complete_headers( $this->config, $query_spec, 'direct_sql' );
 	}
 
 	/**
@@ -277,159 +250,6 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	public function get_csv_headers_public() {
 		return $this->get_csv_headers();
 	}
-
-	/**
-	 * Get custom field (meta) headers
-	 *
-	 * Matches the standard export behavior:
-	 * - Uses a sample post to discover meta keys.
-	 * - Supports meta key classification and header generation via hooks.
-	 * - Uses the "cf_" prefix for custom field columns.
-	 *
-	 * @since 0.9.9
-	 * @return string[] Custom field headers.
-	 */
-	private function get_custom_field_headers() {
-		global $wpdb;
-
-		$post_type            = $this->config['post_type'] ?? 'post';
-		$post_status          = $this->config['post_status'] ?? 'publish';
-		$export_scope         = $this->config['export_scope'] ?? 'basic';
-		$export_scope         = is_array( $export_scope ) ? ( $export_scope['scope'] ?? 'basic' ) : $export_scope;
-		$include_private_meta = ! empty( $this->config['include_private_meta'] );
-
-		$sample_args                         = [
-			'post_type' => $post_type,
-			'context'   => 'meta_discovery',
-		];
-		$sample_query_args                   = [
-			'post_type'      => $post_type,
-			'post_status'    => $post_status,
-			'posts_per_page' => 1,
-			'orderby'        => 'post_date',
-			'order'          => 'DESC',
-			'fields'         => 'ids',
-		];
-		$sample_query_args                   = apply_filters( 'swift_csv_sample_query_args', $sample_query_args, $sample_args );
-		$sample_query_args['posts_per_page'] = 1;
-		$sample_post_ids                     = get_posts( $sample_query_args );
-
-		$sample_filter_args = [
-			'post_type'            => $post_type,
-			'export_scope'         => $export_scope,
-			'include_private_meta' => $include_private_meta,
-			'context'              => 'sample_posts_filter',
-		];
-		$sample_post_ids    = apply_filters( 'swift_csv_filter_sample_posts', $sample_post_ids, $sample_filter_args );
-
-		$all_meta_keys      = [];
-		$found_private_meta = false;
-		foreach ( (array) $sample_post_ids as $sample_post_id ) {
-			// Normalize sample post ID in case filters return WP_Post or arrays.
-			if ( is_object( $sample_post_id ) && isset( $sample_post_id->ID ) ) {
-				$sample_post_id = $sample_post_id->ID;
-			} elseif ( is_array( $sample_post_id ) && isset( $sample_post_id['ID'] ) ) {
-				$sample_post_id = $sample_post_id['ID'];
-			}
-			$sample_post_id = (int) $sample_post_id;
-			if ( 0 === $sample_post_id ) {
-				continue;
-			}
-			$post_meta = get_post_meta( $sample_post_id );
-			$meta_keys = array_keys( (array) $post_meta );
-			foreach ( $meta_keys as $meta_key ) {
-				if ( ! is_string( $meta_key ) || '' === $meta_key ) {
-					continue;
-				}
-				if ( ! in_array( $meta_key, $all_meta_keys, true ) ) {
-					$all_meta_keys[] = $meta_key;
-				}
-				if ( 0 === strpos( $meta_key, '_' ) ) {
-					$found_private_meta = true;
-				}
-			}
-			if ( $found_private_meta && ! $include_private_meta ) {
-				break;
-			}
-		}
-
-		$meta_classify_args   = [
-			'post_type'            => $post_type,
-			'export_scope'         => $export_scope,
-			'include_private_meta' => $include_private_meta,
-			'context'              => 'meta_key_classification',
-		];
-		$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', $all_meta_keys, $meta_classify_args );
-
-		// Free behavior: if Pro version is not active, move ACF keys to regular.
-		if ( is_array( $classified_meta_keys ) && isset( $classified_meta_keys['acf'] ) ) {
-			// Move ACF keys to regular keys (they'll be treated as regular custom fields).
-			if ( isset( $classified_meta_keys['regular'] ) && is_array( $classified_meta_keys['regular'] ) ) {
-				$classified_meta_keys['regular'] = array_merge(
-					$classified_meta_keys['regular'],
-					$classified_meta_keys['acf'] ?? []
-				);
-			}
-			unset( $classified_meta_keys['acf'] );
-		}
-
-		// Ensure classified structure exists.
-		if ( ! is_array( $classified_meta_keys ) || ! isset( $classified_meta_keys['regular'] ) ) {
-			$classified_meta_keys = [
-				'regular' => [],
-				'private' => [],
-			];
-			foreach ( $all_meta_keys as $meta_key ) {
-				if ( 0 === strpos( (string) $meta_key, '_' ) ) {
-					$classified_meta_keys['private'][] = (string) $meta_key;
-				} else {
-					$classified_meta_keys['regular'][] = (string) $meta_key;
-				}
-			}
-		}
-
-		$custom_field_args    = [
-			'post_type'            => $post_type,
-			'export_scope'         => $export_scope,
-			'include_private_meta' => $include_private_meta,
-			'context'              => 'custom_field_headers_generation',
-		];
-		$custom_field_headers = apply_filters( 'swift_csv_generate_custom_field_headers', [], $classified_meta_keys, $custom_field_args );
-		$custom_field_headers = is_array( $custom_field_headers ) ? $custom_field_headers : [];
-
-		// Free behavior: only accept cf_ headers.
-		$cf_headers = [];
-		foreach ( $custom_field_headers as $header ) {
-			if ( ! is_string( $header ) || '' === $header ) {
-				continue;
-			}
-			if ( 0 !== strpos( $header, 'cf_' ) ) {
-				continue;
-			}
-			$cf_headers[] = $header;
-		}
-
-		// Always merge fallback cf_ headers from classified meta keys.
-		foreach ( (array) ( $classified_meta_keys['regular'] ?? [] ) as $meta_key ) {
-			if ( ! is_string( $meta_key ) || '' === $meta_key ) {
-				continue;
-			}
-			$cf_headers[] = 'cf_' . $meta_key;
-		}
-		if ( $include_private_meta ) {
-			foreach ( (array) ( $classified_meta_keys['private'] ?? [] ) as $meta_key ) {
-				if ( ! is_string( $meta_key ) || '' === $meta_key ) {
-					continue;
-				}
-				$cf_headers[] = 'cf_' . $meta_key;
-			}
-		}
-
-		$cf_headers = array_values( array_unique( array_filter( $cf_headers ) ) );
-		return $cf_headers;
-	}
-
-
 
 	/**
 	 * Get taxonomy data for posts using separate query

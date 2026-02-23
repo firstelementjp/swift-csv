@@ -410,9 +410,12 @@ class Swift_CSV_Ajax_Export {
 	 * @param string $export_scope The export scope ('basic', 'all', 'custom').
 	 * @param bool   $include_private_meta Whether to include private meta fields.
 	 * @param string $post_status The post status to query.
+	 * @param bool   $include_taxonomies Whether to include taxonomy fields.
+	 * @param bool   $include_custom_fields Whether to include custom fields.
+	 * @param array  $query_spec Query specification for filtering.
 	 * @return string[] Array of CSV header strings
 	 */
-	private function build_headers( string $post_type, string $export_scope = 'basic', bool $include_private_meta = false, string $post_status = 'publish', bool $include_taxonomies = true, bool $include_custom_fields = true ): array {
+	private function build_headers( string $post_type, string $export_scope = 'basic', bool $include_private_meta = false, string $post_status = 'publish', bool $include_taxonomies = true, bool $include_custom_fields = true, array $query_spec = [] ): array {
 		$export_scope         = is_string( $export_scope ) ? $export_scope : 'basic';
 		$include_private_meta = (bool) $include_private_meta;
 
@@ -467,11 +470,11 @@ class Swift_CSV_Ajax_Export {
 		 * @param array $args Export arguments including context
 		 * @return array Modified query arguments
 		 */
-		$sample_args                         = [
+		$sample_args       = [
 			'post_type' => $post_type,
 			'context'   => 'meta_discovery',
 		];
-		$sample_query_args                   = [
+		$sample_query_args = [
 			'post_type'      => $post_type,
 			'post_status'    => $post_status,
 			'posts_per_page' => 1,
@@ -479,30 +482,19 @@ class Swift_CSV_Ajax_Export {
 			'order'          => 'DESC',
 			'fields'         => 'ids',
 		];
+		// Merge query spec to ensure sample matches export criteria.
+		if ( ! empty( $query_spec ) ) {
+			// Convert tax_query and meta_query to WP_Query format.
+			if ( isset( $query_spec['tax_query'] ) ) {
+				$sample_query_args['tax_query'] = $query_spec['tax_query'];
+			}
+			if ( isset( $query_spec['meta_query'] ) ) {
+				$sample_query_args['meta_query'] = $query_spec['meta_query'];
+			}
+		}
 		$sample_query_args                   = apply_filters( 'swift_csv_sample_query_args', $sample_query_args, $sample_args );
 		$sample_query_args['posts_per_page'] = 1; // Ensure only 1 post.
 		$sample_post_ids                     = get_posts( $sample_query_args );
-
-		// Hook for sample post filtering (Pro version optimization).
-		/**
-		 * Filter sample posts for meta key discovery
-		 *
-		 * Allows developers to customize which sample posts are used for meta key
-		 * discovery. This hook is ideal for Pro versions that may want to use
-		 * specific posts for better field detection.
-		 *
-		 * @since 0.9.0
-		 * @param array $sample_post_ids Sample post IDs
-		 * @param array $args Export arguments including context
-		 * @return array Modified sample post IDs
-		 */
-		$sample_filter_args = [
-			'post_type'            => $post_type,
-			'export_scope'         => $export_scope,
-			'include_private_meta' => $include_private_meta,
-			'context'              => 'sample_posts_filter',
-		];
-		$sample_post_ids    = apply_filters( 'swift_csv_filter_sample_posts', $sample_post_ids, $sample_filter_args );
 
 		$all_meta_keys      = [];
 		$found_private_meta = false;
@@ -918,7 +910,7 @@ class Swift_CSV_Ajax_Export {
 
 			// Simple CSV generation with headers.
 			$csv_chunk      = '';
-			$headers        = $this->build_headers( $post_type, $export_scope, $include_private_meta, $post_status_for_query, $include_taxonomies, $include_custom_fields );
+			$headers        = $this->build_headers( $post_type, $export_scope, $include_private_meta, $post_status_for_query, $include_taxonomies, $include_custom_fields, $query_spec ?? [] );
 			$export_details = []; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 
 			// Add headers for first chunk.

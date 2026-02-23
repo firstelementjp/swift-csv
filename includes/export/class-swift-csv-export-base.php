@@ -171,7 +171,21 @@ abstract class Swift_CSV_Export_Base {
 	 * @return array CSV headers.
 	 */
 	protected function get_csv_headers() {
-		$export_scope = $this->config['export_scope'];
+		return $this->get_basic_headers( $this->config ); // Hook application is done in get_complete_headers.
+	}
+
+	/**
+	 * Get basic CSV headers from config
+	 *
+	 * This method is intended to be safe to call from other helpers (e.g. get_complete_headers)
+	 * without triggering overridden get_csv_headers() implementations.
+	 *
+	 * @since 0.9.11
+	 * @param array $config Export configuration.
+	 * @return string[] Basic CSV headers.
+	 */
+	protected function get_basic_headers( array $config ) {
+		$export_scope = $config['export_scope'] ?? 'basic';
 		$scope        = $export_scope;
 
 		// Basic headers - use actual DB column names.
@@ -215,14 +229,7 @@ abstract class Swift_CSV_Export_Base {
 				break;
 		}
 
-		/**
-		 * Filter CSV headers
-		 *
-		 * @since 0.9.0
-		 * @param array $headers CSV headers.
-		 * @param array $config Export configuration.
-		 */
-		return apply_filters( 'swift_csv_export_headers', $headers, $this->config, 'standard' );
+		return $headers;
 	}
 
 	/**
@@ -281,26 +288,6 @@ abstract class Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Get custom column value
-	 *
-	 * @since 0.9.8
-	 * @param array  $post Post data.
-	 * @param string $column_key Column key.
-	 * @return string Custom column value.
-	 */
-	protected function get_custom_column_value( $post, $column_key ) {
-		// Allow custom column processing via filter.
-		$value = apply_filters( 'swift_csv_custom_column_value', '', $column_key, $post['ID'] );
-
-		if ( '' !== $value ) {
-			return $value;
-		}
-
-		// Default: try to get from post data.
-		return $post[ $column_key ] ?? '';
-	}
-
-	/**
 	 * Generate CSV from posts data
 	 *
 	 * @since 0.9.8
@@ -319,6 +306,257 @@ abstract class Swift_CSV_Export_Base {
 		}
 
 		return $csv;
+	}
+
+	/**
+	 * Get custom field (meta) headers
+	 *
+	 * Uses a sample post to discover meta keys and generate custom field headers.
+	 * Supports meta key classification and header generation via hooks.
+	 * Uses the "cf_" prefix for custom field columns.
+	 *
+	 * @since 0.9.11
+	 * @param array $config Export configuration.
+	 * @param array $query_spec Query specification for filtering.
+	 * @return string[] Custom field headers.
+	 */
+	protected function get_custom_field_headers( array $config, array $query_spec = [] ) {
+		$post_type            = $config['post_type'] ?? 'post';
+		$post_status          = $config['post_status'] ?? 'publish';
+		$export_scope         = $config['export_scope'] ?? 'basic';
+		$export_scope         = is_array( $export_scope ) ? ( $export_scope['scope'] ?? 'basic' ) : $export_scope;
+		$include_private_meta = ! empty( $config['include_private_meta'] );
+
+		$sample_args       = [
+			'post_type' => $post_type,
+			'context'   => 'meta_discovery',
+		];
+		$sample_query_args = [
+			'post_type'      => $post_type,
+			'post_status'    => $post_status,
+			'posts_per_page' => 1,
+			'orderby'        => 'post_date',
+			'order'          => 'DESC',
+			'fields'         => 'ids',
+		];
+
+		// Merge query spec to ensure sample matches export criteria.
+		if ( ! empty( $query_spec ) ) {
+			// Convert tax_query and meta_query to WP_Query format.
+			if ( isset( $query_spec['tax_query'] ) ) {
+				$sample_query_args['tax_query'] = $query_spec['tax_query'];
+			}
+			if ( isset( $query_spec['meta_query'] ) ) {
+				$sample_query_args['meta_query'] = $query_spec['meta_query'];
+			}
+		}
+
+		$sample_query_args                   = apply_filters( 'swift_csv_sample_query_args', $sample_query_args, $sample_args );
+		$sample_query_args['posts_per_page'] = 1;
+		$sample_post_ids                     = get_posts( $sample_query_args );
+
+		$all_meta_keys      = [];
+		$found_private_meta = false;
+		foreach ( (array) $sample_post_ids as $sample_post_id ) {
+			$sample_post_id = (int) $sample_post_id;
+			if ( 0 === $sample_post_id ) {
+				continue;
+			}
+			$post_meta = get_post_meta( $sample_post_id );
+			$meta_keys = array_keys( (array) $post_meta );
+			foreach ( $meta_keys as $meta_key ) {
+				if ( ! is_string( $meta_key ) || '' === $meta_key ) {
+					continue;
+				}
+				if ( ! in_array( $meta_key, $all_meta_keys, true ) ) {
+					$all_meta_keys[] = $meta_key;
+				}
+				if ( str_starts_with( $meta_key, '_' ) ) {
+					$found_private_meta = true;
+				}
+			}
+
+			if ( $found_private_meta && ! $include_private_meta ) {
+				break; // Found what we need.
+			}
+		}
+
+		// Hook for meta key classification.
+		/**
+		 * Filter and classify discovered meta keys
+		 *
+		 * Allows developers to classify meta keys into different categories
+		 * (regular, private) for specialized processing. This hook enables
+		 * custom field type classification and processing.
+		 *
+		 * @since 0.9.0
+		 * @param array $all_meta_keys All discovered meta keys
+		 * @param array $args Export arguments including context
+		 * @return array Classified meta keys array with 'regular', 'private' keys
+		 */
+		$meta_classify_args   = [
+			'post_type'            => $post_type,
+			'export_scope'         => $export_scope,
+			'include_private_meta' => $include_private_meta,
+			'context'              => 'meta_key_classification',
+		];
+		$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', $all_meta_keys, $meta_classify_args );
+
+		// Ensure classified structure exists.
+		if ( ! is_array( $classified_meta_keys ) || ! isset( $classified_meta_keys['regular'] ) ) {
+			// Fallback: create basic classification.
+			$classified_meta_keys = [
+				'regular' => [],
+				'private' => [],
+			];
+
+			foreach ( $all_meta_keys as $meta_key ) {
+				if ( str_starts_with( $meta_key, '_' ) ) {
+					$classified_meta_keys['private'][] = $meta_key;
+				} else {
+					$classified_meta_keys['regular'][] = $meta_key;
+				}
+			}
+		}
+
+		// Hook for custom field headers generation.
+		/**
+		 * Generate custom field headers for export
+		 *
+		 * Allows extensions to generate custom field headers from classified meta keys.
+		 * This hook enables custom header generation with different prefixes based on field type.
+		 *
+		 * @since 0.9.0
+		 * @param array $custom_field_headers Array of custom field headers (empty array to start)
+		 * @param array $classified_meta_keys Classified meta keys with 'regular', 'private' keys
+		 * @param array $args Export arguments including context
+		 * @return array Complete custom field headers array
+		 */
+		$custom_field_args = [
+			'post_type'            => $post_type,
+			'export_scope'         => $export_scope,
+			'include_private_meta' => $include_private_meta,
+			'context'              => 'custom_field_headers_generation',
+		];
+
+		$custom_field_headers = ! empty( $config['include_custom_fields'] ) ? apply_filters( 'swift_csv_generate_custom_field_headers', [], $classified_meta_keys, $custom_field_args ) : [];
+		$custom_field_headers = is_array( $custom_field_headers ) ? $custom_field_headers : [];
+
+		// Always merge fallback cf_ headers from classified meta keys.
+		// This ensures private meta headers are not lost even if filters return partial results.
+		$fallback_custom_field_headers = [];
+		foreach ( (array) ( $classified_meta_keys['regular'] ?? [] ) as $meta_key ) {
+			if ( ! is_string( $meta_key ) || '' === $meta_key ) {
+				continue;
+			}
+			$fallback_custom_field_headers[] = 'cf_' . $meta_key;
+		}
+		if ( $include_private_meta ) {
+			foreach ( (array) ( $classified_meta_keys['private'] ?? [] ) as $meta_key ) {
+				if ( ! is_string( $meta_key ) || '' === $meta_key ) {
+					continue;
+				}
+				$fallback_custom_field_headers[] = 'cf_' . $meta_key;
+			}
+		}
+
+		if ( ! empty( $config['include_custom_fields'] ) ) {
+			$custom_field_headers = array_merge( $custom_field_headers, $fallback_custom_field_headers );
+		}
+
+		return $custom_field_headers;
+	}
+
+	/**
+	 * Get taxonomy headers for export
+	 *
+	 * Generates taxonomy column headers with 'tax_' prefix.
+	 * Supports filtering of taxonomy objects.
+	 *
+	 * @since 0.9.11
+	 * @param array $config Export configuration.
+	 * @return string[] Taxonomy headers.
+	 */
+	protected function get_taxonomy_headers( array $config ) {
+		$post_type = $config['post_type'] ?? 'post';
+
+		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+
+		/**
+		 * Filter taxonomy objects for header generation
+		 *
+		 * Allows developers to filter which taxonomies are included in headers.
+		 * This enables selective taxonomy inclusion and custom taxonomy processing.
+		 *
+		 * @since 0.9.0
+		 * @param array $taxonomies Taxonomy objects.
+		 * @param array $args Export arguments including context.
+		 * @return array Modified taxonomy objects.
+		 */
+		$taxonomy_filter_args = [
+			'post_type'            => $post_type,
+			'export_scope'         => $config['export_scope'] ?? 'basic',
+			'include_private_meta' => ! empty( $config['include_private_meta'] ),
+			'context'              => 'taxonomy_objects_filter',
+		];
+		$taxonomies           = apply_filters( 'swift_csv_filter_taxonomy_objects', $taxonomies, $taxonomy_filter_args );
+
+		$tax_headers = [];
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->public ) {
+				$tax_headers[] = 'tax_' . $taxonomy->name;
+			}
+		}
+
+		return $tax_headers;
+	}
+
+	/**
+	 * Get complete CSV headers including all optional columns
+	 *
+	 * Combines basic headers, taxonomy headers, and custom field headers
+	 * based on export configuration. Provides unified header generation
+	 * for both standard and Direct SQL export methods.
+	 *
+	 * @since 0.9.11
+	 * @param array  $config Export configuration.
+	 * @param array  $query_spec Query specification for filtering.
+	 * @param string $context Export context ('standard' or 'direct_sql').
+	 * @return string[] Complete CSV headers.
+	 */
+	protected function get_complete_headers( array $config, array $query_spec = [], string $context = 'standard' ) {
+		// Start with basic headers from get_csv_headers().
+		$headers = $this->get_basic_headers( $config );
+
+		// Add taxonomy headers if enabled.
+		if ( ! empty( $config['include_taxonomies'] ) ) {
+			$tax_headers = $this->get_taxonomy_headers( $config );
+			if ( ! empty( $tax_headers ) ) {
+				$headers = array_merge( $headers, $tax_headers );
+			}
+		}
+
+		// Add custom field headers if enabled.
+		if ( ! empty( $config['include_custom_fields'] ) ) {
+			$cf_headers = $this->get_custom_field_headers( $config, $query_spec );
+			if ( ! empty( $cf_headers ) ) {
+				$headers = array_merge( $headers, $cf_headers );
+			}
+		}
+
+		/**
+		 * Filter complete CSV headers
+		 *
+		 * Allows developers to modify the complete CSV headers before export.
+		 * This filter is applied after all header types are combined.
+		 *
+		 * @since 0.9.0
+		 * @param array  $headers Complete CSV headers.
+		 * @param array  $config Export configuration.
+		 * @param string $context Export context.
+		 * @return array Modified headers.
+		 */
+		return apply_filters( 'swift_csv_export_headers', $headers, $config, $context );
 	}
 
 	/**

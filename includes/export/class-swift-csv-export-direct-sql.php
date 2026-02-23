@@ -234,7 +234,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 			$query_spec = $this->config['query_spec'];
 		}
 
-		return $this->get_complete_headers( $this->config, $query_spec, 'direct_sql' );
+		return parent::get_complete_headers( $this->config, $query_spec, 'direct_sql' );
 	}
 
 	/**

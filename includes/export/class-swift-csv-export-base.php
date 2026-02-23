@@ -222,7 +222,7 @@ abstract class Swift_CSV_Export_Base {
 		 * @param array $headers CSV headers.
 		 * @param array $config Export configuration.
 		 */
-		return apply_filters( 'swift_csv_export_headers', $headers, $this->config );
+		return apply_filters( 'swift_csv_export_headers', $headers, $this->config, 'standard' );
 	}
 
 	/**
@@ -277,7 +277,7 @@ abstract class Swift_CSV_Export_Base {
 				break;
 		}
 
-		return apply_filters( 'swift_csv_export_row', $row, $post, $scope );
+		return apply_filters( 'swift_csv_export_row', $row, $post->ID, $this->config, $scope );
 	}
 
 	/**

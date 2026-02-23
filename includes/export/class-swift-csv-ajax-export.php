@@ -778,6 +778,43 @@ class Swift_CSV_Ajax_Export {
 				];
 
 				/**
+				 * Filter export query spec for data retrieval
+				 *
+				 * This filter provides a unified query spec format that can be used by both
+				 * standard and Direct SQL export routes.
+				 *
+				 * @since 0.9.11
+				 * @param array  $query_spec Query spec.
+				 * @param array  $config Export configuration.
+				 * @param string $context Export context. (standard)
+				 * @return array Modified query spec.
+				 */
+				$query_spec = apply_filters(
+					'swift_csv_export_query_spec',
+					[],
+					[
+						'post_type'             => $post_type,
+						'post_status'           => $post_status_for_query,
+						'export_scope'          => $export_scope,
+						'include_private_meta'  => $include_private_meta,
+						'export_limit'          => $export_limit,
+						'taxonomy_format'       => $taxonomy_format,
+						'include_taxonomies'    => $include_taxonomies,
+						'include_custom_fields' => $include_custom_fields,
+					],
+					'standard'
+				);
+
+				if ( is_array( $query_spec ) ) {
+					if ( isset( $query_spec['tax_query'] ) && is_array( $query_spec['tax_query'] ) ) {
+						$base_query_args['tax_query'] = $query_spec['tax_query'];
+					}
+					if ( isset( $query_spec['meta_query'] ) && is_array( $query_spec['meta_query'] ) ) {
+						$base_query_args['meta_query'] = $query_spec['meta_query'];
+					}
+				}
+
+				/**
 				 * Filter export query arguments for data retrieval
 				 *
 				 * Allows developers to customize the query used to retrieve

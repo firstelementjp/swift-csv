@@ -403,7 +403,7 @@ class Swift_CSV_Ajax_Export_Unified {
 		}
 
 		// Apply filter for customization.
-		return apply_filters( 'swift_csv_direct_sql_batch_size', $batch_size, $total_count, $post_type, $config );
+		return apply_filters( 'swift_csv_export_batch_size', $batch_size, $total_count, $post_type, $config );
 	}
 
 	/**

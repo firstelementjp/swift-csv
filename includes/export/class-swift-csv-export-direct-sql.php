@@ -25,86 +25,205 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 
 	/**
-	 * Cached posts data to avoid multiple database queries
+	 * Get posts data
 	 *
 	 * @since 0.9.8
-	 * @var array
-	 */
-	private $cached_posts_data = null;
-
-	/**
-	 * Get posts data using direct SQL with taxonomy optimization
-	 *
-	 * @since 0.9.8
-	 * @return array Posts data with taxonomy information.
+	 * @return array Posts data.
 	 */
 	protected function get_posts_data() {
+		$export_limit = (int) ( $this->config['export_limit'] ?? 0 );
+		$batch_size   = 1000;
+		$offset       = 0;
+		$posts_data   = [];
+
+		while ( true ) {
+			$batch_posts = $this->get_posts_batch( $offset, $batch_size );
+			if ( empty( $batch_posts ) ) {
+				break;
+			}
+
+			$posts_data = array_merge( $posts_data, $batch_posts );
+			$offset    += count( $batch_posts );
+
+			if ( $export_limit > 0 && $offset >= $export_limit ) {
+				break;
+			}
+		}
+
+		return $posts_data;
+	}
+
+	/**
+	 * Build additional WHERE conditions from query spec
+	 *
+	 * @since 0.9.11
+	 * @param array $query_spec Query spec.
+	 * @param array $params Query params.
+	 * @return string Additional WHERE SQL beginning with ' AND'.
+	 */
+	private function build_query_spec_where_sql( array $query_spec, array &$params ): string {
+		$where_sql = '';
+
+		if ( isset( $query_spec['tax_query'] ) && is_array( $query_spec['tax_query'] ) ) {
+			$where_sql .= $this->build_tax_query_where_sql( $query_spec['tax_query'], $params );
+		}
+
+		if ( isset( $query_spec['meta_query'] ) && is_array( $query_spec['meta_query'] ) ) {
+			$where_sql .= $this->build_meta_query_where_sql( $query_spec['meta_query'], $params );
+		}
+
+		return $where_sql;
+	}
+
+	/**
+	 * Build taxonomy WHERE conditions using EXISTS subqueries
+	 *
+	 * Supported operators:
+	 * - IN
+	 * - NOT IN
+	 *
+	 * Supported fields:
+	 * - term_id
+	 * - slug
+	 *
+	 * @since 0.9.11
+	 * @param array $tax_query Tax query.
+	 * @param array $params Query params.
+	 * @return string Additional WHERE SQL beginning with ' AND'.
+	 */
+	private function build_tax_query_where_sql( array $tax_query, array &$params ): string {
 		global $wpdb;
 
-		// Return cached data if available.
-		if ( null !== $this->cached_posts_data ) {
-			return $this->cached_posts_data;
+		$conditions = [];
+		$relation   = isset( $tax_query['relation'] ) && is_string( $tax_query['relation'] ) ? strtoupper( $tax_query['relation'] ) : 'AND';
+		$relation   = in_array( $relation, [ 'AND', 'OR' ], true ) ? $relation : 'AND';
+
+		foreach ( $tax_query as $clause ) {
+			if ( ! is_array( $clause ) ) {
+				continue;
+			}
+			$taxonomy = isset( $clause['taxonomy'] ) && is_string( $clause['taxonomy'] ) ? sanitize_key( $clause['taxonomy'] ) : '';
+			if ( '' === $taxonomy ) {
+				continue;
+			}
+
+			$field    = isset( $clause['field'] ) && is_string( $clause['field'] ) ? strtolower( $clause['field'] ) : 'term_id';
+			$field    = in_array( $field, [ 'term_id', 'slug' ], true ) ? $field : 'term_id';
+			$operator = isset( $clause['operator'] ) && is_string( $clause['operator'] ) ? strtoupper( $clause['operator'] ) : 'IN';
+			$operator = in_array( $operator, [ 'IN', 'NOT IN' ], true ) ? $operator : 'IN';
+			$terms    = isset( $clause['terms'] ) ? (array) $clause['terms'] : [];
+			$terms    = array_values( array_filter( array_map( 'strval', $terms ) ) );
+			if ( empty( $terms ) ) {
+				continue;
+			}
+
+			$exists_operator = 'IN' === $operator ? 'EXISTS' : 'NOT EXISTS';
+			$placeholders    = implode( ',', array_fill( 0, count( $terms ), '%s' ) );
+
+			if ( 'slug' === $field ) {
+				$subquery = "{$exists_operator} (\n" .
+					"\tSELECT 1\n" .
+					"\tFROM {$wpdb->term_relationships} tr\n" .
+					"\tINNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id\n" .
+					"\tINNER JOIN {$wpdb->terms} t ON t.term_id = tt.term_id\n" .
+					"\tWHERE tr.object_id = ID\n" .
+					"\tAND tt.taxonomy = %s\n" .
+					"\tAND t.slug IN ({$placeholders})\n" .
+					')';
+				$params[] = $taxonomy;
+				foreach ( $terms as $term ) {
+					$params[] = $term;
+				}
+				$conditions[] = $subquery;
+				continue;
+			}
+
+			$subquery = "{$exists_operator} (\n" .
+				"\tSELECT 1\n" .
+				"\tFROM {$wpdb->term_relationships} tr\n" .
+				"\tINNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id\n" .
+				"\tWHERE tr.object_id = ID\n" .
+				"\tAND tt.taxonomy = %s\n" .
+				"\tAND tt.term_id IN ({$placeholders})\n" .
+				')';
+			$params[] = $taxonomy;
+			foreach ( $terms as $term ) {
+				$params[] = $term;
+			}
+			$conditions[] = $subquery;
 		}
 
-		$limit_clause = '';
-		if ( $this->config['export_limit'] > 0 ) {
-			$limit_clause = $wpdb->prepare( 'LIMIT %d', $this->config['export_limit'] );
+		if ( empty( $conditions ) ) {
+			return '';
 		}
 
-		// Build query based on status type.
-		$statuses = $this->config['post_status'];
+		return ' AND (' . implode( " {$relation} ", $conditions ) . ')';
+	}
 
-		if ( is_array( $statuses ) ) {
-			// Multiple statuses - disable taxonomy JOIN to restore server.
-			$status_placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
-			$query               = "SELECT p.ID, p.post_title, p.post_content, p.post_status, 
-							p.post_date, p.post_modified, p.post_name, p.post_excerpt,
-							p.post_author, p.comment_count, p.menu_order, p.post_type,
-							p.post_parent, p.comment_status, p.ping_status, p.post_password
-						FROM {$wpdb->posts} p
-						WHERE p.post_type = %s 
-						AND p.post_status IN ({$status_placeholders})
-						ORDER BY p.post_date DESC
-						{$limit_clause}";
+	/**
+	 * Build meta WHERE conditions using EXISTS subqueries
+	 *
+	 * Supported compare:
+	 * - =
+	 * - !=
+	 * - LIKE
+	 * - NOT LIKE
+	 *
+	 * @since 0.9.11
+	 * @param array $meta_query Meta query.
+	 * @param array $params Query params.
+	 * @return string Additional WHERE SQL beginning with ' AND'.
+	 */
+	private function build_meta_query_where_sql( array $meta_query, array &$params ): string {
+		global $wpdb;
 
-			// Use call_user_func_array to pass all status parameters.
-			$params = array_merge( [ $this->config['post_type'] ], $statuses );
-			$query  = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $query ], $params ) );
-		} else {
-			// Single status - disable taxonomy JOIN to restore server.
-			$query = "SELECT p.ID, p.post_title, p.post_content, p.post_status, 
-							p.post_date, p.post_modified, p.post_name, p.post_excerpt,
-							p.post_author, p.comment_count, p.menu_order, p.post_type,
-							p.post_parent, p.comment_status, p.ping_status, p.post_password
-						FROM {$wpdb->posts} p
-						WHERE p.post_type = %s 
-						AND p.post_status = %s
-						ORDER BY p.post_date DESC
-						{$limit_clause}";
+		$conditions = [];
+		$relation   = isset( $meta_query['relation'] ) && is_string( $meta_query['relation'] ) ? strtoupper( $meta_query['relation'] ) : 'AND';
+		$relation   = in_array( $relation, [ 'AND', 'OR' ], true ) ? $relation : 'AND';
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-			$query = $wpdb->prepare( $query, $this->config['post_type'], $statuses );
+		foreach ( $meta_query as $clause ) {
+			if ( ! is_array( $clause ) ) {
+				continue;
+			}
+
+			$key = isset( $clause['key'] ) && is_string( $clause['key'] ) ? (string) $clause['key'] : '';
+			if ( '' === $key ) {
+				continue;
+			}
+
+			$compare = isset( $clause['compare'] ) && is_string( $clause['compare'] ) ? strtoupper( $clause['compare'] ) : '=';
+			$compare = in_array( $compare, [ '=', '!=', 'LIKE', 'NOT LIKE' ], true ) ? $compare : '=';
+			$value   = isset( $clause['value'] ) ? (string) $clause['value'] : '';
+
+			$exists_operator = in_array( $compare, [ '!=', 'NOT LIKE' ], true ) ? 'NOT EXISTS' : 'EXISTS';
+			$sql_compare     = in_array( $compare, [ '!=', 'NOT LIKE' ], true ) ? ( '!=' === $compare ? '=' : 'LIKE' ) : $compare;
+			$sql_value       = in_array( $compare, [ 'LIKE', 'NOT LIKE' ], true ) ? '%' . $wpdb->esc_like( $value ) . '%' : $value;
+
+			$subquery = "{$exists_operator} (\n" .
+				"\tSELECT 1\n" .
+				"\tFROM {$wpdb->postmeta} pm\n" .
+				"\tWHERE pm.post_id = ID\n" .
+				"\tAND pm.meta_key = %s\n" .
+				"\tAND pm.meta_value {$sql_compare} %s\n" .
+				')';
+
+			$params[]     = $key;
+			$params[]     = $sql_value;
+			$conditions[] = $subquery;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-		$posts_data = $wpdb->get_results( $query, ARRAY_A );
+		if ( empty( $conditions ) ) {
+			return '';
+		}
 
-		// Step 2: Get taxonomy data for these posts.
-		$taxonomy_data = $this->get_taxonomy_data_for_posts( $posts_data );
-
-		// Step 3: Merge posts and taxonomy data.
-		$merged_data = $this->merge_posts_with_taxonomy( $posts_data, $taxonomy_data );
-
-		// Cache the result.
-		$this->cached_posts_data = $merged_data;
-
-		return $merged_data;
+		return ' AND (' . implode( " {$relation} ", $conditions ) . ')';
 	}
 
 	/**
 	 * Get CSV headers for Direct SQL export
 	 *
 	 * Extends base headers to include taxonomy columns when enabled.
+	 * Applies filters for custom header modifications.
 	 *
 	 * @since 0.9.8
 	 * @return array CSV headers.
@@ -128,6 +247,20 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 				$headers = array_merge( $headers, $cf_headers );
 			}
 		}
+
+		/**
+		 * Filter CSV headers for Direct SQL export
+		 *
+		 * Allows developers to modify the CSV headers before export.
+		 * This filter is applied to both the header row and data processing.
+		 *
+		 * @since 0.9.9
+		 * @param array  $headers CSV headers.
+		 * @param array  $config Export configuration.
+		 * @param string $context Export context (direct_sql).
+		 * @return array Modified headers.
+		 */
+		$headers = apply_filters( 'swift_csv_export_headers', $headers, $this->config, 'direct_sql' );
 
 		return $headers;
 	}
@@ -296,18 +429,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		return $cf_headers;
 	}
 
-	/**
-	 * Get cached posts data
-	 *
-	 * @since 0.9.8
-	 * @return array Cached posts data.
-	 */
-	private function get_cached_posts_data() {
-		if ( null === $this->cached_posts_data ) {
-			$this->cached_posts_data = $this->get_posts_data();
-		}
-		return $this->cached_posts_data;
-	}
+
 
 	/**
 	 * Get taxonomy data for posts using separate query
@@ -482,6 +604,67 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 			$limit = min( $batch_size, $remaining );
 		}
 
+		$direct_sql_query_args = [
+			'post_type'   => $post_type,
+			'post_status' => $post_status,
+			'limit'       => (int) $limit,
+			'offset'      => (int) $offset,
+			'context'     => 'direct_sql',
+		];
+
+		/**
+		 * Filter export query spec for data retrieval
+		 *
+		 * This filter provides a unified query spec format that can be used by both
+		 * standard and Direct SQL export routes.
+		 *
+		 * @since 0.9.11
+		 * @param array  $query_spec Query spec.
+		 * @param array  $config Export configuration.
+		 * @param string $context Export context. (direct_sql)
+		 * @return array Modified query spec.
+		 */
+		$query_spec = apply_filters( 'swift_csv_export_query_spec', [], $this->config, 'direct_sql' );
+		if ( is_array( $query_spec ) && ! empty( $query_spec ) ) {
+			$direct_sql_query_args['query_spec'] = $query_spec;
+		}
+
+		/**
+		 * Filter export query arguments for data retrieval
+		 *
+		 * This is the Direct SQL equivalent of the standard export hook.
+		 *
+		 * @since 0.9.11
+		 * @param array $query_args Export query arguments.
+		 * @param array $args Export arguments including context.
+		 * @return array Modified query arguments.
+		 */
+		$direct_sql_query_args = apply_filters(
+			'swift_csv_export_data_query_args',
+			$direct_sql_query_args,
+			[
+				'post_type'    => $post_type,
+				'export_limit' => (int) ( $this->config['export_limit'] ?? 0 ),
+				'context'      => 'direct_sql',
+			]
+		);
+
+		/**
+		 * Filter Direct SQL export query arguments for data retrieval
+		 *
+		 * @since 0.9.11
+		 * @param array $query_args Direct SQL export query arguments.
+		 * @param array $config Export configuration.
+		 * @return array Modified query arguments.
+		 */
+		$direct_sql_query_args = apply_filters( 'swift_csv_export_direct_sql_query_args', $direct_sql_query_args, $this->config );
+
+		$post_type   = isset( $direct_sql_query_args['post_type'] ) ? (string) $direct_sql_query_args['post_type'] : $post_type;
+		$post_status = $direct_sql_query_args['post_status'] ?? $post_status;
+		$limit       = isset( $direct_sql_query_args['limit'] ) ? (int) $direct_sql_query_args['limit'] : (int) $limit;
+		$offset      = isset( $direct_sql_query_args['offset'] ) ? (int) $direct_sql_query_args['offset'] : (int) $offset;
+		$query_spec  = isset( $direct_sql_query_args['query_spec'] ) && is_array( $direct_sql_query_args['query_spec'] ) ? $direct_sql_query_args['query_spec'] : [];
+
 		// Build query for batch.
 		$all_status_values = [ 'any', 'all', 'all_status', 'all_statuses', 'all-statuses', '*' ];
 		$table_sql         = $wpdb->posts;
@@ -505,6 +688,35 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 			$sql    = $base_select_sql . ' WHERE post_type = %s AND post_status = %s' . $order_by_sql . ' LIMIT %d OFFSET %d';
 			$params = [ $post_type, $post_status, $limit, $offset ];
 		}
+
+		if ( ! empty( $query_spec ) ) {
+			$spec_where_sql = $this->build_query_spec_where_sql( $query_spec, $params );
+			if ( is_string( $spec_where_sql ) && '' !== $spec_where_sql ) {
+				$sql = str_replace( $order_by_sql, $spec_where_sql . $order_by_sql, $sql );
+			}
+		}
+
+		/**
+		 * Filter Direct SQL query parts before preparing
+		 *
+		 * @since 0.9.11
+		 * @param array  $query_parts Query parts.
+		 * @param array  $config Export configuration.
+		 * @param string $context Export context.
+		 * @return array Modified query parts.
+		 */
+		$query_parts = apply_filters(
+			'swift_csv_export_direct_sql_query_parts',
+			[
+				'sql'    => $sql,
+				'params' => $params,
+			],
+			$this->config,
+			'posts_batch'
+		);
+
+		$sql    = isset( $query_parts['sql'] ) ? (string) $query_parts['sql'] : $sql;
+		$params = isset( $query_parts['params'] ) ? (array) $query_parts['params'] : $params;
 
 		$query = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $sql ], $params ) );
 
@@ -612,8 +824,38 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 				}
 			}
 
+			/**
+			 * Filter individual row data for Direct SQL export
+			 *
+			 * Allows developers to modify individual row data before CSV generation.
+			 * This filter is applied to each row after all data merging is complete.
+			 *
+			 * @since 0.9.9
+			 * @param array  $row Complete row data including post fields, meta, and taxonomy.
+			 * @param int    $post_id Post ID.
+			 * @param array  $config Export configuration.
+			 * @param string $context Export context (direct_sql).
+			 * @return array Modified row data.
+			 */
+			$row = apply_filters( 'swift_csv_export_row', $row, $post_id, $this->config, 'direct_sql' );
+
 			$merged_data[] = $row;
 		}
+
+		/**
+		 * Filter complete batch data for Direct SQL export
+		 *
+		 * Allows developers to modify the entire batch data before CSV generation.
+		 * This filter is applied after all individual row processing is complete.
+		 *
+		 * @since 0.9.9
+		 * @param array  $merged_data Complete batch data.
+		 * @param array  $post_ids Post IDs in this batch.
+		 * @param array  $config Export configuration.
+		 * @param string $context Export context (direct_sql).
+		 * @return array Modified batch data.
+		 */
+		$merged_data = apply_filters( 'swift_csv_direct_sql_batch_data', $merged_data, $post_ids, $this->config, 'direct_sql' );
 
 		return $merged_data;
 	}

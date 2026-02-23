@@ -344,55 +344,6 @@ class Swift_CSV_Ajax_Export {
 	 */
 
 	/**
-	 * Get post status for WP_Query based on user selection
-	 *
-	 * Converts the user's post status selection into the appropriate
-	 * value for WP_Query post_status parameter.
-	 *
-	 * @since 0.9.0
-	 * @param string $post_type The post type being exported.
-	 * @param string $post_status The user's selection ('publish', 'any', 'custom').
-	 * @return string|array The post status value for WP_Query
-	 */
-	private function get_post_status_for_query( string $post_type, string $post_status ) {
-		switch ( $post_status ) {
-			case 'publish':
-				// For attachment type, use 'inherit' instead of 'publish'.
-				return 'attachment' === $post_type ? 'inherit' : 'publish';
-
-			case 'any':
-				return 'any';
-
-			case 'custom':
-				/**
-				 * Filter custom post status for export queries
-				 *
-				 * Allows developers to specify custom post status filtering
-				 * when 'custom' option is selected in the export interface.
-				 *
-				 * @since 0.9.0
-				 * @param string|array $post_status Post status(es) to query
-				 * @param string $post_type The post type being exported
-				 * @param array $args Additional context including export parameters
-				 * @return string|array Modified post status(es)
-				 */
-				$custom_args = [
-					'post_type' => $post_type,
-					'context'   => 'custom_post_status',
-				];
-
-				$custom_status = apply_filters( 'swift_csv_export_post_status_query', 'publish', $custom_args );
-
-				// Ensure we return a valid value.
-				return is_array( $custom_status ) ? $custom_status : (string) $custom_status;
-
-			default:
-				// Fallback to publish for safety.
-				return 'attachment' === $post_type ? 'inherit' : 'publish';
-		}
-	}
-
-	/**
 	 * Get allowed post fields for CSV export based on scope
 	 *
 	 * Returns an array of WordPress post field names that should be included
@@ -798,83 +749,81 @@ class Swift_CSV_Ajax_Export {
 			}
 
 			// Validate post type.
-
 			if ( ! post_type_exists( $post_type ) ) {
 				wp_send_json_error( 'Invalid post type' );
+				return;
 			}
 
-			// Get total posts count with limit.
-			$query_post_status      = $this->get_post_status_for_query( $post_type, $post_status );
-			$total_posts_query_args = [
-				'post_type'      => $post_type,
-				'post_status'    => $query_post_status,
-				'posts_per_page' => $export_limit > 0 ? $export_limit : -1,
-				'fields'         => 'ids',
-			];
+			$transient_key = 'swift_csv_export_config_' . get_current_user_id() . '_' . $export_session;
+			$export_config = get_transient( $transient_key );
 
-			// Apply export query filter for full export.
-			/**
-			 * Filter export query arguments for count retrieval
-			 *
-			 * Allows developers to customize the query used to retrieve
-			 * the total count of posts for export progress tracking.
-			 *
-			 * @since 0.9.0
-			 * @param array $query_args Export query arguments
-			 * @param array $args Export arguments including context
-			 * @return array Modified query arguments
-			 */
-			$export_query_args = [
-				'post_type'    => $post_type,
-				'context'      => 'count_retrieval',
-				'export_limit' => $export_limit,
-			];
-			$filtered_args     = apply_filters( 'swift_csv_export_count_query_args', $total_posts_query_args, $export_query_args );
+			if ( 0 === $start_row || ! is_array( $export_config ) ) {
+				$post_status_for_query = 'attachment' === $post_type && 'publish' === $post_status ? 'inherit' : $post_status;
 
-			// Preserve export limit regardless of filter modifications.
-			$filtered_args['posts_per_page'] = $export_limit > 0 ? $export_limit : -1;
+				$base_query_args = [
+					'post_type'   => $post_type,
+					'post_status' => $post_status_for_query,
+					'fields'      => 'ids',
+				];
 
-			$total_posts_query_args = $filtered_args;
+				/**
+				 * Filter export query arguments for data retrieval
+				 *
+				 * Allows developers to customize the query used to retrieve
+				 * the actual post data for CSV generation.
+				 *
+				 * @since 0.9.0
+				 * @param array $query_args Export query arguments
+				 * @param array $args Export arguments including context
+				 * @return array Modified query arguments
+				 */
+				$filtered_base_query_args = apply_filters(
+					'swift_csv_export_data_query_args',
+					$base_query_args,
+					[
+						'post_type'    => $post_type,
+						'export_limit' => $export_limit,
+						'context'      => 'initial_setup',
+					]
+				);
 
-			// Use WP_Query for efficient count retrieval.
-			$total_query = new WP_Query( $total_posts_query_args );
-			$total_count = $total_query->found_posts;
+				$count_query_args                   = $filtered_base_query_args;
+				$count_query_args['posts_per_page'] = $export_limit > 0 ? $export_limit : -1;
+				$count_query_args['offset']         = 0;
+				$count_query_args['fields']         = 'ids';
+				$count_query                        = new WP_Query( $count_query_args );
+				$total_count                        = (int) $count_query->found_posts;
 
-			// Define max_posts_to_process.
-			$max_posts_to_process = $export_limit > 0 ? $export_limit : $total_count;
+				$max_posts_to_process = $export_limit > 0 ? min( $export_limit, $total_count ) : $total_count;
 
-			// Get dynamic batch size for export.
-			$export_config = [
-				'post_type'    => $post_type,
-				'export_limit' => $export_limit,
-				'post_status'  => $query_post_status,
-			];
-			$batch_size    = $this->get_export_batch_size( $total_count, $post_type, $export_config );
+				$batch_size_config = [
+					'post_type'    => $post_type,
+					'export_limit' => $export_limit,
+					'post_status'  => $post_status_for_query,
+				];
+				$batch_size        = $this->get_export_batch_size( $total_count, $post_type, $batch_size_config );
 
-			// Get posts for current batch.
-			$posts_query_args = [
-				'post_type'      => $post_type,
-				'post_status'    => $query_post_status,
-				'posts_per_page' => min( $batch_size, $total_count - $start_row ),
-				'offset'         => $start_row,
-				'fields'         => 'ids',
-			];
+				$export_config = [
+					'base_query_args'       => $filtered_base_query_args,
+					'total_count'           => $total_count,
+					'max_posts_to_process'  => $max_posts_to_process,
+					'batch_size'            => $batch_size,
+					'export_limit'          => $export_limit,
+					'post_type'             => $post_type,
+					'post_status_for_query' => $post_status_for_query,
+				];
 
-			/**
-			 * Filter export query arguments for data retrieval
-			 *
-			 * Allows developers to customize the query used to retrieve
-			 * the actual post data for CSV generation.
-			 *
-			 * @since 0.9.0
-			 * @param array $query_args Export query arguments
-			 * @param array $args Export arguments including context
-			 * @return array Modified query arguments
-			 */
-			$posts_query_args = apply_filters( 'swift_csv_export_data_query_args', $posts_query_args, [ 'post_type' => $post_type ] );
+				set_transient( $transient_key, $export_config, HOUR_IN_SECONDS );
+			} else {
+				$total_count          = isset( $export_config['total_count'] ) ? (int) $export_config['total_count'] : 0;
+				$max_posts_to_process = isset( $export_config['max_posts_to_process'] ) ? (int) $export_config['max_posts_to_process'] : 0;
+				$batch_size           = isset( $export_config['batch_size'] ) ? (int) $export_config['batch_size'] : 0;
+			}
 
-			// Force our limit regardless of filter.
-			$posts_query_args['posts_per_page'] = min( $batch_size, $max_posts_to_process - $start_row );
+			$base_query_args = isset( $export_config['base_query_args'] ) && is_array( $export_config['base_query_args'] ) ? $export_config['base_query_args'] : [];
+
+			$posts_query_args                   = $base_query_args;
+			$posts_query_args['posts_per_page'] = min( max( 1, $batch_size ), max( 0, $max_posts_to_process - $start_row ) );
 			$posts_query_args['offset']         = $start_row;
 			$posts_query_args['fields']         = 'ids';
 
@@ -917,9 +866,11 @@ class Swift_CSV_Ajax_Export {
 				return;
 			}
 
+			$post_status_for_query = isset( $export_config['post_status_for_query'] ) ? $export_config['post_status_for_query'] : $post_status;
+
 			// Simple CSV generation with headers.
 			$csv_chunk      = '';
-			$headers        = $this->build_headers( $post_type, $export_scope, $include_private_meta, $query_post_status );
+			$headers        = $this->build_headers( $post_type, $export_scope, $include_private_meta, $post_status_for_query );
 			$export_details = []; // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 
 			// Add headers for first chunk.

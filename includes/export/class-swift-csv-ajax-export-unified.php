@@ -253,7 +253,7 @@ class Swift_CSV_Ajax_Export_Unified {
 				$headers_line = get_transient( $headers_key );
 				if ( ! is_string( $headers_line ) || '' === $headers_line ) {
 					$export       = new Swift_CSV_Export_Direct_SQL( $config );
-					$headers      = $export->get_csv_headers_public();
+					$headers      = $export->get_post_headers_public();
 					$headers_line = implode( ',', array_map( [ $this, 'escape_csv_field' ], $headers ) );
 					set_transient( $headers_key, $headers_line, HOUR_IN_SECONDS );
 				}

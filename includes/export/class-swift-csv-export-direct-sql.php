@@ -220,14 +220,14 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Get CSV headers for Direct SQL export
+	 * Get post field headers for Direct SQL export
 	 *
-	 * Uses the unified header generation from base class.
+	 * Uses the unified header generation from base class with query_spec.
 	 *
 	 * @since 0.9.8
-	 * @return array CSV headers.
+	 * @return array Post field headers.
 	 */
-	protected function get_csv_headers() {
+	protected function get_post_headers() {
 		// Get query_spec for consistent sample selection.
 		$query_spec = [];
 		if ( isset( $this->config['query_spec'] ) && is_array( $this->config['query_spec'] ) ) {
@@ -238,15 +238,15 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Get CSV headers for public access
+	 * Get post field headers for public access
 	 *
 	 * Provides public access to header generation for external callers.
 	 *
 	 * @since 0.9.9
-	 * @return string[] CSV headers.
+	 * @return string[] Post field headers.
 	 */
-	public function get_csv_headers_public() {
-		return $this->get_csv_headers();
+	public function get_post_headers_public() {
+		return $this->get_post_headers();
 	}
 
 	/**
@@ -546,7 +546,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		}
 
 		$post_ids = wp_list_pluck( $posts, 'ID' );
-		$headers  = $this->get_csv_headers();
+		$headers  = $this->get_post_headers();
 
 		$meta_key_map = [];
 		$meta_data    = [];
@@ -687,7 +687,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 */
 	public function generate_csv_batch( $posts_data ) {
 		$csv     = '';
-		$headers = $this->get_csv_headers();
+		$headers = $this->get_post_headers();
 
 		foreach ( (array) $posts_data as $post_data ) {
 			if ( ! is_array( $post_data ) ) {
@@ -836,7 +836,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		$row_data = [];
 
 		// Get headers to match order.
-		$headers = $this->get_csv_headers();
+		$headers = $this->get_post_headers();
 
 		// Convert each field to CSV format.
 		foreach ( $headers as $header ) {

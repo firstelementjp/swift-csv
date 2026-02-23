@@ -855,3 +855,23 @@ msgstr "ファイルが選択されていません"
 #: includes/class-swift-csv-admin.php:217
 msgid "Errors"
 msgstr "エラー"
+
+#: includes/admin/class-swift-csv-admin.php:635
+msgid "Include taxonomy columns"
+msgstr "タクソノミーを含める"
+
+#: includes/admin/class-swift-csv-admin.php:639
+msgid "Taxonomy Format:"
+msgstr "タクソノミー形式:"
+
+#: includes/admin/class-swift-csv-admin.php:553
+msgid "Include custom field columns"
+msgstr "カスタムフィールドを含める"
+
+#: includes/admin/class-swift-csv-admin.php:557
+msgid "Private Meta:"
+msgstr "プライベートメタ:"
+
+#: includes/admin/class-swift-csv-admin.php:630
+msgid "Taxonomies"
+msgstr "タクソノミー"

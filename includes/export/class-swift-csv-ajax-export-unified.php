@@ -223,30 +223,6 @@ class Swift_CSV_Ajax_Export_Unified {
 			'enable_logs'           => isset( $_POST['enable_logs'] ) ? (bool) $_POST['enable_logs'] : false,
 		];
 
-		// Handle custom export scope.
-		if ( 'custom' === $config['export_scope'] ) {
-			// Define default export fields.
-			$default_fields = [
-				'ID',
-				'post_title',
-				'post_content',
-				'post_status',
-				'post_date',
-				'post_modified',
-			];
-
-			// Apply filter for custom export fields with default fallback.
-			$custom_fields = apply_filters( 'swift_csv_custom_export_fields', $default_fields );
-
-			// Ensure we have valid fields.
-			if ( is_array( $custom_fields ) && ! empty( $custom_fields ) ) {
-				$config['export_fields'] = $custom_fields;
-			} else {
-				// Fallback to default fields if filter returns invalid data.
-				$config['export_fields'] = $default_fields;
-			}
-		}
-
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		return $config;
 	}

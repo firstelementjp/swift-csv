@@ -411,25 +411,9 @@ class Swift_CSV_Admin {
 		);
 
 		add_settings_field(
-			'swift_csv_export_taxonomy_format',
-			'',
-			[ $this, 'export_taxonomy_format_field_html' ],
-			'swift-csv',
-			'swift_csv_export_section'
-		);
-
-		add_settings_field(
 			'swift_csv_include_custom_fields',
 			'',
 			[ $this, 'export_include_custom_fields_field_html' ],
-			'swift-csv',
-			'swift_csv_export_section'
-		);
-
-		add_settings_field(
-			'swift_csv_include_private_meta',
-			'',
-			[ $this, 'export_include_private_meta_field_html' ],
 			'swift-csv',
 			'swift_csv_export_section'
 		);
@@ -568,7 +552,14 @@ class Swift_CSV_Admin {
 					<input type="checkbox" id="swift_csv_include_custom_fields" name="swift_csv_include_custom_fields" value="1" checked>
 					<?php esc_html_e( 'Include custom field columns', 'swift-csv' ); ?>
 				</label>
-				<p class="description"><?php esc_html_e( 'If unchecked, custom field columns are omitted for faster exports.', 'swift-csv' ); ?></p>
+				<div class="swift-csv-sub-options" style="margin-left: 20px; margin-top: 10px;">
+					<div style="margin-left: 10px;">
+						<label>
+							<input type="checkbox" id="swift_csv_include_private_meta" name="swift_csv_include_private_meta" value="1">
+							<?php esc_html_e( 'Include private meta fields', 'swift-csv' ); ?>
+						</label>
+					</div>
+				</div>
 			</dd>
 		</dl>
 		<?php
@@ -640,7 +631,19 @@ class Swift_CSV_Admin {
 					<input type="checkbox" id="swift_csv_include_taxonomies" name="swift_csv_include_taxonomies" value="1" checked>
 					<?php esc_html_e( 'Include taxonomy columns', 'swift-csv' ); ?>
 				</label>
-				<p class="description"><?php esc_html_e( 'If unchecked, taxonomy columns are omitted for faster exports.', 'swift-csv' ); ?></p>
+				<div class="swift-csv-sub-options" style="margin-left: 20px; margin-top: 10px;">
+					<div style="margin-left: 10px;">
+						<label class="swift-csv-block-label">
+							<input type="radio" id="swift_csv_taxonomy_format_name" name="taxonomy_format" value="name" checked>
+							<?php esc_html_e( 'Names (name)', 'swift-csv' ); ?>
+						</label>
+						<label class="swift-csv-block-label">
+							<input type="radio" id="swift_csv_taxonomy_format_id" name="taxonomy_format" value="id">
+							<?php esc_html_e( 'Term IDs (term_id)', 'swift-csv' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( 'Choose how taxonomy terms are exported: names for readability or term IDs for data integrity.', 'swift-csv' ); ?></p>
+					</div>
+				</div>
 			</dd>
 		</dl>
 		<?php
@@ -678,54 +681,7 @@ class Swift_CSV_Admin {
 		<?php
 	}
 
-	/**
-	 * Export taxonomy format field callback
-	 *
-	 * @since 0.9.6
-	 * @return void
-	 */
-	public function export_taxonomy_format_field_html() {
-		?>
-		<dl>
-			<dt>
-				<?php esc_html_e( 'Taxonomy Format', 'swift-csv' ); ?>
-			</dt>
-			<dd>
-				<label class="swift-csv-block-label">
-					<input type="radio" id="swift_csv_taxonomy_format_name" name="taxonomy_format" value="name" checked>
-					<?php esc_html_e( 'Names (name)', 'swift-csv' ); ?>
-				</label>
-				<label class="swift-csv-block-label">
-					<input type="radio" id="swift_csv_taxonomy_format_id" name="taxonomy_format" value="id">
-					<?php esc_html_e( 'Term IDs (term_id)', 'swift-csv' ); ?>
-				</label>
-				<p class="description"><?php esc_html_e( 'Choose how taxonomy terms are exported: names for readability or term IDs for data integrity.', 'swift-csv' ); ?></p>
-			</dd>
-		</dl>
-		<?php
-	}
 
-	/**
-	 * Export include private meta field callback
-	 *
-	 * @since 0.9.6
-	 * @return void
-	 */
-	public function export_include_private_meta_field_html() {
-		?>
-		<dl>
-			<dt>
-				<?php esc_html_e( 'Custom Fields', 'swift-csv' ); ?>
-			</dt>
-			<dd>
-				<label>
-					<input type="checkbox" id="swift_csv_include_private_meta" name="swift_csv_include_private_meta" value="1">
-					<?php esc_html_e( 'Include private meta fields', 'swift-csv' ); ?>
-				</label>
-			</dd>
-		</dl>
-		<?php
-	}
 
 	/**
 	 * Export limit field callback

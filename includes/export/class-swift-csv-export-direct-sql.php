@@ -222,8 +222,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	/**
 	 * Get CSV headers for Direct SQL export
 	 *
-	 * Extends base headers to include taxonomy columns when enabled.
-	 * Applies filters for custom header modifications.
+	 * Uses the unified header generation from base class.
 	 *
 	 * @since 0.9.8
 	 * @return array CSV headers.
@@ -239,16 +238,15 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Get CSV headers for Direct SQL export (public wrapper)
+	 * Get CSV headers for public access
 	 *
-	 * This is used by AJAX handlers to generate the CSV header line
-	 * using the exact same logic as the export itself.
+	 * Provides public access to header generation for external callers.
 	 *
 	 * @since 0.9.9
 	 * @return string[] CSV headers.
 	 */
 	public function get_csv_headers_public() {
-		return $this->get_csv_headers();
+		return $this->get_post_headers();
 	}
 
 	/**

@@ -54,138 +54,54 @@ abstract class Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Validate export configuration
+	 * Export posts to CSV
 	 *
 	 * @since 0.9.8
-	 * @param array $config Export configuration.
-	 * @return array Validated configuration.
-	 * @throws InvalidArgumentException When configuration is invalid.
+	 * @return array Export result with success status and data.
 	 */
-	protected function validate_config( $config ) {
-		// Required fields validation.
-		$required = [ 'post_type', 'post_status', 'export_scope' ];
-		foreach ( $required as $field ) {
-			if ( empty( $config[ $field ] ) ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
-				throw new InvalidArgumentException( "Missing required field: {$field}" );
-			}
-		}
+	public function export() {
+		try {
+			// Get posts data using child class method.
+			$posts_data = $this->get_posts_data();
 
-		// Sanitize configuration.
-		$validated_config = [
-			'post_type'             => sanitize_text_field( $config['post_type'] ),
-			'post_status'           => $this->sanitize_post_status( $config['post_status'] ),
-			'export_scope'          => $this->sanitize_export_scope( $config['export_scope'] ),
-			'include_private_meta'  => isset( $config['include_private_meta'] ) ? (bool) $config['include_private_meta'] : false,
-			'include_taxonomies'    => isset( $config['include_taxonomies'] ) ? (bool) $config['include_taxonomies'] : true,
-			'include_custom_fields' => isset( $config['include_custom_fields'] ) ? (bool) $config['include_custom_fields'] : true,
-			'export_limit'          => isset( $config['export_limit'] ) ? absint( $config['export_limit'] ) : 0,
-			'taxonomy_format'       => isset( $config['taxonomy_format'] ) ? sanitize_text_field( $config['taxonomy_format'] ) : 'name',
-			'enable_logs'           => isset( $config['enable_logs'] ) ? (bool) $config['enable_logs'] : false,
-		];
-
-		return $validated_config;
-	}
-
-	/**
-	 * Set performance limits for large exports
-	 *
-	 * @since 0.9.8
-	 */
-	protected function set_performance_limits() {
-		// Increase memory limit for large exports.
-		wp_raise_memory_limit( 'admin' );
-
-		// Set time limit.
-		set_time_limit( 300 ); // 5 minutes.
-	}
-
-	/**
-	 * Sanitize post status field (handles single, multiple, and array values)
-	 *
-	 * @since 0.9.8
-	 * @param string|array $post_status Post status string (comma-separated for multiple) or array of statuses.
-	 * @return string|array Sanitized post status(es).
-	 */
-	protected function sanitize_post_status( $post_status ) {
-		// Handle array input (from custom processing).
-		if ( is_array( $post_status ) ) {
-			$sanitized = [];
-			foreach ( $post_status as $status ) {
-				$sanitized_status = sanitize_text_field( $status );
-				if ( ! empty( $sanitized_status ) ) {
-					$sanitized[] = $sanitized_status;
-				}
-			}
-			return ! empty( $sanitized ) ? $sanitized : [ 'publish' ];
-		}
-
-		// Handle multiple statuses (comma-separated).
-		if ( strpos( $post_status, ',' ) !== false ) {
-			$statuses  = explode( ',', $post_status );
-			$sanitized = [];
-
-			foreach ( $statuses as $status ) {
-				$sanitized_status = sanitize_text_field( trim( $status ) );
-				if ( ! empty( $sanitized_status ) ) {
-					$sanitized[] = $sanitized_status;
-				}
+			if ( empty( $posts_data ) ) {
+				return [
+					'success' => false,
+					'message' => 'No posts found',
+					'data'    => [],
+				];
 			}
 
-			return $sanitized;
-		}
+			// Generate CSV.
+			$csv_content = $this->generate_csv( $posts_data );
 
-		// Handle "all" or "any" status - return all common post statuses.
-		if ( 'all' === $post_status || 'any' === $post_status ) {
 			return [
-				'publish',
-				'pending',
-				'draft',
-				'auto-draft',
-				'future',
-				'private',
-				'inherit',
-				'trash',
+				'success' => true,
+				'message' => 'Export completed successfully',
+				'data'    => [
+					'csv_content'    => $csv_content,
+					'record_count'   => count( $posts_data ),
+					'export_session' => $this->export_session,
+				],
+			];
+
+		} catch ( Exception $e ) {
+			return [
+				'success' => false,
+				'message' => 'Export failed: ' . $e->getMessage(),
+				'data'    => [],
 			];
 		}
-
-		// Single status.
-		return sanitize_text_field( $post_status );
 	}
 
 	/**
-	 * Sanitize export scope
+	 * Get post field headers
 	 *
 	 * @since 0.9.8
-	 * @param string $export_scope Export scope value.
-	 * @return string Sanitized export scope.
+	 * @return array Post field headers.
 	 */
-	protected function sanitize_export_scope( $export_scope ) {
-		return sanitize_text_field( $export_scope );
-	}
-
-	/**
-	 * Get CSV headers based on export scope
-	 *
-	 * @since 0.9.8
-	 * @return array CSV headers.
-	 */
-	protected function get_csv_headers() {
-		return $this->get_basic_headers( $this->config ); // Hook application is done in get_complete_headers.
-	}
-
-	/**
-	 * Get basic CSV headers from config
-	 *
-	 * This method is intended to be safe to call from other helpers (e.g. get_complete_headers)
-	 * without triggering overridden get_csv_headers() implementations.
-	 *
-	 * @since 0.9.11
-	 * @param array $config Export configuration.
-	 * @return string[] Basic CSV headers.
-	 */
-	protected function get_basic_headers( array $config ) {
-		$export_scope = $config['export_scope'] ?? 'basic';
+	protected function get_post_headers() {
+		$export_scope = $this->config['export_scope'] ?? 'basic';
 		$scope        = $export_scope;
 
 		// Basic headers - use actual DB column names.
@@ -233,79 +149,95 @@ abstract class Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Get CSV row data for a post
+	 * Get complete CSV headers including all optional columns
 	 *
-	 * @since 0.9.8
-	 * @param array $post Post data.
-	 * @return array CSV row data.
+	 * Combines post headers, taxonomy headers, and custom field headers
+	 * based on export configuration. Provides unified header generation
+	 * for both standard and Direct SQL export methods.
+	 *
+	 * @since 0.9.11
+	 * @param array  $config Export configuration.
+	 * @param array  $query_spec Query specification for filtering.
+	 * @param string $context Export context ('standard' or 'direct_sql').
+	 * @return string[] Complete CSV headers.
 	 */
-	protected function get_csv_row( $post ) {
-		$export_scope = $this->config['export_scope'];
-		$scope        = $export_scope;
+	protected function get_complete_headers( array $config, array $query_spec = [], string $context = 'standard' ) {
+		// Start with post headers.
+		$headers = $this->get_post_headers();
 
-		// Basic row data.
-		$basic_row = [
-			$post['ID'],
-			'"' . str_replace( '"', '""', $post['post_title'] ?? '' ) . '"',
-			'"' . str_replace( '"', '""', $post['post_content'] ?? '' ) . '"',
-			$post['post_status'] ?? '',
-			$post['post_date'] ?? '',
-			$post['post_modified'] ?? '',
-			$post['post_name'] ?? '',
-			'"' . str_replace( '"', '""', $post['post_excerpt'] ?? '' ) . '"',
-			$post['post_author'] ?? 0,
-			$post['comment_count'] ?? 0,
-			$post['menu_order'] ?? 0,
-		];
-
-		// All row data (includes additional fields).
-		$all_row = array_merge(
-			$basic_row,
-			[
-				$post['post_type'] ?? '',
-				$post['post_parent'] ?? 0,
-				$post['comment_status'] ?? '',
-				$post['ping_status'] ?? '',
-				$post['post_password'] ?? '',
-				( $post['ID'] && is_sticky( $post['ID'] ) ) ? '1' : '0',
-			]
-		);
-
-		// Determine row data based on scope.
-		switch ( $scope ) {
-			case 'basic':
-				$row = $basic_row;
-				break;
-			case 'all':
-				$row = $all_row;
-				break;
-			default:
-				$row = $basic_row;
-				break;
+		// Add taxonomy headers if enabled.
+		if ( ! empty( $config['include_taxonomies'] ) ) {
+			$tax_headers = $this->get_taxonomy_headers( $config );
+			if ( ! empty( $tax_headers ) ) {
+				$headers = array_merge( $headers, $tax_headers );
+			}
 		}
 
-		return apply_filters( 'swift_csv_export_row', $row, $post->ID, $this->config, $scope );
+		// Add custom field headers if enabled.
+		if ( ! empty( $config['include_custom_fields'] ) ) {
+			$cf_headers = $this->get_custom_field_headers( $config, $query_spec );
+			if ( ! empty( $cf_headers ) ) {
+				$headers = array_merge( $headers, $cf_headers );
+			}
+		}
+
+		/**
+		 * Filter complete CSV headers
+		 *
+		 * Allows developers to modify the complete CSV headers before export.
+		 * This filter is applied after all header types are combined.
+		 *
+		 * @since 0.9.0
+		 * @param array  $headers Complete CSV headers.
+		 * @param array  $config Export configuration.
+		 * @param string $context Export context.
+		 * @return array Modified headers.
+		 */
+		return apply_filters( 'swift_csv_export_headers', $headers, $config, $context );
 	}
 
 	/**
-	 * Generate CSV from posts data
+	 * Get taxonomy headers for export
 	 *
-	 * @since 0.9.8
-	 * @param array $posts_data Posts data.
-	 * @return string CSV content.
+	 * Generates taxonomy column headers with 'tax_' prefix.
+	 * Supports filtering of taxonomy objects.
+	 *
+	 * @since 0.9.11
+	 * @param array $config Export configuration.
+	 * @return string[] Taxonomy headers.
 	 */
-	protected function generate_csv( $posts_data ) {
-		// Get headers based on export scope.
-		$headers = $this->get_csv_headers();
-		$csv     = implode( ',', $headers ) . "\n";
+	protected function get_taxonomy_headers( array $config ) {
+		$post_type = $config['post_type'] ?? 'post';
 
-		// Add data rows.
-		foreach ( $posts_data as $post_data ) {
-			$row  = $this->get_csv_row( $post_data );
-			$csv .= implode( ',', $row ) . "\n";
+		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
+
+		/**
+		 * Filter taxonomy objects for header generation
+		 *
+		 * Allows developers to filter which taxonomies are included in headers.
+		 * This enables selective taxonomy inclusion and custom taxonomy processing.
+		 *
+		 * @since 0.9.0
+		 * @param array $taxonomies Taxonomy objects.
+		 * @param array $args Export arguments including context.
+		 * @return array Modified taxonomy objects.
+		 */
+		$taxonomy_filter_args = [
+			'post_type'            => $post_type,
+			'export_scope'         => $config['export_scope'] ?? 'basic',
+			'include_private_meta' => ! empty( $config['include_private_meta'] ),
+			'context'              => 'taxonomy_objects_filter',
+		];
+		$taxonomies           = apply_filters( 'swift_csv_filter_taxonomy_objects', $taxonomies, $taxonomy_filter_args );
+
+		$tax_headers = [];
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->public ) {
+				$tax_headers[] = 'tax_' . $taxonomy->name;
+			}
 		}
 
-		return $csv;
+		return $tax_headers;
 	}
 
 	/**
@@ -468,95 +400,190 @@ abstract class Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Get taxonomy headers for export
+	 * Get CSV row data for a post
 	 *
-	 * Generates taxonomy column headers with 'tax_' prefix.
-	 * Supports filtering of taxonomy objects.
-	 *
-	 * @since 0.9.11
-	 * @param array $config Export configuration.
-	 * @return string[] Taxonomy headers.
+	 * @since 0.9.8
+	 * @param array $post Post data.
+	 * @return array CSV row data.
 	 */
-	protected function get_taxonomy_headers( array $config ) {
-		$post_type = $config['post_type'] ?? 'post';
+	protected function get_csv_row( $post ) {
+		$export_scope = $this->config['export_scope'];
+		$scope        = $export_scope;
 
-		$taxonomies = get_object_taxonomies( $post_type, 'objects' );
-
-		/**
-		 * Filter taxonomy objects for header generation
-		 *
-		 * Allows developers to filter which taxonomies are included in headers.
-		 * This enables selective taxonomy inclusion and custom taxonomy processing.
-		 *
-		 * @since 0.9.0
-		 * @param array $taxonomies Taxonomy objects.
-		 * @param array $args Export arguments including context.
-		 * @return array Modified taxonomy objects.
-		 */
-		$taxonomy_filter_args = [
-			'post_type'            => $post_type,
-			'export_scope'         => $config['export_scope'] ?? 'basic',
-			'include_private_meta' => ! empty( $config['include_private_meta'] ),
-			'context'              => 'taxonomy_objects_filter',
+		// Basic row data.
+		$basic_row = [
+			$post['ID'],
+			'"' . str_replace( '"', '""', $post['post_title'] ?? '' ) . '"',
+			'"' . str_replace( '"', '""', $post['post_content'] ?? '' ) . '"',
+			$post['post_status'] ?? '',
+			$post['post_date'] ?? '',
+			$post['post_modified'] ?? '',
+			$post['post_name'] ?? '',
+			'"' . str_replace( '"', '""', $post['post_excerpt'] ?? '' ) . '"',
+			$post['post_author'] ?? 0,
+			$post['comment_count'] ?? 0,
+			$post['menu_order'] ?? 0,
 		];
-		$taxonomies           = apply_filters( 'swift_csv_filter_taxonomy_objects', $taxonomies, $taxonomy_filter_args );
 
-		$tax_headers = [];
-		foreach ( $taxonomies as $taxonomy ) {
-			if ( $taxonomy->public ) {
-				$tax_headers[] = 'tax_' . $taxonomy->name;
-			}
+		// All row data (includes additional fields).
+		$all_row = array_merge(
+			$basic_row,
+			[
+				$post['post_type'] ?? '',
+				$post['post_parent'] ?? 0,
+				$post['comment_status'] ?? '',
+				$post['ping_status'] ?? '',
+				$post['post_password'] ?? '',
+				( $post['ID'] && is_sticky( $post['ID'] ) ) ? '1' : '0',
+			]
+		);
+
+		// Determine row data based on scope.
+		switch ( $scope ) {
+			case 'basic':
+				$row = $basic_row;
+				break;
+			case 'all':
+				$row = $all_row;
+				break;
+			default:
+				$row = $basic_row;
+				break;
 		}
 
-		return $tax_headers;
+		return apply_filters( 'swift_csv_export_row', $row, $post->ID, $this->config, $scope );
 	}
 
 	/**
-	 * Get complete CSV headers including all optional columns
+	 * Generate CSV from posts data
 	 *
-	 * Combines basic headers, taxonomy headers, and custom field headers
-	 * based on export configuration. Provides unified header generation
-	 * for both standard and Direct SQL export methods.
-	 *
-	 * @since 0.9.11
-	 * @param array  $config Export configuration.
-	 * @param array  $query_spec Query specification for filtering.
-	 * @param string $context Export context ('standard' or 'direct_sql').
-	 * @return string[] Complete CSV headers.
+	 * @since 0.9.8
+	 * @param array $posts_data Posts data.
+	 * @return string CSV content.
 	 */
-	protected function get_complete_headers( array $config, array $query_spec = [], string $context = 'standard' ) {
-		// Start with basic headers from get_csv_headers().
-		$headers = $this->get_basic_headers( $config );
+	protected function generate_csv( $posts_data ) {
+		// Get headers based on export scope.
+		$headers = $this->get_post_headers();
+		$csv     = implode( ',', $headers ) . "\n";
 
-		// Add taxonomy headers if enabled.
-		if ( ! empty( $config['include_taxonomies'] ) ) {
-			$tax_headers = $this->get_taxonomy_headers( $config );
-			if ( ! empty( $tax_headers ) ) {
-				$headers = array_merge( $headers, $tax_headers );
+		// Add data rows.
+		foreach ( $posts_data as $post_data ) {
+			$row  = $this->get_csv_row( $post_data );
+			$csv .= implode( ',', $row ) . "\n";
+		}
+
+		return $csv;
+	}
+
+	/**
+	 * Validate export configuration
+	 *
+	 * @since 0.9.8
+	 * @param array $config Export configuration.
+	 * @return array Validated configuration.
+	 * @throws InvalidArgumentException When configuration is invalid.
+	 */
+	protected function validate_config( $config ) {
+		// Required fields validation.
+		$required = [ 'post_type', 'post_status', 'export_scope' ];
+		foreach ( $required as $field ) {
+			if ( empty( $config[ $field ] ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+				throw new InvalidArgumentException( "Missing required field: {$field}" );
 			}
 		}
 
-		// Add custom field headers if enabled.
-		if ( ! empty( $config['include_custom_fields'] ) ) {
-			$cf_headers = $this->get_custom_field_headers( $config, $query_spec );
-			if ( ! empty( $cf_headers ) ) {
-				$headers = array_merge( $headers, $cf_headers );
+		// Sanitize configuration.
+		$validated_config = [
+			'post_type'             => sanitize_text_field( $config['post_type'] ),
+			'post_status'           => $this->sanitize_post_status( $config['post_status'] ),
+			'export_scope'          => $this->sanitize_export_scope( $config['export_scope'] ),
+			'include_private_meta'  => isset( $config['include_private_meta'] ) ? (bool) $config['include_private_meta'] : false,
+			'include_taxonomies'    => isset( $config['include_taxonomies'] ) ? (bool) $config['include_taxonomies'] : true,
+			'include_custom_fields' => isset( $config['include_custom_fields'] ) ? (bool) $config['include_custom_fields'] : true,
+			'export_limit'          => isset( $config['export_limit'] ) ? absint( $config['export_limit'] ) : 0,
+			'taxonomy_format'       => isset( $config['taxonomy_format'] ) ? sanitize_text_field( $config['taxonomy_format'] ) : 'name',
+			'enable_logs'           => isset( $config['enable_logs'] ) ? (bool) $config['enable_logs'] : false,
+		];
+
+		return $validated_config;
+	}
+
+	/**
+	 * Set performance limits for large exports
+	 *
+	 * @since 0.9.8
+	 */
+	protected function set_performance_limits() {
+		// Increase memory limit for large exports.
+		wp_raise_memory_limit( 'admin' );
+
+		// Set time limit.
+		set_time_limit( 300 ); // 5 minutes.
+	}
+
+	/**
+	 * Sanitize post status field (handles single, multiple, and array values)
+	 *
+	 * @since 0.9.8
+	 * @param string|array $post_status Post status string (comma-separated for multiple) or array of statuses.
+	 * @return string|array Sanitized post status(es).
+	 */
+	protected function sanitize_post_status( $post_status ) {
+		// Handle array input (from custom processing).
+		if ( is_array( $post_status ) ) {
+			$sanitized = [];
+			foreach ( $post_status as $status ) {
+				$sanitized_status = sanitize_text_field( $status );
+				if ( ! empty( $sanitized_status ) ) {
+					$sanitized[] = $sanitized_status;
+				}
 			}
+			return ! empty( $sanitized ) ? $sanitized : [ 'publish' ];
 		}
 
-		/**
-		 * Filter complete CSV headers
-		 *
-		 * Allows developers to modify the complete CSV headers before export.
-		 * This filter is applied after all header types are combined.
-		 *
-		 * @since 0.9.0
-		 * @param array  $headers Complete CSV headers.
-		 * @param array  $config Export configuration.
-		 * @param string $context Export context.
-		 * @return array Modified headers.
-		 */
-		return apply_filters( 'swift_csv_export_headers', $headers, $config, $context );
+		// Handle multiple statuses (comma-separated).
+		if ( strpos( $post_status, ',' ) !== false ) {
+			$statuses  = explode( ',', $post_status );
+			$sanitized = [];
+
+			foreach ( $statuses as $status ) {
+				$sanitized_status = sanitize_text_field( trim( $status ) );
+				if ( ! empty( $sanitized_status ) ) {
+					$sanitized[] = $sanitized_status;
+				}
+			}
+
+			return $sanitized;
+		}
+
+		// Handle "all" or "any" status - return all common post statuses.
+		if ( 'all' === $post_status || 'any' === $post_status ) {
+			return [
+				'publish',
+				'pending',
+				'draft',
+				'auto-draft',
+				'future',
+				'private',
+				'inherit',
+				'trash',
+			];
+		}
+
+		// Single status.
+		return sanitize_text_field( $post_status );
+	}
+
+	/**
+	 * Sanitize export scope
+	 *
+	 * @since 0.9.8
+	 * @param string $export_scope Export scope value.
+	 * @return string Sanitized export scope.
+	 */
+	protected function sanitize_export_scope( $export_scope ) {
+		return sanitize_text_field( $export_scope );
 	}
 
 	/**
@@ -566,45 +593,4 @@ abstract class Swift_CSV_Export_Base {
 	 * @return array Posts data.
 	 */
 	abstract protected function get_posts_data();
-
-	/**
-	 * Export posts to CSV
-	 *
-	 * @since 0.9.8
-	 * @return array Export result with success status and data.
-	 */
-	public function export() {
-		try {
-			// Get posts data using child class method.
-			$posts_data = $this->get_posts_data();
-
-			if ( empty( $posts_data ) ) {
-				return [
-					'success' => false,
-					'message' => 'No posts found',
-					'data'    => [],
-				];
-			}
-
-			// Generate CSV.
-			$csv_content = $this->generate_csv( $posts_data );
-
-			return [
-				'success' => true,
-				'message' => 'Export completed successfully',
-				'data'    => [
-					'csv_content'    => $csv_content,
-					'record_count'   => count( $posts_data ),
-					'export_session' => $this->export_session,
-				],
-			];
-
-		} catch ( Exception $e ) {
-			return [
-				'success' => false,
-				'message' => 'Export failed: ' . $e->getMessage(),
-				'data'    => [],
-			];
-		}
-	}
 }

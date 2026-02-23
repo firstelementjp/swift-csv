@@ -855,7 +855,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		 * @param string $context Export context (direct_sql).
 		 * @return array Modified batch data.
 		 */
-		$merged_data = apply_filters( 'swift_csv_direct_sql_batch_data', $merged_data, $post_ids, $this->config, 'direct_sql' );
+		$merged_data = apply_filters( 'swift_csv_export_batch_data', $merged_data, $post_ids, $this->config, 'direct_sql' );
 
 		return $merged_data;
 	}

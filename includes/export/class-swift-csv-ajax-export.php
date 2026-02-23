@@ -928,6 +928,7 @@ class Swift_CSV_Ajax_Export {
 
 			// Process each post and collect details (like import).
 			$processed_count = 0;
+			$batch_data      = []; // Collect batch data for unified hook.
 			foreach ( $posts as $post_id ) {
 				if ( $this->is_cancelled( $export_session ) ) {
 					wp_send_json_error( 'Export cancelled by user' );
@@ -1062,8 +1063,38 @@ class Swift_CSV_Ajax_Export {
 					$this->append_export_log( $export_session, $detail );
 				}
 
-				$csv_chunk .= $this->fputcsv_row( $row );
+				// Add row to batch data for unified hook.
+				$batch_data[] = $row;
 				++$processed_count;
+			}
+
+			/**
+			 * Filter complete batch data for standard export
+			 *
+			 * Allows developers to modify the entire batch data before CSV generation.
+			 * This filter is applied after all individual row processing is complete.
+			 *
+			 * @since 0.9.11
+			 * @param array  $batch_data Complete batch data.
+			 * @param array  $posts Array of processed post IDs.
+			 * @param array  $config Export configuration.
+			 * @param string $context Export context (standard).
+			 * @return array Modified batch data.
+			 */
+			$batch_config = [
+				'post_type'             => $post_type,
+				'post_status_for_query' => $post_status_for_query,
+				'export_scope'          => $export_scope,
+				'include_private_meta'  => $include_private_meta,
+				'include_taxonomies'    => $include_taxonomies,
+				'include_custom_fields' => $include_custom_fields,
+				'taxonomy_format'       => $taxonomy_format,
+			];
+			$batch_data   = apply_filters( 'swift_csv_export_batch_data', $batch_data, $posts, $batch_config, 'standard' );
+
+			// Generate CSV from filtered batch data.
+			foreach ( $batch_data as $row ) {
+				$csv_chunk .= $this->fputcsv_row( $row );
 			}
 
 			// Send batch response (like import).

@@ -246,7 +246,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @return string[] CSV headers.
 	 */
 	public function get_csv_headers_public() {
-		return $this->get_post_headers();
+		return $this->get_csv_headers();
 	}
 
 	/**

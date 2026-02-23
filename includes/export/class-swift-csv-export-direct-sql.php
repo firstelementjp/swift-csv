@@ -250,153 +250,6 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Get taxonomy data for posts using separate query
-	 *
-	 * @since 0.9.8
-	 * @param array $posts_data Posts data from step 1.
-	 * @return array Taxonomy data indexed by post ID.
-	 */
-	private function get_taxonomy_data_for_posts( $posts_data ) {
-		global $wpdb;
-
-		if ( empty( $posts_data ) ) {
-			return [];
-		}
-
-		// Extract post IDs.
-		$post_ids     = array_column( $posts_data, 'ID' );
-		$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
-
-		$query = "SELECT tr.object_id AS object_id, tt.taxonomy AS taxonomy, t.term_id AS term_id, t.name AS term_name
-				FROM {$wpdb->term_relationships} tr
-				INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-				INNER JOIN {$wpdb->terms} t ON tt.term_id = t.term_id
-				WHERE tr.object_id IN ({$placeholders})";
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$query = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $query ], $post_ids ) );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-		$results = $wpdb->get_results( $query, ARRAY_A );
-
-		$taxonomy_format = $this->config['taxonomy_format'] ?? 'name';
-		$taxonomy_data   = [];
-		foreach ( $results as $row ) {
-			$post_id  = (int) ( $row['object_id'] ?? 0 );
-			$taxonomy = (string) ( $row['taxonomy'] ?? '' );
-			if ( 0 === $post_id || '' === $taxonomy ) {
-				continue;
-			}
-
-			$term_value = ( 'id' === $taxonomy_format ) ? (string) ( $row['term_id'] ?? '' ) : (string) ( $row['term_name'] ?? '' );
-			if ( '' === $term_value ) {
-				continue;
-			}
-
-			$taxonomy_data[ $post_id ][] = $taxonomy . ':' . $term_value;
-		}
-
-		$post_type      = $this->config['post_type'] ?? 'post';
-		$taxonomy_names = get_object_taxonomies( $post_type, 'names' );
-		$taxonomy_names = is_array( $taxonomy_names ) ? array_values( array_filter( array_map( 'sanitize_key', $taxonomy_names ) ) ) : [];
-		if ( ! empty( $taxonomy_names ) ) {
-			$taxonomy_format = $this->config['taxonomy_format'] ?? 'name';
-			$terms           = wp_get_object_terms(
-				$post_ids,
-				$taxonomy_names,
-				[
-					'fields' => 'all_with_object_id',
-				]
-			);
-
-			if ( ! is_wp_error( $terms ) && is_array( $terms ) ) {
-				foreach ( $terms as $term ) {
-					$object_id = isset( $term->object_id ) ? (int) $term->object_id : 0;
-					if ( 0 === $object_id ) {
-						continue;
-					}
-					$taxonomy = isset( $term->taxonomy ) ? (string) $term->taxonomy : '';
-					if ( '' === $taxonomy ) {
-						continue;
-					}
-					$term_value = ( 'id' === $taxonomy_format ) ? (string) $term->term_id : (string) $term->name;
-					if ( '' === $term_value ) {
-						continue;
-					}
-					$taxonomy_data[ $object_id ][] = $taxonomy . ':' . $term_value;
-				}
-			}
-
-			foreach ( $post_ids as $post_id ) {
-				$post_id = (int) $post_id;
-				if ( 0 === $post_id ) {
-					continue;
-				}
-				if ( ! empty( $taxonomy_data[ $post_id ] ) ) {
-					continue;
-				}
-				$post_terms = wp_get_object_terms( $post_id, $taxonomy_names, [ 'fields' => 'all' ] );
-				if ( is_wp_error( $post_terms ) || ! is_array( $post_terms ) ) {
-					continue;
-				}
-				foreach ( $post_terms as $term ) {
-					$taxonomy = isset( $term->taxonomy ) ? (string) $term->taxonomy : '';
-					if ( '' === $taxonomy ) {
-						continue;
-					}
-					$term_value = ( 'id' === $taxonomy_format ) ? (string) $term->term_id : (string) $term->name;
-					if ( '' === $term_value ) {
-						continue;
-					}
-					$taxonomy_data[ $post_id ][] = $taxonomy . ':' . $term_value;
-				}
-			}
-		}
-
-		return $taxonomy_data;
-	}
-
-	/**
-	 * Merge posts data with taxonomy data
-	 *
-	 * @since 0.9.8
-	 * @param array $posts_data Posts data from step 1.
-	 * @param array $taxonomy_data Taxonomy data from step 2.
-	 * @return array Merged data ready for CSV export.
-	 */
-	private function merge_posts_with_taxonomy( $posts_data, $taxonomy_data ) {
-		$merged_data = [];
-
-		foreach ( $posts_data as $post ) {
-			$row = $post;
-
-			// Add taxonomy columns.
-			if ( isset( $taxonomy_data[ $post['ID'] ] ) && ! empty( $taxonomy_data[ $post['ID'] ] ) ) {
-				$taxonomies = [];
-				foreach ( $taxonomy_data[ $post['ID'] ] as $taxonomy_item ) {
-					if ( ! empty( $taxonomy_item ) ) {
-						$parts = explode( ':', $taxonomy_item, 2 );
-						if ( count( $parts ) === 2 ) {
-							list( $taxonomy, $term )   = $parts;
-							$taxonomies[ $taxonomy ][] = $term;
-						}
-					}
-				}
-
-				// Convert taxonomy arrays to pipe-separated strings.
-				foreach ( $taxonomies as $taxonomy => $terms ) {
-					$terms                    = array_values( array_unique( array_filter( array_map( 'strval', (array) $terms ) ) ) );
-					$row[ "tax_{$taxonomy}" ] = implode( '|', $terms );
-				}
-			}
-
-			$merged_data[] = $row;
-		}
-
-		return $merged_data;
-	}
-
-	/**
 	 * Get posts batch for export
 	 *
 	 * @since 0.9.8
@@ -701,49 +554,110 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Build a CSV row by iterating headers (standard-compatible flow)
+	 * Get taxonomy data for posts using separate query
 	 *
-	 * @since 0.9.9
-	 * @param array    $post_data Post data for a single row.
-	 * @param string[] $headers CSV headers.
-	 * @return string[] Escaped CSV row values.
+	 * @since 0.9.8
+	 * @param array $posts_data Posts data from step 1.
+	 * @return array Taxonomy data indexed by post ID.
 	 */
-	private function build_csv_row_from_headers( array $post_data, array $headers ) {
-		$row     = [];
-		$post_id = isset( $post_data['ID'] ) ? (int) $post_data['ID'] : 0;
+	private function get_taxonomy_data_for_posts( $posts_data ) {
+		global $wpdb;
 
-		foreach ( $headers as $header ) {
-			if ( ! is_string( $header ) || '' === $header ) {
-				$row[] = $this->escape_csv_field( '' );
+		if ( empty( $posts_data ) ) {
+			return [];
+		}
+
+		// Extract post IDs.
+		$post_ids     = array_column( $posts_data, 'ID' );
+		$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
+
+		$query = "SELECT tr.object_id AS object_id, tt.taxonomy AS taxonomy, t.term_id AS term_id, t.name AS term_name
+				FROM {$wpdb->term_relationships} tr
+				INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+				INNER JOIN {$wpdb->terms} t ON tt.term_id = t.term_id
+				WHERE tr.object_id IN ({$placeholders})";
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$query = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $query ], $post_ids ) );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$results = $wpdb->get_results( $query, ARRAY_A );
+
+		$taxonomy_format = $this->config['taxonomy_format'] ?? 'name';
+		$taxonomy_data   = [];
+		foreach ( $results as $row ) {
+			$post_id  = (int) ( $row['object_id'] ?? 0 );
+			$taxonomy = (string) ( $row['taxonomy'] ?? '' );
+			if ( 0 === $post_id || '' === $taxonomy ) {
 				continue;
 			}
 
-			$value = '';
-
-			if ( 'ID' === $header ) {
-				$value = $post_id;
-			} elseif ( 'post_author' === $header ) {
-				$author_id = isset( $post_data['post_author'] ) ? (int) $post_data['post_author'] : 0;
-				$author    = $author_id ? get_user_by( 'id', $author_id ) : false;
-				$value     = $author ? (string) $author->display_name : '';
-			} elseif ( array_key_exists( $header, $post_data ) && 0 !== strpos( $header, 'tax_' ) && 0 !== strpos( $header, 'cf_' ) ) {
-				$value = $post_data[ $header ];
-			} elseif ( 0 === strpos( $header, 'tax_' ) ) {
-				$value = $post_data[ $header ] ?? '';
-			} elseif ( 0 === strpos( $header, 'cf_' ) ) {
-				$value = $post_data[ $header ] ?? '';
-			} else {
-				$custom_args = [
-					'post_type' => $this->config['post_type'] ?? 'post',
-					'context'   => 'export_data_processing',
-				];
-				$value       = apply_filters( 'swift_csv_process_custom_header', '', $header, $post_id, $custom_args );
+			$term_value = ( 'id' === $taxonomy_format ) ? (string) ( $row['term_id'] ?? '' ) : (string) ( $row['term_name'] ?? '' );
+			if ( '' === $term_value ) {
+				continue;
 			}
 
-			$row[] = $this->escape_csv_field( (string) $value );
+			$taxonomy_data[ $post_id ][] = $taxonomy . ':' . $term_value;
 		}
 
-		return $row;
+		$post_type      = $this->config['post_type'] ?? 'post';
+		$taxonomy_names = get_object_taxonomies( $post_type, 'names' );
+		$taxonomy_names = is_array( $taxonomy_names ) ? array_values( array_filter( array_map( 'sanitize_key', $taxonomy_names ) ) ) : [];
+		if ( ! empty( $taxonomy_names ) ) {
+			$taxonomy_format = $this->config['taxonomy_format'] ?? 'name';
+			$terms           = wp_get_object_terms(
+				$post_ids,
+				$taxonomy_names,
+				[
+					'fields' => 'all_with_object_id',
+				]
+			);
+
+			if ( ! is_wp_error( $terms ) && is_array( $terms ) ) {
+				foreach ( $terms as $term ) {
+					$object_id = isset( $term->object_id ) ? (int) $term->object_id : 0;
+					if ( 0 === $object_id ) {
+						continue;
+					}
+					$taxonomy = isset( $term->taxonomy ) ? (string) $term->taxonomy : '';
+					if ( '' === $taxonomy ) {
+						continue;
+					}
+					$term_value = ( 'id' === $taxonomy_format ) ? (string) $term->term_id : (string) $term->name;
+					if ( '' === $term_value ) {
+						continue;
+					}
+					$taxonomy_data[ $object_id ][] = $taxonomy . ':' . $term_value;
+				}
+			}
+
+			foreach ( $post_ids as $post_id ) {
+				$post_id = (int) $post_id;
+				if ( 0 === $post_id ) {
+					continue;
+				}
+				if ( ! empty( $taxonomy_data[ $post_id ] ) ) {
+					continue;
+				}
+				$post_terms = wp_get_object_terms( $post_id, $taxonomy_names, [ 'fields' => 'all' ] );
+				if ( is_wp_error( $post_terms ) || ! is_array( $post_terms ) ) {
+					continue;
+				}
+				foreach ( $post_terms as $term ) {
+					$taxonomy = isset( $term->taxonomy ) ? (string) $term->taxonomy : '';
+					if ( '' === $taxonomy ) {
+						continue;
+					}
+					$term_value = ( 'id' === $taxonomy_format ) ? (string) $term->term_id : (string) $term->name;
+					if ( '' === $term_value ) {
+						continue;
+					}
+					$taxonomy_data[ $post_id ][] = $taxonomy . ':' . $term_value;
+				}
+			}
+		}
+
+		return $taxonomy_data;
 	}
 
 	/**
@@ -809,53 +723,5 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		}
 
 		return $meta_data;
-	}
-
-	/**
-	 * Escape CSV field
-	 *
-	 * @since 0.9.8
-	 * @param string $field Field value.
-	 * @return string Escaped field.
-	 */
-	private function escape_csv_field( $field ) {
-		// Escape quotes.
-		$field = str_replace( '"', '""', $field );
-
-		return '"' . $field . '"';
-	}
-
-	/**
-	 * Get CSV row data for Direct SQL export
-	 *
-	 * @since 0.9.8
-	 * @param array $post Post data with taxonomy information.
-	 * @return array CSV row data.
-	 */
-	protected function get_csv_row( $post ) {
-		$row_data = [];
-
-		// Get headers to match order.
-		$headers = $this->get_post_headers();
-
-		// Convert each field to CSV format.
-		foreach ( $headers as $header ) {
-			$value = $post[ $header ] ?? '';
-
-			// Handle text fields with CSV escaping.
-			if ( in_array( $header, [ 'post_title', 'post_content', 'post_excerpt' ], true ) ) {
-				$value = '"' . str_replace( '"', '""', $value ) . '"';
-			} elseif ( strpos( $header, 'tax_' ) === 0 ) {
-				// Taxonomy fields (already pipe-separated).
-				$value = '"' . str_replace( '"', '""', $value ) . '"';
-			} else {
-				// Numeric and other fields.
-				$value = $value;
-			}
-
-			$row_data[] = $value;
-		}
-
-		return apply_filters( 'swift_csv_export_row', $row_data, $post, 'direct_sql' );
 	}
 }

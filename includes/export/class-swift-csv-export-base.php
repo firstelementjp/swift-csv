@@ -149,54 +149,6 @@ abstract class Swift_CSV_Export_Base {
 	}
 
 	/**
-	 * Get complete CSV headers including all optional columns
-	 *
-	 * Combines post headers, taxonomy headers, and custom field headers
-	 * based on export configuration. Provides unified header generation
-	 * for both standard and Direct SQL export methods.
-	 *
-	 * @since 0.9.11
-	 * @param array  $config Export configuration.
-	 * @param array  $query_spec Query specification for filtering.
-	 * @param string $context Export context ('standard' or 'direct_sql').
-	 * @return string[] Complete CSV headers.
-	 */
-	protected function get_complete_headers( array $config, array $query_spec = [], string $context = 'standard' ) {
-		// Start with post headers.
-		$headers = self::get_post_headers();
-
-		// Add taxonomy headers if enabled.
-		if ( ! empty( $config['include_taxonomies'] ) ) {
-			$tax_headers = $this->get_taxonomy_headers( $config );
-			if ( ! empty( $tax_headers ) ) {
-				$headers = array_merge( $headers, $tax_headers );
-			}
-		}
-
-		// Add custom field headers if enabled.
-		if ( ! empty( $config['include_custom_fields'] ) ) {
-			$cf_headers = $this->get_custom_field_headers( $config, $query_spec );
-			if ( ! empty( $cf_headers ) ) {
-				$headers = array_merge( $headers, $cf_headers );
-			}
-		}
-
-		/**
-		 * Filter complete CSV headers
-		 *
-		 * Allows developers to modify the complete CSV headers before export.
-		 * This filter is applied after all header types are combined.
-		 *
-		 * @since 0.9.0
-		 * @param array  $headers Complete CSV headers.
-		 * @param array  $config Export configuration.
-		 * @param string $context Export context.
-		 * @return array Modified headers.
-		 */
-		return apply_filters( 'swift_csv_export_headers', $headers, $config, $context );
-	}
-
-	/**
 	 * Get taxonomy headers for export
 	 *
 	 * Generates taxonomy column headers with 'tax_' prefix.
@@ -400,6 +352,54 @@ abstract class Swift_CSV_Export_Base {
 	}
 
 	/**
+	 * Get complete CSV headers including all optional columns
+	 *
+	 * Combines post headers, taxonomy headers, and custom field headers
+	 * based on export configuration. Provides unified header generation
+	 * for both standard and Direct SQL export methods.
+	 *
+	 * @since 0.9.11
+	 * @param array  $config Export configuration.
+	 * @param array  $query_spec Query specification for filtering.
+	 * @param string $context Export context ('standard' or 'direct_sql').
+	 * @return string[] Complete CSV headers.
+	 */
+	protected function get_complete_headers( array $config, array $query_spec = [], string $context = 'standard' ) {
+		// Start with post headers.
+		$headers = self::get_post_headers();
+
+		// Add taxonomy headers if enabled.
+		if ( ! empty( $config['include_taxonomies'] ) ) {
+			$tax_headers = $this->get_taxonomy_headers( $config );
+			if ( ! empty( $tax_headers ) ) {
+				$headers = array_merge( $headers, $tax_headers );
+			}
+		}
+
+		// Add custom field headers if enabled.
+		if ( ! empty( $config['include_custom_fields'] ) ) {
+			$cf_headers = $this->get_custom_field_headers( $config, $query_spec );
+			if ( ! empty( $cf_headers ) ) {
+				$headers = array_merge( $headers, $cf_headers );
+			}
+		}
+
+		/**
+		 * Filter complete CSV headers
+		 *
+		 * Allows developers to modify the complete CSV headers before export.
+		 * This filter is applied after all header types are combined.
+		 *
+		 * @since 0.9.0
+		 * @param array  $headers Complete CSV headers.
+		 * @param array  $config Export configuration.
+		 * @param string $context Export context.
+		 * @return array Modified headers.
+		 */
+		return apply_filters( 'swift_csv_export_headers', $headers, $config, $context );
+	}
+
+	/**
 	 * Get CSV row data for a post
 	 *
 	 * @since 0.9.8
@@ -451,7 +451,66 @@ abstract class Swift_CSV_Export_Base {
 				break;
 		}
 
-		return apply_filters( 'swift_csv_export_row', $row, $post->ID, $this->config, $scope );
+		return apply_filters( 'swift_csv_export_row', $row, $post['ID'], $this->config, $scope );
+	}
+
+	/**
+	 * Escape CSV field
+	 *
+	 * @since 0.9.12
+	 * @param string $field Field value.
+	 * @return string Escaped field.
+	 */
+	protected function escape_csv_field( $field ) {
+		$field = str_replace( '"', '""', (string) $field );
+
+		return '"' . $field . '"';
+	}
+
+	/**
+	 * Build a CSV row by iterating headers
+	 *
+	 * @since 0.9.12
+	 * @param array    $post_data Post data for a single row.
+	 * @param string[] $headers CSV headers.
+	 * @return string[] Escaped CSV row values.
+	 */
+	protected function build_csv_row_from_headers( array $post_data, array $headers ) {
+		$row     = [];
+		$post_id = isset( $post_data['ID'] ) ? (int) $post_data['ID'] : 0;
+
+		foreach ( $headers as $header ) {
+			if ( ! is_string( $header ) || '' === $header ) {
+				$row[] = $this->escape_csv_field( '' );
+				continue;
+			}
+
+			$value = '';
+
+			if ( 'ID' === $header ) {
+				$value = $post_id;
+			} elseif ( 'post_author' === $header ) {
+				$author_id = isset( $post_data['post_author'] ) ? (int) $post_data['post_author'] : 0;
+				$author    = $author_id ? get_user_by( 'id', $author_id ) : false;
+				$value     = $author ? (string) $author->display_name : '';
+			} elseif ( array_key_exists( $header, $post_data ) && 0 !== strpos( $header, 'tax_' ) && 0 !== strpos( $header, 'cf_' ) ) {
+				$value = $post_data[ $header ];
+			} elseif ( 0 === strpos( $header, 'tax_' ) ) {
+				$value = $post_data[ $header ] ?? '';
+			} elseif ( 0 === strpos( $header, 'cf_' ) ) {
+				$value = $post_data[ $header ] ?? '';
+			} else {
+				$custom_args = [
+					'post_type' => $this->config['post_type'] ?? 'post',
+					'context'   => 'export_data_processing',
+				];
+				$value       = apply_filters( 'swift_csv_process_custom_header', '', $header, $post_id, $custom_args );
+			}
+
+			$row[] = $this->escape_csv_field( (string) $value );
+		}
+
+		return $row;
 	}
 
 	/**

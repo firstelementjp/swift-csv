@@ -295,10 +295,23 @@ class Swift_CSV_Ajax_Export_Unified {
 				return;
 			}
 
-			// Get total posts count.
-			$total_posts = $this->get_total_posts_count( $config );
+			$transient_key = 'swift_csv_unified_export_config_' . get_current_user_id() . '_' . $export_session;
+			$export_config = get_transient( $transient_key );
 
-			$batch_size = $this->get_export_batch_size( $total_posts, $config['post_type'], $config );
+			if ( 0 === $start_row || ! is_array( $export_config ) ) {
+				$total_posts = $this->get_total_posts_count( $config );
+				$batch_size  = $this->get_export_batch_size( $total_posts, $config['post_type'], $config );
+
+				$export_config = [
+					'total_posts' => $total_posts,
+					'batch_size'  => $batch_size,
+				];
+
+				set_transient( $transient_key, $export_config, HOUR_IN_SECONDS );
+			} else {
+				$total_posts = isset( $export_config['total_posts'] ) ? (int) $export_config['total_posts'] : 0;
+				$batch_size  = isset( $export_config['batch_size'] ) ? (int) $export_config['batch_size'] : 0;
+			}
 
 			// Create Direct SQL Export instance.
 			$export = isset( $export ) && $export instanceof Swift_CSV_Export_Direct_SQL ? $export : new Swift_CSV_Export_Direct_SQL( $config );
@@ -700,12 +713,16 @@ class Swift_CSV_Ajax_Export_Unified {
 		$post_ids = $query->posts;
 
 		if ( empty( $post_ids ) ) {
+			$transient_key = 'swift_csv_unified_export_config_' . get_current_user_id() . '_' . $export_session;
+			$export_config = get_transient( $transient_key );
+			$total_posts   = isset( $export_config['total_posts'] ) ? (int) $export_config['total_posts'] : 0;
+
 			return [
 				'success'     => true,
 				'completed'   => true,
 				'csv_content' => '',
 				'processed'   => $start_row,
-				'total'       => $this->get_total_posts_count( $config ),
+				'total'       => $total_posts,
 			];
 		}
 
@@ -717,7 +734,7 @@ class Swift_CSV_Ajax_Export_Unified {
 			'completed'   => false,
 			'csv_content' => $csv_content,
 			'processed'   => $start_row + count( $post_ids ),
-			'total'       => $this->get_total_posts_count( $config ),
+			'total'       => isset( $export_config['total_posts'] ) ? (int) $export_config['total_posts'] : 0,
 		];
 	}
 

@@ -1,0 +1,243 @@
+<?php
+/**
+ * WP Compatible AJAX Export Handler
+ *
+ * Contains the request-scoped export logic for the WP compatible export method.
+ *
+ * @since 0.9.8
+ * @package Swift_CSV
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * WP Compatible AJAX Export Handler Class
+ *
+ * @since 0.9.8
+ * @package Swift_CSV
+ */
+class Swift_CSV_Ajax_Export_Handler_WP_Compatible {
+
+	/**
+	 * Export log store.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Export_Log_Store
+	 */
+	private $log_store;
+
+	/**
+	 * Export cancel manager.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Export_Cancel_Manager
+	 */
+	private $cancel_manager;
+
+	/**
+	 * Constructor.
+	 *
+	 * @since 0.9.8
+	 * @param Swift_CSV_Export_Log_Store      $log_store Export log store.
+	 * @param Swift_CSV_Export_Cancel_Manager $cancel_manager Export cancel manager.
+	 */
+	public function __construct( Swift_CSV_Export_Log_Store $log_store, Swift_CSV_Export_Cancel_Manager $cancel_manager ) {
+		$this->log_store      = $log_store;
+		$this->cancel_manager = $cancel_manager;
+	}
+
+	/**
+	 * Handle WP compatible export.
+	 *
+	 * @since 0.9.8
+	 * @param array $config Export configuration.
+	 * @return array Export result.
+	 * @throws Exception When export fails.
+	 */
+	public function handle( array $config ): array {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		try {
+			$start_row      = intval( $_POST['start_row'] ?? 0 );
+			$export_session = isset( $_POST['export_session'] ) ? sanitize_text_field( wp_unslash( $_POST['export_session'] ) ) : '';
+
+			if ( '' === $export_session ) {
+				$export_session = 'wp_compatible_export_' . gmdate( 'Ymd_His' ) . '_' . wp_generate_uuid4();
+			}
+
+			if ( 0 === $start_row ) {
+				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
+				$headers_line = get_transient( $headers_key );
+				if ( ! is_string( $headers_line ) || '' === $headers_line ) {
+					$export       = new Swift_CSV_Export_WP_Compatible( $config );
+					$headers      = $export->wp_compatible_get_post_headers();
+					$headers_line = implode( ',', array_map( [ $this, 'escape_csv_field' ], $headers ) );
+					set_transient( $headers_key, $headers_line, HOUR_IN_SECONDS );
+				}
+
+				$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
+				if ( $enable_logs ) {
+					$this->log_store->init( $export_session );
+				}
+			}
+
+			if ( $this->cancel_manager->is_cancelled( $export_session ) ) {
+				wp_send_json_error( 'Export cancelled by user' );
+				return [];
+			}
+
+			$transient_key = 'swift_csv_unified_export_config_' . get_current_user_id() . '_' . $export_session;
+			$export_config = get_transient( $transient_key );
+
+			if ( 0 === $start_row || ! is_array( $export_config ) ) {
+				$total_posts = $this->get_total_posts_count( $config );
+				$batch_size  = $this->get_export_batch_size( $total_posts, (string) ( $config['post_type'] ?? 'post' ), $config );
+
+				$export_config = [
+					'total_posts' => $total_posts,
+					'batch_size'  => $batch_size,
+				];
+
+				set_transient( $transient_key, $export_config, HOUR_IN_SECONDS );
+			} else {
+				$total_posts = isset( $export_config['total_posts'] ) ? (int) $export_config['total_posts'] : 0;
+				$batch_size  = isset( $export_config['batch_size'] ) ? (int) $export_config['batch_size'] : 0;
+			}
+
+			$export     = isset( $export ) && $export instanceof Swift_CSV_Export_WP_Compatible ? $export : new Swift_CSV_Export_WP_Compatible( $config );
+			$posts_data = $export->wp_compatible_batch_fetch_posts( $start_row, $batch_size );
+
+			if ( empty( $posts_data ) ) {
+				return [
+					'success'        => true,
+					'export_session' => $export_session,
+					'processed'      => $start_row,
+					'total'          => $total_posts,
+					'continue'       => false,
+					'progress'       => 100,
+					'status'         => 'completed',
+					'csv_chunk'      => '',
+				];
+			}
+
+			$csv_chunk = $export->wp_compatible_generate_csv_batch( $posts_data );
+			if ( 0 === $start_row ) {
+				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
+				$headers_line = get_transient( $headers_key );
+				if ( is_string( $headers_line ) && '' !== $headers_line ) {
+					$csv_chunk = $headers_line . "\n" . $csv_chunk;
+				}
+			}
+
+			if ( isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true ) ) {
+				$batch_number = floor( $start_row / $batch_size ) + 1;
+				$message      = sprintf(
+				/* translators: 1: Batch number, 2: Number of posts processed */
+					__( 'Batch %1$d: Bulk export %2$d posts', 'swift-csv' ),
+					$batch_number,
+					count( $posts_data )
+				);
+				$this->log_store->append(
+					$export_session,
+					[
+						'row'    => $start_row,
+						'status' => 'success',
+						'title'  => $message,
+						'time'   => current_time( 'mysql' ),
+					]
+				);
+			}
+
+			$next_row = $start_row + count( $posts_data );
+			$continue = $next_row < $total_posts;
+			$progress = $total_posts > 0 ? round( ( $next_row / $total_posts ) * 100, 2 ) : 100;
+			$progress = min( 100, max( 0, $progress ) );
+
+			if ( ! $continue ) {
+				$headers_key = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
+				delete_transient( $headers_key );
+			}
+
+			return [
+				'success'        => true,
+				'export_session' => $export_session,
+				'processed'      => $next_row,
+				'total'          => $total_posts,
+				'continue'       => $continue,
+				'progress'       => $progress,
+				'status'         => $continue ? 'processing' : 'completed',
+				'csv_chunk'      => $csv_chunk,
+			];
+		} catch ( Exception $e ) {
+			throw new Exception( 'WP compatible export failed: ' . esc_html( $e->getMessage() ) );
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+	}
+
+	/**
+	 * Escape CSV field.
+	 *
+	 * @since 0.9.8
+	 * @param string $field Field value.
+	 * @return string Escaped field.
+	 */
+	private function escape_csv_field( $field ): string {
+		$field = (string) $field;
+		$field = str_replace( '"', '""', $field );
+		return '"' . $field . '"';
+	}
+
+	/**
+	 * Get export batch size.
+	 *
+	 * @since 0.9.8
+	 * @param int    $total_count Total posts count.
+	 * @param string $post_type Post type.
+	 * @param array  $config Export configuration.
+	 * @return int Batch size.
+	 */
+	private function get_export_batch_size( int $total_count, string $post_type, array $config ): int {
+		$batch_size = 1000;
+
+		if ( $total_count > 10000 ) {
+			$batch_size = 2000;
+		} elseif ( $total_count > 5000 ) {
+			$batch_size = 1500;
+		} elseif ( $total_count > 1000 ) {
+			$batch_size = 1000;
+		} else {
+			$batch_size = 500;
+		}
+
+		return (int) apply_filters( 'swift_csv_export_batch_size', $batch_size, $total_count, $post_type, $config );
+	}
+
+	/**
+	 * Get total posts count for export.
+	 *
+	 * @since 0.9.8
+	 * @param array $config Export configuration.
+	 * @return int Total posts count.
+	 */
+	private function get_total_posts_count( array $config ): int {
+		$args = [
+			'post_type'      => $config['post_type'],
+			'post_status'    => $config['post_status'],
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		];
+
+		if ( ! empty( $config['export_limit'] ) && (int) $config['export_limit'] > 0 ) {
+			$args['posts_per_page'] = (int) $config['export_limit'];
+		}
+
+		$query = new WP_Query( $args );
+
+		$found_posts  = $query->found_posts;
+		$export_limit = $config['export_limit'] ?? 0;
+		$total_posts  = $export_limit > 0 ? min( $found_posts, $export_limit ) : $found_posts;
+
+		return (int) $total_posts;
+	}
+}

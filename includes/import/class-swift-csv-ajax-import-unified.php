@@ -227,7 +227,15 @@ class Swift_CSV_Ajax_Import_Unified {
 
 		switch ( $import_method ) {
 			case 'direct_sql':
-				$handler = new Swift_CSV_Ajax_Import_Handler_Direct_SQL();
+				$handler = new Swift_CSV_Ajax_Import_Handler_Direct_SQL(
+					$this->get_log_store(),
+					$this->get_csv_store(),
+					$this->get_csv_util(),
+					$this->get_csv_parser(),
+					$this->get_file_processor(),
+					$this->get_batch_processor(),
+					$this->get_response_manager()
+				);
 				$handler->handle();
 				return;
 			case 'wp_compatible':

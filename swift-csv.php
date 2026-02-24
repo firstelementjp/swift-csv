@@ -125,7 +125,6 @@ function swift_csv_load_textdomain() {
 function swift_csv_init() {
 	new Swift_CSV_Admin();
 	new Swift_CSV_Ajax_Import();
-	new Swift_CSV_Ajax_Export(); // Add missing standard export handler.
 
 	// Manually include base export class first.
 	require_once SWIFT_CSV_PLUGIN_DIR . 'includes/export/class-swift-csv-export-base.php';

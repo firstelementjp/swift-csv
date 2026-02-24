@@ -33,6 +33,7 @@ class Swift_CSV_Ajax_Export_Unified {
 		// Enable unified handler for Direct SQL export.
 		add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
 		add_action( 'wp_ajax_swift_csv_ajax_export_logs', [ $this, 'handle_ajax_export_logs' ] );
+		add_action( 'wp_ajax_swift_csv_cancel_export', [ $this, 'handle_ajax_export_cancel' ] );
 	}
 
 	/**
@@ -176,6 +177,28 @@ class Swift_CSV_Ajax_Export_Unified {
 		}
 
 		wp_send_json_success( $payload );
+	}
+
+	/**
+	 * Handle AJAX export cancellation
+	 *
+	 * @since 0.9.8
+	 * @return void Sends JSON response.
+	 */
+	public function handle_ajax_export_cancel(): void {
+		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
+
+		$export_session = sanitize_key( wp_unslash( $_POST['export_session'] ?? '' ) );
+		if ( '' === $export_session ) {
+			wp_send_json_error( 'Missing export session' );
+			return;
+		}
+
+		$cancel_option_name = $this->get_cancel_option_name( $export_session );
+		update_option( $cancel_option_name, time(), false );
+		$this->cleanup_export_log_store( $export_session );
+
+		wp_send_json_success( 'Export cancellation signal sent' );
 	}
 
 	/**
@@ -688,6 +711,18 @@ class Swift_CSV_Ajax_Export_Unified {
 			],
 			3600
 		);
+	}
+
+	/**
+	 * Cleanup export log store
+	 *
+	 * @since 0.9.8
+	 * @param string $export_session Export session identifier.
+	 * @return void
+	 */
+	private function cleanup_export_log_store( string $export_session ): void {
+		$transient_key = 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
+		delete_transient( $transient_key );
 	}
 
 	/**

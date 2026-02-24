@@ -67,7 +67,7 @@ class Swift_CSV_Ajax_Export_Unified {
 		}
 
 		// Get export method.
-		$export_method = isset( $_POST['export_method'] ) ? sanitize_text_field( wp_unslash( $_POST['export_method'] ) ) : 'standard';
+		$export_method = isset( $_POST['export_method'] ) ? sanitize_text_field( wp_unslash( $_POST['export_method'] ) ) : 'wp_compatible';
 		if ( 'standard' === $export_method ) {
 			$export_method = 'wp_compatible';
 		}
@@ -498,19 +498,6 @@ class Swift_CSV_Ajax_Export_Unified {
 	}
 
 	/**
-	 * Handle standard export
-	 *
-	 * @since 0.9.8
-	 * @param array $config Export configuration.
-	 * @return array Export result.
-	 */
-	private function handle_standard_export( $config ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
-		// Use existing standard export handler.
-		$standard_handler = new Swift_CSV_Ajax_Export();
-		return $standard_handler->handle_ajax_export();
-	}
-
-	/**
 	 * Get export batch size
 	 *
 	 * @since 0.9.8
@@ -797,85 +784,6 @@ class Swift_CSV_Ajax_Export_Unified {
 		$total_posts  = $export_limit > 0 ? min( $found_posts, $export_limit ) : $found_posts;
 
 		return $total_posts;
-	}
-
-	/**
-	 * Process standard export batch
-	 *
-	 * @since 0.9.8
-	 * @param array  $config Export configuration.
-	 * @param int    $start_row Starting row number.
-	 * @param string $export_session Export session identifier.
-	 * @return array Batch processing result.
-	 */
-	private function process_standard_export_batch( $config, $start_row, $export_session ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
-		$batch_size = 500;
-
-		// Get posts for this batch.
-		$args = [
-			'post_type'      => $config['post_type'],
-			'post_status'    => $config['post_status'],
-			'posts_per_page' => $batch_size,
-			'offset'         => $start_row,
-			'fields'         => 'ids',
-		];
-
-		if ( ! empty( $config['export_limit'] ) && $config['export_limit'] > 0 ) {
-			$args['posts_per_page'] = min( $batch_size, intval( $config['export_limit'] ) - $start_row );
-		}
-
-		$query    = new WP_Query( $args );
-		$post_ids = $query->posts;
-
-		if ( empty( $post_ids ) ) {
-			$transient_key = 'swift_csv_unified_export_config_' . get_current_user_id() . '_' . $export_session;
-			$export_config = get_transient( $transient_key );
-			$total_posts   = isset( $export_config['total_posts'] ) ? (int) $export_config['total_posts'] : 0;
-
-			return [
-				'success'     => true,
-				'completed'   => true,
-				'csv_content' => '',
-				'processed'   => $start_row,
-				'total'       => $total_posts,
-			];
-		}
-
-		// Generate CSV for this batch.
-		$csv_content = $this->generate_csv_for_posts( $post_ids, $config, 0 === $start_row );
-
-		return [
-			'success'     => true,
-			'completed'   => false,
-			'csv_content' => $csv_content,
-			'processed'   => $start_row + count( $post_ids ),
-			'total'       => isset( $export_config['total_posts'] ) ? (int) $export_config['total_posts'] : 0,
-		];
-	}
-
-	/**
-	 * Generate CSV content for posts
-	 *
-	 * @since 0.9.8
-	 * @param array $post_ids Post IDs.
-	 * @param array $config Export configuration.
-	 * @param bool  $include_headers Whether to include CSV headers.
-	 * @return string CSV content.
-	 */
-	private function generate_csv_for_posts( $post_ids, $config, $include_headers ) {
-		$csv = '';
-
-		if ( $include_headers ) {
-			$headers = $this->get_csv_headers( $config );
-			$csv    .= implode( ',', $headers ) . "\n";
-		}
-
-		foreach ( $post_ids as $post_id ) {
-			$row  = $this->get_csv_row( $post_id, $config );
-			$csv .= implode( ',', $row ) . "\n";
-		}
-
-		return $csv;
 	}
 }
 

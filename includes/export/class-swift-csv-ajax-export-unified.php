@@ -268,7 +268,3 @@ class Swift_CSV_Ajax_Export_Unified {
 		return $handler->handle( (array) $config );
 	}
 }
-
-if ( ! class_exists( 'Swift_CSV_AJAX_Export_Unified' ) ) {
-	class_alias( 'Swift_CSV_Ajax_Export_Unified', 'Swift_CSV_AJAX_Export_Unified' );
-}

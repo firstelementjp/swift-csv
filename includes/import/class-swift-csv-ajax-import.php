@@ -24,20 +24,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Ajax_Import {
 	/**
-	 * Maximum number of import logs to store per session.
+	 * Import log store.
 	 *
 	 * @since 0.9.8
-	 * @var int
+	 * @var Swift_CSV_Import_Log_Store|null
 	 */
-	private $import_log_store_max = 500;
-
-	/**
-	 * Import log transient TTL in seconds.
-	 *
-	 * @since 0.9.8
-	 * @var int
-	 */
-	private $import_log_store_ttl = 3600;
+	private $log_store;
 
 	/**
 	 * CSV utility instance
@@ -139,178 +131,16 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get the transient key for the import log store.
+	 * Get import log store instance.
 	 *
 	 * @since 0.9.8
-	 * @param string $import_session Import session ID.
-	 * @return string
+	 * @return Swift_CSV_Import_Log_Store
 	 */
-	private function get_import_log_transient_key( string $import_session ): string {
-		$user_id = get_current_user_id();
-		return 'swift_csv_import_logs_' . $user_id . '_' . $import_session;
-	}
-
-	/**
-	 * Initialize import log store.
-	 *
-	 * @since 0.9.8
-	 * @param string $import_session Import session ID.
-	 * @return void
-	 */
-	private function init_import_log_store( string $import_session ): void {
-		$transient_key = $this->get_import_log_transient_key( $import_session );
-		set_transient(
-			$transient_key,
-			[
-				'last_id' => 0,
-				'logs'    => [],
-			],
-			$this->import_log_store_ttl
-		);
-	}
-
-	/**
-	 * Append an import log entry to the store.
-	 *
-	 * @since 0.9.8
-	 * @param string $import_session Import session ID.
-	 * @param array  $detail Log detail array.
-	 * @return int New log ID.
-	 */
-	private function append_import_log( string $import_session, array $detail ): int {
-		$transient_key = $this->get_import_log_transient_key( $import_session );
-		$store         = get_transient( $transient_key );
-		if ( ! is_array( $store ) ) {
-			$store = [
-				'last_id' => 0,
-				'logs'    => [],
-			];
+	private function get_log_store(): Swift_CSV_Import_Log_Store {
+		if ( null === $this->log_store ) {
+			$this->log_store = new Swift_CSV_Import_Log_Store();
 		}
-
-		$last_id = isset( $store['last_id'] ) ? (int) $store['last_id'] : 0;
-		$new_id  = $last_id + 1;
-		$logs    = isset( $store['logs'] ) && is_array( $store['logs'] ) ? $store['logs'] : [];
-		$logs[]  = [
-			'id'     => $new_id,
-			'detail' => $detail,
-		];
-
-		if ( count( $logs ) > $this->import_log_store_max ) {
-			$logs = array_slice( $logs, -1 * $this->import_log_store_max );
-		}
-
-		set_transient(
-			$transient_key,
-			[
-				'last_id' => $new_id,
-				'logs'    => $logs,
-			],
-			$this->import_log_store_ttl
-		);
-
-		return $new_id;
-	}
-
-	/**
-	 * Fetch import logs since a given log ID.
-	 *
-	 * @since 0.9.8
-	 * @param string $import_session Import session ID.
-	 * @param int    $after_id Last seen log ID.
-	 * @param int    $limit Maximum logs to return.
-	 * @return array{last_id:int,logs:array<int,array{id:int,detail:array}>}
-	 */
-	private function fetch_import_logs_since( string $import_session, int $after_id, int $limit ): array {
-		$transient_key = $this->get_import_log_transient_key( $import_session );
-		$store         = get_transient( $transient_key );
-		if ( ! is_array( $store ) ) {
-			return [
-				'last_id' => $after_id,
-				'logs'    => [],
-			];
-		}
-
-		$last_id = isset( $store['last_id'] ) ? (int) $store['last_id'] : 0;
-		$logs    = isset( $store['logs'] ) && is_array( $store['logs'] ) ? $store['logs'] : [];
-
-		$filtered = [];
-		foreach ( $logs as $item ) {
-			if ( ! is_array( $item ) ) {
-				continue;
-			}
-			$item_id = isset( $item['id'] ) ? (int) $item['id'] : 0;
-			if ( $item_id <= $after_id ) {
-				continue;
-			}
-			$filtered[] = $item;
-			if ( count( $filtered ) >= $limit ) {
-				break;
-			}
-		}
-
-		return [
-			'last_id' => $last_id,
-			'logs'    => $filtered,
-		];
-	}
-
-	/**
-	 * Cleanup import log store.
-	 *
-	 * @since 0.9.8
-	 * @param string $import_session Import session ID.
-	 * @return void
-	 */
-	private function cleanup_import_log_store( string $import_session ): void {
-		delete_transient( $this->get_import_log_transient_key( $import_session ) );
-	}
-
-	/**
-	 * Get recent logs by type for UI display.
-	 *
-	 * @since 0.9.8
-	 * @param string $import_session Import session ID.
-	 * @param string $type Log type: 'created', 'updated', 'errors'.
-	 * @param int    $limit Maximum logs to return.
-	 * @return array{items:array,total:int} Logs and total count.
-	 */
-	private function get_recent_logs_by_type( string $import_session, string $type, int $limit ): array {
-		$all_logs = $this->fetch_import_logs_since( $import_session, 0, 500 );
-		$filtered = [];
-
-		foreach ( $all_logs['logs'] as $log_item ) {
-			if ( ! isset( $log_item['detail']['status'] ) || ! isset( $log_item['detail']['action'] ) ) {
-				continue;
-			}
-
-			$detail   = $log_item['detail'];
-			$is_match = false;
-
-			switch ( $type ) {
-				case 'created':
-					$is_match = ( 'success' === $detail['status'] && 'create' === $detail['action'] );
-					break;
-				case 'updated':
-					$is_match = ( 'success' === $detail['status'] && 'update' === $detail['action'] );
-					break;
-				case 'errors':
-					$is_match = ( 'error' === $detail['status'] );
-					break;
-			}
-
-			if ( $is_match ) {
-				$filtered[] = [
-					'row'     => $detail['row'],
-					'title'   => $detail['title'],
-					'details' => $detail['details'] ?? '',
-				];
-			}
-		}
-
-		return [
-			'items' => array_slice( $filtered, -1 * $limit ),
-			'total' => count( $filtered ),
-		];
+		return $this->log_store;
 	}
 
 	/**
@@ -366,7 +196,7 @@ class Swift_CSV_Ajax_Import {
 		$limit    = isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 100;
 		$limit    = max( 1, min( 200, $limit ) );
 
-		$result = $this->fetch_import_logs_since( $import_session, $after_id, $limit );
+		$result = $this->get_log_store()->fetch( $import_session, $after_id, $limit );
 		wp_send_json_success( $result );
 	}
 
@@ -608,11 +438,11 @@ class Swift_CSV_Ajax_Import {
 		$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
 		$append_log  = null;
 		if ( $enable_logs && 0 === $start_row ) {
-			$this->init_import_log_store( $import_session );
+			$this->get_log_store()->init( $import_session );
 		}
 		if ( $enable_logs ) {
 			$append_log = function ( array $detail ) use ( $import_session ): void {
-				$this->append_import_log( $import_session, $detail );
+				$this->get_log_store()->append( $import_session, $detail );
 			};
 		}
 
@@ -657,20 +487,20 @@ class Swift_CSV_Ajax_Import {
 		if ( 0 === $start_row ) {
 			$csv_data = $this->get_csv_parser_util()->parse_and_validate_csv( $csv_content, $config, $file_path );
 			if ( null === $csv_data ) {
-				$this->cleanup_import_log_store( $import_session );
+				$this->get_log_store()->cleanup( $import_session );
 				return;
 			}
-			set_transient( $csv_store_key, $csv_data, $this->import_log_store_ttl );
+			set_transient( $csv_store_key, $csv_data, 3600 );
 		} elseif ( ! is_array( $csv_data ) ) {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			$csv_content = (string) file_get_contents( $file_path );
 			$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content );
 			$csv_data    = $this->get_csv_parser_util()->parse_and_validate_csv( $csv_content, $config, $file_path );
 			if ( null === $csv_data ) {
-				$this->cleanup_import_log_store( $import_session );
+				$this->get_log_store()->cleanup( $import_session );
 				return;
 			}
-			set_transient( $csv_store_key, $csv_data, $this->import_log_store_ttl );
+			set_transient( $csv_store_key, $csv_data, 3600 );
 		}
 
 		/**
@@ -732,7 +562,7 @@ class Swift_CSV_Ajax_Import {
 				if ( ! is_array( $detail ) ) {
 					continue;
 				}
-				$this->append_import_log( $import_session, $detail );
+				$this->get_log_store()->append( $import_session, $detail );
 			}
 		}
 
@@ -748,9 +578,9 @@ class Swift_CSV_Ajax_Import {
 		$recent_logs = [];
 		if ( ! $continue ) {
 			$recent_logs = [
-				'created' => $this->get_recent_logs_by_type( $import_session, 'created', 30 ),
-				'updated' => $this->get_recent_logs_by_type( $import_session, 'updated', 30 ),
-				'errors'  => $this->get_recent_logs_by_type( $import_session, 'errors', 30 ),
+				'created' => $this->get_log_store()->get_recent_logs_by_type( $import_session, 'created', 30 ),
+				'updated' => $this->get_log_store()->get_recent_logs_by_type( $import_session, 'updated', 30 ),
+				'errors'  => $this->get_log_store()->get_recent_logs_by_type( $import_session, 'errors', 30 ),
 			];
 		}
 

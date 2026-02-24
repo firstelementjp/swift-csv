@@ -37,7 +37,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		$posts_data   = [];
 
 		while ( true ) {
-			$batch_posts = $this->batch_fetch_posts( $offset, $batch_size );
+			$batch_posts = $this->direct_sql_batch_fetch_posts( $offset, $batch_size );
 			if ( empty( $batch_posts ) ) {
 				break;
 			}
@@ -245,7 +245,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @since 0.9.9
 	 * @return string[] Post field headers.
 	 */
-	public function get_post_headers_public() {
+	public function direct_sql_get_post_headers() {
 		return $this->get_post_headers();
 	}
 
@@ -257,7 +257,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @param int $batch_size Batch size.
 	 * @return array Posts data.
 	 */
-	public function batch_fetch_posts( $offset, $batch_size ) {
+	public function direct_sql_batch_fetch_posts( $offset, $batch_size ) {
 		global $wpdb;
 
 		// Get post type and status from config.
@@ -557,7 +557,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @param array $posts_data Posts data.
 	 * @return string CSV content.
 	 */
-	public function generate_csv_batch( $posts_data ) {
+	public function direct_sql_generate_csv_batch( $posts_data ) {
 		$csv     = '';
 		$headers = $this->get_post_headers();
 

@@ -253,7 +253,7 @@ class Swift_CSV_Ajax_Export_Unified {
 				$headers_line = get_transient( $headers_key );
 				if ( ! is_string( $headers_line ) || '' === $headers_line ) {
 					$export       = new Swift_CSV_Export_Direct_SQL( $config );
-					$headers      = $export->get_post_headers_public();
+					$headers      = $export->direct_sql_get_post_headers();
 					$headers_line = implode( ',', array_map( [ $this, 'escape_csv_field' ], $headers ) );
 					set_transient( $headers_key, $headers_line, HOUR_IN_SECONDS );
 				}
@@ -293,7 +293,7 @@ class Swift_CSV_Ajax_Export_Unified {
 			$export = isset( $export ) && $export instanceof Swift_CSV_Export_Direct_SQL ? $export : new Swift_CSV_Export_Direct_SQL( $config );
 
 			// Get posts for current batch.
-			$posts_data = $export->batch_fetch_posts( $start_row, $batch_size );
+			$posts_data = $export->direct_sql_batch_fetch_posts( $start_row, $batch_size );
 
 			if ( empty( $posts_data ) ) {
 				return [
@@ -309,7 +309,7 @@ class Swift_CSV_Ajax_Export_Unified {
 			}
 
 			// Generate CSV for this batch.
-			$csv_chunk = $export->generate_csv_batch( $posts_data );
+			$csv_chunk = $export->direct_sql_generate_csv_batch( $posts_data );
 			if ( 0 === $start_row ) {
 				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
 				$headers_line = get_transient( $headers_key );

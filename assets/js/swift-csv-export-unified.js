@@ -251,9 +251,26 @@ const SwiftCSVExportUnified = {
 		};
 
 		if (ui && ui.cancelBtn) {
+			const existingCancelHandler = ui.cancelBtn._swiftCsvDirectSqlCancelHandler;
+			if (existingCancelHandler) {
+				ui.cancelBtn.removeEventListener('click', existingCancelHandler);
+				ui.cancelBtn._swiftCsvDirectSqlCancelHandler = null;
+			}
+
 			cancelHandler = () => {
 				isCancelled = true;
 				stopExportLogPolling();
+				if (
+					formData.enable_logs === '1' &&
+					window.SwiftCSVUtils &&
+					window.SwiftCSVUtils.addLogEntry
+				) {
+					window.SwiftCSVUtils.addLogEntry(
+						swiftCSV.messages.exportCancelledByUser,
+						'warning',
+						'export'
+					);
+				}
 				sendCancelSignal();
 				if (currentAbortController) {
 					currentAbortController.abort();
@@ -262,6 +279,8 @@ const SwiftCSVExportUnified = {
 				button.disabled = false;
 				button.textContent = swiftCSV.messages.directSqlExport || 'High-Speed Export';
 			};
+
+			ui.cancelBtn._swiftCsvDirectSqlCancelHandler = cancelHandler;
 			ui.cancelBtn.addEventListener('click', cancelHandler, { once: true });
 		}
 

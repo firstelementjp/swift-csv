@@ -226,8 +226,10 @@ function handleAjaxExport(e) {
 
 	// Cancel functionality
 	if (cancelBtn) {
-		if (exportCancelHandler) {
-			cancelBtn.removeEventListener('click', exportCancelHandler);
+		const existingCancelHandler = cancelBtn._swiftCsvExportCancelHandler;
+		if (existingCancelHandler) {
+			cancelBtn.removeEventListener('click', existingCancelHandler);
+			cancelBtn._swiftCsvExportCancelHandler = null;
 		}
 
 		exportCancelHandler = function () {
@@ -273,6 +275,7 @@ function handleAjaxExport(e) {
 			}
 		};
 
+		cancelBtn._swiftCsvExportCancelHandler = exportCancelHandler;
 		cancelBtn.addEventListener('click', exportCancelHandler, { once: true });
 	}
 

@@ -25,11 +25,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Swift_CSV_Ajax_Export_Unified {
 
 	/**
+	 * Export log store
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Export_Log_Store
+	 */
+	private $log_store;
+
+	/**
+	 * Export cancel manager
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Export_Cancel_Manager
+	 */
+	private $cancel_manager;
+
+	/**
 	 * Constructor
 	 *
 	 * @since 0.9.8
 	 */
 	public function __construct() {
+		$this->log_store      = new Swift_CSV_Export_Log_Store();
+		$this->cancel_manager = new Swift_CSV_Export_Cancel_Manager();
+
 		// Enable unified handler for Direct SQL export.
 		add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
 		add_action( 'wp_ajax_swift_csv_ajax_export_logs', [ $this, 'handle_ajax_export_logs' ] );
@@ -141,40 +160,7 @@ class Swift_CSV_Ajax_Export_Unified {
 
 		$after_id = isset( $_POST['after_id'] ) ? intval( $_POST['after_id'] ) : 0;
 		$limit    = isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 100;
-		$limit    = max( 1, min( 200, $limit ) );
-
-		// Get logs directly.
-		$transient_key = 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
-		$store         = get_transient( $transient_key );
-
-		if ( ! is_array( $store ) ) {
-			$payload = [
-				'last_id' => 0,
-				'logs'    => [],
-			];
-		} else {
-			$logs = [];
-			if ( ! empty( $store['logs'] ) && is_array( $store['logs'] ) ) {
-				foreach ( $store['logs'] as $entry ) {
-					if ( ! is_array( $entry ) || empty( $entry['id'] ) ) {
-						continue;
-					}
-					$entry_id = intval( $entry['id'] );
-					if ( $entry_id <= $after_id ) {
-						continue;
-					}
-					$logs[] = $entry;
-					if ( count( $logs ) >= $limit ) {
-						break;
-					}
-				}
-			}
-
-			$payload = [
-				'last_id' => intval( $store['last_id'] ?? 0 ),
-				'logs'    => $logs,
-			];
-		}
+		$payload  = $this->log_store->fetch( $export_session, $after_id, $limit );
 
 		wp_send_json_success( $payload );
 	}
@@ -193,10 +179,8 @@ class Swift_CSV_Ajax_Export_Unified {
 			wp_send_json_error( 'Missing export session' );
 			return;
 		}
-
-		$cancel_option_name = $this->get_cancel_option_name( $export_session );
-		update_option( $cancel_option_name, time(), false );
-		$this->cleanup_export_log_store( $export_session );
+		$this->cancel_manager->cancel( $export_session );
+		$this->log_store->cleanup( $export_session );
 
 		wp_send_json_success( 'Export cancellation signal sent' );
 	}
@@ -702,15 +686,7 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @return void
 	 */
 	private function init_export_log_store( $export_session ) {
-		$transient_key = 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
-		set_transient(
-			$transient_key,
-			[
-				'last_id' => 0,
-				'logs'    => [],
-			],
-			3600
-		);
+		$this->log_store->init( (string) $export_session );
 	}
 
 	/**
@@ -721,8 +697,7 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @return void
 	 */
 	private function cleanup_export_log_store( string $export_session ): void {
-		$transient_key = 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
-		delete_transient( $transient_key );
+		$this->log_store->cleanup( $export_session );
 	}
 
 	/**
@@ -734,23 +709,7 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @return int New log ID.
 	 */
 	private function append_export_log( $export_session, array $detail ) {
-		$transient_key = 'swift_csv_export_logs_' . get_current_user_id() . '_' . $export_session;
-		$store         = get_transient( $transient_key );
-		if ( ! is_array( $store ) ) {
-			$store = [
-				'last_id' => 0,
-				'logs'    => [],
-			];
-		}
-
-		++$store['last_id'];
-		$store['logs'][] = [
-			'id'     => $store['last_id'],
-			'detail' => $detail,
-		];
-
-		set_transient( $transient_key, $store, 3600 );
-		return $store['last_id'];
+		return $this->log_store->append( (string) $export_session, $detail );
 	}
 
 	/**
@@ -763,7 +722,7 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @return string Option name.
 	 */
 	private function get_cancel_option_name( string $export_session ): string {
-		return 'swift_csv_export_cancelled_' . get_current_user_id() . '_' . $export_session;
+		return $this->cancel_manager->get_cancel_option_name( $export_session );
 	}
 
 	/**
@@ -774,22 +733,7 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @return bool True if cancelled.
 	 */
 	private function is_cancelled( $export_session ) {
-		if ( empty( $export_session ) ) {
-			return false;
-		}
-
-		$cancel_option_name = $this->get_cancel_option_name( (string) $export_session );
-
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-		$option_value = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT option_value FROM {$wpdb->options} WHERE option_name = %s LIMIT 1",
-				$cancel_option_name
-			)
-		);
-
-		return ! empty( $option_value );
+		return $this->cancel_manager->is_cancelled( (string) $export_session );
 	}
 
 	/**

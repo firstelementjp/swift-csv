@@ -137,6 +137,11 @@ class Swift_CSV_Import_Batch_Processor {
 	private function process_batch_import( array $config, array $csv_data, array &$counters ): void {
 		global $wpdb;
 
+		$row_context_util   = $this->get_row_context_util();
+		$row_processor_util = $this->get_row_processor_util();
+		$persister_util     = $this->get_persister_util();
+		$meta_tax_util      = $this->get_meta_tax_util();
+
 		$allowed_post_fields = $this->get_allowed_post_fields();
 
 		// Validate ID column only on first batch to prevent performance issues.
@@ -159,7 +164,18 @@ class Swift_CSV_Import_Batch_Processor {
 		// Calculate end row once to avoid function calls in loop test.
 		$end_row = min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] );
 		for ( $i = $config['start_row']; $i < $end_row; $i++ ) {
-			$this->process_import_loop_iteration( $wpdb, $config, $csv_data, $allowed_post_fields, $i, $counters );
+			$this->process_import_loop_iteration(
+				$wpdb,
+				$config,
+				$csv_data,
+				$allowed_post_fields,
+				$i,
+				$counters,
+				$row_context_util,
+				$row_processor_util,
+				$persister_util,
+				$meta_tax_util
+			);
 		}
 	}
 
@@ -167,15 +183,30 @@ class Swift_CSV_Import_Batch_Processor {
 	 * Import loop iteration logic
 	 *
 	 * @since 0.9.8
-	 * @param wpdb  $wpdb WordPress database handler.
-	 * @param array $config Import configuration.
-	 * @param array $csv_data Parsed CSV data.
-	 * @param array $allowed_post_fields Allowed post fields.
-	 * @param int   $index Row index.
-	 * @param array $counters Counters (by reference).
+	 * @param wpdb                           $wpdb WordPress database handler.
+	 * @param array                          $config Import configuration.
+	 * @param array                          $csv_data Parsed CSV data.
+	 * @param array                          $allowed_post_fields Allowed post fields.
+	 * @param int                            $index Row index.
+	 * @param array                          $counters Counters (by reference).
+	 * @param Swift_CSV_Import_Row_Context   $row_context_util Row context util.
+	 * @param Swift_CSV_Import_Row_Processor $row_processor_util Row processor util.
+	 * @param Swift_CSV_Import_Persister     $persister_util Persister util.
+	 * @param Swift_CSV_Import_Meta_Tax      $meta_tax_util Meta/tax util.
 	 * @return void
 	 */
-	private function process_import_loop_iteration( wpdb $wpdb, array $config, array $csv_data, array $allowed_post_fields, int $index, array &$counters ): void {
+	private function process_import_loop_iteration(
+		wpdb $wpdb,
+		array $config,
+		array $csv_data,
+		array $allowed_post_fields,
+		int $index,
+		array &$counters,
+		Swift_CSV_Import_Row_Context $row_context_util,
+		Swift_CSV_Import_Row_Processor $row_processor_util,
+		Swift_CSV_Import_Persister $persister_util,
+		Swift_CSV_Import_Meta_Tax $meta_tax_util
+	): void {
 		$lines     = $csv_data['lines'];
 		$delimiter = $csv_data['delimiter'];
 		$headers   = $csv_data['headers'];
@@ -187,7 +218,7 @@ class Swift_CSV_Import_Batch_Processor {
 		}
 
 		// Use Ajax_Import's original row processing logic.
-		$row_context = $this->build_import_row_context_from_config( $config, $line, $delimiter, $headers, $allowed_post_fields );
+		$row_context = $this->build_import_row_context_from_config( $wpdb, $row_context_util, $config, $line, $delimiter, $headers, $allowed_post_fields );
 		if ( null === $row_context ) {
 			return;
 		}
@@ -195,14 +226,14 @@ class Swift_CSV_Import_Batch_Processor {
 		$context = $this->build_row_processing_context( $config, $csv_data, $headers, $allowed_post_fields );
 
 		// Use the original row processor utility.
-		$this->get_row_processor_util()->process_row_context_with_persister(
+		$row_processor_util->process_row_context_with_persister(
 			$wpdb,
 			$row_context,
 			$context,
 			$counters,
-			$this->get_persister_util(),
-			function ( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters ): void {
-				$this->handle_successful_row_import( $wpdb, $post_id, $is_update, $context, $counters );
+			$persister_util,
+			function ( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters ) use ( $meta_tax_util ): void {
+				$this->handle_successful_row_import( $wpdb, $post_id, $is_update, $context, $counters, $meta_tax_util );
 			}
 		);
 	}
@@ -211,16 +242,18 @@ class Swift_CSV_Import_Batch_Processor {
 	 * Row context building logic
 	 *
 	 * @since 0.9.8
-	 * @param array  $config Import configuration.
-	 * @param string $line CSV line.
-	 * @param string $delimiter CSV delimiter.
-	 * @param array  $headers CSV headers.
-	 * @param array  $allowed_post_fields Allowed post fields.
+	 * @param wpdb                         $wpdb WordPress database handler.
+	 * @param Swift_CSV_Import_Row_Context $row_context_util Row context util.
+	 * @param array                        $config Import configuration.
+	 * @param string                       $line CSV line.
+	 * @param string                       $delimiter CSV delimiter.
+	 * @param array                        $headers CSV headers.
+	 * @param array                        $allowed_post_fields Allowed post fields.
 	 * @return array|null Row context or null if invalid.
 	 */
-	private function build_import_row_context_from_config( array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
-		return $this->get_row_context_util()->build_import_row_context_from_config(
-			$GLOBALS['wpdb'],
+	private function build_import_row_context_from_config( wpdb $wpdb, Swift_CSV_Import_Row_Context $row_context_util, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
+		return $row_context_util->build_import_row_context_from_config(
+			$wpdb,
 			$config,
 			$line,
 			$delimiter,
@@ -258,14 +291,15 @@ class Swift_CSV_Import_Batch_Processor {
 	 * Successful row import handling logic.
 	 *
 	 * @since 0.9.8
-	 * @param wpdb  $wpdb WordPress database object.
-	 * @param int   $post_id Post ID.
-	 * @param bool  $is_update Whether this was an update.
-	 * @param array $context Row processing context.
-	 * @param array $counters Counters (by reference).
+	 * @param wpdb                      $wpdb WordPress database object.
+	 * @param int                       $post_id Post ID.
+	 * @param bool                      $is_update Whether this was an update.
+	 * @param array                     $context Row processing context.
+	 * @param array                     $counters Counters (by reference).
+	 * @param Swift_CSV_Import_Meta_Tax $meta_tax_util Meta/tax util.
 	 * @return void
 	 */
-	private function handle_successful_row_import( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters ): void {
+	private function handle_successful_row_import( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters, Swift_CSV_Import_Meta_Tax $meta_tax_util ): void {
 		$headers                    = $context['headers'];
 		$data                       = $context['data'];
 		$allowed_post_fields        = $context['allowed_post_fields'];
@@ -307,7 +341,7 @@ class Swift_CSV_Import_Batch_Processor {
 			$counters
 		);
 
-		$result = $this->get_meta_tax_util()->process_meta_and_taxonomies_for_row_with_args(
+		$result = $meta_tax_util->process_meta_and_taxonomies_for_row_with_args(
 			$wpdb,
 			$post_id,
 			$headers,

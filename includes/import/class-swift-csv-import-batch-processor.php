@@ -365,25 +365,6 @@ class Swift_CSV_Import_Batch_Processor {
 	}
 
 	/**
-	 * Ensure CSV has the required ID column.
-	 *
-	 * @since 0.9.8
-	 * @param array  $headers CSV headers.
-	 * @param string $file_path Temporary file path for cleanup.
-	 * @return int|null ID column index or null on error (sends JSON response).
-	 */
-	private function ensure_id_column_or_send_error_and_cleanup( array $headers, string $file_path ): ?int {
-		$validation_result = Swift_CSV_Helper::validate_id_column( $headers, $file_path );
-
-		if ( ! $validation_result['valid'] ) {
-			Swift_CSV_Helper::send_error_response( $validation_result['error'] );
-			return null;
-		}
-
-		return $validation_result['id_col'];
-	}
-
-	/**
 	 * Get row context utility instance.
 	 *
 	 * @since 0.9.8

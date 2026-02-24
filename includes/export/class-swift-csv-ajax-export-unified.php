@@ -41,6 +41,14 @@ class Swift_CSV_Ajax_Export_Unified {
 	private $cancel_manager;
 
 	/**
+	 * Batch planner.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Ajax_Export_Batch_Planner
+	 */
+	private $batch_planner;
+
+	/**
 	 * Constructor
 	 *
 	 * @since 0.9.8
@@ -48,6 +56,7 @@ class Swift_CSV_Ajax_Export_Unified {
 	public function __construct() {
 		$this->log_store      = new Swift_CSV_Export_Log_Store();
 		$this->cancel_manager = new Swift_CSV_Export_Cancel_Manager();
+		$this->batch_planner  = new Swift_CSV_Ajax_Export_Batch_Planner();
 
 		// Enable unified handler for Direct SQL export.
 		add_action( 'wp_ajax_swift_csv_ajax_export', [ $this, 'handle_ajax_export' ] );
@@ -278,22 +287,7 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @return int Batch size.
 	 */
 	private function get_export_batch_size( $total_count, $post_type, $config ) {
-		// Default batch size.
-		$batch_size = 1000;
-
-		// Dynamic batch size based on total count.
-		if ( $total_count > 10000 ) {
-			$batch_size = 2000;
-		} elseif ( $total_count > 5000 ) {
-			$batch_size = 1500;
-		} elseif ( $total_count > 1000 ) {
-			$batch_size = 1000;
-		} else {
-			$batch_size = 500;
-		}
-
-		// Apply filter for customization.
-		return apply_filters( 'swift_csv_export_batch_size', $batch_size, $total_count, $post_type, $config );
+		return $this->batch_planner->get_export_batch_size( (int) $total_count, (string) $post_type, (array) $config );
 	}
 
 	/**
@@ -508,25 +502,7 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @return int Total posts count.
 	 */
 	private function get_total_posts_count( $config ) {
-		$args = [
-			'post_type'      => $config['post_type'],
-			'post_status'    => $config['post_status'],
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-		];
-
-		// Apply export limit if specified.
-		if ( ! empty( $config['export_limit'] ) && $config['export_limit'] > 0 ) {
-			$args['posts_per_page'] = $config['export_limit'];
-		}
-
-		$query = new WP_Query( $args );
-
-		$found_posts  = $query->found_posts;
-		$export_limit = $config['export_limit'] ?? 0;
-		$total_posts  = $export_limit > 0 ? min( $found_posts, $export_limit ) : $found_posts;
-
-		return $total_posts;
+		return $this->batch_planner->get_total_posts_count( (array) $config );
 	}
 }
 

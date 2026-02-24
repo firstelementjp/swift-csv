@@ -37,6 +37,14 @@ class Swift_CSV_Ajax_Export_Handler_WP_Compatible {
 	private $cancel_manager;
 
 	/**
+	 * Batch planner.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Ajax_Export_Batch_Planner
+	 */
+	private $batch_planner;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 0.9.8
@@ -46,6 +54,7 @@ class Swift_CSV_Ajax_Export_Handler_WP_Compatible {
 	public function __construct( Swift_CSV_Export_Log_Store $log_store, Swift_CSV_Export_Cancel_Manager $cancel_manager ) {
 		$this->log_store      = $log_store;
 		$this->cancel_manager = $cancel_manager;
+		$this->batch_planner  = new Swift_CSV_Ajax_Export_Batch_Planner();
 	}
 
 	/**
@@ -91,8 +100,8 @@ class Swift_CSV_Ajax_Export_Handler_WP_Compatible {
 			$export_config = get_transient( $transient_key );
 
 			if ( 0 === $start_row || ! is_array( $export_config ) ) {
-				$total_posts = $this->get_total_posts_count( $config );
-				$batch_size  = $this->get_export_batch_size( $total_posts, (string) ( $config['post_type'] ?? 'post' ), $config );
+				$total_posts = $this->batch_planner->get_total_posts_count( $config );
+				$batch_size  = $this->batch_planner->get_export_batch_size( $total_posts, (string) ( $config['post_type'] ?? 'post' ), $config );
 
 				$export_config = [
 					'total_posts' => $total_posts,
@@ -186,58 +195,5 @@ class Swift_CSV_Ajax_Export_Handler_WP_Compatible {
 		$field = (string) $field;
 		$field = str_replace( '"', '""', $field );
 		return '"' . $field . '"';
-	}
-
-	/**
-	 * Get export batch size.
-	 *
-	 * @since 0.9.8
-	 * @param int    $total_count Total posts count.
-	 * @param string $post_type Post type.
-	 * @param array  $config Export configuration.
-	 * @return int Batch size.
-	 */
-	private function get_export_batch_size( int $total_count, string $post_type, array $config ): int {
-		$batch_size = 1000;
-
-		if ( $total_count > 10000 ) {
-			$batch_size = 2000;
-		} elseif ( $total_count > 5000 ) {
-			$batch_size = 1500;
-		} elseif ( $total_count > 1000 ) {
-			$batch_size = 1000;
-		} else {
-			$batch_size = 500;
-		}
-
-		return (int) apply_filters( 'swift_csv_export_batch_size', $batch_size, $total_count, $post_type, $config );
-	}
-
-	/**
-	 * Get total posts count for export.
-	 *
-	 * @since 0.9.8
-	 * @param array $config Export configuration.
-	 * @return int Total posts count.
-	 */
-	private function get_total_posts_count( array $config ): int {
-		$args = [
-			'post_type'      => $config['post_type'],
-			'post_status'    => $config['post_status'],
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-		];
-
-		if ( ! empty( $config['export_limit'] ) && (int) $config['export_limit'] > 0 ) {
-			$args['posts_per_page'] = (int) $config['export_limit'];
-		}
-
-		$query = new WP_Query( $args );
-
-		$found_posts  = $query->found_posts;
-		$export_limit = $config['export_limit'] ?? 0;
-		$total_posts  = $export_limit > 0 ? min( $found_posts, $export_limit ) : $found_posts;
-
-		return (int) $total_posts;
 	}
 }

@@ -24,6 +24,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Ajax_Import {
 	/**
+	 * Import CSV store.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Csv_Store|null
+	 */
+	private $csv_store;
+
+	/**
 	 * Import log store.
 	 *
 	 * @since 0.9.8
@@ -144,27 +152,19 @@ class Swift_CSV_Ajax_Import {
 	}
 
 	/**
-	 * Get the transient key for CSV parsed data store.
+	 * Get import CSV store instance.
 	 *
 	 * @since 0.9.8
-	 * @param string $import_session Import session ID.
-	 * @return string
+	 * @return Swift_CSV_Import_Csv_Store
 	 */
-	private function get_import_csv_transient_key( string $import_session ): string {
-		$user_id = get_current_user_id();
-		return 'swift_csv_import_csv_' . $user_id . '_' . $import_session;
+	private function get_csv_store(): Swift_CSV_Import_Csv_Store {
+		if ( null === $this->csv_store ) {
+			$this->csv_store = new Swift_CSV_Import_Csv_Store();
+		}
+		return $this->csv_store;
 	}
 
-	/**
-	 * Cleanup CSV parsed data store.
-	 *
-	 * @since 0.9.8
-	 * @param string $import_session Import session ID.
-	 * @return void
-	 */
-	private function cleanup_import_csv_store( string $import_session ): void {
-		delete_transient( $this->get_import_csv_transient_key( $import_session ) );
-	}
+
 
 	/**
 	 * Handle AJAX request to fetch import logs.
@@ -446,8 +446,7 @@ class Swift_CSV_Ajax_Import {
 			};
 		}
 
-		$csv_store_key = $this->get_import_csv_transient_key( $import_session );
-		$csv_data      = get_transient( $csv_store_key );
+		$csv_data = $this->get_csv_store()->get( $import_session );
 		if ( 0 === $start_row ) {
 			// Read CSV content directly (first request only).
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
@@ -490,8 +489,8 @@ class Swift_CSV_Ajax_Import {
 				$this->get_log_store()->cleanup( $import_session );
 				return;
 			}
-			set_transient( $csv_store_key, $csv_data, 3600 );
-		} elseif ( ! is_array( $csv_data ) ) {
+			$this->get_csv_store()->set( $import_session, $csv_data );
+		} elseif ( null === $csv_data ) {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 			$csv_content = (string) file_get_contents( $file_path );
 			$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content );
@@ -500,7 +499,7 @@ class Swift_CSV_Ajax_Import {
 				$this->get_log_store()->cleanup( $import_session );
 				return;
 			}
-			set_transient( $csv_store_key, $csv_data, 3600 );
+			$this->get_csv_store()->set( $import_session, $csv_data );
 		}
 
 		/**
@@ -571,7 +570,7 @@ class Swift_CSV_Ajax_Import {
 
 		$this->get_response_manager_util()->cleanup_temp_file_if_complete( $continue, $config['file_path'] );
 		if ( ! $continue ) {
-			$this->cleanup_import_csv_store( $import_session );
+			$this->get_csv_store()->cleanup( $import_session );
 		}
 
 		// Prepare recent logs for UI display on completion.

@@ -647,6 +647,23 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	}
 
 	/**
+	 * Fetch taxonomy data for a single post.
+	 *
+	 * @since 0.9.8
+	 * @param int $post_id Post ID.
+	 * @return array<int, string> Taxonomy values for the post.
+	 */
+	private function fetch_taxonomy_data( int $post_id ): array {
+		if ( $post_id <= 0 ) {
+			return [];
+		}
+
+		$taxonomy_data = $this->batch_fetch_taxonomy_data( [ [ 'ID' => $post_id ] ] );
+
+		return isset( $taxonomy_data[ $post_id ] ) ? (array) $taxonomy_data[ $post_id ] : [];
+	}
+
+	/**
 	 * Query taxonomy term rows for a set of post IDs.
 	 *
 	 * @since 0.9.8
@@ -716,6 +733,24 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		}
 
 		return $meta_data;
+	}
+
+	/**
+	 * Fetch post meta for a single post.
+	 *
+	 * @since 0.9.8
+	 * @param int      $post_id Post ID.
+	 * @param string[] $meta_keys Optional meta keys.
+	 * @return array<string, array<int, string>> Meta values indexed by meta key.
+	 */
+	private function fetch_post_meta( int $post_id, array $meta_keys = [] ): array {
+		if ( $post_id <= 0 ) {
+			return [];
+		}
+
+		$meta_data = $this->batch_fetch_post_meta( [ $post_id ], $meta_keys );
+
+		return isset( $meta_data[ $post_id ] ) ? (array) $meta_data[ $post_id ] : [];
 	}
 
 	/**

@@ -426,7 +426,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 				}
 			}
 			$meta_keys = array_values( array_unique( array_filter( $meta_keys ) ) );
-			$meta_data = $this->fetch_batch_post_meta( $post_ids, $meta_keys );
+			$meta_data = $this->batch_fetch_post_meta( $post_ids, $meta_keys );
 		}
 
 		$sticky_posts = get_option( 'sticky_posts', [] );
@@ -434,7 +434,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 
 		$taxonomy_data = [];
 		if ( ! empty( $this->config['include_taxonomies'] ) ) {
-			$taxonomy_data = $this->fetch_taxonomy_data_for_posts( $posts );
+			$taxonomy_data = $this->batch_fetch_taxonomy_data( $posts );
 		}
 
 		// Merge post data with meta data.
@@ -560,7 +560,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @param array $posts_data Posts data from step 1.
 	 * @return array Taxonomy data indexed by post ID.
 	 */
-	private function fetch_taxonomy_data_for_posts( $posts_data ) {
+	private function batch_fetch_taxonomy_data( $posts_data ) {
 		global $wpdb;
 
 		if ( empty( $posts_data ) ) {
@@ -668,7 +668,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @param array $meta_keys Meta keys to fetch.
 	 * @return array Post meta data indexed by post ID.
 	 */
-	private function fetch_batch_post_meta( $post_ids, $meta_keys = [] ) {
+	private function batch_fetch_post_meta( $post_ids, $meta_keys = [] ) {
 		global $wpdb;
 
 		if ( empty( $post_ids ) ) {

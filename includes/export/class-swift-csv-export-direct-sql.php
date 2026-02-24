@@ -409,9 +409,9 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 				}
 				if ( is_array( $meta_values ) ) {
 					$meta_values                         = array_values( array_filter( array_map( 'strval', (array) $meta_values ) ) );
-					$post_meta_columns[ $column_header ] = count( $meta_values ) > 1 ? implode( '|', $meta_values ) : ( $meta_values[0] ?? '' );
+					$post_meta_columns[ $column_header ] = Swift_CSV_Helper::join_pipe_separated_values( $meta_values );
 				} else {
-					$post_meta_columns[ $column_header ] = (string) $meta_values;
+					$post_meta_columns[ $column_header ] = Swift_CSV_Helper::escape_pipe_separated_value( (string) $meta_values );
 				}
 			}
 
@@ -435,7 +435,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 
 				foreach ( $taxonomies as $taxonomy => $terms ) {
 					$terms                     = array_values( array_unique( array_filter( array_map( 'strval', (array) $terms ) ) ) );
-					$row[ 'tax_' . $taxonomy ] = implode( '|', $terms );
+					$row[ 'tax_' . $taxonomy ] = Swift_CSV_Helper::join_pipe_separated_values( $terms );
 				}
 			}
 

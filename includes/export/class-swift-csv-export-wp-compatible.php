@@ -148,7 +148,7 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 					}
 					$values         = get_post_meta( $post_id, $meta_key, false );
 					$values         = is_array( $values ) ? array_values( array_filter( array_map( 'strval', $values ) ) ) : [];
-					$row[ $header ] = count( $values ) > 1 ? implode( '|', $values ) : ( $values[0] ?? '' );
+					$row[ $header ] = Swift_CSV_Helper::join_pipe_separated_values( $values );
 				}
 			}
 
@@ -168,7 +168,7 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 						$values[] = ( 'id' === $taxonomy_format ) ? (string) $term->term_id : (string) $term->name;
 					}
 					$values                    = array_values( array_unique( array_filter( array_map( 'strval', $values ) ) ) );
-					$row[ 'tax_' . $taxonomy ] = implode( '|', $values );
+					$row[ 'tax_' . $taxonomy ] = Swift_CSV_Helper::join_pipe_separated_values( $values );
 				}
 			}
 

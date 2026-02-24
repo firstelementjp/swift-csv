@@ -21,6 +21,77 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Helper {
 	/**
+	 * Escape a value for pipe-separated serialization.
+	 *
+	 * This escapes backslash and pipe so that values can be joined with '|'
+	 * without losing literal pipe characters.
+	 *
+	 * @since 0.9.8
+	 * @param string $value Value.
+	 * @return string Escaped value.
+	 */
+	public static function escape_pipe_separated_value( string $value ): string {
+		$value = str_replace( '\\', '\\\\', $value );
+		return str_replace( '|', '\\|', $value );
+	}
+
+	/**
+	 * Split a pipe-separated string respecting backslash escaping.
+	 *
+	 * Splits only on unescaped '|' and unescapes backslash sequences.
+	 *
+	 * @since 0.9.8
+	 * @param string $value Raw value from CSV.
+	 * @return array<int, string> Split values.
+	 */
+	public static function split_pipe_separated_values( string $value ): array {
+		if ( '' === $value ) {
+			return [];
+		}
+
+		$parts  = [];
+		$buffer = '';
+		$length = strlen( $value );
+
+		for ( $i = 0; $i < $length; $i++ ) {
+			$char = $value[ $i ];
+			if ( '\\' === $char ) {
+				$next = ( $i + 1 ) < $length ? $value[ $i + 1 ] : '';
+				if ( '|' === $next || '\\' === $next ) {
+					$buffer .= $next;
+					++$i;
+					continue;
+				}
+				$buffer .= '\\';
+				continue;
+			}
+			if ( '|' === $char ) {
+				$parts[] = $buffer;
+				$buffer  = '';
+				continue;
+			}
+			$buffer .= $char;
+		}
+
+		$parts[] = $buffer;
+		return $parts;
+	}
+
+	/**
+	 * Join values into a pipe-separated string with escaping.
+	 *
+	 * @since 0.9.8
+	 * @param array<int, string> $values Values.
+	 * @return string Joined string.
+	 */
+	public static function join_pipe_separated_values( array $values ): string {
+		$escaped_values = [];
+		foreach ( $values as $value ) {
+			$escaped_values[] = self::escape_pipe_separated_value( (string) $value );
+		}
+		return implode( '|', $escaped_values );
+	}
+	/**
 	 * Parse CSV content line by line to handle quoted fields with newlines.
 	 *
 	 * @since 0.9.0

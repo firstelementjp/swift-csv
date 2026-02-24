@@ -121,8 +121,9 @@ class Swift_CSV_Import_Meta_Tax {
 
 			$meta_value = (string) ( $data[ $j ] ?? '' );
 
-			// Handle taxonomy (pipe-separated).
-			$terms                        = array_values( array_filter( array_map( 'trim', explode( '|', $meta_value ) ), 'strlen' ) );
+			// Handle taxonomy (pipe-separated with escaping).
+			$terms_raw                    = Swift_CSV_Helper::split_pipe_separated_values( $meta_value );
+			$terms                        = array_values( array_filter( array_map( 'trim', (array) $terms_raw ), 'strlen' ) );
 			$taxonomy_name                = substr( $header_name_normalized, 4 ); // Remove 'tax_'.
 			$taxonomies[ $taxonomy_name ] = $terms;
 
@@ -340,10 +341,10 @@ class Swift_CSV_Import_Meta_Tax {
 			}
 
 			if ( $dry_run ) {
-				// Handle multi-value custom fields (pipe-separated).
-				if ( strpos( $value, '|' ) !== false ) {
-					$values = array_map( 'trim', explode( '|', $value ) );
-					foreach ( $values as $single_value ) {
+				// Handle multi-value custom fields (pipe-separated with escaping).
+				$values = Swift_CSV_Helper::split_pipe_separated_values( $value );
+				if ( count( $values ) > 1 ) {
+					foreach ( array_map( 'trim', $values ) as $single_value ) {
 						if ( '' !== $single_value ) {
 							$dry_run_log[] = sprintf(
 								/* translators: 1: field name, 2: field value */
@@ -354,11 +355,12 @@ class Swift_CSV_Import_Meta_Tax {
 						}
 					}
 				} else {
+					$single_value  = trim( (string) ( $values[0] ?? '' ) );
 					$dry_run_log[] = sprintf(
 						/* translators: 1: field name, 2: field value */
 						__( 'Custom field: %1$s = %2$s', 'swift-csv' ),
 						$key,
-						$value
+						$single_value
 					);
 				}
 				continue;
@@ -375,9 +377,9 @@ class Swift_CSV_Import_Meta_Tax {
 				)
 			);
 
-			if ( strpos( $value, '|' ) !== false ) {
-				$values = array_map( 'trim', explode( '|', $value ) );
-				foreach ( $values as $single_value ) {
+			$values = Swift_CSV_Helper::split_pipe_separated_values( $value );
+			if ( count( $values ) > 1 ) {
+				foreach ( array_map( 'trim', $values ) as $single_value ) {
 					if ( '' !== $single_value ) {
 						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 						$wpdb->insert(
@@ -393,6 +395,8 @@ class Swift_CSV_Import_Meta_Tax {
 				}
 				continue;
 			}
+
+			$value = trim( (string) ( $values[0] ?? '' ) );
 
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 			$wpdb->insert(

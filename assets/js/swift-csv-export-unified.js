@@ -40,7 +40,7 @@ const SwiftCSVExportUnified = {
 		document.addEventListener('click', function (e) {
 			if (e.target && e.target.id === 'ajax-export-csv-btn') {
 				e.preventDefault();
-				self.handleExport('standard');
+				self.handleExport('wp_compatible');
 			}
 		});
 

@@ -291,6 +291,7 @@ function handleAjaxExport(e) {
 		const formData = new URLSearchParams({
 			action: 'swift_csv_ajax_export',
 			nonce: swiftCSV.nonce,
+			export_method: 'wp_compatible',
 			post_type: postType,
 			post_status: postStatus,
 			export_scope: exportScope,

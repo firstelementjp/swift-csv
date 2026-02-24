@@ -561,27 +561,13 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @return array Taxonomy data indexed by post ID.
 	 */
 	private function batch_fetch_taxonomy_data( $posts_data ) {
-		global $wpdb;
-
 		if ( empty( $posts_data ) ) {
 			return [];
 		}
 
 		// Extract post IDs.
-		$post_ids     = array_column( $posts_data, 'ID' );
-		$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
-
-		$query = "SELECT tr.object_id AS object_id, tt.taxonomy AS taxonomy, t.term_id AS term_id, t.name AS term_name
-				FROM {$wpdb->term_relationships} tr
-				INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-				INNER JOIN {$wpdb->terms} t ON tt.term_id = t.term_id
-				WHERE tr.object_id IN ({$placeholders})";
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$query = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $query ], $post_ids ) );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-		$results = $wpdb->get_results( $query, ARRAY_A );
+		$post_ids = array_column( $posts_data, 'ID' );
+		$results  = $this->query_taxonomy_data( $post_ids );
 
 		$taxonomy_format = $this->config['taxonomy_format'] ?? 'name';
 		$taxonomy_data   = [];
@@ -661,6 +647,37 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	}
 
 	/**
+	 * Query taxonomy term rows for a set of post IDs.
+	 *
+	 * @since 0.9.8
+	 * @param int[] $post_ids Post IDs.
+	 * @return array<int, array{object_id:string|int,taxonomy:string,term_id:string|int,term_name:string}> Raw taxonomy rows.
+	 */
+	private function query_taxonomy_data( array $post_ids ): array {
+		global $wpdb;
+
+		$post_ids = array_values( array_filter( array_map( 'intval', $post_ids ) ) );
+		if ( empty( $post_ids ) ) {
+			return [];
+		}
+
+		$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
+		$sql          = "SELECT tr.object_id AS object_id, tt.taxonomy AS taxonomy, t.term_id AS term_id, t.name AS term_name
+				FROM {$wpdb->term_relationships} tr
+				INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+				INNER JOIN {$wpdb->terms} t ON tt.term_id = t.term_id
+				WHERE tr.object_id IN ({$placeholders})";
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$query = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $sql ], $post_ids ) );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
+		$results = $wpdb->get_results( $query, ARRAY_A );
+
+		return is_array( $results ) ? $results : [];
+	}
+
+	/**
 	 * Get post meta for batch
 	 *
 	 * @since 0.9.8
@@ -669,8 +686,51 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @return array Post meta data indexed by post ID.
 	 */
 	private function batch_fetch_post_meta( $post_ids, $meta_keys = [] ) {
+		if ( empty( $post_ids ) ) {
+			return [];
+		}
+
+		$meta_keys = array_values(
+			array_filter(
+				array_map(
+					static function ( $key ) {
+						return is_string( $key ) ? $key : '';
+					},
+					(array) $meta_keys
+				)
+			)
+		);
+
+		$include_private_meta = ! empty( $this->config['include_private_meta'] );
+		$meta_results         = $this->query_post_meta( $post_ids, $meta_keys, $include_private_meta );
+
+		$meta_data = [];
+		foreach ( (array) $meta_results as $meta ) {
+			$post_id  = isset( $meta['post_id'] ) ? (int) $meta['post_id'] : 0;
+			$meta_key = isset( $meta['meta_key'] ) ? (string) $meta['meta_key'] : '';
+			if ( 0 === $post_id || '' === $meta_key ) {
+				continue;
+			}
+			$meta_value                           = isset( $meta['meta_value'] ) ? (string) $meta['meta_value'] : '';
+			$meta_data[ $post_id ][ $meta_key ][] = $meta_value;
+		}
+
+		return $meta_data;
+	}
+
+	/**
+	 * Query post meta rows for a set of post IDs.
+	 *
+	 * @since 0.9.8
+	 * @param int[]    $post_ids Post IDs.
+	 * @param string[] $meta_keys Optional meta keys.
+	 * @param bool     $include_private_meta Whether to include private meta keys.
+	 * @return array<int, array{post_id:string|int,meta_key:string,meta_value:string}> Raw meta rows.
+	 */
+	private function query_post_meta( array $post_ids, array $meta_keys = [], bool $include_private_meta = false ): array {
 		global $wpdb;
 
+		$post_ids = array_values( array_filter( array_map( 'intval', $post_ids ) ) );
 		if ( empty( $post_ids ) ) {
 			return [];
 		}
@@ -698,7 +758,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		}
 
 		$where_private_sql = '';
-		if ( empty( $this->config['include_private_meta'] ) ) {
+		if ( ! $include_private_meta ) {
 			$where_private_sql = " AND meta_key NOT LIKE '\\_%'";
 		}
 
@@ -711,17 +771,6 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
 		$meta_results = $wpdb->get_results( $query, ARRAY_A );
 
-		$meta_data = [];
-		foreach ( (array) $meta_results as $meta ) {
-			$post_id  = isset( $meta['post_id'] ) ? (int) $meta['post_id'] : 0;
-			$meta_key = isset( $meta['meta_key'] ) ? (string) $meta['meta_key'] : '';
-			if ( 0 === $post_id || '' === $meta_key ) {
-				continue;
-			}
-			$meta_value                           = isset( $meta['meta_value'] ) ? (string) $meta['meta_value'] : '';
-			$meta_data[ $post_id ][ $meta_key ][] = $meta_value;
-		}
-
-		return $meta_data;
+		return is_array( $meta_results ) ? $meta_results : [];
 	}
 }

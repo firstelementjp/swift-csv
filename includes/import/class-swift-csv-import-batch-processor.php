@@ -26,6 +26,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package Swift_CSV
  */
 class Swift_CSV_Import_Batch_Processor {
+	/**
+	 * Batch planner.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Ajax_Import_Batch_Planner|null
+	 */
+	private $batch_planner;
 
 	/**
 	 * Row context utility instance
@@ -71,36 +78,20 @@ class Swift_CSV_Import_Batch_Processor {
 	 * @return int Batch size.
 	 */
 	public function calculate_batch_size( int $total_rows, array $config ): int {
-		// Calculate safe batch size based on server constraints.
-		$max_execution_time = ini_get( 'max_execution_time' );
-		$max_execution_time = $max_execution_time ? (int) $max_execution_time : 30;
-		$max_execution_time = max( 1, $max_execution_time );
+		return $this->get_batch_planner()->get_import_batch_size( $total_rows, $config );
+	}
 
-		$safe_time_limit      = $max_execution_time * 0.5;
-		$avg_time_per_row     = 0.35;
-		$time_based_batch     = max( 1, (int) floor( $safe_time_limit / $avg_time_per_row ) );
-		$optimized_batch_size = max( 10, min( 50, $time_based_batch ) );
-
-		$base_batch_size = max( 1, min( $total_rows, $optimized_batch_size ) );
-
-		/**
-		 * Filter the batch size for import processing
-		 *
-		 * Allows developers to customize batch size based on their specific needs,
-		 * server capabilities, or data characteristics.
-		 *
-		 * @since 0.9.7
-		 * @param int $batch_size Current batch size (1 for row-by-row, 10 for batch).
-		 * @param int $total_rows Total number of rows in the CSV.
-		 * @param array $config Import configuration including post_type, dry_run, etc.
-		 * @return int Modified batch size.
-		 */
-		return apply_filters(
-			'swift_csv_import_batch_size',
-			$base_batch_size,
-			$total_rows,
-			$config
-		);
+	/**
+	 * Get batch planner.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Ajax_Import_Batch_Planner
+	 */
+	private function get_batch_planner(): Swift_CSV_Ajax_Import_Batch_Planner {
+		if ( null === $this->batch_planner ) {
+			$this->batch_planner = new Swift_CSV_Ajax_Import_Batch_Planner();
+		}
+		return $this->batch_planner;
 	}
 
 	/**

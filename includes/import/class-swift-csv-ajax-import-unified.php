@@ -77,6 +77,14 @@ class Swift_CSV_Ajax_Import_Unified {
 	private $response_manager;
 
 	/**
+	 * Request parser.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Request_Parser|null
+	 */
+	private $request_parser;
+
+	/**
 	 * Constructor: Register AJAX hooks.
 	 *
 	 * @since 0.9.8
@@ -84,6 +92,19 @@ class Swift_CSV_Ajax_Import_Unified {
 	public function __construct() {
 		add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'handle' ] );
 		add_action( 'wp_ajax_swift_csv_ajax_import_logs', [ $this, 'handle_ajax_import_logs' ] );
+	}
+
+	/**
+	 * Get request parser.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Request_Parser
+	 */
+	private function get_request_parser(): Swift_CSV_Import_Request_Parser {
+		if ( null === $this->request_parser ) {
+			$this->request_parser = new Swift_CSV_Import_Request_Parser();
+		}
+		return $this->request_parser;
 	}
 
 	/**
@@ -95,13 +116,13 @@ class Swift_CSV_Ajax_Import_Unified {
 	public function handle_ajax_import_logs(): void {
 		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 
-		$import_session = sanitize_key( $_POST['import_session'] ?? '' );
+		$import_session = $this->get_request_parser()->parse_import_session();
 		if ( '' === $import_session ) {
 			wp_send_json_error( 'Missing import session' );
 			return;
 		}
 
-		$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
+		$enable_logs = $this->get_request_parser()->parse_enable_logs();
 		if ( ! $enable_logs ) {
 			wp_send_json_success(
 				[
@@ -112,9 +133,9 @@ class Swift_CSV_Ajax_Import_Unified {
 			return;
 		}
 
-		$after_id = isset( $_POST['after_id'] ) ? intval( $_POST['after_id'] ) : 0;
-		$limit    = isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 100;
-		$limit    = max( 1, min( 200, $limit ) );
+		$fetch_params = $this->get_request_parser()->parse_log_fetch_params();
+		$after_id     = (int) $fetch_params['after_id'];
+		$limit        = (int) $fetch_params['limit'];
 
 		$result = $this->get_log_store()->fetch( $import_session, $after_id, $limit );
 		wp_send_json_success( $result );
@@ -220,10 +241,7 @@ class Swift_CSV_Ajax_Import_Unified {
 	public function handle(): void {
 		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 
-		$import_method = sanitize_key( $_POST['import_method'] ?? 'wp_compatible' );
-		if ( '' === $import_method ) {
-			$import_method = 'wp_compatible';
-		}
+		$import_method = $this->get_request_parser()->parse_import_method();
 
 		switch ( $import_method ) {
 			case 'direct_sql':

@@ -77,6 +77,14 @@ class Swift_CSV_Ajax_Import_Handler_WP_Compatible {
 	private $response_manager;
 
 	/**
+	 * Request parser.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Request_Parser
+	 */
+	private $request_parser;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 0.9.8
@@ -104,6 +112,7 @@ class Swift_CSV_Ajax_Import_Handler_WP_Compatible {
 		$this->file_processor   = $file_processor;
 		$this->batch_processor  = $batch_processor;
 		$this->response_manager = $response_manager;
+		$this->request_parser   = new Swift_CSV_Import_Request_Parser();
 	}
 
 	/**
@@ -121,14 +130,14 @@ class Swift_CSV_Ajax_Import_Handler_WP_Compatible {
 		}
 		$file_path = $file_result['file_path'];
 
-		$import_session = sanitize_key( $_POST['import_session'] ?? '' );
+		$import_session = $this->request_parser->parse_import_session();
 		if ( '' === $import_session ) {
 			Swift_CSV_Helper::send_error_response( 'Missing import session' );
 			return;
 		}
 
-		$start_row   = isset( $_POST['start_row'] ) ? intval( $_POST['start_row'] ) : 0;
-		$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
+		$start_row   = $this->request_parser->parse_start_row();
+		$enable_logs = $this->request_parser->parse_enable_logs();
 		$append_log  = null;
 		if ( $enable_logs && 0 === $start_row ) {
 			$this->log_store->init( $import_session );
@@ -148,11 +157,12 @@ class Swift_CSV_Ajax_Import_Handler_WP_Compatible {
 			$csv_content = '';
 		}
 
-		$batch_size      = isset( $_POST['batch_size'] ) ? intval( $_POST['batch_size'] ) : 10;
-		$post_type       = sanitize_text_field( wp_unslash( $_POST['post_type'] ?? 'post' ) );
-		$update_existing = sanitize_text_field( wp_unslash( $_POST['update_existing'] ?? 'no' ) );
-		$taxonomy_format = sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) );
-		$dry_run         = isset( $_POST['dry_run'] ) && in_array( (string) $_POST['dry_run'], [ '1', 'true' ], true );
+		$parsed_config   = $this->request_parser->parse_import_config( $csv_content );
+		$batch_size      = (int) $parsed_config['batch_size'];
+		$post_type       = (string) $parsed_config['post_type'];
+		$update_existing = (string) $parsed_config['update_existing'];
+		$taxonomy_format = (string) $parsed_config['taxonomy_format'];
+		$dry_run         = (bool) $parsed_config['dry_run'];
 
 		if ( ! post_type_exists( $post_type ) ) {
 			Swift_CSV_Helper::send_error_response( 'Invalid post type: ' . $post_type );

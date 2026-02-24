@@ -88,10 +88,13 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * Constructor: Register AJAX hooks.
 	 *
 	 * @since 0.9.8
+	 * @param bool $register_hooks Whether to register AJAX hooks.
 	 */
-	public function __construct() {
-		add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'handle' ] );
-		add_action( 'wp_ajax_swift_csv_ajax_import_logs', [ $this, 'handle_ajax_import_logs' ] );
+	public function __construct( bool $register_hooks = true ) {
+		if ( $register_hooks ) {
+			add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'handle' ] );
+			add_action( 'wp_ajax_swift_csv_ajax_import_logs', [ $this, 'handle_ajax_import_logs' ] );
+		}
 	}
 
 	/**

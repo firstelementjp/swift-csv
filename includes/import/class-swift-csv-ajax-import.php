@@ -133,9 +133,13 @@ class Swift_CSV_Ajax_Import {
 	 * @since 0.9.0
 	 */
 	public function __construct() {
-		// Only use import_handler to avoid duplicate file processing.
-		add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'import_handler' ] );
-		add_action( 'wp_ajax_swift_csv_ajax_import_logs', [ $this, 'handle_ajax_import_logs' ] );
+		// Register only when the hook is not already registered by unified router.
+		if ( false === has_action( 'wp_ajax_swift_csv_ajax_import' ) ) {
+			add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'import_handler' ] );
+		}
+		if ( false === has_action( 'wp_ajax_swift_csv_ajax_import_logs' ) ) {
+			add_action( 'wp_ajax_swift_csv_ajax_import_logs', [ $this, 'handle_ajax_import_logs' ] );
+		}
 	}
 
 	/**
@@ -173,31 +177,8 @@ class Swift_CSV_Ajax_Import {
 	 * @return void
 	 */
 	public function handle_ajax_import_logs(): void {
-		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
-
-		$import_session = sanitize_key( $_POST['import_session'] ?? '' );
-		if ( '' === $import_session ) {
-			wp_send_json_error( 'Missing import session' );
-			return;
-		}
-
-		$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
-		if ( ! $enable_logs ) {
-			wp_send_json_success(
-				[
-					'last_id' => 0,
-					'logs'    => [],
-				]
-			);
-			return;
-		}
-
-		$after_id = isset( $_POST['after_id'] ) ? intval( $_POST['after_id'] ) : 0;
-		$limit    = isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 100;
-		$limit    = max( 1, min( 200, $limit ) );
-
-		$result = $this->get_log_store()->fetch( $import_session, $after_id, $limit );
-		wp_send_json_success( $result );
+		$router = new Swift_CSV_Ajax_Import_Unified( false );
+		$router->handle_ajax_import_logs();
 	}
 
 	/**
@@ -418,7 +399,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return void Sends JSON response with import results
 	 */
 	public function import_handler() {
-		$router = new Swift_CSV_Ajax_Import_Unified();
+		$router = new Swift_CSV_Ajax_Import_Unified( false );
 		$router->handle();
 	}
 

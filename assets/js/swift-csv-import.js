@@ -91,6 +91,15 @@ function initFileUpload() {
 			uploadArea.classList.remove('file-selected');
 		});
 	}
+
+	const highSpeedImportBtn = document.querySelector('#high-speed-import-btn');
+	if (highSpeedImportBtn) {
+		highSpeedImportBtn.disabled = false;
+		highSpeedImportBtn.addEventListener('click', e => {
+			e.preventDefault();
+			startAjaxImport('direct_sql');
+		});
+	}
 }
 
 // Global variables for import state
@@ -102,6 +111,8 @@ let importLogLastId = 0;
 let isImportCancelled = false;
 let currentEnableLogs = '0';
 let currentDryRun = '0';
+
+let currentImportMethod = 'wp_compatible';
 
 // Global cumulative counters for accurate tracking
 let globalCumulativeCreated = 0;
@@ -307,12 +318,12 @@ function handleFileSelect(file) {
 }
 
 /**
- * Handle AJAX import form submission
+ * Start AJAX import.
  *
- * @param {Event} e - Form submission event
+ * @param {string} importMethod Import method ('wp_compatible' or 'direct_sql').
  */
-function handleAjaxImport(e) {
-	e.preventDefault();
+function startAjaxImport(importMethod) {
+	currentImportMethod = importMethod || 'wp_compatible';
 
 	// Reset flags for new import
 	window.swiftCSVLogsDisplayed = false;
@@ -446,11 +457,17 @@ function handleAjaxImport(e) {
 		taxonomyFormat,
 		dryRun,
 		enableLogs,
+		currentImportMethod,
 		importBtn,
 		cancelBtn,
 		startTime,
 		abortController
 	);
+}
+
+function handleAjaxImport(e) {
+	e.preventDefault();
+	startAjaxImport('wp_compatible');
 }
 
 /**
@@ -466,6 +483,7 @@ function handleAjaxImport(e) {
  * @param {string}          taxonomyFormat    Taxonomy format
  * @param {string}          dryRun            Dry run flag
  * @param {string}          enableLogs        Enable logs flag
+ * @param {string}          importMethod      Import method
  * @param {HTMLElement}     importBtn         Import button element
  * @param {HTMLElement}     cancelBtn         Cancel button element
  * @param {number}          startTime         Start time
@@ -482,6 +500,7 @@ function processImportChunk(
 	taxonomyFormat,
 	dryRun,
 	enableLogs,
+	importMethod,
 	importBtn,
 	cancelBtn,
 	startTime,
@@ -506,6 +525,7 @@ function processImportChunk(
 	formData.append('taxonomy_format', taxonomyFormat);
 	formData.append('dry_run', dryRun);
 	formData.append('enable_logs', enableLogs);
+	formData.append('import_method', importMethod || 'wp_compatible');
 	formData.append('start_row', startRow);
 	formData.append('cumulative_created', cumulativeCreated);
 	formData.append('cumulative_updated', cumulativeUpdated);
@@ -539,6 +559,7 @@ function processImportChunk(
 						taxonomyFormat,
 						dryRun,
 						enableLogs,
+						importMethod,
 						importBtn,
 						cancelBtn,
 						startTime,

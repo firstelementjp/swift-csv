@@ -294,26 +294,8 @@ class Swift_CSV_Import_Batch_Processor {
 
 			$action = $is_update ? 'update' : 'create';
 
-			$validation_result = [
-				'valid'    => true,
-				'errors'   => [],
-				'warnings' => [],
-			];
-
-			$validation_result = apply_filters(
-				'swift_csv_validate_import_row',
-				$validation_result,
-				$post_id,
-				$context
-			);
-
-			if ( ! $validation_result['valid'] ) {
-				$status  = 'error';
-				$details = implode( ', ', array_merge( $validation_result['errors'], $validation_result['warnings'] ) );
-			} else {
-				$status  = 'success';
-				$details = empty( $validation_result['warnings'] ) ? 'Processed successfully' : implode( ', ', $validation_result['warnings'] );
-			}
+			$status  = 'success';
+			$details = 'Processed successfully';
 
 			$detail = [
 				'row'     => $row_number,

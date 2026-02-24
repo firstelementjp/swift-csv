@@ -805,43 +805,6 @@ class Swift_CSV_Ajax_Import {
 
 			$action = $is_update ? 'update' : 'create';
 
-			// Run validation hook for both dry run and actual import.
-			$validation_result = [
-				'valid'    => true,
-				'errors'   => [],
-				'warnings' => [],
-			];
-
-			/**
-			 * Validate data during processing (both dry run and actual import)
-			 *
-			 * Allows developers to implement custom validation logic for processing.
-			 * This hook enables business rule validation, data quality checks,
-			 * and custom error reporting for both preview and actual import.
-			 *
-			 * @since 0.9.7
-			 * @param array{valid:bool,errors:array<string>,warnings:array<string>} $validation_result Validation result with errors and warnings.
-			 * @param array{row:int,action:string,title:string,post_id:int} $detail Current row processing details.
-			 * @param array{headers:array<int,string>,data:array<int,string>,post_type:string,dry_run:bool} $context Processing context including CSV data.
-			 * @return array{valid:bool,errors:array<string>,warnings:array<string>} Modified validation result.
-			 */
-			$validation_result = apply_filters(
-				'swift_csv_dry_run_validation',
-				$validation_result,
-				[
-					'row'     => $row_number,
-					'action'  => $action,
-					'title'   => $post_title,
-					'post_id' => $post_id,
-				],
-				[
-					'headers'   => $headers,
-					'data'      => $data,
-					'post_type' => $context['post_type'] ?? 'post',
-					'dry_run'   => $dry_run,
-				]
-			);
-
 			// Determine status based on validation.
 			$status          = 'success';
 			$details_message = sprintf(
@@ -853,17 +816,6 @@ class Swift_CSV_Ajax_Import {
 				$post_id,
 				$post_title
 			);
-
-			// Handle validation errors.
-			if ( ! $validation_result['valid'] ) {
-				$status          = 'error';
-				$details_message = __( 'Validation failed:', 'swift-csv' ) . ' ' . implode( ', ', $validation_result['errors'] );
-			}
-
-			// Add warnings if any.
-			if ( ! empty( $validation_result['warnings'] ) ) {
-				$details_message .= ' ' . __( 'Warnings:', 'swift-csv' ) . ' ' . implode( ', ', $validation_result['warnings'] );
-			}
 
 			$detail = [
 				'row'     => $row_number,

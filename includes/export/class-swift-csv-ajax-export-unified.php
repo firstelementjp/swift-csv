@@ -68,6 +68,9 @@ class Swift_CSV_Ajax_Export_Unified {
 
 		// Get export method.
 		$export_method = isset( $_POST['export_method'] ) ? sanitize_text_field( wp_unslash( $_POST['export_method'] ) ) : 'standard';
+		if ( 'standard' === $export_method ) {
+			$export_method = 'wp_compatible';
+		}
 
 		// Get export configuration.
 		$config = $this->get_export_config();
@@ -86,9 +89,8 @@ class Swift_CSV_Ajax_Export_Unified {
 				case 'wp_compatible':
 					$result = $this->handle_wp_compatible_export( $config );
 					break;
-				case 'standard':
 				default:
-					$result = $this->handle_standard_export( $config );
+					$result = $this->handle_wp_compatible_export( $config );
 					break;
 			}
 

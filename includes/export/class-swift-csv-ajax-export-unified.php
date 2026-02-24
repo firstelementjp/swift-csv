@@ -293,7 +293,7 @@ class Swift_CSV_Ajax_Export_Unified {
 			$export = isset( $export ) && $export instanceof Swift_CSV_Export_Direct_SQL ? $export : new Swift_CSV_Export_Direct_SQL( $config );
 
 			// Get posts for current batch.
-			$posts_data = $export->get_posts_batch( $start_row, $batch_size );
+			$posts_data = $export->batch_fetch_posts( $start_row, $batch_size );
 
 			if ( empty( $posts_data ) ) {
 				return [

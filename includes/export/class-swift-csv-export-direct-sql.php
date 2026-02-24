@@ -37,7 +37,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		$posts_data   = [];
 
 		while ( true ) {
-			$batch_posts = $this->get_posts_batch( $offset, $batch_size );
+			$batch_posts = $this->batch_fetch_posts( $offset, $batch_size );
 			if ( empty( $batch_posts ) ) {
 				break;
 			}
@@ -257,7 +257,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @param int $batch_size Batch size.
 	 * @return array Posts data.
 	 */
-	public function get_posts_batch( $offset, $batch_size ) {
+	public function batch_fetch_posts( $offset, $batch_size ) {
 		global $wpdb;
 
 		// Get post type and status from config.
@@ -336,63 +336,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		$offset      = isset( $direct_sql_query_args['offset'] ) ? (int) $direct_sql_query_args['offset'] : (int) $offset;
 		$query_spec  = isset( $direct_sql_query_args['query_spec'] ) && is_array( $direct_sql_query_args['query_spec'] ) ? $direct_sql_query_args['query_spec'] : [];
 
-		// Build query for batch.
-		$all_status_values = [ 'any', 'all', 'all_status', 'all_statuses', 'all-statuses', '*' ];
-		$table_sql         = $wpdb->posts;
-		$base_select_sql   = 'SELECT ID, post_title, post_content, post_excerpt, post_status, post_date, post_modified, post_name, post_parent, menu_order, post_author, comment_count, post_type, comment_status, ping_status, post_password FROM ' . $table_sql;
-		$order_by_sql      = ' ORDER BY post_date DESC, ID DESC';
-
-		if ( is_array( $post_status ) ) {
-			$post_status = array_values( array_filter( array_map( 'sanitize_key', $post_status ) ) );
-			if ( empty( $post_status ) ) {
-				$sql    = $base_select_sql . ' WHERE post_type = %s' . $order_by_sql . ' LIMIT %d OFFSET %d';
-				$params = [ $post_type, $limit, $offset ];
-			} else {
-				$placeholders = implode( ',', array_fill( 0, count( $post_status ), '%s' ) );
-				$sql          = $base_select_sql . ' WHERE post_type = %s AND post_status IN (' . $placeholders . ')' . $order_by_sql . ' LIMIT %d OFFSET %d';
-				$params       = array_merge( [ $post_type ], $post_status, [ $limit, $offset ] );
-			}
-		} elseif ( empty( $post_status ) || in_array( (string) $post_status, $all_status_values, true ) ) {
-			$sql    = $base_select_sql . ' WHERE post_type = %s' . $order_by_sql . ' LIMIT %d OFFSET %d';
-			$params = [ $post_type, $limit, $offset ];
-		} else {
-			$sql    = $base_select_sql . ' WHERE post_type = %s AND post_status = %s' . $order_by_sql . ' LIMIT %d OFFSET %d';
-			$params = [ $post_type, $post_status, $limit, $offset ];
-		}
-
-		if ( ! empty( $query_spec ) ) {
-			$spec_where_sql = $this->build_query_spec_where_sql( $query_spec, $params );
-			if ( is_string( $spec_where_sql ) && '' !== $spec_where_sql ) {
-				$sql = str_replace( $order_by_sql, $spec_where_sql . $order_by_sql, $sql );
-			}
-		}
-
-		/**
-		 * Filter Direct SQL query parts before preparing
-		 *
-		 * @since 0.9.11
-		 * @param array  $query_parts Query parts.
-		 * @param array  $config Export configuration.
-		 * @param string $context Export context.
-		 * @return array Modified query parts.
-		 */
-		$query_parts = apply_filters(
-			'swift_csv_export_direct_sql_query_parts',
-			[
-				'sql'    => $sql,
-				'params' => $params,
-			],
-			$this->config,
-			'posts_batch'
-		);
-
-		$sql    = isset( $query_parts['sql'] ) ? (string) $query_parts['sql'] : $sql;
-		$params = isset( $query_parts['params'] ) ? (array) $query_parts['params'] : $params;
-
-		$query = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $sql ], $params ) );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
-		$posts = $wpdb->get_results( $query, ARRAY_A );
+		$posts = $this->query_posts_batch( $post_type, $post_status, $limit, $offset, $query_spec );
 
 		if ( empty( $posts ) ) {
 			return [];
@@ -529,6 +473,81 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 		$merged_data = apply_filters( 'swift_csv_export_batch_data', $merged_data, $post_ids, $this->config, 'direct_sql' );
 
 		return $merged_data;
+	}
+
+	/**
+	 * Query posts batch rows using Direct SQL.
+	 *
+	 * @since 0.9.8
+	 * @param string       $post_type Post type.
+	 * @param string|array $post_status Post status.
+	 * @param int          $limit Limit.
+	 * @param int          $offset Offset.
+	 * @param array        $query_spec Query spec.
+	 * @return array<int, array<string, mixed>> Post rows.
+	 */
+	private function query_posts_batch( string $post_type, $post_status, int $limit, int $offset, array $query_spec = [] ): array {
+		global $wpdb;
+
+		$all_status_values = [ 'any', 'all', 'all_status', 'all_statuses', 'all-statuses', '*' ];
+		$table_sql         = $wpdb->posts;
+		$base_select_sql   = 'SELECT ID, post_title, post_content, post_excerpt, post_status, post_date, post_modified, post_name, post_parent, menu_order, post_author, comment_count, post_type, comment_status, ping_status, post_password FROM ' . $table_sql;
+		$order_by_sql      = ' ORDER BY post_date DESC, ID DESC';
+
+		$params = [];
+		if ( is_array( $post_status ) ) {
+			$post_status = array_values( array_filter( array_map( 'sanitize_key', $post_status ) ) );
+			if ( empty( $post_status ) ) {
+				$sql    = $base_select_sql . ' WHERE post_type = %s' . $order_by_sql . ' LIMIT %d OFFSET %d';
+				$params = [ $post_type, $limit, $offset ];
+			} else {
+				$placeholders = implode( ',', array_fill( 0, count( $post_status ), '%s' ) );
+				$sql          = $base_select_sql . ' WHERE post_type = %s AND post_status IN (' . $placeholders . ')' . $order_by_sql . ' LIMIT %d OFFSET %d';
+				$params       = array_merge( [ $post_type ], $post_status, [ $limit, $offset ] );
+			}
+		} elseif ( empty( $post_status ) || in_array( (string) $post_status, $all_status_values, true ) ) {
+			$sql    = $base_select_sql . ' WHERE post_type = %s' . $order_by_sql . ' LIMIT %d OFFSET %d';
+			$params = [ $post_type, $limit, $offset ];
+		} else {
+			$sql    = $base_select_sql . ' WHERE post_type = %s AND post_status = %s' . $order_by_sql . ' LIMIT %d OFFSET %d';
+			$params = [ $post_type, $post_status, $limit, $offset ];
+		}
+
+		if ( ! empty( $query_spec ) ) {
+			$spec_where_sql = $this->build_query_spec_where_sql( $query_spec, $params );
+			if ( is_string( $spec_where_sql ) && '' !== $spec_where_sql ) {
+				$sql = str_replace( $order_by_sql, $spec_where_sql . $order_by_sql, $sql );
+			}
+		}
+
+		/**
+		 * Filter Direct SQL query parts before preparing
+		 *
+		 * @since 0.9.11
+		 * @param array  $query_parts Query parts.
+		 * @param array  $config Export configuration.
+		 * @param string $context Export context.
+		 * @return array Modified query parts.
+		 */
+		$query_parts = apply_filters(
+			'swift_csv_export_direct_sql_query_parts',
+			[
+				'sql'    => $sql,
+				'params' => $params,
+			],
+			$this->config,
+			'posts_batch'
+		);
+
+		$sql    = isset( $query_parts['sql'] ) ? (string) $query_parts['sql'] : $sql;
+		$params = isset( $query_parts['params'] ) ? (array) $query_parts['params'] : $params;
+
+		$query = call_user_func_array( [ $wpdb, 'prepare' ], array_merge( [ $sql ], $params ) );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
+		$posts = $wpdb->get_results( $query, ARRAY_A );
+
+		return is_array( $posts ) ? $posts : [];
 	}
 
 	/**

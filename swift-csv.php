@@ -75,7 +75,7 @@ spl_autoload_register(
 		$file_path = $base_dir . $sub_dir . $file_name;
 
 		// Load base export class first for inheritance.
-		if ( 'Swift_CSV_Export_Direct_SQL' === $class_name ) {
+		if ( 0 === strpos( $class_name, 'Swift_CSV_Export_' ) && 'Swift_CSV_Export_Base' !== $class_name ) {
 			$base_file = $base_dir . 'export/class-swift-csv-export-base.php';
 			if ( file_exists( $base_file ) ) {
 				require_once $base_file;

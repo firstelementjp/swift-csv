@@ -83,6 +83,9 @@ class Swift_CSV_Ajax_Export_Unified {
 				case 'direct_sql':
 					$result = $this->handle_direct_sql_export( $config );
 					break;
+				case 'wp_compatible':
+					$result = $this->handle_wp_compatible_export( $config );
+					break;
 				case 'standard':
 				default:
 					$result = $this->handle_standard_export( $config );
@@ -361,6 +364,133 @@ class Swift_CSV_Ajax_Export_Unified {
 			];
 		} catch ( Exception $e ) {
 			throw new Exception( 'Direct SQL export failed: ' . esc_html( $e->getMessage() ) );
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+	}
+
+	/**
+	 * Handle WP compatible export
+	 *
+	 * @since 0.9.8
+	 * @param array $config Export configuration.
+	 * @return array Export result.
+	 * @throws Exception When export fails.
+	 */
+	private function handle_wp_compatible_export( $config ) {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		try {
+			$start_row      = intval( $_POST['start_row'] ?? 0 );
+			$export_session = isset( $_POST['export_session'] ) ? sanitize_text_field( wp_unslash( $_POST['export_session'] ) ) : '';
+
+			if ( '' === $export_session ) {
+				$export_session = 'wp_compatible_export_' . gmdate( 'Ymd_His' ) . '_' . wp_generate_uuid4();
+			}
+
+			if ( 0 === $start_row ) {
+				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
+				$headers_line = get_transient( $headers_key );
+				if ( ! is_string( $headers_line ) || '' === $headers_line ) {
+					$export       = new Swift_CSV_Export_WP_Compatible( $config );
+					$headers      = $export->wp_compatible_get_post_headers();
+					$headers_line = implode( ',', array_map( [ $this, 'escape_csv_field' ], $headers ) );
+					set_transient( $headers_key, $headers_line, HOUR_IN_SECONDS );
+				}
+
+				$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
+				if ( $enable_logs ) {
+					$this->init_export_log_store( $export_session );
+				}
+			}
+
+			if ( $this->is_cancelled( $export_session ) ) {
+				wp_send_json_error( 'Export cancelled by user' );
+				return;
+			}
+
+			$transient_key = 'swift_csv_unified_export_config_' . get_current_user_id() . '_' . $export_session;
+			$export_config = get_transient( $transient_key );
+
+			if ( 0 === $start_row || ! is_array( $export_config ) ) {
+				$total_posts = $this->get_total_posts_count( $config );
+				$batch_size  = $this->get_export_batch_size( $total_posts, $config['post_type'], $config );
+
+				$export_config = [
+					'total_posts' => $total_posts,
+					'batch_size'  => $batch_size,
+				];
+
+				set_transient( $transient_key, $export_config, HOUR_IN_SECONDS );
+			} else {
+				$total_posts = isset( $export_config['total_posts'] ) ? (int) $export_config['total_posts'] : 0;
+				$batch_size  = isset( $export_config['batch_size'] ) ? (int) $export_config['batch_size'] : 0;
+			}
+
+			$export     = isset( $export ) && $export instanceof Swift_CSV_Export_WP_Compatible ? $export : new Swift_CSV_Export_WP_Compatible( $config );
+			$posts_data = $export->wp_compatible_batch_fetch_posts( $start_row, $batch_size );
+
+			if ( empty( $posts_data ) ) {
+				return [
+					'success'        => true,
+					'export_session' => $export_session,
+					'processed'      => $start_row,
+					'total'          => $total_posts,
+					'continue'       => false,
+					'progress'       => 100,
+					'status'         => 'completed',
+					'csv_chunk'      => '',
+				];
+			}
+
+			$csv_chunk = $export->wp_compatible_generate_csv_batch( $posts_data );
+			if ( 0 === $start_row ) {
+				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
+				$headers_line = get_transient( $headers_key );
+				if ( is_string( $headers_line ) && '' !== $headers_line ) {
+					$csv_chunk = $headers_line . "\n" . $csv_chunk;
+				}
+			}
+
+			if ( isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true ) ) {
+				$batch_number = floor( $start_row / $batch_size ) + 1;
+				$message      = sprintf(
+				/* translators: 1: Batch number, 2: Number of posts processed */
+					__( 'Batch %1$d: Bulk export %2$d posts', 'swift-csv' ),
+					$batch_number,
+					count( $posts_data )
+				);
+				$this->append_export_log(
+					$export_session,
+					[
+						'row'    => $start_row,
+						'status' => 'success',
+						'title'  => $message,
+						'time'   => current_time( 'mysql' ),
+					]
+				);
+			}
+
+			$next_row = $start_row + count( $posts_data );
+			$continue = $next_row < $total_posts;
+			$progress = $total_posts > 0 ? round( ( $next_row / $total_posts ) * 100, 2 ) : 100;
+			$progress = min( 100, max( 0, $progress ) );
+
+			if ( ! $continue ) {
+				$headers_key = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
+				delete_transient( $headers_key );
+			}
+
+			return [
+				'success'        => true,
+				'export_session' => $export_session,
+				'processed'      => $next_row,
+				'total'          => $total_posts,
+				'continue'       => $continue,
+				'progress'       => $progress,
+				'status'         => $continue ? 'processing' : 'completed',
+				'csv_chunk'      => $csv_chunk,
+			];
+		} catch ( Exception $e ) {
+			throw new Exception( 'WP compatible export failed: ' . esc_html( $e->getMessage() ) );
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 	}

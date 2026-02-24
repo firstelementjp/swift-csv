@@ -418,7 +418,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return void Sends JSON response with import results
 	 */
 	public function import_handler() {
-		$handler = new Swift_CSV_Ajax_Import_Handler_WP_Compatible(
+		$router = new Swift_CSV_Ajax_Import_Unified(
 			$this->get_log_store(),
 			$this->get_csv_store(),
 			$this->get_csv_util(),
@@ -427,7 +427,7 @@ class Swift_CSV_Ajax_Import {
 			$this->get_batch_processor_util(),
 			$this->get_response_manager_util()
 		);
-		$handler->handle();
+		$router->handle();
 	}
 
 	/**

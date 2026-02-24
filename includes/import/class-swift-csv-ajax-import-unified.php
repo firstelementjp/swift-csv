@@ -24,7 +24,7 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * Import log store.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Log_Store
+	 * @var Swift_CSV_Import_Log_Store|null
 	 */
 	private $log_store;
 
@@ -32,7 +32,7 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * Import CSV store.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Csv_Store
+	 * @var Swift_CSV_Import_Csv_Store|null
 	 */
 	private $csv_store;
 
@@ -40,7 +40,7 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * CSV utility.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Csv
+	 * @var Swift_CSV_Import_Csv|null
 	 */
 	private $csv_util;
 
@@ -48,7 +48,7 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * CSV parser.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Csv_Parser
+	 * @var Swift_CSV_Import_Csv_Parser|null
 	 */
 	private $csv_parser;
 
@@ -56,7 +56,7 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * File processor.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_File_Processor
+	 * @var Swift_CSV_Import_File_Processor|null
 	 */
 	private $file_processor;
 
@@ -64,7 +64,7 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * Batch processor.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Batch_Processor
+	 * @var Swift_CSV_Import_Batch_Processor|null
 	 */
 	private $batch_processor;
 
@@ -72,38 +72,143 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * Response manager.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Response_Manager
+	 * @var Swift_CSV_Import_Response_Manager|null
 	 */
 	private $response_manager;
 
 	/**
-	 * Constructor.
+	 * Constructor: Register AJAX hooks.
 	 *
 	 * @since 0.9.8
-	 * @param Swift_CSV_Import_Log_Store        $log_store Log store.
-	 * @param Swift_CSV_Import_Csv_Store        $csv_store CSV store.
-	 * @param Swift_CSV_Import_Csv              $csv_util CSV utility.
-	 * @param Swift_CSV_Import_Csv_Parser       $csv_parser CSV parser.
-	 * @param Swift_CSV_Import_File_Processor   $file_processor File processor.
-	 * @param Swift_CSV_Import_Batch_Processor  $batch_processor Batch processor.
-	 * @param Swift_CSV_Import_Response_Manager $response_manager Response manager.
 	 */
-	public function __construct(
-		Swift_CSV_Import_Log_Store $log_store,
-		Swift_CSV_Import_Csv_Store $csv_store,
-		Swift_CSV_Import_Csv $csv_util,
-		Swift_CSV_Import_Csv_Parser $csv_parser,
-		Swift_CSV_Import_File_Processor $file_processor,
-		Swift_CSV_Import_Batch_Processor $batch_processor,
-		Swift_CSV_Import_Response_Manager $response_manager
-	) {
-		$this->log_store        = $log_store;
-		$this->csv_store        = $csv_store;
-		$this->csv_util         = $csv_util;
-		$this->csv_parser       = $csv_parser;
-		$this->file_processor   = $file_processor;
-		$this->batch_processor  = $batch_processor;
-		$this->response_manager = $response_manager;
+	public function __construct() {
+		add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'handle' ] );
+		add_action( 'wp_ajax_swift_csv_ajax_import_logs', [ $this, 'handle_ajax_import_logs' ] );
+	}
+
+	/**
+	 * Handle AJAX request to fetch import logs.
+	 *
+	 * @since 0.9.8
+	 * @return void
+	 */
+	public function handle_ajax_import_logs(): void {
+		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
+
+		$import_session = sanitize_key( $_POST['import_session'] ?? '' );
+		if ( '' === $import_session ) {
+			wp_send_json_error( 'Missing import session' );
+			return;
+		}
+
+		$enable_logs = isset( $_POST['enable_logs'] ) && in_array( (string) $_POST['enable_logs'], [ '1', 'true' ], true );
+		if ( ! $enable_logs ) {
+			wp_send_json_success(
+				[
+					'last_id' => 0,
+					'logs'    => [],
+				]
+			);
+			return;
+		}
+
+		$after_id = isset( $_POST['after_id'] ) ? intval( $_POST['after_id'] ) : 0;
+		$limit    = isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : 100;
+		$limit    = max( 1, min( 200, $limit ) );
+
+		$result = $this->get_log_store()->fetch( $import_session, $after_id, $limit );
+		wp_send_json_success( $result );
+	}
+
+	/**
+	 * Get import log store.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Log_Store
+	 */
+	private function get_log_store(): Swift_CSV_Import_Log_Store {
+		if ( null === $this->log_store ) {
+			$this->log_store = new Swift_CSV_Import_Log_Store();
+		}
+		return $this->log_store;
+	}
+
+	/**
+	 * Get import CSV store.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Csv_Store
+	 */
+	private function get_csv_store(): Swift_CSV_Import_Csv_Store {
+		if ( null === $this->csv_store ) {
+			$this->csv_store = new Swift_CSV_Import_Csv_Store();
+		}
+		return $this->csv_store;
+	}
+
+	/**
+	 * Get CSV utility.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Csv
+	 */
+	private function get_csv_util(): Swift_CSV_Import_Csv {
+		if ( null === $this->csv_util ) {
+			$this->csv_util = new Swift_CSV_Import_Csv();
+		}
+		return $this->csv_util;
+	}
+
+	/**
+	 * Get CSV parser.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Csv_Parser
+	 */
+	private function get_csv_parser(): Swift_CSV_Import_Csv_Parser {
+		if ( null === $this->csv_parser ) {
+			$this->csv_parser = new Swift_CSV_Import_Csv_Parser();
+		}
+		return $this->csv_parser;
+	}
+
+	/**
+	 * Get file processor.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_File_Processor
+	 */
+	private function get_file_processor(): Swift_CSV_Import_File_Processor {
+		if ( null === $this->file_processor ) {
+			$this->file_processor = new Swift_CSV_Import_File_Processor();
+		}
+		return $this->file_processor;
+	}
+
+	/**
+	 * Get batch processor.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Batch_Processor
+	 */
+	private function get_batch_processor(): Swift_CSV_Import_Batch_Processor {
+		if ( null === $this->batch_processor ) {
+			$this->batch_processor = new Swift_CSV_Import_Batch_Processor();
+		}
+		return $this->batch_processor;
+	}
+
+	/**
+	 * Get response manager.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Response_Manager
+	 */
+	private function get_response_manager(): Swift_CSV_Import_Response_Manager {
+		if ( null === $this->response_manager ) {
+			$this->response_manager = new Swift_CSV_Import_Response_Manager();
+		}
+		return $this->response_manager;
 	}
 
 	/**
@@ -128,13 +233,13 @@ class Swift_CSV_Ajax_Import_Unified {
 			case 'wp_compatible':
 			default:
 				$handler = new Swift_CSV_Ajax_Import_Handler_WP_Compatible(
-					$this->log_store,
-					$this->csv_store,
-					$this->csv_util,
-					$this->csv_parser,
-					$this->file_processor,
-					$this->batch_processor,
-					$this->response_manager
+					$this->get_log_store(),
+					$this->get_csv_store(),
+					$this->get_csv_util(),
+					$this->get_csv_parser(),
+					$this->get_file_processor(),
+					$this->get_batch_processor(),
+					$this->get_response_manager()
 				);
 				$handler->handle();
 				return;

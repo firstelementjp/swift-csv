@@ -418,15 +418,7 @@ class Swift_CSV_Ajax_Import {
 	 * @return void Sends JSON response with import results
 	 */
 	public function import_handler() {
-		$router = new Swift_CSV_Ajax_Import_Unified(
-			$this->get_log_store(),
-			$this->get_csv_store(),
-			$this->get_csv_util(),
-			$this->get_csv_parser_util(),
-			$this->get_file_processor_util(),
-			$this->get_batch_processor_util(),
-			$this->get_response_manager_util()
-		);
+		$router = new Swift_CSV_Ajax_Import_Unified();
 		$router->handle();
 	}
 

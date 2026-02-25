@@ -122,8 +122,6 @@ abstract class Swift_CSV_Ajax_Import_Handler_Base {
 	 * @return void
 	 */
 	public function handle(): void {
-		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
-
 		$file_result = $this->file_processor->handle_upload();
 		if ( null === $file_result ) {
 			return;

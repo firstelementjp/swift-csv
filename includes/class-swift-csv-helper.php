@@ -239,19 +239,6 @@ class Swift_CSV_Helper {
 	}
 
 	/**
-	 * Send JSON error response with cleanup and return null.
-	 *
-	 * @since 0.9.0
-	 * @param string $error_message Error message.
-	 * @param string $file_path Optional file path to cleanup.
-	 * @return null
-	 */
-	public static function send_error_response_and_return_null( $error_message, $file_path = null ) {
-		self::send_error_response( $error_message, $file_path );
-		return null;
-	}
-
-	/**
 	 * Verify nonce for security check.
 	 *
 	 * @since 0.9.0

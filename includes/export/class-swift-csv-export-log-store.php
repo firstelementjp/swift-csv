@@ -21,6 +21,34 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Swift_CSV_Export_Log_Store {
 
 	/**
+	 * Maximum number of log entries to keep.
+	 *
+	 * @since 0.9.8
+	 * @var int
+	 */
+	private $max_entries;
+
+	/**
+	 * Transient TTL in seconds.
+	 *
+	 * @since 0.9.8
+	 * @var int
+	 */
+	private $ttl;
+
+	/**
+	 * Constructor.
+	 *
+	 * @since 0.9.8
+	 * @param int $max_entries Maximum number of entries.
+	 * @param int $ttl Transient TTL.
+	 */
+	public function __construct( int $max_entries = 500, int $ttl = 3600 ) {
+		$this->max_entries = max( 1, $max_entries );
+		$this->ttl         = max( 1, $ttl );
+	}
+
+	/**
 	 * Build transient key for the given export session.
 	 *
 	 * @since 0.9.8
@@ -46,7 +74,7 @@ class Swift_CSV_Export_Log_Store {
 				'last_id' => 0,
 				'logs'    => [],
 			],
-			3600
+			$this->ttl
 		);
 	}
 
@@ -80,13 +108,20 @@ class Swift_CSV_Export_Log_Store {
 			];
 		}
 
+		if ( ! isset( $store['logs'] ) || ! is_array( $store['logs'] ) ) {
+			$store['logs'] = [];
+		}
+
 		++$store['last_id'];
 		$store['logs'][] = [
 			'id'     => $store['last_id'],
 			'detail' => $detail,
 		];
+		if ( count( $store['logs'] ) > $this->max_entries ) {
+			$store['logs'] = array_slice( $store['logs'], -1 * $this->max_entries );
+		}
 
-		set_transient( $transient_key, $store, 3600 );
+		set_transient( $transient_key, $store, $this->ttl );
 		return (int) $store['last_id'];
 	}
 
@@ -107,7 +142,7 @@ class Swift_CSV_Export_Log_Store {
 
 		if ( ! is_array( $store ) ) {
 			return [
-				'last_id' => 0,
+				'last_id' => $after_id,
 				'logs'    => [],
 			];
 		}

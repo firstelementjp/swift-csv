@@ -69,31 +69,51 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * @return void
 	 */
 	public function handle_ajax_import_logs(): void {
+		$initial_ob_level = function_exists( 'ob_get_level' ) ? ob_get_level() : 0;
+		if ( function_exists( 'ob_start' ) ) {
+			ob_start();
+		}
+
 		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 
-		$import_session = $this->get_request_parser()->parse_import_session();
-		if ( '' === $import_session ) {
-			wp_send_json_error( 'Missing import session' );
+		if ( ! current_user_can( 'import' ) ) {
+			$this->cleanup_output_buffers( $initial_ob_level );
+			wp_send_json_error( 'Insufficient permissions.' );
 			return;
 		}
 
-		$enable_logs = $this->get_request_parser()->parse_enable_logs();
-		if ( ! $enable_logs ) {
-			wp_send_json_success(
-				[
-					'last_id' => 0,
-					'logs'    => [],
-				]
-			);
-			return;
+		try {
+
+			$import_session = $this->get_request_parser()->parse_import_session();
+			if ( '' === $import_session ) {
+				$this->cleanup_output_buffers( $initial_ob_level );
+				wp_send_json_error( 'Missing import session' );
+				return;
+			}
+
+			$enable_logs = $this->get_request_parser()->parse_enable_logs();
+			if ( ! $enable_logs ) {
+				$this->cleanup_output_buffers( $initial_ob_level );
+				wp_send_json_success(
+					[
+						'last_id' => 0,
+						'logs'    => [],
+					]
+				);
+				return;
+			}
+
+			$fetch_params = $this->get_request_parser()->parse_log_fetch_params();
+			$after_id     = (int) $fetch_params['after_id'];
+			$limit        = (int) $fetch_params['limit'];
+
+			$result = $this->get_log_store()->fetch( $import_session, $after_id, $limit );
+			$this->cleanup_output_buffers( $initial_ob_level );
+			wp_send_json_success( $result );
+		} catch ( Exception $e ) {
+			$this->cleanup_output_buffers( $initial_ob_level );
+			wp_send_json_error( 'Import logs failed: ' . wp_kses_post( $e->getMessage() ) );
 		}
-
-		$fetch_params = $this->get_request_parser()->parse_log_fetch_params();
-		$after_id     = (int) $fetch_params['after_id'];
-		$limit        = (int) $fetch_params['limit'];
-
-		$result = $this->get_log_store()->fetch( $import_session, $after_id, $limit );
-		wp_send_json_success( $result );
 	}
 
 	/**
@@ -116,21 +136,57 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * @return void
 	 */
 	public function handle(): void {
-		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
-
-		$import_method = $this->get_request_parser()->parse_import_method();
-		if ( 'direct_sql' === $import_method && ! $this->is_direct_sql_import_enabled() ) {
-			$import_method = 'wp_compatible';
+		$initial_ob_level = function_exists( 'ob_get_level' ) ? ob_get_level() : 0;
+		if ( function_exists( 'ob_start' ) ) {
+			ob_start();
 		}
 
-		switch ( $import_method ) {
-			case 'direct_sql':
-				$this->handle_direct_sql_import();
-				return;
-			case 'wp_compatible':
-			default:
-				$this->handle_wp_compatible_import();
-				return;
+		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'import' ) ) {
+			$this->cleanup_output_buffers( $initial_ob_level );
+			wp_send_json_error( 'Insufficient permissions.' );
+			return;
+		}
+
+		try {
+
+			$import_method = $this->get_request_parser()->parse_import_method();
+			if ( 'direct_sql' === $import_method && ! $this->is_direct_sql_import_enabled() ) {
+				$import_method = 'wp_compatible';
+			}
+
+			switch ( $import_method ) {
+				case 'direct_sql':
+					$this->cleanup_output_buffers( $initial_ob_level );
+					$this->handle_direct_sql_import();
+					return;
+				case 'wp_compatible':
+				default:
+					$this->cleanup_output_buffers( $initial_ob_level );
+					$this->handle_wp_compatible_import();
+					return;
+			}
+		} catch ( Exception $e ) {
+			$this->cleanup_output_buffers( $initial_ob_level );
+			wp_send_json_error( 'Import failed: ' . wp_kses_post( $e->getMessage() ) );
+		}
+	}
+
+	/**
+	 * Cleanup output buffers to avoid corrupting JSON responses.
+	 *
+	 * @since 0.9.10
+	 * @param int $initial_ob_level Initial output buffer level.
+	 * @return void
+	 */
+	private function cleanup_output_buffers( int $initial_ob_level ): void {
+		while (
+			function_exists( 'ob_get_level' ) &&
+			function_exists( 'ob_end_clean' ) &&
+			ob_get_level() > $initial_ob_level
+		) {
+			ob_end_clean();
 		}
 	}
 

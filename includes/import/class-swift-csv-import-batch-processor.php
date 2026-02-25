@@ -67,6 +67,30 @@ class Swift_CSV_Import_Batch_Processor {
 	private $row_processor_util;
 
 	/**
+	 * Constructor.
+	 *
+	 * Allows injecting dependencies for alternative import methods (e.g., direct SQL)
+	 * while keeping the default lazy instantiation behavior.
+	 *
+	 * @since 0.9.10
+	 * @param Swift_CSV_Import_Row_Context|null   $row_context_util Row context util.
+	 * @param Swift_CSV_Import_Meta_Tax|null      $meta_tax_util Meta/tax util.
+	 * @param Swift_CSV_Import_Persister|null     $persister_util Persister util.
+	 * @param Swift_CSV_Import_Row_Processor|null $row_processor_util Row processor util.
+	 */
+	public function __construct(
+		?Swift_CSV_Import_Row_Context $row_context_util = null,
+		?Swift_CSV_Import_Meta_Tax $meta_tax_util = null,
+		?Swift_CSV_Import_Persister $persister_util = null,
+		?Swift_CSV_Import_Row_Processor $row_processor_util = null
+	) {
+		$this->row_context_util   = $row_context_util;
+		$this->meta_tax_util      = $meta_tax_util;
+		$this->persister_util     = $persister_util;
+		$this->row_processor_util = $row_processor_util;
+	}
+
+	/**
 	 * Calculate batch size
 	 *
 	 * Determines optimal batch size based on total rows and configuration.

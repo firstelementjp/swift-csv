@@ -82,6 +82,14 @@ spl_autoload_register(
 			}
 		}
 
+		// Load base import class first for inheritance.
+		if ( 0 === strpos( $class_name, 'Swift_CSV_Import_' ) && 'Swift_CSV_Import_Base' !== $class_name ) {
+			$base_file = $base_dir . 'import/class-swift-csv-import-base.php';
+			if ( file_exists( $base_file ) ) {
+				require_once $base_file;
+			}
+		}
+
 		// Load base import handler class first for inheritance.
 		if ( 0 === strpos( $class_name, 'Swift_CSV_Ajax_Import_Handler_' ) && 'Swift_CSV_Ajax_Import_Handler_Base' !== $class_name ) {
 			$base_file = $base_dir . 'import/class-swift-csv-ajax-import-handler-base.php';

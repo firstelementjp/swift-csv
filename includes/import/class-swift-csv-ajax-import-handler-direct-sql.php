@@ -27,8 +27,16 @@ class Swift_CSV_Ajax_Import_Handler_Direct_SQL extends Swift_CSV_Ajax_Import_Han
 	 * @return void
 	 */
 	public function handle(): void {
-		Swift_CSV_Helper::send_error_response(
-			esc_html__( 'High-Speed Import (Direct SQL) is unimplemented.', 'swift-csv' )
+		$importer = new Swift_CSV_Import_Direct_SQL(
+			$this->log_store,
+			$this->csv_store,
+			$this->csv_util,
+			$this->csv_parser,
+			$this->file_processor,
+			$this->batch_processor,
+			$this->response_manager,
+			$this->request_parser
 		);
+		$importer->import();
 	}
 }

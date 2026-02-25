@@ -197,8 +197,8 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * @return void
 	 */
 	private function handle_direct_sql_import(): void {
-		$handler = new Swift_CSV_Ajax_Import_Handler_Direct_SQL();
-		$handler->handle();
+		$importer = new Swift_CSV_Import_Direct_SQL();
+		$importer->import();
 	}
 
 	/**
@@ -208,8 +208,8 @@ class Swift_CSV_Ajax_Import_Unified {
 	 * @return void
 	 */
 	private function handle_wp_compatible_import(): void {
-		$handler = new Swift_CSV_Ajax_Import_Handler_WP_Compatible();
-		$handler->handle();
+		$importer = new Swift_CSV_Import_WP_Compatible();
+		$importer->import();
 	}
 
 	/**

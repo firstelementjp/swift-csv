@@ -73,6 +73,10 @@ class Swift_CSV_Ajax_Import_Unified {
 		if ( function_exists( 'ob_start' ) ) {
 			ob_start();
 		}
+		Swift_CSV_Ajax_Util::set_initial_ob_level( $initial_ob_level );
+		Swift_CSV_Ajax_Util::set_ajax_action( 'swift_csv_ajax_import_logs' );
+		Swift_CSV_Ajax_Util::register_fatal_error_json_handler();
+		Swift_CSV_Ajax_Util::register_empty_response_json_handler();
 
 		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 
@@ -140,6 +144,10 @@ class Swift_CSV_Ajax_Import_Unified {
 		if ( function_exists( 'ob_start' ) ) {
 			ob_start();
 		}
+		Swift_CSV_Ajax_Util::set_initial_ob_level( $initial_ob_level );
+		Swift_CSV_Ajax_Util::set_ajax_action( 'swift_csv_ajax_import' );
+		Swift_CSV_Ajax_Util::register_fatal_error_json_handler();
+		Swift_CSV_Ajax_Util::register_empty_response_json_handler();
 
 		register_shutdown_function(
 			function () use ( $initial_ob_level ): void {

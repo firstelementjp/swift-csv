@@ -275,7 +275,7 @@ class Swift_CSV_Import_Batch_Processor {
 	 * @param array                        $allowed_post_fields Allowed post fields.
 	 * @return array|null Row context or null if invalid.
 	 */
-	private function build_import_row_context_from_config( wpdb $wpdb, Swift_CSV_Import_Row_Context $row_context_util, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
+	protected function build_import_row_context_from_config( wpdb $wpdb, Swift_CSV_Import_Row_Context $row_context_util, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
 		return $row_context_util->build_import_row_context_from_config(
 			$wpdb,
 			$config,
@@ -296,7 +296,7 @@ class Swift_CSV_Import_Batch_Processor {
 	 * @param array $allowed_post_fields Allowed post fields.
 	 * @return array Row processing context.
 	 */
-	private function build_row_processing_context( array $config, array $csv_data, array $headers, array $allowed_post_fields ): array {
+	protected function build_row_processing_context( array $config, array $csv_data, array $headers, array $allowed_post_fields ): array {
 		return [
 			'post_type'                  => (string) ( $config['post_type'] ?? 'post' ),
 			'dry_run'                    => (bool) ( $config['dry_run'] ?? false ),
@@ -323,7 +323,7 @@ class Swift_CSV_Import_Batch_Processor {
 	 * @param Swift_CSV_Import_Meta_Tax $meta_tax_util Meta/tax util.
 	 * @return void
 	 */
-	private function handle_successful_row_import( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters, Swift_CSV_Import_Meta_Tax $meta_tax_util ): void {
+	protected function handle_successful_row_import( wpdb $wpdb, int $post_id, bool $is_update, array $context, array &$counters, Swift_CSV_Import_Meta_Tax $meta_tax_util ): void {
 		$headers                    = $context['headers'];
 		$data                       = $context['data'];
 		$allowed_post_fields        = $context['allowed_post_fields'];
@@ -394,7 +394,7 @@ class Swift_CSV_Import_Batch_Processor {
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Row_Context
 	 */
-	private function get_row_context_util(): Swift_CSV_Import_Row_Context {
+	protected function get_row_context_util(): Swift_CSV_Import_Row_Context {
 		if ( null === $this->row_context_util ) {
 			$this->row_context_util = new Swift_CSV_Import_Row_Context( new Swift_CSV_Import_Csv() );
 		}
@@ -407,7 +407,7 @@ class Swift_CSV_Import_Batch_Processor {
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Meta_Tax
 	 */
-	private function get_meta_tax_util(): Swift_CSV_Import_Meta_Tax {
+	protected function get_meta_tax_util(): Swift_CSV_Import_Meta_Tax {
 		if ( null === $this->meta_tax_util ) {
 			$this->meta_tax_util = new Swift_CSV_Import_Meta_Tax();
 		}
@@ -420,7 +420,7 @@ class Swift_CSV_Import_Batch_Processor {
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Persister
 	 */
-	private function get_persister_util(): Swift_CSV_Import_Persister {
+	protected function get_persister_util(): Swift_CSV_Import_Persister {
 		if ( null === $this->persister_util ) {
 			$this->persister_util = new Swift_CSV_Import_Persister();
 		}
@@ -433,7 +433,7 @@ class Swift_CSV_Import_Batch_Processor {
 	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Row_Processor
 	 */
-	private function get_row_processor_util(): Swift_CSV_Import_Row_Processor {
+	protected function get_row_processor_util(): Swift_CSV_Import_Row_Processor {
 		if ( null === $this->row_processor_util ) {
 			$this->row_processor_util = new Swift_CSV_Import_Row_Processor();
 		}
@@ -446,7 +446,7 @@ class Swift_CSV_Import_Batch_Processor {
 	 * @since 0.9.8
 	 * @return array Allowed post fields.
 	 */
-	private function get_allowed_post_fields(): array {
+	protected function get_allowed_post_fields(): array {
 		return [
 			'post_title',
 			'post_content',

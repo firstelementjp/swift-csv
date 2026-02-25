@@ -125,15 +125,35 @@ class Swift_CSV_Ajax_Import_Unified {
 
 		switch ( $import_method ) {
 			case 'direct_sql':
-				$handler = new Swift_CSV_Ajax_Import_Handler_Direct_SQL();
-				$handler->handle();
+				$this->handle_direct_sql_import();
 				return;
 			case 'wp_compatible':
 			default:
-				$handler = new Swift_CSV_Ajax_Import_Handler_WP_Compatible();
-				$handler->handle();
+				$this->handle_wp_compatible_import();
 				return;
 		}
+	}
+
+	/**
+	 * Handle Direct SQL import.
+	 *
+	 * @since 0.9.8
+	 * @return void
+	 */
+	private function handle_direct_sql_import(): void {
+		$handler = new Swift_CSV_Ajax_Import_Handler_Direct_SQL();
+		$handler->handle();
+	}
+
+	/**
+	 * Handle WP compatible import.
+	 *
+	 * @since 0.9.8
+	 * @return void
+	 */
+	private function handle_wp_compatible_import(): void {
+		$handler = new Swift_CSV_Ajax_Import_Handler_WP_Compatible();
+		$handler->handle();
 	}
 
 	/**

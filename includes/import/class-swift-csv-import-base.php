@@ -266,10 +266,13 @@ abstract class Swift_CSV_Import_Base {
 		if ( $should_continue ) {
 			return [];
 		}
+
+		$max_entries = (int) apply_filters( 'swift_csv_max_log_entries', 30 );
+		$max_entries = max( 1, $max_entries );
 		return [
-			'created' => $this->log_store->get_recent_logs_by_type( $import_session, 'created', 30 ),
-			'updated' => $this->log_store->get_recent_logs_by_type( $import_session, 'updated', 30 ),
-			'errors'  => $this->log_store->get_recent_logs_by_type( $import_session, 'errors', 30 ),
+			'created' => $this->log_store->get_recent_logs_by_type( $import_session, 'created', $max_entries ),
+			'updated' => $this->log_store->get_recent_logs_by_type( $import_session, 'updated', $max_entries ),
+			'errors'  => $this->log_store->get_recent_logs_by_type( $import_session, 'errors', $max_entries ),
 		];
 	}
 

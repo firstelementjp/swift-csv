@@ -110,7 +110,7 @@ class Swift_CSV_Ajax_Import_Unified {
 			$result = $this->get_log_store()->fetch( $import_session, $after_id, $limit );
 			$this->cleanup_output_buffers( $initial_ob_level );
 			wp_send_json_success( $result );
-		} catch ( Exception $e ) {
+		} catch ( Throwable $e ) {
 			$this->cleanup_output_buffers( $initial_ob_level );
 			wp_send_json_error( 'Import logs failed: ' . wp_kses_post( $e->getMessage() ) );
 		}
@@ -141,6 +141,34 @@ class Swift_CSV_Ajax_Import_Unified {
 			ob_start();
 		}
 
+		register_shutdown_function(
+			function () use ( $initial_ob_level ): void {
+				if ( headers_sent() ) {
+					return;
+				}
+
+				$last_error = error_get_last();
+				if ( is_array( $last_error ) ) {
+					$type = (int) ( $last_error['type'] ?? 0 );
+					if ( in_array( $type, [ E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR ], true ) ) {
+						$this->cleanup_output_buffers( $initial_ob_level );
+						wp_send_json_error(
+							sprintf(
+								'Fatal error: %s (%s:%d)',
+								(string) ( $last_error['message'] ?? '' ),
+								(string) ( $last_error['file'] ?? '' ),
+								(int) ( $last_error['line'] ?? 0 )
+							)
+						);
+					}
+				}
+
+				// If nothing was sent (no headers), avoid empty response.
+				$this->cleanup_output_buffers( $initial_ob_level );
+				wp_send_json_error( 'Empty AJAX response' );
+			}
+		);
+
 		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'import' ) ) {
@@ -158,16 +186,14 @@ class Swift_CSV_Ajax_Import_Unified {
 
 			switch ( $import_method ) {
 				case 'direct_sql':
-					$this->cleanup_output_buffers( $initial_ob_level );
 					$this->handle_direct_sql_import();
 					return;
 				case 'wp_compatible':
 				default:
-					$this->cleanup_output_buffers( $initial_ob_level );
 					$this->handle_wp_compatible_import();
 					return;
 			}
-		} catch ( Exception $e ) {
+		} catch ( Throwable $e ) {
 			$this->cleanup_output_buffers( $initial_ob_level );
 			wp_send_json_error( 'Import failed: ' . wp_kses_post( $e->getMessage() ) );
 		}

@@ -245,22 +245,19 @@ class Swift_CSV_Ajax_Import_Unified {
 		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 
 		$import_method = $this->get_request_parser()->parse_import_method();
+		if ( 'direct_sql' === $import_method && ! $this->is_direct_sql_import_enabled() ) {
+			$import_method = 'wp_compatible';
+		}
 
 		switch ( $import_method ) {
 			case 'direct_sql':
-				$batch_processor = new Swift_CSV_Import_Batch_Processor(
-					null,
-					new Swift_CSV_Import_Meta_Tax( new Swift_CSV_Import_Taxonomy_Writer_Direct_SQL() ),
-					null,
-					null
-				);
-				$handler         = new Swift_CSV_Ajax_Import_Handler_Direct_SQL(
+				$handler = new Swift_CSV_Ajax_Import_Handler_Direct_SQL(
 					$this->get_log_store(),
 					$this->get_csv_store(),
 					$this->get_csv_util(),
 					$this->get_csv_parser(),
 					$this->get_file_processor(),
-					$batch_processor,
+					$this->get_batch_processor(),
 					$this->get_response_manager()
 				);
 				$handler->handle();
@@ -279,5 +276,17 @@ class Swift_CSV_Ajax_Import_Unified {
 				$handler->handle();
 				return;
 		}
+	}
+
+	/**
+	 * Check if the direct SQL import method is enabled.
+	 *
+	 * Disabled by default to reduce the risk of data corruption.
+	 *
+	 * @since 0.9.10
+	 * @return bool True if enabled.
+	 */
+	private function is_direct_sql_import_enabled(): bool {
+		return (bool) apply_filters( 'swift_csv_enable_direct_sql_import', false );
 	}
 }

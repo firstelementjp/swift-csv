@@ -235,9 +235,10 @@ class Swift_CSV_Admin {
 				'swift-csv-core',
 				'swiftCSV',
 				[
-					'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
-					'nonce'               => wp_create_nonce( 'swift_csv_ajax_nonce' ),
-					'debug'               => $debug_mode,
+					'ajaxUrl'               => admin_url( 'admin-ajax.php' ),
+					'nonce'                 => wp_create_nonce( 'swift_csv_ajax_nonce' ),
+					'debug'                 => $debug_mode,
+					'enableDirectSqlImport' => (bool) apply_filters( 'swift_csv_enable_direct_sql_import', false ),
 					/**
 					 * Filter maximum log entries to display
 					 *
@@ -248,20 +249,20 @@ class Swift_CSV_Admin {
 					 * @param int $max_entries Maximum number of log entries to keep.
 					 * @return int Modified maximum entries.
 					 */
-					'maxLogEntries'       => apply_filters( 'swift_csv_max_log_entries', 30 ),
+					'maxLogEntries'         => apply_filters( 'swift_csv_max_log_entries', 30 ),
 					// Button text for export.
-					'highSpeedExportText' => esc_html__( 'High-Speed Export', 'swift-csv' ),
-					'standardExportText'  => esc_html__( 'Standard Export (WP Compatible)', 'swift-csv' ),
-					'exportCompleteText'  => esc_html__( 'Export Complete', 'swift-csv' ),
-					'exportFailedText'    => esc_html__( 'Export Failed', 'swift-csv' ),
-					'csvContentNotFound'  => esc_html__( 'CSV content not found in response', 'swift-csv' ),
-					'unknownError'        => esc_html__( 'Unknown error', 'swift-csv' ),
+					'highSpeedExportText'   => esc_html__( 'High-Speed Export', 'swift-csv' ),
+					'standardExportText'    => esc_html__( 'Standard Export (WP Compatible)', 'swift-csv' ),
+					'exportCompleteText'    => esc_html__( 'Export Complete', 'swift-csv' ),
+					'exportFailedText'      => esc_html__( 'Export Failed', 'swift-csv' ),
+					'csvContentNotFound'    => esc_html__( 'CSV content not found in response', 'swift-csv' ),
+					'unknownError'          => esc_html__( 'Unknown error', 'swift-csv' ),
 					// Button text for import.
-					'highSpeedImportText' => esc_html__( 'High-Speed Import', 'swift-csv' ),
-					'standardImportText'  => esc_html__( 'Standard Import (WP Compatible)', 'swift-csv' ),
-					'importCompleteText'  => esc_html__( 'Import Complete', 'swift-csv' ),
-					'importFailedText'    => esc_html__( 'Import Failed', 'swift-csv' ),
-					'messages'            => [
+					'highSpeedImportText'   => esc_html__( 'High-Speed Import (Unimplemented)', 'swift-csv' ),
+					'standardImportText'    => esc_html__( 'Standard Import (WP Compatible)', 'swift-csv' ),
+					'importCompleteText'    => esc_html__( 'Import Complete', 'swift-csv' ),
+					'importFailedText'      => esc_html__( 'Import Failed', 'swift-csv' ),
+					'messages'              => [
 						'exportCsv'               => esc_html__( 'Export CSV', 'swift-csv' ),
 						'startExport'             => esc_html__( 'Start Export', 'swift-csv' ),
 						'importCsv'               => esc_html__( 'Import CSV', 'swift-csv' ),
@@ -1320,7 +1321,7 @@ class Swift_CSV_Admin {
 
 						<p class="submit">
 							<button type="button" class="button button-secondary" id="high-speed-import-btn" disabled>
-								<?php esc_html_e( 'High-Speed Import', 'swift-csv' ); ?>
+								<?php esc_html_e( 'High-Speed Import (Unimplemented)', 'swift-csv' ); ?>
 							</button>
 							<button type="submit" name="ajax_import_csv" class="button button-primary" id="ajax-import-csv-btn" style="margin-left: 10px;">
 								<?php esc_html_e( 'Standard Import (WP Compatible)', 'swift-csv' ); ?>

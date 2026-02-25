@@ -94,11 +94,20 @@ function initFileUpload() {
 
 	const highSpeedImportBtn = document.querySelector('#high-speed-import-btn');
 	if (highSpeedImportBtn) {
-		highSpeedImportBtn.disabled = false;
-		highSpeedImportBtn.addEventListener('click', e => {
-			e.preventDefault();
-			startAjaxImport('direct_sql');
-		});
+		const directSqlEnabled = Boolean(swiftCSV && swiftCSV.enableDirectSqlImport);
+		if (!directSqlEnabled) {
+			highSpeedImportBtn.disabled = true;
+			highSpeedImportBtn.style.display = '';
+			if (swiftCSV && swiftCSV.highSpeedImportText) {
+				highSpeedImportBtn.textContent = swiftCSV.highSpeedImportText;
+			}
+		} else {
+			highSpeedImportBtn.disabled = false;
+			highSpeedImportBtn.addEventListener('click', e => {
+				e.preventDefault();
+				startAjaxImport('direct_sql');
+			});
+		}
 	}
 }
 

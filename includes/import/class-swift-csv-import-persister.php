@@ -21,6 +21,36 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Import_Persister {
 	/**
+	 * Resolve post author ID from display name or ID.
+	 *
+	 * @since 0.9.0
+	 * @param string $author_display_name Author display name or ID.
+	 * @return int Author ID.
+	 */
+	private function resolve_post_author_id( string $author_display_name ): int {
+		$post_author_id = 1;
+
+		if ( '' !== $author_display_name ) {
+			$author_display_name = trim( $author_display_name );
+
+			if ( is_numeric( $author_display_name ) ) {
+				$post_author_id = (int) $author_display_name;
+			} else {
+				$author_user = get_user_by( 'display_name', $author_display_name );
+				if ( $author_user ) {
+					$post_author_id = (int) $author_user->ID;
+				} elseif ( get_current_user_id() ) {
+					$post_author_id = (int) get_current_user_id();
+				}
+			}
+		} elseif ( get_current_user_id() ) {
+			$post_author_id = (int) get_current_user_id();
+		}
+
+		return $post_author_id;
+	}
+
+	/**
 	 * Persist one CSV row into wp_posts (insert/update) and return a structured result.
 	 *
 	 * This method makes the return value semantics explicit, avoiding ambiguity
@@ -111,7 +141,13 @@ class Swift_CSV_Import_Persister {
 	 * @return array<string, mixed>
 	 */
 	public function build_post_data_for_update( $post_fields_from_csv ) {
-		return Swift_CSV_Helper::build_post_data_for_update( $post_fields_from_csv );
+		$post_data = [];
+		foreach ( $post_fields_from_csv as $key => $value ) {
+			$post_data[ $key ] = $value;
+		}
+		$post_data['post_modified']     = current_time( 'mysql' );
+		$post_data['post_modified_gmt'] = current_time( 'mysql', true );
+		return $post_data;
 	}
 
 	/**
@@ -123,7 +159,28 @@ class Swift_CSV_Import_Persister {
 	 * @return array<string, mixed>
 	 */
 	public function build_post_data_for_insert( $post_fields_from_csv, $post_type ) {
-		return Swift_CSV_Helper::build_post_data_for_insert( $post_fields_from_csv, $post_type );
+		$post_author_id = $this->resolve_post_author_id( (string) ( $post_fields_from_csv['post_author'] ?? '' ) );
+		$post_title     = (string) ( $post_fields_from_csv['post_title'] ?? '' );
+
+		return [
+			'post_author'       => $post_author_id,
+			'post_date'         => $post_fields_from_csv['post_date'] ?? current_time( 'mysql' ),
+			'post_date_gmt'     => $post_fields_from_csv['post_date_gmt'] ?? current_time( 'mysql', true ),
+			'post_content'      => $post_fields_from_csv['post_content'] ?? '',
+			'post_title'        => $post_title,
+			'post_excerpt'      => $post_fields_from_csv['post_excerpt'] ?? '',
+			'post_status'       => $post_fields_from_csv['post_status'] ?? 'publish',
+			'post_name'         => $post_fields_from_csv['post_name'] ?? sanitize_title( $post_title ),
+			'post_type'         => $post_type,
+			'comment_status'    => $post_fields_from_csv['comment_status'] ?? 'closed',
+			'ping_status'       => $post_fields_from_csv['ping_status'] ?? 'closed',
+			'post_modified'     => current_time( 'mysql' ),
+			'post_modified_gmt' => current_time( 'mysql', true ),
+			'post_parent'       => (int) ( $post_fields_from_csv['post_parent'] ?? 0 ),
+			'menu_order'        => (int) ( $post_fields_from_csv['menu_order'] ?? 0 ),
+			'post_mime_type'    => '',
+			'comment_count'     => 0,
+		];
 	}
 
 	/**

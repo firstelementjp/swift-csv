@@ -170,10 +170,10 @@ class Swift_CSV_Import_Batch_Processor {
 
 		// Validate ID column only on first batch to prevent performance issues.
 		if ( 0 === $config['start_row'] ) {
-			// Use Swift_CSV_Helper directly for ID column validation.
-			$validation_result = Swift_CSV_Helper::validate_id_column( $csv_data['headers'], $config['file_path'] );
+			$taxonomy_util     = new Swift_CSV_Import_Taxonomy_Util();
+			$validation_result = $taxonomy_util->validate_id_column( $csv_data['headers'], $config['file_path'] );
 			if ( ! $validation_result['valid'] ) {
-				Swift_CSV_Helper::send_error_response( $validation_result['error'] );
+				Swift_CSV_Ajax_Util::send_error_response( (string) $validation_result['error'] );
 				return;
 			}
 			$id_col = $validation_result['id_col'];

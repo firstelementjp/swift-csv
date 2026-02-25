@@ -21,6 +21,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Import_Row_Processor {
 	/**
+	 * Update GUID for newly inserted posts.
+	 *
+	 * @since 0.9.0
+	 * @param int $post_id Post ID.
+	 * @return void
+	 */
+	private function update_guid_for_new_post( int $post_id ): void {
+		wp_update_post(
+			[
+				'ID'   => $post_id,
+				'guid' => get_permalink( $post_id ),
+			]
+		);
+	}
+
+	/**
 	 * Apply success side effects for a row (counters and GUID update) without callbacks.
 	 *
 	 * @since 0.9.0
@@ -40,7 +56,7 @@ class Swift_CSV_Import_Row_Processor {
 			++$updated;
 		} else {
 			++$created;
-			Swift_CSV_Helper::update_guid_for_new_post( $post_id );
+			$this->update_guid_for_new_post( $post_id );
 		}
 	}
 

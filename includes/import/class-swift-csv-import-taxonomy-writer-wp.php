@@ -82,7 +82,8 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	 * @return array<int, int>
 	 */
 	private function resolve_term_ids_for_term_value( string $taxonomy, string $term_value, string $taxonomy_format, array $taxonomy_format_validation ): array {
-		return Swift_CSV_Helper::resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
+		$taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
+		return $taxonomy_util->resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
 	}
 
 	/**

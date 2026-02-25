@@ -317,7 +317,8 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @return array<int, int>
 	 */
 	public function resolve_term_ids_for_term_value( string $taxonomy, string $term_value, string $taxonomy_format, array $taxonomy_format_validation ): array {
-		$term_ids = Swift_CSV_Helper::resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
+		$taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
+		$term_ids      = $taxonomy_util->resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
 
 		return $term_ids;
 	}

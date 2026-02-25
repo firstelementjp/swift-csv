@@ -48,8 +48,8 @@ class Swift_CSV_Import_File_Processor {
 		// Verify nonce.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
-		if ( ! Swift_CSV_Helper::verify_nonce( $nonce ) ) {
-			Swift_CSV_Helper::send_security_error();
+		if ( ! Swift_CSV_Ajax_Util::verify_nonce( $nonce ) ) {
+			Swift_CSV_Ajax_Util::send_security_error();
 			return null;
 		}
 
@@ -62,17 +62,17 @@ class Swift_CSV_Import_File_Processor {
 			$start_row = isset( $_POST['start_row'] ) ? intval( $_POST['start_row'] ) : 0;
 			if ( $start_row > 0 ) {
 				// Return existing temp file path for batch processing.
-				$temp_dir = Swift_CSV_Helper::create_temp_directory();
+				$temp_dir = Swift_CSV_File_Util::create_temp_directory();
 				$files    = scandir( $temp_dir );
 				foreach ( $files as $file ) {
 					if ( strpos( $file, 'ajax-import-' ) === 0 ) {
 						return [ 'file_path' => $temp_dir . '/' . $file ];
 					}
 				}
-				Swift_CSV_Helper::send_error_response( 'No existing file found for batch processing' );
+				Swift_CSV_Ajax_Util::send_error_response( 'No existing file found for batch processing' );
 				return null;
 			} else {
-				Swift_CSV_Helper::send_error_response( 'No file uploaded' );
+				Swift_CSV_Ajax_Util::send_error_response( 'No file uploaded' );
 				return null;
 			}
 		}
@@ -84,23 +84,23 @@ class Swift_CSV_Import_File_Processor {
 		$uploaded_file = wp_handle_upload( $_FILES['csv_file'], [ 'test_form' => false ] );
 
 		if ( isset( $uploaded_file['error'] ) ) {
-			Swift_CSV_Helper::send_error_response( 'Upload error: ' . $uploaded_file['error'] );
+			Swift_CSV_Ajax_Util::send_error_response( 'Upload error: ' . $uploaded_file['error'] );
 			return null;
 		}
 
 		// Create temp directory and file path.
-		$temp_dir  = Swift_CSV_Helper::create_temp_directory();
-		$temp_file = Swift_CSV_Helper::generate_temp_file_path( $temp_dir );
+		$temp_dir  = Swift_CSV_File_Util::create_temp_directory();
+		$temp_file = Swift_CSV_File_Util::generate_temp_file_path( $temp_dir );
 
 		// Cleanup old temporary files only on first upload.
 		$start_row = isset( $_POST['start_row'] ) ? intval( $_POST['start_row'] ) : 0;
 		if ( 0 === $start_row ) {
-			Swift_CSV_Helper::cleanup_old_temp_files( $temp_dir, $temp_file );
+			Swift_CSV_File_Util::cleanup_old_temp_files( $temp_dir, $temp_file );
 		}
 
 		// Copy uploaded file to temp location.
 		if ( ! copy( $uploaded_file['file'], $temp_file ) ) {
-			Swift_CSV_Helper::send_error_response( 'Failed to save file' );
+			Swift_CSV_Ajax_Util::send_error_response( 'Failed to save file' );
 			// phpcs:enable WordPress.Security.NonceVerification.Missing
 			return null;
 		}

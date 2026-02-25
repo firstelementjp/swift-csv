@@ -27,17 +27,28 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 	 * @return void
 	 */
 	public function import(): void {
+		Swift_CSV_Ajax_Util::set_stage( 'wp_compatible:start' );
+
+		Swift_CSV_Ajax_Util::set_stage( 'wp_compatible:upload_file' );
 		$file_result = $this->upload_file_or_return_null();
 		if ( null === $file_result ) {
+			if ( ! Swift_CSV_Ajax_Util::has_sent_response() ) {
+				Swift_CSV_Ajax_Util::send_error_response( 'Upload failed' );
+			}
 			return;
 		}
 		$file_path = $file_result['file_path'];
 
+		Swift_CSV_Ajax_Util::set_stage( 'wp_compatible:get_import_session' );
 		$import_session = $this->get_import_session_or_send_error();
 		if ( '' === $import_session ) {
+			if ( ! Swift_CSV_Ajax_Util::has_sent_response() ) {
+				Swift_CSV_Ajax_Util::send_error_response( 'Missing import session' );
+			}
 			return;
 		}
 
+		Swift_CSV_Ajax_Util::set_stage( 'wp_compatible:parse_request' );
 		$start_row   = $this->request_parser->parse_start_row();
 		$enable_logs = $this->request_parser->parse_enable_logs();
 		$append_log  = $this->build_append_log_callback( $import_session, $enable_logs, $start_row );
@@ -48,11 +59,18 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		$parsed_config = $this->request_parser->parse_import_config( $csv_content );
 		$config        = $this->build_import_config_from_parsed( $parsed_config, $file_path, $start_row, $csv_content, $import_session, $append_log );
 		if ( empty( $config ) ) {
+			if ( ! Swift_CSV_Ajax_Util::has_sent_response() ) {
+				Swift_CSV_Ajax_Util::send_error_response( 'Invalid import config' );
+			}
 			return;
 		}
 
+		Swift_CSV_Ajax_Util::set_stage( 'wp_compatible:ensure_csv_data' );
 		$csv_data = $this->ensure_csv_data_available( $csv_data, $start_row, $file_path, $config, $import_session );
 		if ( null === $csv_data ) {
+			if ( ! Swift_CSV_Ajax_Util::has_sent_response() ) {
+				Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed' );
+			}
 			return;
 		}
 
@@ -62,6 +80,7 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		];
 		apply_filters( 'swift_csv_filter_sample_posts', [], $sample_filter_args );
 
+		Swift_CSV_Ajax_Util::set_stage( 'wp_compatible:count_rows' );
 		$total_rows             = $this->csv_util->count_total_rows( $csv_data['lines'] );
 		$csv_data['total_rows'] = $total_rows;
 
@@ -102,6 +121,7 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		}
 		$recent_logs = $this->build_recent_logs_if_complete( $should_continue, $import_session );
 
+		Swift_CSV_Ajax_Util::set_stage( 'wp_compatible:send_response' );
 		$this->response_manager->send_import_progress_response(
 			$config['start_row'],
 			$counters['processed'],

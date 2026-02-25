@@ -75,7 +75,7 @@ class Swift_CSV_Import_Response_Manager {
 		$next_row = $start_row + $processed; // Use actual processed count.
 		$continue = $next_row < $total_rows;
 
-		wp_send_json(
+		Swift_CSV_Ajax_Util::send_json(
 			[
 				'success'            => true,
 				'processed'          => $next_row,
@@ -112,7 +112,7 @@ class Swift_CSV_Import_Response_Manager {
 				wp_delete_file( $file_path );
 			}
 		}
-		Swift_CSV_Helper::send_error_response( $message );
+		Swift_CSV_Ajax_Util::send_error_response( $message );
 	}
 
 	/**

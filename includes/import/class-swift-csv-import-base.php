@@ -136,7 +136,7 @@ abstract class Swift_CSV_Import_Base {
 	protected function get_import_session_or_send_error(): string {
 		$import_session = $this->request_parser->parse_import_session();
 		if ( '' === $import_session ) {
-			Swift_CSV_Helper::send_error_response( 'Missing import session' );
+			Swift_CSV_Ajax_Util::send_error_response( 'Missing import session' );
 			return '';
 		}
 		return $import_session;
@@ -198,7 +198,7 @@ abstract class Swift_CSV_Import_Base {
 	protected function build_import_config_from_parsed( array $parsed_config, string $file_path, int $start_row, string $csv_content, string $import_session, $append_log ): array {
 		$post_type = (string) $parsed_config['post_type'];
 		if ( ! post_type_exists( $post_type ) ) {
-			Swift_CSV_Helper::send_error_response( 'Invalid post type: ' . $post_type );
+			Swift_CSV_Ajax_Util::send_error_response( 'Invalid post type: ' . $post_type );
 			return [];
 		}
 
@@ -232,6 +232,7 @@ abstract class Swift_CSV_Import_Base {
 			$csv_data = $this->csv_parser->parse_and_validate_csv( (string) $config['csv_content'], $config, $file_path );
 			if ( null === $csv_data ) {
 				$this->log_store->cleanup( $import_session );
+				Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed' );
 				return null;
 			}
 			$this->csv_store->set( $import_session, $csv_data );
@@ -248,6 +249,7 @@ abstract class Swift_CSV_Import_Base {
 		$csv_data    = $this->csv_parser->parse_and_validate_csv( $csv_content, $config, $file_path );
 		if ( null === $csv_data ) {
 			$this->log_store->cleanup( $import_session );
+			Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed' );
 			return null;
 		}
 		$this->csv_store->set( $import_session, $csv_data );

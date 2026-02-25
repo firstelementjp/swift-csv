@@ -21,6 +21,24 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Import_Meta_Tax {
 	/**
+	 * Taxonomy writer strategy.
+	 *
+	 * @since 0.9.10
+	 * @var Swift_CSV_Import_Taxonomy_Writer_Interface
+	 */
+	private $taxonomy_writer;
+
+	/**
+	 * Constructor.
+	 *
+	 * @since 0.9.10
+	 * @param Swift_CSV_Import_Taxonomy_Writer_Interface|null $taxonomy_writer Taxonomy writer.
+	 */
+	public function __construct( ?Swift_CSV_Import_Taxonomy_Writer_Interface $taxonomy_writer = null ) {
+		$this->taxonomy_writer = $taxonomy_writer ? $taxonomy_writer : new Swift_CSV_Import_Taxonomy_Writer_WP();
+	}
+
+	/**
 	 * Process meta fields and taxonomies for a post using explicit arguments.
 	 *
 	 * @since 0.9.0
@@ -78,7 +96,7 @@ class Swift_CSV_Import_Meta_Tax {
 		];
 
 		// Process taxonomies.
-		$this->apply_taxonomies_for_post( $post_id, $taxonomies, $context, $dry_run_log );
+		$this->apply_taxonomies_for_post( $wpdb, $post_id, $taxonomies, $context, $dry_run_log );
 
 		// Process custom fields with multi-value support.
 		$this->apply_meta_fields_for_post( $wpdb, $post_id, $meta_fields, $context, $dry_run_log );
@@ -277,27 +295,15 @@ class Swift_CSV_Import_Meta_Tax {
 	 * Apply taxonomy terms for a post.
 	 *
 	 * @since 0.9.0
-	 * @param int                                                                                                                                                                                             $post_id Post ID.
-	 * @param array<string, array<int, string>>                                                                                                                                                               $taxonomies Taxonomy terms map.
-	 * @param array{post_id:int,post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array<int, string>                                                                                                                                                                              $dry_run_log Dry run log.
+	 * @param wpdb                              $wpdb WordPress database handler.
+	 * @param int                               $post_id Post ID.
+	 * @param array<string, array<int, string>> $taxonomies Taxonomy terms map.
+	 * @param array                             $context Context values for row processing.
+	 * @param array<int, string>                $dry_run_log Dry run log.
 	 * @return void
 	 */
-	public function apply_taxonomies_for_post( int $post_id, array $taxonomies, array $context, array &$dry_run_log ): void {
-		$taxonomy_format            = $context['taxonomy_format'];
-		$taxonomy_format_validation = $context['taxonomy_format_validation'];
-		$dry_run                    = $context['dry_run'];
-
-		foreach ( $taxonomies as $taxonomy => $terms ) {
-			if ( ! is_string( $taxonomy ) || ! is_array( $terms ) || empty( $terms ) ) {
-				continue;
-			}
-
-			if ( ! empty( $terms ) ) {
-				$term_ids = $this->resolve_taxonomy_term_ids( $taxonomy, $terms, $taxonomy_format, $taxonomy_format_validation );
-				$this->apply_taxonomy_terms_to_post( $post_id, $taxonomy, $term_ids, $dry_run, $dry_run_log );
-			}
-		}
+	public function apply_taxonomies_for_post( wpdb $wpdb, int $post_id, array $taxonomies, array $context, array &$dry_run_log ): void {
+		$this->taxonomy_writer->apply_taxonomies_for_post( $wpdb, $post_id, $taxonomies, $context, $dry_run_log );
 	}
 
 	/**
@@ -320,11 +326,11 @@ class Swift_CSV_Import_Meta_Tax {
 	 * Apply meta fields for a post.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb                                                                                                                                                                                            $wpdb WordPress DB instance.
-	 * @param int                                                                                                                                                                                             $post_id Post ID.
-	 * @param array<string, mixed>                                                                                                                                                                            $meta_fields Meta fields.
-	 * @param array{post_id:int,post_type:string,dry_run:bool,headers:array<int,string>,data:array<int,string>,allowed_post_fields:array<int,string>,taxonomy_format:string,taxonomy_format_validation:array} $context Context values for row processing.
-	 * @param array<int, string>                                                                                                                                                                              $dry_run_log Dry run log.
+	 * @param wpdb  $wpdb WordPress DB instance.
+	 * @param int   $post_id Post ID.
+	 * @param array $meta_fields Meta fields.
+	 * @param array $context Context values for row processing.
+	 * @param array $dry_run_log Dry run log.
 	 * @return void
 	 */
 	public function apply_meta_fields_for_post( wpdb $wpdb, int $post_id, array $meta_fields, array $context, array &$dry_run_log ): void {

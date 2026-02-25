@@ -116,27 +116,43 @@ abstract class Swift_CSV_Ajax_Import_Handler_Base {
 	}
 
 	/**
-	 * Handle import request.
+	 * Handle file upload.
 	 *
 	 * @since 0.9.10
-	 * @return void
+	 * @return array|null Upload result or null when upload failed (response already sent).
 	 */
-	public function handle(): void {
-		$file_result = $this->file_processor->handle_upload();
-		if ( null === $file_result ) {
-			return;
-		}
-		$file_path = $file_result['file_path'];
+	protected function upload_file_or_return_null(): ?array {
+		return $this->file_processor->handle_upload();
+	}
 
+	/**
+	 * Get import session key.
+	 *
+	 * @since 0.9.10
+	 * @return string Import session (empty string when missing; error response is sent).
+	 */
+	protected function get_import_session_or_send_error(): string {
 		$import_session = $this->request_parser->parse_import_session();
 		if ( '' === $import_session ) {
 			Swift_CSV_Helper::send_error_response( 'Missing import session' );
-			return;
+			return '';
 		}
+		return $import_session;
+	}
 
-		$start_row   = $this->request_parser->parse_start_row();
-		$enable_logs = $this->request_parser->parse_enable_logs();
-		$append_log  = null;
+	/**
+	 * Build append-log callback.
+	 *
+	 * Initializes log store when needed.
+	 *
+	 * @since 0.9.10
+	 * @param string $import_session Import session key.
+	 * @param bool   $enable_logs Whether logs are enabled.
+	 * @param int    $start_row Start row.
+	 * @return callable|null Append callback or null.
+	 */
+	protected function build_append_log_callback( string $import_session, bool $enable_logs, int $start_row ) {
+		$append_log = null;
 		if ( $enable_logs && 0 === $start_row ) {
 			$this->log_store->init( $import_session );
 		}
@@ -145,128 +161,124 @@ abstract class Swift_CSV_Ajax_Import_Handler_Base {
 				$this->log_store->append( $import_session, $detail );
 			};
 		}
+		return $append_log;
+	}
 
-		$csv_data = $this->csv_store->get( $import_session );
-		if ( 0 === $start_row ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			$csv_content = (string) file_get_contents( $file_path );
-			$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content );
-		} else {
-			$csv_content = '';
+	/**
+	 * Read CSV content for the first request.
+	 *
+	 * @since 0.9.10
+	 * @param string $file_path Uploaded file path.
+	 * @param int    $start_row Start row.
+	 * @return string CSV content (empty string when not needed).
+	 */
+	protected function read_csv_content_for_start_row( string $file_path, int $start_row ): string {
+		if ( 0 !== $start_row ) {
+			return '';
 		}
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$csv_content = (string) file_get_contents( $file_path );
+		return str_replace( [ "\r\n", "\r" ], "\n", $csv_content );
+	}
 
-		$parsed_config   = $this->request_parser->parse_import_config( $csv_content );
-		$batch_size      = (int) $parsed_config['batch_size'];
-		$post_type       = (string) $parsed_config['post_type'];
-		$update_existing = (string) $parsed_config['update_existing'];
-		$taxonomy_format = (string) $parsed_config['taxonomy_format'];
-		$dry_run         = (bool) $parsed_config['dry_run'];
-
+	/**
+	 * Build normalized import configuration array.
+	 *
+	 * @since 0.9.10
+	 * @param array         $parsed_config Parsed config.
+	 * @param string        $file_path Uploaded file path.
+	 * @param int           $start_row Start row.
+	 * @param string        $csv_content CSV content.
+	 * @param string        $import_session Import session key.
+	 * @param callable|null $append_log Append log callback.
+	 * @return array Import config. Returns empty array if validation fails (response already sent).
+	 */
+	protected function build_import_config_from_parsed( array $parsed_config, string $file_path, int $start_row, string $csv_content, string $import_session, $append_log ): array {
+		$post_type = (string) $parsed_config['post_type'];
 		if ( ! post_type_exists( $post_type ) ) {
 			Swift_CSV_Helper::send_error_response( 'Invalid post type: ' . $post_type );
-			return;
+			return [];
 		}
 
-		$config = [
+		return [
 			'file_path'       => $file_path,
 			'start_row'       => $start_row,
-			'batch_size'      => $batch_size,
+			'batch_size'      => (int) $parsed_config['batch_size'],
 			'post_type'       => $post_type,
-			'update_existing' => $update_existing,
-			'taxonomy_format' => $taxonomy_format,
-			'dry_run'         => $dry_run,
+			'update_existing' => (string) $parsed_config['update_existing'],
+			'taxonomy_format' => (string) $parsed_config['taxonomy_format'],
+			'dry_run'         => (bool) $parsed_config['dry_run'],
 			'csv_content'     => $csv_content,
 			'import_session'  => $import_session,
 			'append_log'      => $append_log,
 		];
-
-		if ( 0 === $start_row ) {
-			$csv_data = $this->csv_parser->parse_and_validate_csv( $csv_content, $config, $file_path );
-			if ( null === $csv_data ) {
-				$this->log_store->cleanup( $import_session );
-				return;
-			}
-			$this->csv_store->set( $import_session, $csv_data );
-		} elseif ( null === $csv_data ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			$csv_content = (string) file_get_contents( $file_path );
-			$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content );
-			$csv_data    = $this->csv_parser->parse_and_validate_csv( $csv_content, $config, $file_path );
-			if ( null === $csv_data ) {
-				$this->log_store->cleanup( $import_session );
-				return;
-			}
-			$this->csv_store->set( $import_session, $csv_data );
-		}
-
-		$sample_filter_args = [
-			'post_type' => $config['post_type'],
-			'context'   => 'import_field_detection',
-		];
-		apply_filters( 'swift_csv_filter_sample_posts', [], $sample_filter_args );
-
-		$total_rows             = $this->csv_util->count_total_rows( $csv_data['lines'] );
-		$csv_data['total_rows'] = $total_rows;
-
-		$batch_size           = $this->batch_processor->calculate_batch_size( $total_rows, $config );
-		$config['batch_size'] = $batch_size;
-
-		if ( $config['dry_run'] ) {
-			$cumulative_counts = [
-				'created' => 0,
-				'updated' => 0,
-				'errors'  => 0,
-			];
-		} else {
-			$cumulative_counts = $this->response_manager->get_cumulative_counts();
-		}
-
-		$previous_created = $cumulative_counts['created'];
-		$previous_updated = $cumulative_counts['updated'];
-		$previous_errors  = $cumulative_counts['errors'];
-
-		$counters = $this->batch_processor->process_batch( $config, $csv_data );
-
-		if ( $enable_logs && ! empty( $counters['dry_run_details'] ) && is_array( $counters['dry_run_details'] ) ) {
-			foreach ( $counters['dry_run_details'] as $detail ) {
-				if ( ! is_array( $detail ) ) {
-					continue;
-				}
-				$this->log_store->append( $import_session, $detail );
-			}
-		}
-
-		$next_row = $config['start_row'] + $counters['processed'];
-		$continue = $next_row < $total_rows;
-
-		$this->response_manager->cleanup_temp_file_if_complete( $continue, $config['file_path'] );
-		if ( ! $continue ) {
-			$this->csv_store->cleanup( $import_session );
-		}
-
-		$recent_logs = [];
-		if ( ! $continue ) {
-			$recent_logs = [
-				'created' => $this->log_store->get_recent_logs_by_type( $import_session, 'created', 30 ),
-				'updated' => $this->log_store->get_recent_logs_by_type( $import_session, 'updated', 30 ),
-				'errors'  => $this->log_store->get_recent_logs_by_type( $import_session, 'errors', 30 ),
-			];
-		}
-
-		$this->response_manager->send_import_progress_response(
-			$config['start_row'],
-			$counters['processed'],
-			$total_rows,
-			$counters['errors'],
-			$counters['created'],
-			$counters['updated'],
-			$previous_created,
-			$previous_updated,
-			$previous_errors,
-			$config['dry_run'],
-			$counters['dry_run_log'],
-			[],
-			$recent_logs
-		);
 	}
+
+	/**
+	 * Ensure parsed CSV data is available for current request.
+	 *
+	 * @since 0.9.10
+	 * @param array|null $csv_data Cached csv data.
+	 * @param int        $start_row Start row.
+	 * @param string     $file_path Uploaded file path.
+	 * @param array      $config Import config.
+	 * @param string     $import_session Import session key.
+	 * @return array|null Parsed csv data or null when validation fails (response already sent).
+	 */
+	protected function ensure_csv_data_available( ?array $csv_data, int $start_row, string $file_path, array $config, string $import_session ): ?array {
+		if ( 0 === $start_row ) {
+			$csv_data = $this->csv_parser->parse_and_validate_csv( (string) $config['csv_content'], $config, $file_path );
+			if ( null === $csv_data ) {
+				$this->log_store->cleanup( $import_session );
+				return null;
+			}
+			$this->csv_store->set( $import_session, $csv_data );
+			return $csv_data;
+		}
+
+		if ( null !== $csv_data ) {
+			return $csv_data;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$csv_content = (string) file_get_contents( $file_path );
+		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content );
+		$csv_data    = $this->csv_parser->parse_and_validate_csv( $csv_content, $config, $file_path );
+		if ( null === $csv_data ) {
+			$this->log_store->cleanup( $import_session );
+			return null;
+		}
+		$this->csv_store->set( $import_session, $csv_data );
+		return $csv_data;
+	}
+
+	/**
+	 * Build recent logs array for UI.
+	 *
+	 * @since 0.9.10
+	 * @param bool   $should_continue Whether import continues.
+	 * @param string $import_session Import session key.
+	 * @return array Recent logs by type.
+	 */
+	protected function build_recent_logs_if_complete( bool $should_continue, string $import_session ): array {
+		if ( $should_continue ) {
+			return [];
+		}
+		return [
+			'created' => $this->log_store->get_recent_logs_by_type( $import_session, 'created', 30 ),
+			'updated' => $this->log_store->get_recent_logs_by_type( $import_session, 'updated', 30 ),
+			'errors'  => $this->log_store->get_recent_logs_by_type( $import_session, 'errors', 30 ),
+		];
+	}
+
+	/**
+	 * Handle import request.
+	 *
+	 * Each import method handler (WP compatible / direct SQL) should implement
+	 * its own entrypoint to reduce the amount of logic concentrated in this base class.
+	 *
+	 * @since 0.9.10
+	 * @return void
+	 */
+	abstract public function handle(): void;
 }

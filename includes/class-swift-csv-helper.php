@@ -176,31 +176,6 @@ class Swift_CSV_Helper {
 
 		return $headers;
 	}
-
-	/**
-	 * Parse PHP ini size string to bytes.
-	 *
-	 * @since 0.9.0
-	 * @param string $size The size string (e.g., '10M', '1G').
-	 * @return int Size in bytes
-	 */
-	public static function parse_ini_size( $size ) {
-		$unit  = strtoupper( substr( $size, -1 ) );
-		$value = (int) substr( $size, 0, -1 );
-
-		switch ( $unit ) {
-			case 'G':
-				return $value * 1024 * 1024 * 1024;
-			case 'M':
-				return $value * 1024 * 1024;
-			case 'K':
-				return $value * 1024;
-			default:
-				return (int) $size;
-		}
-	}
-
-
 	/**
 	 * Update GUID for newly inserted posts.
 	 *
@@ -329,18 +304,6 @@ class Swift_CSV_Helper {
 				wp_delete_file( $file_path );
 			}
 		}
-	}
-
-	/**
-	 * Save uploaded file to temporary location.
-	 *
-	 * @since 0.9.0
-	 * @param array  $file $_FILES array item.
-	 * @param string $temp_file Target temporary file path.
-	 * @return bool True on success, false on failure.
-	 */
-	public static function save_uploaded_file( $file, $temp_file ) {
-		return move_uploaded_file( $file['tmp_name'], $temp_file );
 	}
 
 	/**

@@ -147,7 +147,19 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 						continue;
 					}
 					$values         = get_post_meta( $post_id, $meta_key, false );
-					$values         = is_array( $values ) ? array_values( array_filter( array_map( 'strval', $values ) ) ) : [];
+					$values         = is_array( $values ) ? array_values(
+						array_filter(
+							array_map(
+								static function ( $value ): string {
+									if ( is_scalar( $value ) || null === $value ) {
+										return (string) $value;
+									}
+									return (string) maybe_serialize( $value );
+								},
+								$values
+							)
+						)
+					) : [];
 					$row[ $header ] = Swift_CSV_Helper::join_pipe_separated_values( $values );
 				}
 			}

@@ -56,38 +56,51 @@ class Swift_CSV_Import_Csv_Parser {
 	 * @return array|null Parsed CSV data or null on error (sends JSON response).
 	 */
 	public function parse_and_validate_csv( string $csv_content, array $config, string $file_path ): ?array {
-		// Parse CSV content line by line to handle quoted fields with newlines.
-		$lines = $this->get_csv_util()->parse_csv_lines_preserving_quoted_newlines( $csv_content );
+		Swift_CSV_Ajax_Util::set_stage( 'csv_parser:parse_and_validate_csv' );
 
-		// Detect CSV delimiter from first line.
-		$delimiter = $this->get_csv_util()->detect_csv_delimiter( $lines );
+		try {
+			// Parse CSV content line by line to handle quoted fields with newlines.
+			$lines = $this->get_csv_util()->parse_csv_lines_preserving_quoted_newlines( $csv_content );
 
-		// Read and normalize headers.
-		$headers = $this->get_csv_util()->read_and_normalize_headers( $lines, $delimiter );
+			// Detect CSV delimiter from first line.
+			$delimiter = $this->get_csv_util()->detect_csv_delimiter( $lines );
 
-		// Detect taxonomy format validation.
-		$taxonomy_format_validation = $this->detect_taxonomy_format_validation_or_send_error_and_cleanup(
-			$lines,
-			$delimiter,
-			$headers,
-			$config['taxonomy_format'],
-			$file_path
-		);
+			// Read and normalize headers.
+			$headers = $this->get_csv_util()->read_and_normalize_headers( $lines, $delimiter );
 
-		if ( null === $taxonomy_format_validation ) {
+			$taxonomy_format = isset( $config['taxonomy_format'] ) ? (string) $config['taxonomy_format'] : '';
+			if ( '' === $taxonomy_format ) {
+				Swift_CSV_Ajax_Util::send_error_response( 'Missing taxonomy_format' );
+				return null;
+			}
+
+			// Detect taxonomy format validation.
+			$taxonomy_format_validation = $this->detect_taxonomy_format_validation_or_send_error_and_cleanup(
+				$lines,
+				$delimiter,
+				$headers,
+				$taxonomy_format,
+				$file_path
+			);
+
+			if ( null === $taxonomy_format_validation ) {
+				return null;
+			}
+
+			// Count total rows.
+			$total_rows = $this->get_csv_util()->count_total_rows( $lines );
+
+			return [
+				'lines'                      => $lines,
+				'delimiter'                  => $delimiter,
+				'headers'                    => $headers,
+				'taxonomy_format_validation' => $taxonomy_format_validation,
+				'total_rows'                 => $total_rows,
+			];
+		} catch ( Throwable $t ) {
+			Swift_CSV_Ajax_Util::send_error_response( 'CSV parser error: ' . $t->getMessage() );
 			return null;
 		}
-
-		// Count total rows.
-		$total_rows = $this->get_csv_util()->count_total_rows( $lines );
-
-		return [
-			'lines'                      => $lines,
-			'delimiter'                  => $delimiter,
-			'headers'                    => $headers,
-			'taxonomy_format_validation' => $taxonomy_format_validation,
-			'total_rows'                 => $total_rows,
-		];
 	}
 
 	/**
@@ -108,6 +121,7 @@ class Swift_CSV_Import_Csv_Parser {
 		string $taxonomy_format,
 		string $file_path
 	): ?array {
+		$taxonomy_util              = new Swift_CSV_Import_Taxonomy_Util();
 		$taxonomy_format_validation = [];
 		$first_row_processed        = false;
 
@@ -145,7 +159,7 @@ class Swift_CSV_Import_Csv_Parser {
 								}
 							}
 							$term_values     = array_values( array_filter( array_map( 'trim', (array) $term_values ), 'strlen' ) );
-							$format_analysis = Swift_CSV_Helper::analyze_term_values_format( $term_values );
+							$format_analysis = $taxonomy_util->analyze_term_values_format( $term_values );
 
 							$taxonomy_format_validation[ $taxonomy_name ] = array_merge(
 								$format_analysis,
@@ -163,9 +177,9 @@ class Swift_CSV_Import_Csv_Parser {
 
 		// Validate format consistency.
 		foreach ( $taxonomy_format_validation as $taxonomy_name => $validation ) {
-			$consistency_result = Swift_CSV_Helper::validate_taxonomy_format_consistency( $taxonomy_format, $validation, $file_path );
+			$consistency_result = $taxonomy_util->validate_taxonomy_format_consistency( $taxonomy_format, $validation, $file_path );
 			if ( ! $consistency_result['valid'] ) {
-				Swift_CSV_Helper::send_error_response( $consistency_result['error'] );
+				Swift_CSV_Ajax_Util::send_error_response( (string) $consistency_result['error'] );
 				return null;
 			}
 		}

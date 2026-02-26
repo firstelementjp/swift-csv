@@ -126,6 +126,23 @@ class Swift_CSV_Import_Row_Context {
 			]
 		);
 
+		do_action(
+			'swift_csv_import_phase_validate',
+			$row_validation,
+			[
+				'data'                 => $data,
+				'post_fields_from_csv' => $post_fields_from_csv,
+				'post_id'              => $post_id,
+				'is_update'            => $is_update,
+			],
+			[
+				'headers'             => $headers,
+				'allowed_post_fields' => $allowed_post_fields,
+				'update_existing'     => $update_existing,
+				'post_type'           => $post_type,
+			]
+		);
+
 		// Handle row validation errors.
 		if ( ! $row_validation['valid'] ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
 			// For now, we'll continue processing even with validation errors.
@@ -156,6 +173,17 @@ class Swift_CSV_Import_Row_Context {
 				'data'                 => $data,
 				'post_fields_from_csv' => $post_fields_from_csv,
 			],
+			[
+				'headers'             => $headers,
+				'allowed_post_fields' => $allowed_post_fields,
+				'update_existing'     => $update_existing,
+				'post_type'           => $post_type,
+			]
+		);
+
+		do_action(
+			'swift_csv_import_phase_normalize',
+			$filtered_data,
 			[
 				'headers'             => $headers,
 				'allowed_post_fields' => $allowed_post_fields,

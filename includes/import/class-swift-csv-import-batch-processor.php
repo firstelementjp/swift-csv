@@ -468,7 +468,9 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 			'post_type' => $context['post_type'] ?? 'post',
 		];
 		$prepared_meta_fields = apply_filters( 'swift_csv_prepare_import_fields', $result['meta_fields'], $post_id, $prepare_args );
+		do_action( 'swift_csv_import_phase_map_prepared', $post_id, $prepared_meta_fields, $prepare_args );
 
+		do_action( 'swift_csv_import_phase_post_persist', $post_id, $prepared_meta_fields, $prepare_args );
 		do_action( 'swift_csv_process_custom_fields', $post_id, $prepared_meta_fields );
 	}
 

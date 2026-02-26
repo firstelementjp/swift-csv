@@ -82,8 +82,15 @@ class Swift_CSV_Import_Meta_Tax {
 		 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>} Modified collected fields.
 		 */
 		$collected_fields = apply_filters( 'swift_csv_import_field_mapping', $collected_fields, $headers, $data, $allowed_post_fields );
-		$taxonomies       = $collected_fields['taxonomies'];
-		$meta_fields      = $collected_fields['meta_fields'];
+		do_action(
+			'swift_csv_import_phase_map',
+			$collected_fields,
+			$headers,
+			$data,
+			$allowed_post_fields
+		);
+		$taxonomies  = $collected_fields['taxonomies'];
+		$meta_fields = $collected_fields['meta_fields'];
 
 		$context = [
 			'post_id'                    => $post_id,

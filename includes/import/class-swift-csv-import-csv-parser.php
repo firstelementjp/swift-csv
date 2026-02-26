@@ -136,7 +136,7 @@ class Swift_CSV_Import_Csv_Parser {
 		// Process first row for format detection.
 		$data = [];
 		foreach ( $lines as $line ) {
-			$row = str_getcsv( $line, $delimiter );
+			$row = $this->get_csv_util()->parse_csv_row( $line, $delimiter );
 			if ( count( $row ) !== count( $headers ) ) {
 				continue; // Skip malformed rows.
 			}

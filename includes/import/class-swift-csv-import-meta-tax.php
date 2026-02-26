@@ -29,6 +29,14 @@ class Swift_CSV_Import_Meta_Tax {
 	private $csv_util;
 
 	/**
+	 * Taxonomy utility.
+	 *
+	 * @since 0.9.11
+	 * @var Swift_CSV_Import_Taxonomy_Util|null
+	 */
+	private $taxonomy_util;
+
+	/**
 	 * Taxonomy writer strategy.
 	 *
 	 * @since 0.9.10
@@ -57,6 +65,19 @@ class Swift_CSV_Import_Meta_Tax {
 			$this->csv_util = new Swift_CSV_Import_Csv();
 		}
 		return $this->csv_util;
+	}
+
+	/**
+	 * Get taxonomy utility instance.
+	 *
+	 * @since 0.9.11
+	 * @return Swift_CSV_Import_Taxonomy_Util
+	 */
+	private function get_taxonomy_util(): Swift_CSV_Import_Taxonomy_Util {
+		if ( null === $this->taxonomy_util ) {
+			$this->taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
+		}
+		return $this->taxonomy_util;
 	}
 
 	/**
@@ -345,8 +366,7 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @return array<int, int>
 	 */
 	public function resolve_term_ids_for_term_value( string $taxonomy, string $term_value, string $taxonomy_format, array $taxonomy_format_validation ): array {
-		$taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
-		$term_ids      = $taxonomy_util->resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
+		$term_ids = $this->get_taxonomy_util()->resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
 
 		return $term_ids;
 	}

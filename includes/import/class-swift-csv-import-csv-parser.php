@@ -36,6 +36,14 @@ class Swift_CSV_Import_Csv_Parser {
 	private $csv_util;
 
 	/**
+	 * Taxonomy utility instance.
+	 *
+	 * @since 0.9.11
+	 * @var Swift_CSV_Import_Taxonomy_Util|null
+	 */
+	private $taxonomy_util;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 0.9.8
@@ -121,7 +129,7 @@ class Swift_CSV_Import_Csv_Parser {
 		string $taxonomy_format,
 		string $file_path
 	): ?array {
-		$taxonomy_util              = new Swift_CSV_Import_Taxonomy_Util();
+		$taxonomy_util              = $this->get_taxonomy_util();
 		$taxonomy_format_validation = [];
 		$first_row_processed        = false;
 
@@ -185,6 +193,19 @@ class Swift_CSV_Import_Csv_Parser {
 		}
 
 		return $taxonomy_format_validation;
+	}
+
+	/**
+	 * Get taxonomy utility instance.
+	 *
+	 * @since 0.9.11
+	 * @return Swift_CSV_Import_Taxonomy_Util
+	 */
+	private function get_taxonomy_util(): Swift_CSV_Import_Taxonomy_Util {
+		if ( null === $this->taxonomy_util ) {
+			$this->taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
+		}
+		return $this->taxonomy_util;
 	}
 
 	/**

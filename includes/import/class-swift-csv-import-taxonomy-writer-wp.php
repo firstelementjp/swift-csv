@@ -20,6 +20,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_Writer_Interface {
 	/**
+	 * Taxonomy utility instance.
+	 *
+	 * @since 0.9.11
+	 * @var Swift_CSV_Import_Taxonomy_Util|null
+	 */
+	private $taxonomy_util;
+
+	/**
 	 * Apply taxonomy terms for a post.
 	 *
 	 * @since 0.9.10
@@ -82,8 +90,20 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	 * @return array<int, int>
 	 */
 	private function resolve_term_ids_for_term_value( string $taxonomy, string $term_value, string $taxonomy_format, array $taxonomy_format_validation ): array {
-		$taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
-		return $taxonomy_util->resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
+		return $this->get_taxonomy_util()->resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
+	}
+
+	/**
+	 * Get taxonomy utility instance.
+	 *
+	 * @since 0.9.11
+	 * @return Swift_CSV_Import_Taxonomy_Util
+	 */
+	private function get_taxonomy_util(): Swift_CSV_Import_Taxonomy_Util {
+		if ( null === $this->taxonomy_util ) {
+			$this->taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
+		}
+		return $this->taxonomy_util;
 	}
 
 	/**

@@ -157,7 +157,23 @@ class Swift_CSV_Import_Batch_Processor {
 	 * @return array Processing results.
 	 */
 	public function process_batch( array $config, array $csv_data ): array {
-		$counters = [
+		$counters = $this->initialize_counters();
+
+		// Delegate to Ajax_Import's original method.
+		// This maintains all existing logic without modification.
+		$this->process_batch_import( $config, $csv_data, $counters );
+
+		return $counters;
+	}
+
+	/**
+	 * Initialize counters for a batch.
+	 *
+	 * @since 0.9.12
+	 * @return array<string, mixed>
+	 */
+	protected function initialize_counters(): array {
+		return [
 			'processed'       => 0,
 			'created'         => 0,
 			'updated'         => 0,
@@ -165,12 +181,6 @@ class Swift_CSV_Import_Batch_Processor {
 			'dry_run_log'     => [],
 			'dry_run_details' => [],
 		];
-
-		// Delegate to Ajax_Import's original method.
-		// This maintains all existing logic without modification.
-		$this->process_batch_import( $config, $csv_data, $counters );
-
-		return $counters;
 	}
 
 	/**
@@ -188,29 +198,83 @@ class Swift_CSV_Import_Batch_Processor {
 	private function process_batch_import( array $config, array $csv_data, array &$counters ): void {
 		global $wpdb;
 
-		$row_context_util   = $this->get_row_context_util();
-		$row_processor_util = $this->get_row_processor_util();
-		$persister_util     = $this->get_persister_util();
-		$meta_tax_util      = $this->get_meta_tax_util();
-
+		$row_context_util    = $this->get_row_context_util();
+		$row_processor_util  = $this->get_row_processor_util();
+		$persister_util      = $this->get_persister_util();
+		$meta_tax_util       = $this->get_meta_tax_util();
 		$allowed_post_fields = $this->get_allowed_post_fields();
 
+		$id_col = $this->validate_id_column_or_send_error( $config, $csv_data );
+		if ( false === $id_col ) {
+			return;
+		}
+
+		$this->process_batch_loop(
+			$wpdb,
+			$config,
+			$csv_data,
+			$allowed_post_fields,
+			$counters,
+			$row_context_util,
+			$row_processor_util,
+			$persister_util,
+			$meta_tax_util
+		);
+	}
+
+	/**
+	 * Validate ID column for the current batch.
+	 *
+	 * @since 0.9.12
+	 * @param array $config Import configuration.
+	 * @param array $csv_data Parsed CSV data.
+	 * @return int|null|false ID column index, null when missing in non-first batch, or false when validation failed.
+	 */
+	protected function validate_id_column_or_send_error( array $config, array $csv_data ) {
 		// Validate ID column only on first batch to prevent performance issues.
-		if ( 0 === $config['start_row'] ) {
+		if ( 0 === (int) ( $config['start_row'] ?? 0 ) ) {
 			$validation_result = $this->get_taxonomy_util()->validate_id_column( $csv_data['headers'], $config['file_path'] );
 			if ( ! $validation_result['valid'] ) {
 				Swift_CSV_Ajax_Util::send_error_response( (string) $validation_result['error'] );
-				return;
+				return false;
 			}
-			$id_col = $validation_result['id_col'];
-		} else {
-			// For subsequent batches, get ID column from headers directly.
-			$id_col = array_search( 'ID', $csv_data['headers'], true );
-			if ( false === $id_col ) {
-				$id_col = null;
-			}
+			return $validation_result['id_col'];
 		}
 
+		// For subsequent batches, get ID column from headers directly.
+		$id_col = array_search( 'ID', $csv_data['headers'], true );
+		if ( false === $id_col ) {
+			return null;
+		}
+		return $id_col;
+	}
+
+	/**
+	 * Run the batch loop.
+	 *
+	 * @since 0.9.12
+	 * @param wpdb                           $wpdb WordPress database handler.
+	 * @param array                          $config Import configuration.
+	 * @param array                          $csv_data Parsed CSV data.
+	 * @param array                          $allowed_post_fields Allowed post fields.
+	 * @param array                          $counters Counters (by reference).
+	 * @param Swift_CSV_Import_Row_Context   $row_context_util Row context util.
+	 * @param Swift_CSV_Import_Row_Processor $row_processor_util Row processor util.
+	 * @param Swift_CSV_Import_Persister     $persister_util Persister util.
+	 * @param Swift_CSV_Import_Meta_Tax      $meta_tax_util Meta/tax util.
+	 * @return void
+	 */
+	protected function process_batch_loop(
+		wpdb $wpdb,
+		array $config,
+		array $csv_data,
+		array $allowed_post_fields,
+		array &$counters,
+		Swift_CSV_Import_Row_Context $row_context_util,
+		Swift_CSV_Import_Row_Processor $row_processor_util,
+		Swift_CSV_Import_Persister $persister_util,
+		Swift_CSV_Import_Meta_Tax $meta_tax_util
+	): void {
 		// Calculate end row once to avoid function calls in loop test.
 		$end_row = min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] );
 		for ( $i = $config['start_row']; $i < $end_row; $i++ ) {

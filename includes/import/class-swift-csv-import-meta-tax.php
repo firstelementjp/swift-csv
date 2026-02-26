@@ -21,6 +21,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Import_Meta_Tax {
 	/**
+	 * CSV utility.
+	 *
+	 * @since 0.9.11
+	 * @var Swift_CSV_Import_Csv|null
+	 */
+	private $csv_util;
+
+	/**
 	 * Taxonomy writer strategy.
 	 *
 	 * @since 0.9.10
@@ -36,6 +44,19 @@ class Swift_CSV_Import_Meta_Tax {
 	 */
 	public function __construct( ?Swift_CSV_Import_Taxonomy_Writer_Interface $taxonomy_writer = null ) {
 		$this->taxonomy_writer = $taxonomy_writer ? $taxonomy_writer : new Swift_CSV_Import_Taxonomy_Writer_WP();
+	}
+
+	/**
+	 * Get CSV utility instance.
+	 *
+	 * @since 0.9.11
+	 * @return Swift_CSV_Import_Csv
+	 */
+	private function get_csv_util(): Swift_CSV_Import_Csv {
+		if ( null === $this->csv_util ) {
+			$this->csv_util = new Swift_CSV_Import_Csv();
+		}
+		return $this->csv_util;
 	}
 
 	/**
@@ -147,7 +168,7 @@ class Swift_CSV_Import_Meta_Tax {
 			$meta_value = (string) ( $data[ $j ] ?? '' );
 
 			// Handle taxonomy (pipe-separated with escaping).
-			$terms_raw                    = Swift_CSV_Helper::split_pipe_separated_values( $meta_value );
+			$terms_raw                    = $this->get_csv_util()->split_pipe_separated_values( $meta_value );
 			$terms                        = array_values( array_filter( array_map( 'trim', (array) $terms_raw ), 'strlen' ) );
 			$taxonomy_name                = substr( $header_name_normalized, 4 ); // Remove 'tax_'.
 			$taxonomies[ $taxonomy_name ] = $terms;
@@ -356,7 +377,7 @@ class Swift_CSV_Import_Meta_Tax {
 
 			if ( $dry_run ) {
 				// Handle multi-value custom fields (pipe-separated with escaping).
-				$values = Swift_CSV_Helper::split_pipe_separated_values( $value );
+				$values = $this->get_csv_util()->split_pipe_separated_values( $value );
 				if ( count( $values ) > 1 ) {
 					foreach ( array_map( 'trim', $values ) as $single_value ) {
 						if ( '' !== $single_value ) {
@@ -391,7 +412,7 @@ class Swift_CSV_Import_Meta_Tax {
 				)
 			);
 
-			$values = Swift_CSV_Helper::split_pipe_separated_values( $value );
+			$values = $this->get_csv_util()->split_pipe_separated_values( $value );
 			if ( count( $values ) > 1 ) {
 				foreach ( array_map( 'trim', $values ) as $single_value ) {
 					if ( '' !== $single_value ) {
@@ -433,6 +454,6 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @return string
 	 */
 	private function normalize_field_name( string $name ): string {
-		return Swift_CSV_Helper::normalize_field_name( $name );
+		return $this->get_csv_util()->normalize_field_name( $name );
 	}
 }

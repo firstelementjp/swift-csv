@@ -151,7 +151,7 @@ class Swift_CSV_Import_Csv_Parser {
 						$meta_value = $row[ $j ] ?? '';
 						if ( '' !== $meta_value ) {
 							$term_values = [];
-							$pipe_parts  = Swift_CSV_Helper::split_pipe_separated_values( (string) $meta_value );
+							$pipe_parts  = $this->get_csv_util()->split_pipe_separated_values( (string) $meta_value );
 							foreach ( $pipe_parts as $pipe_part ) {
 								$comma_parts = explode( ',', (string) $pipe_part );
 								foreach ( $comma_parts as $comma_part ) {

@@ -29,6 +29,28 @@ class Swift_CSV_Import_Csv {
 	}
 
 	/**
+	 * Split a pipe-separated string respecting backslash escaping.
+	 *
+	 * @since 0.9.11
+	 * @param string $value Raw value from CSV.
+	 * @return array<int, string>
+	 */
+	public function split_pipe_separated_values( string $value ): array {
+		return Swift_CSV_Helper::split_pipe_separated_values( $value );
+	}
+
+	/**
+	 * Normalize field name by removing BOM and control characters.
+	 *
+	 * @since 0.9.11
+	 * @param string $name Field name.
+	 * @return string
+	 */
+	public function normalize_field_name( string $name ): string {
+		return (string) Swift_CSV_Helper::normalize_field_name( $name );
+	}
+
+	/**
 	 * Detect CSV delimiter from first line.
 	 *
 	 * @since 0.9.0

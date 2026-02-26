@@ -85,6 +85,14 @@ abstract class Swift_CSV_Import_Base {
 	protected $request_parser;
 
 	/**
+	 * Taxonomy utility.
+	 *
+	 * @since 0.9.14
+	 * @var Swift_CSV_Import_Taxonomy_Util
+	 */
+	protected $taxonomy_util;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 0.9.12
@@ -107,12 +115,13 @@ abstract class Swift_CSV_Import_Base {
 		?Swift_CSV_Import_Response_Manager $response_manager = null,
 		?Swift_CSV_Import_Request_Parser $request_parser = null
 	) {
+		$this->taxonomy_util    = new Swift_CSV_Import_Taxonomy_Util();
 		$this->log_store        = $log_store ?? new Swift_CSV_Import_Log_Store();
 		$this->csv_store        = $csv_store ?? new Swift_CSV_Import_Csv_Store();
 		$this->csv_util         = $csv_util ?? new Swift_CSV_Import_Csv();
-		$this->csv_parser       = $csv_parser ?? new Swift_CSV_Import_Csv_Parser();
+		$this->csv_parser       = $csv_parser ?? new Swift_CSV_Import_Csv_Parser( $this->taxonomy_util );
 		$this->file_processor   = $file_processor ?? new Swift_CSV_Import_File_Processor();
-		$this->batch_processor  = $batch_processor ?? new Swift_CSV_Import_Batch_Processor();
+		$this->batch_processor  = $batch_processor ?? new Swift_CSV_Import_Batch_Processor( null, null, null, null, null, $this->taxonomy_util );
 		$this->response_manager = $response_manager ?? new Swift_CSV_Import_Response_Manager();
 		$this->request_parser   = $request_parser ?? new Swift_CSV_Import_Request_Parser();
 	}

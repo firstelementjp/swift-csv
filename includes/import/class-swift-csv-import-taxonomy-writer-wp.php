@@ -28,6 +28,16 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	private $taxonomy_util;
 
 	/**
+	 * Constructor.
+	 *
+	 * @since 0.9.14
+	 * @param Swift_CSV_Import_Taxonomy_Util|null $taxonomy_util Taxonomy util.
+	 */
+	public function __construct( ?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null ) {
+		$this->taxonomy_util = $taxonomy_util;
+	}
+
+	/**
 	 * Apply taxonomy terms for a post.
 	 *
 	 * @since 0.9.10

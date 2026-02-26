@@ -49,9 +49,11 @@ class Swift_CSV_Import_Meta_Tax {
 	 *
 	 * @since 0.9.10
 	 * @param Swift_CSV_Import_Taxonomy_Writer_Interface|null $taxonomy_writer Taxonomy writer.
+	 * @param Swift_CSV_Import_Taxonomy_Util|null             $taxonomy_util Taxonomy util.
 	 */
-	public function __construct( ?Swift_CSV_Import_Taxonomy_Writer_Interface $taxonomy_writer = null ) {
-		$this->taxonomy_writer = $taxonomy_writer ? $taxonomy_writer : new Swift_CSV_Import_Taxonomy_Writer_WP();
+	public function __construct( ?Swift_CSV_Import_Taxonomy_Writer_Interface $taxonomy_writer = null, ?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null ) {
+		$this->taxonomy_util   = $taxonomy_util;
+		$this->taxonomy_writer = $taxonomy_writer ? $taxonomy_writer : new Swift_CSV_Import_Taxonomy_Writer_WP( $this->taxonomy_util );
 	}
 
 	/**

@@ -47,9 +47,10 @@ class Swift_CSV_Import_Csv_Parser {
 	 * Constructor.
 	 *
 	 * @since 0.9.8
+	 * @param Swift_CSV_Import_Taxonomy_Util|null $taxonomy_util Taxonomy util.
 	 */
-	public function __construct() {
-		// Initialize dependencies.
+	public function __construct( ?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null ) {
+		$this->taxonomy_util = $taxonomy_util;
 	}
 
 	/**

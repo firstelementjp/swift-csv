@@ -495,7 +495,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 */
 	protected function get_meta_tax_util(): Swift_CSV_Import_Meta_Tax {
 		if ( null === $this->meta_tax_util ) {
-			$this->meta_tax_util = new Swift_CSV_Import_Meta_Tax();
+			$this->meta_tax_util = new Swift_CSV_Import_Meta_Tax( null, $this->get_taxonomy_util() );
 		}
 		return $this->meta_tax_util;
 	}

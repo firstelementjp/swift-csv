@@ -25,7 +25,30 @@ class Swift_CSV_Import_Csv {
 	 * @return array<int, string>
 	 */
 	public function parse_csv_lines_preserving_quoted_newlines( string $csv_content ): array {
-		return Swift_CSV_Helper::parse_csv_lines_preserving_quoted_newlines( $csv_content );
+		$lines        = [];
+		$current_line = '';
+		$in_quotes    = false;
+
+		foreach ( explode( "\n", $csv_content ) as $line ) {
+			$quote_count = substr_count( $line, '"' );
+
+			if ( $in_quotes ) {
+				$current_line .= "\n" . $line;
+			} else {
+				$current_line = $line;
+			}
+
+			if ( 1 === $quote_count % 2 ) {
+				$in_quotes = ! $in_quotes;
+			}
+
+			if ( ! $in_quotes ) {
+				$lines[]      = $current_line;
+				$current_line = '';
+			}
+		}
+
+		return $lines;
 	}
 
 	/**
@@ -36,7 +59,36 @@ class Swift_CSV_Import_Csv {
 	 * @return array<int, string>
 	 */
 	public function split_pipe_separated_values( string $value ): array {
-		return Swift_CSV_Helper::split_pipe_separated_values( $value );
+		if ( '' === $value ) {
+			return [];
+		}
+
+		$parts  = [];
+		$buffer = '';
+		$length = strlen( $value );
+
+		for ( $i = 0; $i < $length; $i++ ) {
+			$char = $value[ $i ];
+			if ( '\\' === $char ) {
+				$next = ( $i + 1 ) < $length ? $value[ $i + 1 ] : '';
+				if ( '|' === $next || '\\' === $next ) {
+					$buffer .= $next;
+					++$i;
+					continue;
+				}
+				$buffer .= '\\';
+				continue;
+			}
+			if ( '|' === $char ) {
+				$parts[] = $buffer;
+				$buffer  = '';
+				continue;
+			}
+			$buffer .= $char;
+		}
+
+		$parts[] = $buffer;
+		return $parts;
 	}
 
 	/**
@@ -47,7 +99,10 @@ class Swift_CSV_Import_Csv {
 	 * @return string
 	 */
 	public function normalize_field_name( string $name ): string {
-		return (string) Swift_CSV_Helper::normalize_field_name( $name );
+		$name = trim( (string) $name );
+		$name = preg_replace( '/^\xEF\xBB\xBF/', '', $name );
+		$name = preg_replace( '/[\x00-\x1F\x7F]/', '', $name );
+		return trim( (string) $name );
 	}
 
 	/**
@@ -58,7 +113,17 @@ class Swift_CSV_Import_Csv {
 	 * @return string
 	 */
 	public function detect_csv_delimiter( array $lines ): string {
-		return Swift_CSV_Helper::detect_csv_delimiter( $lines );
+		$first_line = $lines[0] ?? '';
+		$delimiters = [ ',', ';', "\t" ];
+		$delimiter  = ',';
+
+		foreach ( $delimiters as $delim ) {
+			if ( substr_count( $first_line, $delim ) > substr_count( $first_line, $delimiter ) ) {
+				$delimiter = $delim;
+			}
+		}
+
+		return $delimiter;
 	}
 
 	/**
@@ -95,7 +160,7 @@ class Swift_CSV_Import_Csv {
 	 * @return array<int, string>
 	 */
 	public function parse_csv_row( string $line, string $delimiter ): array {
-		return Swift_CSV_Helper::parse_csv_row( $line, $delimiter );
+		return str_getcsv( $line, $delimiter );
 	}
 
 	/**
@@ -106,7 +171,7 @@ class Swift_CSV_Import_Csv {
 	 * @return bool
 	 */
 	public function is_empty_csv_line( string $line ): bool {
-		return Swift_CSV_Helper::is_empty_csv_line( $line );
+		return empty( trim( $line ) );
 	}
 
 	/**
@@ -117,6 +182,12 @@ class Swift_CSV_Import_Csv {
 	 * @return int
 	 */
 	public function count_total_rows( array $lines ): int {
-		return Swift_CSV_Helper::count_data_rows( $lines );
+		$total_rows = 0;
+		foreach ( $lines as $line ) {
+			if ( ! empty( trim( $line ) ) ) {
+				++$total_rows;
+			}
+		}
+		return $total_rows;
 	}
 }

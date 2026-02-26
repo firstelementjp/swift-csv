@@ -180,7 +180,7 @@ abstract class Swift_CSV_Export_Base {
 			'include_private_meta' => ! empty( $config['include_private_meta'] ),
 			'context'              => 'taxonomy_objects_filter',
 		];
-		$taxonomies           = apply_filters( 'swift_csv_filter_taxonomy_objects', $taxonomies, $taxonomy_filter_args );
+		$taxonomies           = apply_filters( 'swift_csv_export_filter_taxonomy_objects', $taxonomies, $taxonomy_filter_args );
 
 		$tax_headers = [];
 		foreach ( $taxonomies as $taxonomy ) {
@@ -235,7 +235,7 @@ abstract class Swift_CSV_Export_Base {
 			}
 		}
 
-		$sample_query_args                   = apply_filters( 'swift_csv_sample_query_args', $sample_query_args, $sample_args );
+		$sample_query_args                   = apply_filters( 'swift_csv_export_sample_query_args', $sample_query_args, $sample_args );
 		$sample_query_args['posts_per_page'] = 1;
 		$sample_post_ids                     = get_posts( $sample_query_args );
 
@@ -284,7 +284,7 @@ abstract class Swift_CSV_Export_Base {
 			'include_private_meta' => $include_private_meta,
 			'context'              => 'meta_key_classification',
 		];
-		$classified_meta_keys = apply_filters( 'swift_csv_classify_meta_keys', $all_meta_keys, $meta_classify_args );
+		$classified_meta_keys = apply_filters( 'swift_csv_export_classify_meta_keys', $all_meta_keys, $meta_classify_args );
 
 		// Ensure classified structure exists.
 		if ( ! is_array( $classified_meta_keys ) || ! isset( $classified_meta_keys['regular'] ) ) {
@@ -323,7 +323,7 @@ abstract class Swift_CSV_Export_Base {
 			'context'              => 'custom_field_headers_generation',
 		];
 
-		$custom_field_headers = ! empty( $config['include_custom_fields'] ) ? apply_filters( 'swift_csv_generate_custom_field_headers', [], $classified_meta_keys, $custom_field_args ) : [];
+		$custom_field_headers = ! empty( $config['include_custom_fields'] ) ? apply_filters( 'swift_csv_export_generate_custom_field_headers', [], $classified_meta_keys, $custom_field_args ) : [];
 		$custom_field_headers = is_array( $custom_field_headers ) ? $custom_field_headers : [];
 
 		// Always merge fallback cf_ headers from classified meta keys.
@@ -396,7 +396,9 @@ abstract class Swift_CSV_Export_Base {
 		 * @param string $context Export context.
 		 * @return array Modified headers.
 		 */
-		return apply_filters( 'swift_csv_export_headers', $headers, $config, $context );
+		$headers = apply_filters( 'swift_csv_export_headers', $headers, $config, $context );
+		do_action( 'swift_csv_export_phase_headers', $headers, $config, $context );
+		return $headers;
 	}
 
 	/**
@@ -504,7 +506,7 @@ abstract class Swift_CSV_Export_Base {
 					'post_type' => $this->config['post_type'] ?? 'post',
 					'context'   => 'export_data_processing',
 				];
-				$value       = apply_filters( 'swift_csv_process_custom_header', '', $header, $post_id, $custom_args );
+				$value       = apply_filters( 'swift_csv_export_process_custom_header', '', $header, $post_id, $custom_args );
 			}
 
 			$row[] = $this->escape_csv_field( (string) $value );

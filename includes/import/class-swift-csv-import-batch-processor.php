@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 0.9.8
  * @package Swift_CSV
  */
-class Swift_CSV_Import_Batch_Processor {
+class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_Base {
 	/**
 	 * Batch planner.
 	 *
@@ -146,24 +146,18 @@ class Swift_CSV_Import_Batch_Processor {
 	}
 
 	/**
-	 * Process batch import
+	 * Execute the actual batch processing.
 	 *
-	 * Main batch processing method extracted from import_handler().
-	 * Handles the core import loop with proper error handling and progress tracking.
-	 *
-	 * @since 0.9.8
+	 * @since 0.9.13
 	 * @param array $config Import configuration.
 	 * @param array $csv_data Parsed CSV data.
-	 * @return array Processing results.
+	 * @param array $counters Counters (by reference).
+	 * @return void
 	 */
-	public function process_batch( array $config, array $csv_data ): array {
-		$counters = $this->initialize_counters();
-
+	protected function do_process_batch( array $config, array $csv_data, array &$counters ): void {
 		// Delegate to Ajax_Import's original method.
 		// This maintains all existing logic without modification.
 		$this->process_batch_import( $config, $csv_data, $counters );
-
-		return $counters;
 	}
 
 	/**

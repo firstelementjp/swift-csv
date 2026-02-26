@@ -90,6 +90,14 @@ spl_autoload_register(
 			}
 		}
 
+		// Load base batch processor class first for inheritance.
+		if ( 0 === strpos( $class_name, 'Swift_CSV_Import_Batch_Processor' ) && 'Swift_CSV_Import_Batch_Processor_Base' !== $class_name ) {
+			$base_file = $base_dir . 'import/class-swift-csv-import-batch-processor-base.php';
+			if ( file_exists( $base_file ) ) {
+				require_once $base_file;
+			}
+		}
+
 		// Load file if exists.
 		if ( file_exists( $file_path ) ) {
 			require_once $file_path;

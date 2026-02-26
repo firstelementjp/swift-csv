@@ -35,6 +35,14 @@ class Swift_CSV_Import_Batch_Processor {
 	private $batch_planner;
 
 	/**
+	 * Taxonomy utility instance.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Taxonomy_Util|null
+	 */
+	private $taxonomy_util;
+
+	/**
 	 * Row context utility instance
 	 *
 	 * @since 0.9.8
@@ -73,21 +81,27 @@ class Swift_CSV_Import_Batch_Processor {
 	 * while keeping the default lazy instantiation behavior.
 	 *
 	 * @since 0.9.10
-	 * @param Swift_CSV_Import_Row_Context|null   $row_context_util Row context util.
-	 * @param Swift_CSV_Import_Meta_Tax|null      $meta_tax_util Meta/tax util.
-	 * @param Swift_CSV_Import_Persister|null     $persister_util Persister util.
-	 * @param Swift_CSV_Import_Row_Processor|null $row_processor_util Row processor util.
+	 * @param Swift_CSV_Ajax_Import_Batch_Planner|null $batch_planner Batch planner.
+	 * @param Swift_CSV_Import_Row_Context|null        $row_context_util Row context util.
+	 * @param Swift_CSV_Import_Meta_Tax|null           $meta_tax_util Meta/tax util.
+	 * @param Swift_CSV_Import_Persister|null          $persister_util Persister util.
+	 * @param Swift_CSV_Import_Row_Processor|null      $row_processor_util Row processor util.
+	 * @param Swift_CSV_Import_Taxonomy_Util|null      $taxonomy_util Taxonomy util.
 	 */
 	public function __construct(
+		?Swift_CSV_Ajax_Import_Batch_Planner $batch_planner = null,
 		?Swift_CSV_Import_Row_Context $row_context_util = null,
 		?Swift_CSV_Import_Meta_Tax $meta_tax_util = null,
 		?Swift_CSV_Import_Persister $persister_util = null,
-		?Swift_CSV_Import_Row_Processor $row_processor_util = null
+		?Swift_CSV_Import_Row_Processor $row_processor_util = null,
+		?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null
 	) {
+		$this->batch_planner      = $batch_planner;
 		$this->row_context_util   = $row_context_util;
 		$this->meta_tax_util      = $meta_tax_util;
 		$this->persister_util     = $persister_util;
 		$this->row_processor_util = $row_processor_util;
+		$this->taxonomy_util      = $taxonomy_util;
 	}
 
 	/**
@@ -116,6 +130,19 @@ class Swift_CSV_Import_Batch_Processor {
 			$this->batch_planner = new Swift_CSV_Ajax_Import_Batch_Planner();
 		}
 		return $this->batch_planner;
+	}
+
+	/**
+	 * Get taxonomy utility instance.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Taxonomy_Util
+	 */
+	private function get_taxonomy_util(): Swift_CSV_Import_Taxonomy_Util {
+		if ( null === $this->taxonomy_util ) {
+			$this->taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
+		}
+		return $this->taxonomy_util;
 	}
 
 	/**
@@ -170,8 +197,7 @@ class Swift_CSV_Import_Batch_Processor {
 
 		// Validate ID column only on first batch to prevent performance issues.
 		if ( 0 === $config['start_row'] ) {
-			$taxonomy_util     = new Swift_CSV_Import_Taxonomy_Util();
-			$validation_result = $taxonomy_util->validate_id_column( $csv_data['headers'], $config['file_path'] );
+			$validation_result = $this->get_taxonomy_util()->validate_id_column( $csv_data['headers'], $config['file_path'] );
 			if ( ! $validation_result['valid'] ) {
 				Swift_CSV_Ajax_Util::send_error_response( (string) $validation_result['error'] );
 				return;

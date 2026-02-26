@@ -104,6 +104,7 @@ abstract class Swift_CSV_Import_Base {
 	 * @param Swift_CSV_Import_Batch_Processor|null  $batch_processor Batch processor.
 	 * @param Swift_CSV_Import_Response_Manager|null $response_manager Response manager.
 	 * @param Swift_CSV_Import_Request_Parser|null   $request_parser Request parser.
+	 * @param Swift_CSV_Import_Taxonomy_Util|null    $taxonomy_util Taxonomy util.
 	 */
 	public function __construct(
 		?Swift_CSV_Import_Log_Store $log_store = null,
@@ -113,9 +114,10 @@ abstract class Swift_CSV_Import_Base {
 		?Swift_CSV_Import_File_Processor $file_processor = null,
 		?Swift_CSV_Import_Batch_Processor $batch_processor = null,
 		?Swift_CSV_Import_Response_Manager $response_manager = null,
-		?Swift_CSV_Import_Request_Parser $request_parser = null
+		?Swift_CSV_Import_Request_Parser $request_parser = null,
+		?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null
 	) {
-		$this->taxonomy_util    = new Swift_CSV_Import_Taxonomy_Util();
+		$this->taxonomy_util    = $taxonomy_util ?? new Swift_CSV_Import_Taxonomy_Util();
 		$this->log_store        = $log_store ?? new Swift_CSV_Import_Log_Store();
 		$this->csv_store        = $csv_store ?? new Swift_CSV_Import_Csv_Store();
 		$this->csv_util         = $csv_util ?? new Swift_CSV_Import_Csv();

@@ -425,30 +425,44 @@ function my_custom_admin_tabs( $tabs, $current_tab ) {
 }
 ```
 
-### swift_csv_process_custom_header
+### swift_csv_export_process_custom_header
 
-Processes custom export headers.
+Filters the value for custom export headers.
+
+This hook is used when exporting a column that is not a standard header such as
+`ID`, `post_*`, `tax_*`, or `cf_*`.
 
 **Parameters:**
 
-- `$header` (string): The header string
-- `$index` (int): Header index
-- `$args` (array): Export arguments
+- `$value` (string): Current value (empty string by default)
+- `$header` (string): Header string
+- `$post_id` (int): Post ID
+- `$args` (array): Export arguments including context
 
 **Example:**
 
 ```php
-add_filter( 'swift_csv_process_custom_header', 'my_process_custom_header', 10, 3 );
+add_filter( 'swift_csv_export_process_custom_header', 'my_export_custom_header_value', 10, 4 );
 
-function my_process_custom_header( $header, $index, $args ) {
-    // Process custom headers
-    if ( 'custom_field' === $header ) {
-        return 'my_custom_field';
+function my_export_custom_header_value( $value, $header, $post_id, $args ) {
+    // Provide a value for a custom header
+    if ( 'my_custom_header' === $header ) {
+        return get_post_meta( $post_id, 'my_custom_meta_key', true );
     }
 
-    return $header;
+    return $value;
 }
 ```
+
+### swift_csv_export_phase_headers
+
+Action fired after export headers are finalized.
+
+**Parameters:**
+
+- `$headers` (array): Final headers array
+- `$config` (array): Export configuration
+- `$context` (string): Export context
 
 ---
 
@@ -887,7 +901,7 @@ function show_analytics_content( $tab, $import_results ) {
   $query_args['order'] = 'DESC';
   }
 
-                  return $query_args;
+                      return $query_args;
 
     }
 

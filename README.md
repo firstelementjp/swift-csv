@@ -20,12 +20,12 @@ A lightweight and simple CSV import/export plugin for WordPress. Full support fo
 
 ## ✨ Features
 
-- 🌐 **Internationalization** - Multi-language support including Japanese
-- 📊 **Hierarchical Taxonomy Support** - Export/import parent-child relationships
-- 🎨 **Block Editor Compatible** - Preserves Gutenberg block structure completely
-- 📝 **Batch Processing** - Handle large CSV files without timeouts
-- 🔄 **Auto Updates** - One-click updates from WordPress admin
-- 📱 **Responsive UI** - Mobile-friendly admin interface
+- **Internationalization** - Multi-language support including Japanese
+- **Hierarchical Taxonomy Support** - Export/import parent-child relationships
+- **Block Editor Compatible** - Preserves Gutenberg block structure completely
+- **Batch Processing** - Handle large CSV files without timeouts
+- **Auto Updates** - One-click updates from WordPress admin
+- **Responsive UI** - Mobile-friendly admin interface
 
 ## 🚀 Installation
 
@@ -49,12 +49,12 @@ A lightweight and simple CSV import/export plugin for WordPress. Full support fo
 ### CSV Export
 
 1. Go to **Admin Dashboard → Swift CSV → Export**
-2.  - **Number of posts**: Set the number of posts to export (default: 1000, 0 for unlimited)
-
-- Large datasets are automatically processed in batches to prevent timeouts
-
+2. Configure export options
+    - **Number of posts**: Set the number of posts to export (default: 1000, 0 for unlimited)
 3. Select post type
 4. Click **Export CSV**
+
+Large datasets are automatically processed in batches to prevent timeouts.
 
 ### CSV Import
 
@@ -69,6 +69,12 @@ A lightweight and simple CSV import/export plugin for WordPress. Full support fo
 For detailed documentation, API reference, and examples:
 
 📚 **[Complete Documentation](https://firstelementjp.github.io/swift-csv/)**
+
+### Developer Notes
+
+Developer-focused internal notes (not end-user docs):
+
+- **Import AJAX architecture**: [`dev-notes/import-ajax-handler-architecture.md`](dev-notes/import-ajax-handler-architecture.md)
 
 ### Quick Links
 
@@ -167,10 +173,16 @@ Swift CSV provides extensive customization options through hooks. For complete d
 
 ### Popular Hooks
 
-- `swift_csv_export_columns` - Customize export columns
-- `swift_csv_import_row` - Process each import row
-- `swift_csv_before_export` - Before export starts
-- `swift_csv_after_import` - After import completes
+- `swift_csv_export_headers` - Filter export headers
+- `swift_csv_export_row` - Filter each export row
+- `swift_csv_export_process_custom_header` - Provide values for custom export headers
+- `swift_csv_export_phase_headers` - Action fired after export headers are finalized
+- `swift_csv_import_row_validation` - Validate an import row
+- `swift_csv_import_data_filter` - Normalize/filter raw import row data
+- `swift_csv_prepare_import_fields` - Prepare meta fields before persisting
+- `swift_csv_import_phase_map_prepared` - Action fired after fields are mapped/prepared
+- `swift_csv_import_phase_post_persist` - Action fired after persistence
+- `swift_csv_import_batch_size` - Filter import batch size
 
 📚 **[View All Hooks](docs/hooks.md)** - Complete API reference with examples
 

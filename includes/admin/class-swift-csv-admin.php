@@ -1212,6 +1212,7 @@ class Swift_CSV_Admin {
 						?>
 
 						<?php do_settings_fields( 'swift-csv', 'swift_csv_export_section' ); ?>
+						<?php do_action( 'swift_csv_after_export_settings_fields', $this ); ?>
 
 						<p class="submit">
 							<button type="button" class="button button-primary" id="direct-sql-export-btn">
@@ -1318,6 +1319,7 @@ class Swift_CSV_Admin {
 
 					<form id="swift-csv-ajax-import-form" enctype="multipart/form-data">
 						<?php do_settings_fields( 'swift-csv', 'swift_csv_import_section' ); ?>
+						<?php do_action( 'swift_csv_after_import_settings_fields', $this ); ?>
 
 						<p class="submit">
 							<button type="button" class="button button-secondary" id="high-speed-import-btn" disabled>
@@ -1397,6 +1399,7 @@ class Swift_CSV_Admin {
 			<div class="swift-csv-settings">
 				<div class="card">
 					<?php do_settings_fields( 'swift-csv', 'swift_csv_license_section' ); ?>
+					<?php do_action( 'swift_csv_after_license_settings_fields', $this ); ?>
 
 					<?php
 					$is_license_active = Swift_CSV_License_Handler::is_pro_active();

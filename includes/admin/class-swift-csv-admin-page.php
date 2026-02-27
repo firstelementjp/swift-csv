@@ -268,7 +268,7 @@ class Swift_CSV_Admin_Page {
 								<p class="file-upload-text"><?php esc_html_e( 'Drop CSV file here or click to browse', 'swift-csv' ); ?></p>
 								<p class="file-upload-hint">
 						<?php
-							$limits = $this->get_upload_limits();
+							$limits = Swift_CSV_Admin_Util::get_upload_limits();
 							printf(
 							/* translators: %s: File size (e.g., 10MB) */
 								esc_html__( 'Maximum file size: %s', 'swift-csv' ),
@@ -286,7 +286,7 @@ class Swift_CSV_Admin_Page {
 						</div>
 					</div>
 
-					<form id="swift-csv-ajax-import-form" enctype="multipart/form-data">
+					<form id="swift-csv-ajax-import-form" enctype="multipart/form-data" onsubmit="return false;">
 							<?php do_settings_fields( 'swift-csv', 'swift_csv_import_section' ); ?>
 							<?php do_action( 'swift_csv_after_import_settings_fields', $this->admin ); ?>
 
@@ -424,74 +424,6 @@ class Swift_CSV_Admin_Page {
 			</div>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Get PHP upload limits
-	 *
-	 * @since 0.9.8
-	 * @return array Upload limit information
-	 */
-	private function get_upload_limits() {
-		$upload_max = ini_get( 'upload_max_filesize' );
-		$post_max   = ini_get( 'post_max_size' );
-
-		// Convert to bytes.
-		$upload_max_bytes = $this->parse_ini_size( $upload_max );
-		$post_max_bytes   = $this->parse_ini_size( $post_max );
-
-		// Get the smaller limit.
-		$max_file_size       = min( $upload_max_bytes, $post_max_bytes );
-		$max_file_size_human = $this->format_bytes( $max_file_size );
-
-		return [
-			'upload_max_filesize'   => $upload_max,
-			'post_max_size'         => $post_max,
-			'effective_limit'       => $max_file_size,
-			'effective_limit_human' => $max_file_size_human,
-		];
-	}
-
-	/**
-	 * Parse PHP ini size string to bytes
-	 *
-	 * @since 0.9.8
-	 * @param string $size Size string (e.g., "2M", "8M").
-	 * @return int Size in bytes.
-	 */
-	private function parse_ini_size( $size ) {
-		$unit  = strtoupper( substr( $size, -1 ) );
-		$value = (int) substr( $size, 0, -1 );
-
-		switch ( $unit ) {
-			case 'G':
-				return $value * 1024 * 1024 * 1024;
-			case 'M':
-				return $value * 1024 * 1024;
-			case 'K':
-				return $value * 1024;
-			default:
-				return (int) $size;
-		}
-	}
-
-	/**
-	 * Format bytes to human readable format
-	 *
-	 * @since 0.9.8
-	 * @param int $bytes Bytes.
-	 * @return string Formatted size.
-	 */
-	private function format_bytes( $bytes ) {
-		if ( $bytes >= 1024 * 1024 * 1024 ) {
-			return round( $bytes / 1024 / 1024 / 1024, 1 ) . 'GB';
-		} elseif ( $bytes >= 1024 * 1024 ) {
-			return round( $bytes / 1024 / 1024, 1 ) . 'MB';
-		} elseif ( $bytes >= 1024 ) {
-			return round( $bytes / 1024, 1 ) . 'KB';
-		} else {
-			return $bytes . 'B';
-		}
 	}
 
 	/**

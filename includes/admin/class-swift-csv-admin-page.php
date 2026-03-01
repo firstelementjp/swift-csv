@@ -86,7 +86,18 @@ class Swift_CSV_Admin_Page {
 				<?php esc_html_e( 'Import', 'swift-csv' ); ?>
 				</a>
 			<?php
-			// Add license tab directly as default tab.
+				/**
+				 * Fires within the settings page's tab wrapper to add custom navigation tabs.
+				 *
+				 * This action allows Pro version and other add-ons to add custom tabs.
+				 *
+				 * @since 0.9.5
+				 * @param string $tab Currently active tab
+				 */
+				do_action( 'swift_csv_settings_tabs', $tab );
+			?>
+			<?php
+			// Add license tab directly as default tab (always last).
 			$icon = '';
 			if ( class_exists( 'Swift_CSV_Pro_Admin' ) && ! Swift_CSV_License_Handler::is_pro_active() ) {
 				$icon = '<span class="dashicons dashicons-warning" style="color: #f59e0b;"></span>';
@@ -101,20 +112,9 @@ class Swift_CSV_Admin_Page {
 			];
 			?>
 				<a href="?page=swift-csv&tab=license" class="nav-tab <?php echo 'license' === $tab ? 'nav-tab-active' : ''; ?>">
-				<?php esc_html_e( 'License', 'swift-csv' ); ?>
-				<?php echo wp_kses( $icon, $allowed_html ); ?>
+					<?php esc_html_e( 'License', 'swift-csv' ); ?>
+					<?php echo wp_kses( $icon, $allowed_html ); ?>
 				</a>
-				<?php
-				/**
-				 * Fires within the settings page's tab wrapper to add custom navigation tabs.
-				 *
-				 * This action allows Pro version and other add-ons to add custom tabs.
-				 *
-				 * @since 0.9.5
-				 * @param string $tab Currently active tab
-				 */
-				do_action( 'swift_csv_settings_tabs', $tab );
-				?>
 			</nav>
 
 			<div class="tab-content">

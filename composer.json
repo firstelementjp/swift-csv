@@ -14,11 +14,18 @@
 		"phpcompatibility/php-compatibility": "^9.3",
 		"phpcompatibility/phpcompatibility-wp": "^2.1",
 		"wp-coding-standards/wpcs": "^3.3",
-		"phpcsstandards/phpcsextra": "^1.5"
+		"phpcsstandards/phpcsextra": "^1.5",
+		"phpunit/phpunit": "^9.6",
+		"wp-phpunit/wp-phpunit": "^6.5",
+		"yoast/phpunit-polyfills": "^2.0"
 	},
 	"scripts": {
 		"phpcs": "phpcs",
-		"phpcbf": "phpcbf"
+		"phpcbf": "phpcbf",
+		"test": "phpunit",
+		"test-coverage": "phpunit --coverage-html tests/coverage",
+		"test-unit": "phpunit --testsuite=\"Swift CSV Unit Tests\"",
+		"test-integration": "phpunit --testsuite=\"Swift CSV Integration Tests\""
 	},
 	"config": {
 		"allow-plugins": {

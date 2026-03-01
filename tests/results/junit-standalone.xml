@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="StandaloneTest" file="/Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php" tests="9" assertions="63" errors="0" warnings="0" failures="0" skipped="0" time="5.249609">
+    <testcase name="test_plugin_directory_structure" class="StandaloneTest" classname="StandaloneTest" file="/Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php" line="35" assertions="3" time="0.005198"/>
+    <testcase name="test_includes_files_syntax" class="StandaloneTest" classname="StandaloneTest" file="/Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php" line="62" assertions="40" time="5.117280"/>
+    <testcase name="test_plugin_header_info" class="StandaloneTest" classname="StandaloneTest" file="/Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php" line="108" assertions="3" time="0.000800"/>
+    <testcase name="test_plugin_main_file_exists" class="StandaloneTest" classname="StandaloneTest" file="/Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php" line="23" assertions="2" time="0.000123"/>
+    <testcase name="test_composer_json_structure" class="StandaloneTest" classname="StandaloneTest" file="/Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php" line="77" assertions="5" time="0.001084"/>
+    <testcase name="test_readme_structure" class="StandaloneTest" classname="StandaloneTest" file="/Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php" line="146" assertions="2" time="0.000294"/>
+    <testcase name="test_phpunit_xml_exists" class="StandaloneTest" classname="StandaloneTest" file="/Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php" line="94" assertions="2" time="0.001002"/>
+    <testcase name="test_required_files_exist" class="StandaloneTest" classname="StandaloneTest" file="/Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php" line="124" assertions="5" time="0.000151"/>
+    <testcase name="test_plugin_file_syntax" class="StandaloneTest" classname="StandaloneTest" file="/Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php" line="49" assertions="1" time="0.123676"/>
+  </testsuite>
+</testsuites>

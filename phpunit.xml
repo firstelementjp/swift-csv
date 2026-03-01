@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<phpunit
+    bootstrap="tests/bootstrap.php"
+    colors="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    processIsolation="false"
+    stopOnFailure="false"
+    executionOrder="random"
+    timeoutForSmallTests="1"
+    timeoutForMediumTests="10"
+    timeoutForLargeTests="60"
+>
+    <testsuites>
+        <testsuite name="Swift CSV Unit Tests">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Swift CSV Integration Tests">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">includes</directory>
+        </include>
+        <exclude>
+            <directory>vendor</directory>
+            <directory>node_modules</directory>
+            <file>swift-csv.php</file>
+        </exclude>
+    </coverage>
+    <logging>
+        <junit outputFile="tests/results/junit.xml"/>
+        <teamcity outputFile="tests/results/teamcity.txt"/>
+    </logging>
+</phpunit>

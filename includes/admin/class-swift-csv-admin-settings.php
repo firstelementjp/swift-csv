@@ -158,6 +158,14 @@ class Swift_CSV_Admin_Settings {
 			'swift_csv_import_section'
 		);
 
+		add_settings_field(
+			'swift_csv_import_updraft_backup_before_import',
+			'',
+			[ $this, 'import_updraft_backup_before_import_field_html' ],
+			'swift-csv',
+			'swift_csv_import_section'
+		);
+
 		// License section.
 		add_settings_section(
 			'swift_csv_license_section',
@@ -206,6 +214,86 @@ class Swift_CSV_Admin_Settings {
 					</option>
 				<?php endforeach; ?>
 				</select>
+			</dd>
+		</dl>
+		<?php
+	}
+
+	/**
+	 * Import UpdraftPlus backup before import field callback
+	 *
+	 * Displays a Pro feature checkbox that triggers an UpdraftPlus database backup
+	 * before starting import when the Pro plugin is licensed.
+	 *
+	 * @since 0.9.13
+	 * @return void
+	 */
+	public function import_updraft_backup_before_import_field_html() {
+		global $updraftplus_admin;
+
+		$is_updraft_available = is_a( $updraftplus_admin, 'UpdraftPlus_Admin' )
+			&& is_callable( [ $updraftplus_admin, 'add_backup_scaffolding' ] )
+			&& is_callable( [ $updraftplus_admin, 'backupnow_modal_contents' ] );
+
+		if ( ! $is_updraft_available ) {
+			return;
+		}
+
+		$is_pro_active = class_exists( 'Swift_CSV_License_Handler' )
+			&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
+			&& Swift_CSV_License_Handler::is_pro_active();
+
+		$checkbox_id   = 'swift-csv-pro-backup-before-import';
+		$disabled_attr = $is_pro_active ? '' : 'disabled';
+		$checked_attr  = $is_pro_active ? 'checked' : '';
+		?>
+		<dl>
+			<dt>
+				<?php esc_html_e( 'Safety', 'swift-csv' ); ?>
+			</dt>
+			<dd>
+				<label>
+					<input type="checkbox" id="<?php echo esc_attr( $checkbox_id ); ?>" <?php echo esc_attr( $checked_attr ); ?> <?php echo esc_attr( $disabled_attr ); ?>>
+					<?php
+					printf(
+						wp_kses(
+							__( 'Run UpdraftPlus database backup before import (%1$sPro%2$s)', 'swift-csv' ),
+							[
+								'a' => [
+									'href'   => [],
+									'target' => [],
+									'rel'    => [],
+								],
+							]
+						),
+						'<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">',
+						'</a>'
+					);
+					?>
+				</label>
+				<p class="description">
+					<?php esc_html_e( 'A backup dialog will open. Start the backup and the import will begin automatically after it completes.', 'swift-csv' ); ?>
+				</p>
+				<?php if ( ! $is_pro_active ) : ?>
+					<p class="description">
+						<?php
+						printf(
+							wp_kses(
+								__( 'Activate Swift CSV %1$sPro%2$s to enable this safety feature.', 'swift-csv' ),
+								[
+									'a' => [
+										'href'   => [],
+										'target' => [],
+										'rel'    => [],
+									],
+								]
+							),
+							'<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">',
+							'</a>'
+						);
+						?>
+					</p>
+				<?php endif; ?>
 			</dd>
 		</dl>
 		<?php

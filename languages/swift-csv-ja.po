@@ -875,3 +875,15 @@ msgstr "プライベートメタ:"
 #: includes/admin/class-swift-csv-admin.php:630
 msgid "Taxonomies"
 msgstr "タクソノミー"
+
+msgid "Safety"
+msgstr "安全対策"
+
+msgid "Run UpdraftPlus database backup before import (%1$sPro%2$s)"
+msgstr "インポート前にUpdraftPlusでデータベースをバックアップ（%1$sPro%2$s）"
+
+msgid "A backup dialog will open. Start the backup and the import will begin automatically after it completes."
+msgstr "バックアップ画面を開きます。バックアップ完了後に自動でインポートを開始します。"
+
+msgid "Activate Swift CSV %1$sPro%2$s to enable this safety feature."
+msgstr "この機能を有効にするにはSwift CSV %1$sPro%2$sをご利用ください。"

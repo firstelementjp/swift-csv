@@ -308,6 +308,15 @@ function handleAjaxExport(e) {
 			export_session: exportSession,
 		});
 
+		// Optional: Pro pre-action re-auth token (sent only on first request).
+		if (startRow === 0) {
+			const reauthTokenEl = document.getElementById('swift-csv-pro-reauth-token-export');
+			const reauthToken = reauthTokenEl ? reauthTokenEl.value : '';
+			if (reauthToken) {
+				formData.append('swift_csv_pro_reauth_token', reauthToken);
+			}
+		}
+
 		fetch(swiftCSV.ajaxUrl, {
 			method: 'POST',
 			headers: {

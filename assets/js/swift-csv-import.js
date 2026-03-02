@@ -524,6 +524,15 @@ function processImportChunk(
 	formData.append('nonce', swiftCSV.nonce);
 	formData.append('import_session', importSession);
 
+	// Optional: Pro pre-action re-auth token (sent only on first request).
+	if (startRow === 0) {
+		const reauthTokenEl = document.getElementById('swift-csv-pro-reauth-token-import');
+		const reauthToken = reauthTokenEl ? reauthTokenEl.value : '';
+		if (reauthToken) {
+			formData.append('swift_csv_pro_reauth_token', reauthToken);
+		}
+	}
+
 	// Only send file on first request (start_row = 0)
 	if (startRow === 0) {
 		formData.append('csv_file', file);

@@ -452,6 +452,15 @@ const SwiftCSVExportUnified = {
 		batchFormData.append('start_row', startRow || 0);
 		batchFormData.append('export_session', exportSession || '');
 
+		// Optional: Pro pre-action re-auth token (sent only on first request).
+		if ((startRow || 0) === 0) {
+			const reauthTokenEl = document.getElementById('swift-csv-pro-reauth-token-export');
+			const reauthToken = reauthTokenEl ? reauthTokenEl.value : '';
+			if (reauthToken) {
+				batchFormData.append('swift_csv_pro_reauth_token', reauthToken);
+			}
+		}
+
 		// Add other form data
 		Object.keys(formData).forEach(key => {
 			if (
@@ -568,9 +577,13 @@ const SwiftCSVExportUnified = {
 			throw new Error('Post type selection is required');
 		}
 
+		const reauthTokenEl = document.getElementById('swift-csv-pro-reauth-token-export');
+		const reauthToken = reauthTokenEl ? reauthTokenEl.value : '';
+
 		return {
 			action: 'swift_csv_ajax_export',
 			nonce: swiftCSV.nonce,
+			swift_csv_pro_reauth_token: reauthToken,
 			post_type: postType,
 			post_status:
 				document.querySelector('input[name="swift_csv_export_post_status"]:checked')

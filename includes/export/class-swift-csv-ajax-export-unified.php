@@ -86,6 +86,15 @@ class Swift_CSV_Ajax_Export_Unified {
 			return;
 		}
 
+		$precheck_result = apply_filters( 'swift_csv_pre_ajax_export', true, $_POST );
+		if ( is_wp_error( $precheck_result ) ) {
+			while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
+				ob_end_clean();
+			}
+			wp_send_json_error( $precheck_result->get_error_message() );
+			return;
+		}
+
 		// Get export method.
 		$export_method = isset( $_POST['export_method'] ) ? sanitize_text_field( wp_unslash( $_POST['export_method'] ) ) : 'wp_compatible';
 		if ( 'standard' === $export_method ) {
@@ -95,10 +104,13 @@ class Swift_CSV_Ajax_Export_Unified {
 		// Get export configuration.
 		$config = $this->get_export_config();
 
+		$rate_limit_key = null;
+		$result         = null;
+		$error_message  = '';
 		try {
 			// Rate limiting (Direct SQL only).
 			if ( 'direct_sql' === $export_method ) {
-				$this->check_rate_limit();
+				$rate_limit_key = $this->check_rate_limit();
 			}
 
 			// Route to appropriate export method.
@@ -116,17 +128,24 @@ class Swift_CSV_Ajax_Export_Unified {
 					$result  = $handler->handle( $config );
 					break;
 			}
-
-			while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
-				ob_end_clean();
-			}
-			wp_send_json( $result );
 		} catch ( Exception $e ) {
-			while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
-				ob_end_clean();
-			}
-			wp_send_json_error( 'Export failed: ' . wp_kses_post( $e->getMessage() ) );
+			$error_message = 'Export failed: ' . wp_kses_post( $e->getMessage() );
 		}
+
+		while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
+			ob_end_clean();
+		}
+
+		if ( is_string( $rate_limit_key ) && '' !== $rate_limit_key ) {
+			delete_transient( $rate_limit_key );
+		}
+
+		if ( '' !== $error_message ) {
+			wp_send_json_error( $error_message );
+			return;
+		}
+
+		wp_send_json( $result );
 	}
 
 	/**
@@ -196,7 +215,13 @@ class Swift_CSV_Ajax_Export_Unified {
 	 */
 	private function check_rate_limit() {
 		// Check for concurrent exports in the same session.
-		$session_id   = session_id();
+		$session_id = (string) session_id();
+		if ( '' === $session_id && function_exists( 'wp_get_session_token' ) ) {
+			$session_id = (string) wp_get_session_token();
+		}
+		if ( '' === $session_id ) {
+			$session_id = (string) get_current_user_id();
+		}
 		$cache_key    = 'swift_csv_concurrent_export_' . $session_id;
 		$is_exporting = get_transient( $cache_key );
 
@@ -205,14 +230,8 @@ class Swift_CSV_Ajax_Export_Unified {
 		}
 
 		// Set concurrent export flag.
-		// This lock is released at request shutdown to allow batched requests.
-		set_transient( $cache_key, true, 5 * MINUTE_IN_SECONDS );
-
-		register_shutdown_function(
-			static function () use ( $cache_key ) {
-				delete_transient( $cache_key );
-			}
-		);
+		// Keep the lock short and release it explicitly in a finally block.
+		set_transient( $cache_key, true, 30 );
 
 		return $cache_key;
 	}

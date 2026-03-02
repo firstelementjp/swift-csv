@@ -86,6 +86,13 @@ class Swift_CSV_Ajax_Import_Unified {
 			return;
 		}
 
+		$precheck_result = apply_filters( 'swift_csv_pre_ajax_import', true, $_POST );
+		if ( is_wp_error( $precheck_result ) ) {
+			$this->cleanup_output_buffers( $initial_ob_level );
+			wp_send_json_error( $precheck_result->get_error_message() );
+			return;
+		}
+
 		try {
 
 			$import_session = $this->get_request_parser()->parse_import_session();

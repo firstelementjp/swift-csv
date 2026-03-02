@@ -315,6 +315,11 @@ function handleAjaxExport(e) {
 			if (reauthToken) {
 				formData.append('swift_csv_pro_reauth_token', reauthToken);
 			}
+			const execTokenEl = document.getElementById('swift-csv-pro-exec-password-token-export');
+			const execToken = execTokenEl ? execTokenEl.value : '';
+			if (execToken) {
+				formData.append('swift_csv_pro_exec_password_token', execToken);
+			}
 		}
 
 		fetch(swiftCSV.ajaxUrl, {

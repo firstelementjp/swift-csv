@@ -459,6 +459,11 @@ const SwiftCSVExportUnified = {
 			if (reauthToken) {
 				batchFormData.append('swift_csv_pro_reauth_token', reauthToken);
 			}
+			const execTokenEl = document.getElementById('swift-csv-pro-exec-password-token-export');
+			const execToken = execTokenEl ? execTokenEl.value : '';
+			if (execToken) {
+				batchFormData.append('swift_csv_pro_exec_password_token', execToken);
+			}
 		}
 
 		// Add other form data
@@ -579,11 +584,14 @@ const SwiftCSVExportUnified = {
 
 		const reauthTokenEl = document.getElementById('swift-csv-pro-reauth-token-export');
 		const reauthToken = reauthTokenEl ? reauthTokenEl.value : '';
+		const execTokenEl = document.getElementById('swift-csv-pro-exec-password-token-export');
+		const execToken = execTokenEl ? execTokenEl.value : '';
 
 		return {
 			action: 'swift_csv_ajax_export',
 			nonce: swiftCSV.nonce,
 			swift_csv_pro_reauth_token: reauthToken,
+			swift_csv_pro_exec_password_token: execToken,
 			post_type: postType,
 			post_status:
 				document.querySelector('input[name="swift_csv_export_post_status"]:checked')

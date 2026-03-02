@@ -38,6 +38,28 @@ class Swift_CSV_Admin_Page {
 	}
 
 	/**
+	 * Render advanced settings tab content
+	 *
+	 * @since 0.9.14
+	 * @return void
+	 */
+	private function render_advanced_tab_content(): void {
+		?>
+		<div class="swift-csv-layout full-width">
+			<div class="swift-csv-settings">
+				<div class="card">
+					<h3><?php esc_html_e( 'Advanced Settings', 'swift-csv' ); ?></h3>
+					<form id="swift-csv-advanced-settings-form" onsubmit="return false;">
+						<?php do_settings_fields( 'swift-csv', 'swift_csv_advanced_section' ); ?>
+						<?php do_action( 'swift_csv_after_advanced_settings_fields', $this->admin ); ?>
+					</form>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Render main admin page
 	 *
 	 * Displays the main interface with export/import tabs.
@@ -85,6 +107,9 @@ class Swift_CSV_Admin_Page {
 				<a href="?page=swift-csv&tab=import" class="nav-tab <?php echo 'import' === $tab ? 'nav-tab-active' : ''; ?>">
 				<?php esc_html_e( 'Import', 'swift-csv' ); ?>
 				</a>
+				<a href="?page=swift-csv&tab=advanced" class="nav-tab <?php echo 'advanced' === $tab ? 'nav-tab-active' : ''; ?>">
+				<?php esc_html_e( 'Advanced Settings', 'swift-csv' ); ?>
+				</a>
 			<?php
 				/**
 				 * Fires within the settings page's tab wrapper to add custom navigation tabs.
@@ -131,6 +156,8 @@ class Swift_CSV_Admin_Page {
 					} else {
 						$this->render_import_tab_content( $import_results );
 					}
+				} elseif ( 'advanced' === $tab ) {
+					$this->render_advanced_tab_content();
 				} elseif ( 'license' === $tab ) {
 					$this->render_license_tab_content();
 				}

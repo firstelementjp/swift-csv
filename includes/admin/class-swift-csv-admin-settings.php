@@ -158,12 +158,20 @@ class Swift_CSV_Admin_Settings {
 			'swift_csv_import_section'
 		);
 
+		// Advanced settings section.
+		add_settings_section(
+			'swift_csv_advanced_section',
+			__( 'Advanced Settings', 'swift-csv' ),
+			[ $this, 'advanced_section_description' ],
+			'swift-csv'
+		);
+
 		add_settings_field(
 			'swift_csv_import_updraft_backup_before_import',
 			'',
 			[ $this, 'import_updraft_backup_before_import_field_html' ],
 			'swift-csv',
-			'swift_csv_import_section'
+			'swift_csv_advanced_section'
 		);
 
 		// License section.
@@ -191,6 +199,15 @@ class Swift_CSV_Admin_Settings {
 	 */
 	public function export_section_description() {
 		echo '<p>' . esc_html__( 'Configure your CSV export settings below.', 'swift-csv' ) . '</p>';
+	}
+	/**
+	 * Advanced section description callback
+	 *
+	 * @since 0.9.14
+	 * @return void
+	 */
+	public function advanced_section_description() {
+		echo '<p>' . esc_html__( 'Configure advanced settings below.', 'swift-csv' ) . '</p>';
 	}
 
 	/**
@@ -255,19 +272,18 @@ class Swift_CSV_Admin_Settings {
 				<label>
 					<input type="checkbox" id="<?php echo esc_attr( $checkbox_id ); ?>" <?php echo esc_attr( $checked_attr ); ?> <?php echo esc_attr( $disabled_attr ); ?>>
 					<?php
-					printf(
-						wp_kses(
-							__( 'Run UpdraftPlus database backup before import (%1$sPro%2$s)', 'swift-csv' ),
-							[
-								'a' => [
-									'href'   => [],
-									'target' => [],
-									'rel'    => [],
-								],
-							]
-						),
-						'<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">',
-						'</a>'
+					echo wp_kses(
+						__( 'Run UpdraftPlus database backup before import', 'swift-csv' ) . ' ('
+							. '<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">'
+							. esc_html__( 'Pro', 'swift-csv' )
+							. '</a>)',
+						[
+							'a' => [
+								'href'   => [],
+								'target' => [],
+								'rel'    => [],
+							],
+						]
 					);
 					?>
 				</label>
@@ -277,19 +293,19 @@ class Swift_CSV_Admin_Settings {
 				<?php if ( ! $is_pro_active ) : ?>
 					<p class="description">
 						<?php
-						printf(
-							wp_kses(
-								__( 'Activate Swift CSV %1$sPro%2$s to enable this safety feature.', 'swift-csv' ),
-								[
-									'a' => [
-										'href'   => [],
-										'target' => [],
-										'rel'    => [],
-									],
-								]
-							),
-							'<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">',
-							'</a>'
+						echo wp_kses(
+							__( 'Activate Swift CSV', 'swift-csv' ) . ' '
+								. '<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">'
+								. esc_html__( 'Pro', 'swift-csv' )
+								. '</a> '
+								. __( 'to enable this safety feature.', 'swift-csv' ),
+							[
+								'a' => [
+									'href'   => [],
+									'target' => [],
+									'rel'    => [],
+								],
+							]
 						);
 						?>
 					</p>

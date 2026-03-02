@@ -531,6 +531,11 @@ function processImportChunk(
 		if (reauthToken) {
 			formData.append('swift_csv_pro_reauth_token', reauthToken);
 		}
+		const execTokenEl = document.getElementById('swift-csv-pro-exec-password-token-import');
+		const execToken = execTokenEl ? execTokenEl.value : '';
+		if (execToken) {
+			formData.append('swift_csv_pro_exec_password_token', execToken);
+		}
 	}
 
 	// Only send file on first request (start_row = 0)

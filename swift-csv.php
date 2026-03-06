@@ -19,6 +19,10 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+// Custom debug log path
+$log_file = plugin_dir_path( __FILE__ ) . 'debug.log';
+ini_set( 'error_log', $log_file );
+
 // Define plugin constants.
 define( 'SWIFT_CSV_VERSION', '0.9.8' );
 define( 'SWIFT_CSV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
@@ -123,6 +127,11 @@ function swift_csv_load_textdomain() {
  * @return void
  */
 function swift_csv_init() {
+	// Initialize settings helper and migrate legacy options.
+	if ( class_exists( 'Swift_CSV_Settings_Helper' ) ) {
+		Swift_CSV_Settings_Helper::migrate_legacy_options();
+	}
+
 	if ( is_admin() ) {
 		new Swift_CSV_Admin();
 	}

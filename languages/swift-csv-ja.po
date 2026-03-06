@@ -887,3 +887,23 @@ msgstr "バックアップ画面を開きます。バックアップ完了後に
 
 msgid "Activate Swift CSV %1$sPro%2$s to enable this safety feature."
 msgstr "この機能を有効にするにはSwift CSV %1$sPro%2$sをご利用ください。"
+
+#: includes/admin/class-swift-csv-admin-page.php:49
+msgid "Advanced Settings"
+msgstr "詳細設定"
+
+#: includes/admin/class-swift-csv-admin-page.php:61
+msgid "Save All Settings"
+msgstr "すべての設定を保存"
+
+msgid "Run UpdraftPlus database backup before import"
+msgstr "インポート前にUpdraftPlusでデータベースをバックアップ"
+
+msgid "Pro"
+msgstr "Pro"
+
+msgid "Activate Swift CSV"
+msgstr "Swift CSVを有効化"
+
+msgid "to enable this safety feature."
+msgstr "してこの安全機能を有効にしてください。"

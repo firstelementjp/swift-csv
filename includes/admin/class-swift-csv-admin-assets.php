@@ -55,8 +55,11 @@ class Swift_CSV_Admin_Assets {
 	 */
 	public function enqueue_scripts( $hook ) {
 		if ( 'tools_page_swift-csv' === $hook ) {
-			$debug_mode = defined( 'WP_DEBUG' ) && WP_DEBUG;
-			$suffix     = $debug_mode ? '' : '.min';
+			$debug_mode           = defined( 'WP_DEBUG' ) && WP_DEBUG;
+			$suffix               = $debug_mode ? '' : '.min';
+			$advanced_enable_logs = class_exists( 'Swift_CSV_Settings_Helper' )
+				? (bool) Swift_CSV_Settings_Helper::get( 'advanced', 'enable_logs', true )
+				: true;
 
 			$script_url = static function ( $relative_path ) use ( $suffix ) {
 				$min_path      = preg_replace( '/\.js$/', $suffix . '.js', $relative_path );
@@ -189,6 +192,10 @@ class Swift_CSV_Admin_Assets {
 					'ajaxurl'               => admin_url( 'admin-ajax.php' ),
 					'nonce'                 => wp_create_nonce( 'swift_csv_ajax_nonce' ),
 					'debug'                 => $debug_mode,
+					'advancedSettings'      => [
+						'enableLogs' => $advanced_enable_logs,
+					],
+					'hasProAdmin'           => class_exists( 'Swift_CSV_Pro_Admin' ),
 					'enableDirectSqlImport' => (bool) apply_filters( 'swift_csv_enable_direct_sql_import', false ),
 					'maxLogEntries'         => apply_filters( 'swift_csv_max_log_entries', 30 ),
 					'highSpeedExportText'   => esc_html__( 'High-Speed Export', 'swift-csv' ),

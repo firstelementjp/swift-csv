@@ -71,6 +71,7 @@ class Swift_CSV_Admin {
 		add_action( 'admin_enqueue_scripts', [ $this->assets, 'enqueue_scripts' ] );
 
 		add_action( 'admin_init', [ $this->settings, 'register_settings' ] );
+		add_action( 'wp_ajax_swift_csv_save_advanced_settings', [ $this->ajax, 'ajax_save_advanced_settings' ] );
 		add_action( 'wp_ajax_swift_csv_pro_manage_license', [ $this->ajax, 'ajax_manage_license' ] );
 	}
 

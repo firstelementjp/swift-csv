@@ -21,6 +21,42 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Swift_CSV_Admin_Ajax {
 
 	/**
+	 * AJAX handler for advanced settings save
+	 *
+	 * Saves free plugin advanced settings from the advanced settings tab.
+	 *
+	 * @since 0.9.15
+	 * @return void
+	 */
+	public function ajax_save_advanced_settings() {
+		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => 'Permission denied.' ] );
+		}
+
+		if ( ! class_exists( 'Swift_CSV_Settings_Helper' ) ) {
+			wp_send_json_error( [ 'message' => 'Settings helper is unavailable.' ] );
+		}
+
+		$enable_logs = isset( $_POST['enable_logs'] )
+			&& in_array( (string) wp_unslash( $_POST['enable_logs'] ), [ '1', 'true' ], true );
+
+		$result = Swift_CSV_Settings_Helper::update_section(
+			'advanced',
+			[
+				'enable_logs' => $enable_logs,
+			]
+		);
+
+		if ( ! $result ) {
+			wp_send_json_error( [ 'message' => __( 'Failed to save advanced settings.', 'swift-csv' ) ] );
+		}
+
+		wp_send_json_success( [ 'message' => __( 'Advanced settings saved successfully!', 'swift-csv' ) ] );
+	}
+
+	/**
 	 * AJAX handler for license management
 	 *
 	 * Handles license activation and deactivation requests.

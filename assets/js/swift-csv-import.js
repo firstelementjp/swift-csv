@@ -375,9 +375,12 @@ function startAjaxImport(importMethod) {
 	const dryRun = document.querySelector('input[name="swift_csv_import_dry_run"]')?.checked
 		? '1'
 		: '0';
-	const enableLogs = document.querySelector('input[name="swift_csv_import_enable_logs"]')?.checked
-		? '1'
-		: '0';
+	const enableLogs =
+		window.swiftCSV &&
+		window.swiftCSV.advancedSettings &&
+		window.swiftCSV.advancedSettings.enableLogs
+			? '1'
+			: '0';
 
 	importSession = Math.random().toString(36).slice(2, 14) + Date.now().toString(36);
 	currentDryRun = dryRun;

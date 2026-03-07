@@ -21,6 +21,65 @@ document.addEventListener('DOMContentLoaded', function () {
 		// Wait for all modules to be loaded
 		const checkModules = () => {
 			if (window.SwiftCSVCore && window.SwiftCSVExport && window.SwiftCSVImport) {
+				const advancedSaveButton = document.getElementById('swift-csv-save-all-settings');
+				if (
+					advancedSaveButton &&
+					window.swiftCSV &&
+					!window.swiftCSV.hasProAdmin &&
+					advancedSaveButton.dataset.swiftCsvBound !== 'true'
+				) {
+					advancedSaveButton.dataset.swiftCsvBound = 'true';
+					advancedSaveButton.addEventListener('click', function () {
+						const spinner = advancedSaveButton.nextElementSibling;
+						const enableLogsCheckbox = document.getElementById(
+							'swift_csv_advanced_enable_logs'
+						);
+						const enableLogs =
+							enableLogsCheckbox && enableLogsCheckbox.checked ? '1' : '0';
+
+						advancedSaveButton.disabled = true;
+						if (spinner) {
+							spinner.style.display = 'inline-block';
+						}
+
+						fetch(window.swiftCSV.ajaxUrl, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/x-www-form-urlencoded',
+							},
+							body: new URLSearchParams({
+								action: 'swift_csv_save_advanced_settings',
+								nonce: window.swiftCSV.nonce,
+								enable_logs: enableLogs,
+							}),
+						})
+							.then(response => response.json())
+							.then(data => {
+								if (!data || !data.success) {
+									throw new Error(
+										(data && data.data && data.data.message) ||
+											'Failed to save settings.'
+									);
+								}
+
+								if (!window.swiftCSV.advancedSettings) {
+									window.swiftCSV.advancedSettings = {};
+								}
+								window.swiftCSV.advancedSettings.enableLogs = enableLogs === '1';
+								window.alert(data.data.message);
+							})
+							.catch(error => {
+								window.alert(error.message || 'Failed to save settings.');
+							})
+							.finally(() => {
+								advancedSaveButton.disabled = false;
+								if (spinner) {
+									spinner.style.display = 'none';
+								}
+							});
+					});
+				}
+
 				// All modules are available, initialize them
 				if (window.SwiftCSVImport) {
 					window.SwiftCSVImport.initFileUpload();

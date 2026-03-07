@@ -53,16 +53,14 @@ class Swift_CSV_Admin_Page {
 						<?php do_settings_fields( 'swift-csv', 'swift_csv_advanced_section' ); ?>
 						<?php do_action( 'swift_csv_after_advanced_settings_fields', $this->admin ); ?>
 
-						<?php if ( class_exists( 'Swift_CSV_Pro_Admin' ) ) : ?>
-							<div class="swift-csv-unified-save-section">
-								<p class="submit">
-									<button type="button" class="button button-primary" id="swift-csv-save-all-settings">
-										<?php esc_html_e( 'Save All Settings', 'swift-csv' ); ?>
-									</button>
-									<span class="spinner" style="display: none;"></span>
-								</p>
-							</div>
-						<?php endif; ?>
+						<div class="swift-csv-unified-save-section">
+							<p class="submit">
+								<button type="button" class="button button-primary" id="swift-csv-save-all-settings">
+									<?php esc_html_e( 'Save All Settings', 'swift-csv' ); ?>
+								</button>
+								<span class="spinner" style="display: none;"></span>
+							</p>
+						</div>
 					</form>
 				</div>
 			</div>

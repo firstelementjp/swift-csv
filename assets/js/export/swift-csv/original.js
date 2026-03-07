@@ -59,9 +59,12 @@ function handleAjaxExport(e) {
 	const taxonomyFormat =
 		document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name';
 	const exportLimit = document.querySelector('#swift_csv_export_limit')?.value || '';
-	const enableLogs = document.querySelector('input[name="swift_csv_export_enable_logs"]')?.checked
-		? '1'
-		: '0';
+	const enableLogs =
+		window.swiftCSV &&
+		window.swiftCSV.advancedSettings &&
+		window.swiftCSV.advancedSettings.enableLogs
+			? '1'
+			: '0';
 
 	if (enableLogs === '1') {
 		// Clear export log

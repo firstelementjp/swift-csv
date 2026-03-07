@@ -40,9 +40,12 @@
 				taxonomy_format:
 					document.querySelector('input[name="taxonomy_format"]:checked')?.value ||
 					'name',
-				enable_logs: document.getElementById('swift_csv_export_enable_logs')?.checked
-					? '1'
-					: '0',
+				enable_logs:
+					window.swiftCSV &&
+					window.swiftCSV.advancedSettings &&
+					window.swiftCSV.advancedSettings.enableLogs
+						? '1'
+						: '0',
 			};
 		},
 	};

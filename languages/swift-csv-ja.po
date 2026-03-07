@@ -896,6 +896,12 @@ msgstr "詳細設定"
 msgid "Save All Settings"
 msgstr "すべての設定を保存"
 
+msgid "Output logs during import and export"
+msgstr "インポート・エクスポート時にログを出力"
+
+msgid "If checked, detailed per-row logs will be generated and displayed during import and export. Disable for maximum speed."
+msgstr "チェックすると、インポート・エクスポート時に行ごとの詳細ログを生成して表示します。最高速度を優先する場合は無効にしてください。"
+
 msgid "Run UpdraftPlus database backup before import"
 msgstr "インポート前にUpdraftPlusでデータベースをバックアップ"
 

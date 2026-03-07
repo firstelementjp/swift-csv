@@ -102,14 +102,6 @@ class Swift_CSV_Admin_Settings {
 			'swift_csv_export_section'
 		);
 
-		add_settings_field(
-			'swift_csv_export_enable_logs',
-			'',
-			[ $this, 'export_enable_logs_field_html' ],
-			'swift-csv',
-			'swift_csv_export_section'
-		);
-
 		// Import settings section.
 		add_settings_section(
 			'swift_csv_import_section',
@@ -143,14 +135,6 @@ class Swift_CSV_Admin_Settings {
 		);
 
 		add_settings_field(
-			'swift_csv_import_enable_logs',
-			'',
-			[ $this, 'import_enable_logs_field_html' ],
-			'swift-csv',
-			'swift_csv_import_section'
-		);
-
-		add_settings_field(
 			'swift_csv_import_dry_run',
 			'',
 			[ $this, 'import_dry_run_field_html' ],
@@ -164,6 +148,14 @@ class Swift_CSV_Admin_Settings {
 			__( 'Advanced Settings', 'swift-csv' ),
 			[ $this, 'advanced_section_description' ],
 			'swift-csv'
+		);
+
+		add_settings_field(
+			'swift_csv_advanced_enable_logs',
+			'',
+			[ $this, 'advanced_enable_logs_field_html' ],
+			'swift-csv',
+			'swift_csv_advanced_section'
 		);
 
 		add_settings_field(
@@ -459,29 +451,6 @@ class Swift_CSV_Admin_Settings {
 	}
 
 	/**
-	 * Export enable logs field callback
-	 *
-	 * @since 0.9.8
-	 * @return void
-	 */
-	public function export_enable_logs_field_html() {
-		?>
-		<dl>
-			<dt>
-			<?php esc_html_e( 'Log Output', 'swift-csv' ); ?>
-			</dt>
-			<dd>
-				<label>
-					<input type="checkbox" id="swift_csv_export_enable_logs" name="swift_csv_export_enable_logs" value="1" checked>
-				<?php esc_html_e( 'Output logs during export', 'swift-csv' ); ?>
-				</label>
-				<p class="description"><?php esc_html_e( 'If checked, detailed per-row logs will be generated and displayed. Disable for maximum speed.', 'swift-csv' ); ?></p>
-			</dd>
-		</dl>
-		<?php
-	}
-
-	/**
 	 * Import section description callback
 	 *
 	 * @since 0.9.8
@@ -568,23 +537,26 @@ class Swift_CSV_Admin_Settings {
 	}
 
 	/**
-	 * Import enable logs field callback
+	 * Advanced enable logs field callback
 	 *
-	 * @since 0.9.8
+	 * @since 0.9.15
 	 * @return void
 	 */
-	public function import_enable_logs_field_html() {
+	public function advanced_enable_logs_field_html() {
+		$enable_logs = class_exists( 'Swift_CSV_Settings_Helper' )
+			? (bool) Swift_CSV_Settings_Helper::get( 'advanced', 'enable_logs', true )
+			: true;
 		?>
 		<dl>
 			<dt>
-			<?php esc_html_e( 'Log Output', 'swift-csv' ); ?>
+				<?php esc_html_e( 'Log Output', 'swift-csv' ); ?>
 			</dt>
 			<dd>
 				<label>
-					<input type="checkbox" id="swift_csv_import_enable_logs" name="swift_csv_import_enable_logs" value="1" checked>
-				<?php esc_html_e( 'Output logs during import', 'swift-csv' ); ?>
+					<input type="checkbox" id="swift_csv_advanced_enable_logs" name="swift_csv_advanced_enable_logs" value="1" <?php checked( $enable_logs ); ?>>
+					<?php esc_html_e( 'Output logs during import and export', 'swift-csv' ); ?>
 				</label>
-				<p class="description"><?php esc_html_e( 'If checked, detailed per-row logs will be generated and displayed. Disable for maximum speed.', 'swift-csv' ); ?></p>
+				<p class="description"><?php esc_html_e( 'If checked, detailed per-row logs will be generated and displayed during import and export. Disable for maximum speed.', 'swift-csv' ); ?></p>
 			</dd>
 		</dl>
 		<?php

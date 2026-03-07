@@ -19,10 +19,6 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-// Custom debug log path
-$log_file = plugin_dir_path( __FILE__ ) . 'debug.log';
-ini_set( 'error_log', $log_file );
-
 // Define plugin constants.
 define( 'SWIFT_CSV_VERSION', '0.9.8' );
 define( 'SWIFT_CSV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
@@ -35,10 +31,14 @@ define( 'SWIFT_CSV_DEEPWIKI_URL', 'https://deepwiki.com/firstelementjp/swift-csv
 /**
  * Custom autoloader for Swift CSV classes
  *
- * Automatically loads classes following WordPress naming convention:
- * Swift_CSV_Admin → includes/admin/class-swift-csv-admin.php
- * Swift_CSV_Import_* → includes/import/class-swift-csv-import-*.php
- * Swift_CSV_Export_* → includes/export/class-swift-csv-export-*.php
+ * Resolves class files from the `includes/` directory by using ordered
+ * naming rules for admin, import, and export classes.
+ *
+ * Import and export AJAX classes are matched before broader tokens to avoid
+ * routing them into the wrong directory.
+ *
+ * Base import and export classes are preloaded when needed so child classes
+ * can extend them safely during autoload.
  *
  * @since 0.9.8
  * @param string $class_name Class name to load.
@@ -57,18 +57,21 @@ spl_autoload_register(
 		$relative_class = substr( $class_name, strlen( $prefix ) );
 		$file_name      = 'class-' . str_replace( '_', '-', strtolower( $class_name ) ) . '.php';
 
-		// Determine subdirectory based on class type.
-		$sub_dir = '';
-		if ( strpos( $relative_class, 'Admin' ) !== false ||
-			strpos( $relative_class, 'License_Handler' ) !== false ||
-			strpos( $relative_class, 'Updater' ) !== false ) {
-			$sub_dir = 'admin/';
-		} elseif ( strpos( $relative_class, 'Import' ) !== false ||
-					strpos( $relative_class, 'Ajax_Import' ) !== false ) {
-			$sub_dir = 'import/';
-		} elseif ( strpos( $relative_class, 'Export' ) !== false ||
-					strpos( $relative_class, 'Ajax_Export' ) !== false ) {
-			$sub_dir = 'export/';
+		// Determine subdirectory based on ordered naming rules.
+		$sub_dir       = '';
+		$sub_dir_rules = [
+			'import/' => [ 'Ajax_Import', 'Import' ],
+			'export/' => [ 'Ajax_Export', 'Export' ],
+			'admin/'  => [ 'Admin', 'License_Handler', 'Updater', 'Settings' ],
+		];
+
+		foreach ( $sub_dir_rules as $candidate_sub_dir => $tokens ) {
+			foreach ( $tokens as $token ) {
+				if ( false !== strpos( $relative_class, $token ) ) {
+					$sub_dir = $candidate_sub_dir;
+					break 2;
+				}
+			}
 		}
 
 		$file_path = $base_dir . $sub_dir . $file_name;
@@ -161,20 +164,21 @@ function swift_csv_activate() {
 		wp_mkdir_p( $temp_dir );
 	}
 
+	global $wp_filesystem;
+	if ( ! $wp_filesystem ) {
+		require_once ABSPATH . '/wp-admin/includes/file.php';
+		WP_Filesystem();
+	}
+
 	// Create .htaccess to restrict web access.
 	$htaccess_file = $temp_dir . '/.htaccess';
-	if ( ! file_exists( $htaccess_file ) ) {
-		global $wp_filesystem;
-		if ( ! $wp_filesystem ) {
-			require_once ABSPATH . '/wp-admin/includes/file.php';
-			WP_Filesystem();
-		}
+	if ( ! file_exists( $htaccess_file ) && $wp_filesystem ) {
 		$wp_filesystem->put_contents( $htaccess_file, "Deny from all\n" );
 	}
 
 	// Create index.php to prevent directory listing.
 	$index_file = $temp_dir . '/index.php';
-	if ( ! file_exists( $index_file ) ) {
+	if ( ! file_exists( $index_file ) && $wp_filesystem ) {
 		$wp_filesystem->put_contents( $index_file, "<?php\n// Silence is golden.\n" );
 	}
 

@@ -84,11 +84,17 @@ class Swift_CSV_Admin {
 	 * @return void
 	 */
 	public function add_admin_menu() {
+		$capability = 'manage_options';
+		$capability = (string) apply_filters( 'swift_csv_tools_page_capability', $capability );
+		if ( '' === $capability ) {
+			$capability = 'manage_options';
+		}
+
 		add_submenu_page(
 			'tools.php',
 			'Swift CSV',
 			'Swift CSV',
-			'manage_options',
+			$capability,
 			'swift-csv',
 			[ $this->page, 'render_main_page' ]
 		);

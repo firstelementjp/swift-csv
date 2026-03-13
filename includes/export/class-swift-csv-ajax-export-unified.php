@@ -78,7 +78,8 @@ class Swift_CSV_Ajax_Export_Unified {
 		}
 
 		// Check user capabilities.
-		if ( ! current_user_can( 'export' ) ) {
+		$can_export = (bool) apply_filters( 'swift_csv_user_can_export', (bool) current_user_can( 'export' ) );
+		if ( ! $can_export ) {
 			while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
 				ob_end_clean();
 			}

@@ -595,16 +595,24 @@ function processImportChunk(
 					flushImportLogsAfterComplete({ attempts: 3, delayMs: 300 }).finally(() => {
 						stopImportLogPolling({ abortRequest: false });
 						if (data.recent_logs && !window.swiftCSVLogsDisplayed) {
-							displayImportLogs(data.recent_logs);
-							window.swiftCSVLogsDisplayed = true;
+							try {
+								displayImportLogs(data.recent_logs);
+								window.swiftCSVLogsDisplayed = true;
+							} catch (e) {
+								console.error('Failed to display import logs:', e);
+							}
 						}
 						completeAjaxImport(data, importBtn, cancelBtn);
 					});
 				} else {
 					stopImportLogPolling({ abortRequest: false });
 					if (data.recent_logs && !window.swiftCSVLogsDisplayed) {
-						displayImportLogs(data.recent_logs);
-						window.swiftCSVLogsDisplayed = true;
+						try {
+							displayImportLogs(data.recent_logs);
+							window.swiftCSVLogsDisplayed = true;
+						} catch (e) {
+							console.error('Failed to display import logs:', e);
+						}
 					}
 					completeAjaxImport(data, importBtn, cancelBtn);
 				}
@@ -704,15 +712,21 @@ function updateImportProgress(data, startTime) {
 	const logUpdatedEl = document.querySelector('.swift-csv-logs-area .updated-count');
 	const logErrorEl = document.querySelector('.swift-csv-logs-area .error-count');
 
-	// Update global cumulative counters with current batch data
-	if (data.created !== undefined) {
-		globalCumulativeCreated += data.created;
+	// Prefer cumulative counts from server response (avoids double counting on edge cases).
+	if (data.cumulative_created !== undefined) {
+		globalCumulativeCreated = Number(data.cumulative_created) || 0;
+	} else if (data.created !== undefined) {
+		globalCumulativeCreated += Number(data.created) || 0;
 	}
-	if (data.updated !== undefined) {
-		globalCumulativeUpdated += data.updated;
+	if (data.cumulative_updated !== undefined) {
+		globalCumulativeUpdated = Number(data.cumulative_updated) || 0;
+	} else if (data.updated !== undefined) {
+		globalCumulativeUpdated += Number(data.updated) || 0;
 	}
-	if (data.errors !== undefined) {
-		globalCumulativeErrors += data.errors;
+	if (data.cumulative_errors !== undefined) {
+		globalCumulativeErrors = Number(data.cumulative_errors) || 0;
+	} else if (data.errors !== undefined) {
+		globalCumulativeErrors += Number(data.errors) || 0;
 	}
 
 	if (logCreatedEl) {

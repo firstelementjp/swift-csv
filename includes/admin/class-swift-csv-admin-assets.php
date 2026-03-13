@@ -204,7 +204,7 @@ class Swift_CSV_Admin_Assets {
 					'exportFailedText'      => esc_html__( 'Export Failed', 'swift-csv' ),
 					'csvContentNotFound'    => esc_html__( 'CSV content not found in response', 'swift-csv' ),
 					'unknownError'          => esc_html__( 'Unknown error', 'swift-csv' ),
-					'highSpeedImportText'   => esc_html__( 'High-Speed Import (Unimplemented)', 'swift-csv' ),
+					'highSpeedImportText'   => esc_html__( 'High-Speed Import', 'swift-csv' ),
 					'standardImportText'    => esc_html__( 'Standard Import (WP Compatible)', 'swift-csv' ),
 					'importCompleteText'    => esc_html__( 'Import Complete', 'swift-csv' ),
 					'importFailedText'      => esc_html__( 'Import Failed', 'swift-csv' ),

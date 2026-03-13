@@ -79,7 +79,11 @@ class Swift_CSV_Admin_Page {
 	public function render_main_page() {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		// Sanitize and validate tab parameter.
-		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'export';
+		$tab                = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'export';
+		$can_manage_options = current_user_can( 'manage_options' );
+		if ( ! $can_manage_options && in_array( $tab, [ 'advanced', 'license' ], true ) ) {
+			$tab = 'export';
+		}
 
 		// Allow custom tabs (like Pro version tabs) - don't restrict to export/import only.
 		// The validation will be handled by the individual tab rendering logic.
@@ -116,9 +120,11 @@ class Swift_CSV_Admin_Page {
 				<a href="?page=swift-csv&tab=import" class="nav-tab <?php echo 'import' === $tab ? 'nav-tab-active' : ''; ?>">
 				<?php esc_html_e( 'Import', 'swift-csv' ); ?>
 				</a>
-				<a href="?page=swift-csv&tab=advanced" class="nav-tab <?php echo 'advanced' === $tab ? 'nav-tab-active' : ''; ?>">
-				<?php esc_html_e( 'Advanced Settings', 'swift-csv' ); ?>
-				</a>
+				<?php if ( $can_manage_options ) : ?>
+					<a href="?page=swift-csv&tab=advanced" class="nav-tab <?php echo 'advanced' === $tab ? 'nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'Advanced Settings', 'swift-csv' ); ?>
+					</a>
+				<?php endif; ?>
 			<?php
 				/**
 				 * Fires within the settings page's tab wrapper to add custom navigation tabs.
@@ -145,10 +151,12 @@ class Swift_CSV_Admin_Page {
 				],
 			];
 			?>
-				<a href="?page=swift-csv&tab=license" class="nav-tab <?php echo 'license' === $tab ? 'nav-tab-active' : ''; ?>">
-					<?php esc_html_e( 'License', 'swift-csv' ); ?>
-					<?php echo wp_kses( $icon, $allowed_html ); ?>
-				</a>
+				<?php if ( $can_manage_options ) : ?>
+					<a href="?page=swift-csv&tab=license" class="nav-tab <?php echo 'license' === $tab ? 'nav-tab-active' : ''; ?>">
+						<?php esc_html_e( 'License', 'swift-csv' ); ?>
+						<?php echo wp_kses( $icon, $allowed_html ); ?>
+					</a>
+				<?php endif; ?>
 			</nav>
 
 			<div class="tab-content">
@@ -165,9 +173,9 @@ class Swift_CSV_Admin_Page {
 					} else {
 						$this->render_import_tab_content( $import_results );
 					}
-				} elseif ( 'advanced' === $tab ) {
+				} elseif ( 'advanced' === $tab && $can_manage_options ) {
 					$this->render_advanced_tab_content();
-				} elseif ( 'license' === $tab ) {
+				} elseif ( 'license' === $tab && $can_manage_options ) {
 					$this->render_license_tab_content();
 				}
 				// Custom tabs (like Pro version) will be handled by the hook below.
@@ -327,16 +335,16 @@ class Swift_CSV_Admin_Page {
 							<?php do_action( 'swift_csv_after_import_settings_fields', $this->admin ); ?>
 
 						<p class="submit">
-							<button type="button" class="button button-secondary" id="high-speed-import-btn" disabled>
-								<?php esc_html_e( 'High-Speed Import (Unimplemented)', 'swift-csv' ); ?>
-							</button>
-							<button type="submit" name="ajax_import_csv" class="button button-primary" id="ajax-import-csv-btn" style="margin-left: 10px;">
-								<?php esc_html_e( 'Standard Import (WP Compatible)', 'swift-csv' ); ?>
-							</button>
-							<button type="button" class="button" id="ajax-import-cancel-btn" style="display: none; margin-left: 10px;">
-								<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
-							</button>
-						</p>
+						<button type="button" class="button button-secondary" id="high-speed-import-btn" disabled>
+							<?php esc_html_e( 'High-Speed Import', 'swift-csv' ); ?>
+						</button>
+						<button type="submit" name="ajax_import_csv" class="button button-primary" id="ajax-import-csv-btn" style="margin-left: 10px;">
+							<?php esc_html_e( 'Standard Import (WP Compatible)', 'swift-csv' ); ?>
+						</button>
+						<button type="button" class="button" id="ajax-import-cancel-btn" style="display: none; margin-left: 10px;">
+							<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
+						</button>
+					</p>
 					</form>
 				</div>
 			</div>

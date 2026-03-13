@@ -80,7 +80,8 @@ class Swift_CSV_Ajax_Import_Unified {
 
 		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 
-		if ( ! current_user_can( 'import' ) ) {
+		$can_import = (bool) apply_filters( 'swift_csv_user_can_import', (bool) current_user_can( 'import' ) );
+		if ( ! $can_import ) {
 			$this->cleanup_output_buffers( $initial_ob_level );
 			wp_send_json_error( 'Insufficient permissions.' );
 			return;
@@ -186,7 +187,8 @@ class Swift_CSV_Ajax_Import_Unified {
 
 		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
 
-		if ( ! current_user_can( 'import' ) ) {
+		$can_import = (bool) apply_filters( 'swift_csv_user_can_import', (bool) current_user_can( 'import' ) );
+		if ( ! $can_import ) {
 			$this->cleanup_output_buffers( $initial_ob_level );
 			wp_send_json_error( 'Insufficient permissions.' );
 			return;

@@ -83,7 +83,7 @@ class Swift_CSV_Admin_Ajax {
 		$result  = ( 'activate' === $action ) ? $handler->activate( $license_key ) : $handler->deactivate( $license_key );
 
 		// Determine the product ID from the remote response.
-		$product_id = 328;
+		$product_id = class_exists( 'Swift_CSV_License_Handler' ) ? Swift_CSV_License_Handler::PRODUCT_ID_PRO : 0;
 		if ( isset( $result['data']['data']['productId'] ) ) {
 			$product_id = (int) $result['data']['data']['productId'];
 		} elseif ( isset( $result['data']['productId'] ) ) {

@@ -265,7 +265,7 @@ class Swift_CSV_Admin_Settings {
 					<input type="checkbox" id="<?php echo esc_attr( $checkbox_id ); ?>" <?php echo esc_attr( $checked_attr ); ?> <?php echo esc_attr( $disabled_attr ); ?>>
 					<?php
 					echo wp_kses(
-						__( 'Run UpdraftPlus database backup before import', 'swift-csv' ) . ' ('
+						__( 'Run UpdraftPlus database backup before executing import', 'swift-csv' ) . ' ('
 							. '<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">'
 							. esc_html__( 'Pro', 'swift-csv' )
 							. '</a>)',
@@ -282,26 +282,6 @@ class Swift_CSV_Admin_Settings {
 				<p class="description">
 					<?php esc_html_e( 'A backup dialog will open. Start the backup and the import will begin automatically after it completes.', 'swift-csv' ); ?>
 				</p>
-				<?php if ( ! $is_pro_active ) : ?>
-					<p class="description">
-						<?php
-						echo wp_kses(
-							__( 'Activate Swift CSV', 'swift-csv' ) . ' '
-								. '<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">'
-								. esc_html__( 'Pro', 'swift-csv' )
-								. '</a> '
-								. __( 'to enable this safety feature.', 'swift-csv' ),
-							[
-								'a' => [
-									'href'   => [],
-									'target' => [],
-									'rel'    => [],
-								],
-							]
-						);
-						?>
-					</p>
-				<?php endif; ?>
 			</dd>
 		</dl>
 		<?php
@@ -604,7 +584,8 @@ class Swift_CSV_Admin_Settings {
 	public function license_field_html() {
 		$license_data   = get_option( 'swift_csv_pro_license', [] );
 		$products       = is_array( $license_data ) ? ( $license_data['products'] ?? [] ) : [];
-		$pro_product    = is_array( $products ) ? ( $products[328] ?? [] ) : [];
+		$pro_product_id = class_exists( 'Swift_CSV_License_Handler' ) ? Swift_CSV_License_Handler::PRODUCT_ID_PRO : 0;
+		$pro_product    = is_array( $products ) && $pro_product_id ? ( $products[ $pro_product_id ] ?? [] ) : [];
 		$license_key    = is_array( $pro_product ) ? ( $pro_product['key'] ?? '' ) : '';
 		$license_status = Swift_CSV_License_Handler::is_pro_active() ? 'active' : 'inactive';
 		?>

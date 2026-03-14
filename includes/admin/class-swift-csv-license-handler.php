@@ -31,7 +31,7 @@ class Swift_CSV_License_Handler {
 	 * These IDs should be kept in sync with the
 	 * products used by the license server.
 	 */
-	public const PRODUCT_ID_PRO = 328;
+	public const PRODUCT_ID_PRO = 108;
 
 	/**
 	 * Static cache for license data

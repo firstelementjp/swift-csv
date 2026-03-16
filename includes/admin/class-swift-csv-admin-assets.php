@@ -184,35 +184,40 @@ class Swift_CSV_Admin_Assets {
 				true
 			);
 
-			$sql_export_enabled = class_exists( 'Swift_CSV_License_Handler' )
+			$is_pro_license_active = class_exists( 'Swift_CSV_License_Handler' )
 				&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
 				&& Swift_CSV_License_Handler::is_pro_active();
+			$has_pro_plugin        = class_exists( 'Swift_CSV_Pro_Admin' )
+				|| class_exists( 'Swift_CSV_Pro_Ajax_Export_Handler_Direct_SQL' );
+			$sql_export_enabled    = $is_pro_license_active && $has_pro_plugin;
 
 			wp_localize_script(
 				'swift-csv-core',
 				'swiftCSV',
 				[
-					'ajaxUrl'               => admin_url( 'admin-ajax.php' ),
-					'ajaxurl'               => admin_url( 'admin-ajax.php' ),
-					'nonce'                 => wp_create_nonce( 'swift_csv_ajax_nonce' ),
-					'debug'                 => $debug_mode,
-					'advancedSettings'      => [
+					'ajaxUrl'                     => admin_url( 'admin-ajax.php' ),
+					'ajaxurl'                     => admin_url( 'admin-ajax.php' ),
+					'nonce'                       => wp_create_nonce( 'swift_csv_ajax_nonce' ),
+					'debug'                       => $debug_mode,
+					'advancedSettings'            => [
 						'enableLogs' => $advanced_enable_logs,
 					],
-					'hasProAdmin'           => class_exists( 'Swift_CSV_Pro_Admin' ),
-					'enableDirectSqlExport' => $sql_export_enabled,
-					'enableDirectSqlImport' => (bool) apply_filters( 'swift_csv_enable_direct_sql_import', false ),
-					'maxLogEntries'         => apply_filters( 'swift_csv_max_log_entries', 30 ),
-					'highSpeedExportText'   => esc_html__( 'Export (SQL)', 'swift-csv' ),
-					'exportCompleteText'    => esc_html__( 'Export Complete', 'swift-csv' ),
-					'exportFailedText'      => esc_html__( 'Export Failed', 'swift-csv' ),
-					'csvContentNotFound'    => esc_html__( 'CSV content not found in response', 'swift-csv' ),
-					'unknownError'          => esc_html__( 'Unknown error', 'swift-csv' ),
-					'highSpeedImportText'   => esc_html__( 'High-Speed Import', 'swift-csv' ),
-					'standardImportText'    => esc_html__( 'Standard Import (WP Compatible)', 'swift-csv' ),
-					'importCompleteText'    => esc_html__( 'Import Complete', 'swift-csv' ),
-					'importFailedText'      => esc_html__( 'Import Failed', 'swift-csv' ),
-					'messages'              => [
+					'hasProAdmin'                 => class_exists( 'Swift_CSV_Pro_Admin' ),
+					'enableDirectSqlExport'       => $sql_export_enabled,
+					'enableDirectSqlImport'       => (bool) apply_filters( 'swift_csv_enable_direct_sql_import', false ),
+					'maxLogEntries'               => apply_filters( 'swift_csv_max_log_entries', 30 ),
+					'highSpeedExportText'         => esc_html__( 'Export (SQL)', 'swift-csv' ),
+					'exportCompleteText'          => esc_html__( 'Export Complete', 'swift-csv' ),
+					'exportFailedText'            => esc_html__( 'Export failed: ', 'swift-csv' ),
+					'csvContentNotFound'          => esc_html__( 'CSV content not found in response', 'swift-csv' ),
+					'unknownError'                => esc_html__( 'Unknown error', 'swift-csv' ),
+					'directSqlExportFailed'       => esc_html__( 'Direct SQL export failed: ', 'swift-csv' ),
+					'directSqlRuntimeUnavailable' => esc_html__( 'Direct SQL runtime is available in Swift CSV Pro only.', 'swift-csv' ),
+					'highSpeedImportText'         => esc_html__( 'High-Speed Import', 'swift-csv' ),
+					'standardImportText'          => esc_html__( 'Import', 'swift-csv' ),
+					'importCompleteText'          => esc_html__( 'Import Complete', 'swift-csv' ),
+					'importFailedText'            => esc_html__( 'Import Failed', 'swift-csv' ),
+					'messages'                    => [
 						'exportCsv'               => esc_html__( 'Export CSV', 'swift-csv' ),
 						'directSqlExport'         => esc_html__( 'Export (SQL)', 'swift-csv' ),
 						'directSqlProOnly'        => esc_html__( 'Export (SQL) is available in Swift CSV Pro only.', 'swift-csv' ),

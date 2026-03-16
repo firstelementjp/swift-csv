@@ -31,7 +31,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 * @return Exception
 	 */
 	private function get_direct_sql_runtime_exception(): Exception {
-		return new Exception( esc_html__( 'Direct SQL runtime is available in Swift CSV Pro only.', 'swift-csv' ) );
+		return new Exception( 'Direct SQL runtime is available in Swift CSV Pro only.' );
 	}
 
 	/**

@@ -106,7 +106,7 @@ class Swift_CSV_Ajax_Export_Unified {
 			while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
 				ob_end_clean();
 			}
-			wp_send_json_error( __( 'SQL export is available in Swift CSV Pro only.', 'swift-csv' ) );
+			wp_send_json_error( 'Direct SQL runtime is available in Swift CSV Pro only.' );
 			return;
 		}
 
@@ -135,7 +135,7 @@ class Swift_CSV_Ajax_Export_Unified {
 					break;
 			}
 		} catch ( Exception $e ) {
-			$error_message = 'Export failed: ' . wp_kses_post( $e->getMessage() );
+			$error_message = wp_kses_post( $e->getMessage() );
 		}
 
 		while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
@@ -306,8 +306,11 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @return bool
 	 */
 	private function is_direct_sql_export_enabled(): bool {
-		return class_exists( 'Swift_CSV_License_Handler' )
+		$is_pro_license_active = class_exists( 'Swift_CSV_License_Handler' )
 			&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
 			&& Swift_CSV_License_Handler::is_pro_active();
+		$has_pro_plugin        = class_exists( 'Swift_CSV_Pro_Admin' )
+			|| class_exists( 'Swift_CSV_Pro_Ajax_Export_Handler_Direct_SQL' );
+		return $is_pro_license_active && $has_pro_plugin;
 	}
 }

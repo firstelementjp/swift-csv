@@ -188,7 +188,7 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 				'csv_chunk'      => $csv_chunk,
 			];
 		} catch ( Exception $e ) {
-			throw new Exception( 'Direct SQL export failed: ' . esc_html( $e->getMessage() ) );
+			throw new Exception( esc_html( $e->getMessage() ) );
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 	}
@@ -204,7 +204,7 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 	protected function create_export_instance( array $config ): Swift_CSV_Export_Base {
 		unset( $config );
 
-		throw new Exception( __( 'Direct SQL runtime is available in Swift CSV Pro only.', 'swift-csv' ) );
+		throw new Exception( 'Direct SQL runtime is available in Swift CSV Pro only.' );
 	}
 
 	/**

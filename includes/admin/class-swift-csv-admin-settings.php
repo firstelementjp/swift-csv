@@ -166,6 +166,14 @@ class Swift_CSV_Admin_Settings {
 			'swift_csv_advanced_section'
 		);
 
+		add_settings_field(
+			'swift_csv_advanced_tools_access',
+			'',
+			[ $this, 'advanced_tools_access_field_html' ],
+			'swift-csv',
+			'swift_csv_advanced_section'
+		);
+
 		// License section.
 		add_settings_section(
 			'swift_csv_license_section',
@@ -248,13 +256,16 @@ class Swift_CSV_Admin_Settings {
 			return;
 		}
 
-		$is_pro_active = class_exists( 'Swift_CSV_License_Handler' )
+		$is_pro_license_active = class_exists( 'Swift_CSV_License_Handler' )
 			&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
 			&& Swift_CSV_License_Handler::is_pro_active();
+		$has_pro_plugin        = class_exists( 'Swift_CSV_Pro_Admin' )
+			|| class_exists( 'Swift_CSV_Pro_Settings_Helper' );
+		$is_pro_ready          = $is_pro_license_active && $has_pro_plugin;
 
 		$checkbox_id   = 'swift-csv-pro-backup-before-import';
-		$disabled_attr = $is_pro_active ? '' : 'disabled';
-		$checked_attr  = $is_pro_active ? 'checked' : '';
+		$disabled_attr = $is_pro_ready ? '' : 'disabled';
+		$checked_attr  = $is_pro_ready ? 'checked' : '';
 		?>
 		<dl>
 			<dt>
@@ -265,10 +276,7 @@ class Swift_CSV_Admin_Settings {
 					<input type="checkbox" id="<?php echo esc_attr( $checkbox_id ); ?>" <?php echo esc_attr( $checked_attr ); ?> <?php echo esc_attr( $disabled_attr ); ?>>
 					<?php
 					echo wp_kses(
-						__( 'Run UpdraftPlus database backup before executing import', 'swift-csv' ) . ' ('
-							. '<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">'
-							. esc_html__( 'Pro', 'swift-csv' )
-							. '</a>)',
+						__( 'Run UpdraftPlus database backup before executing import', 'swift-csv' ),
 						[
 							'a' => [
 								'href'   => [],
@@ -277,6 +285,12 @@ class Swift_CSV_Admin_Settings {
 							],
 						]
 					);
+					if ( ! $is_pro_ready ) {
+						echo ' (';
+						echo '<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">';
+						esc_html_e( 'Pro', 'swift-csv' );
+						echo '</a>)';
+					}
 					?>
 				</label>
 				<p class="description">
@@ -560,6 +574,59 @@ class Swift_CSV_Admin_Settings {
 				<?php esc_html_e( 'Test import without creating posts', 'swift-csv' ); ?>
 				</label>
 				<p class="description"><?php esc_html_e( 'Run a test import to preview changes without modifying your data. (Dry Run)', 'swift-csv' ); ?></p>
+			</dd>
+		</dl>
+		<?php
+	}
+
+	/**
+	 * Advanced tools access field callback
+	 *
+	 * Displays a Pro feature select for execution permission settings.
+	 * Shows the field even when Pro is inactive, but disables it.
+	 *
+	 * @since 0.9.17
+	 * @return void
+	 */
+	public function advanced_tools_access_field_html() {
+		$is_pro_license_active = class_exists( 'Swift_CSV_License_Handler' )
+			&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
+			&& Swift_CSV_License_Handler::is_pro_active();
+		$has_pro_plugin        = class_exists( 'Swift_CSV_Pro_Admin' )
+			|| class_exists( 'Swift_CSV_Pro_Settings_Helper' );
+		$is_pro_ready          = $is_pro_license_active && $has_pro_plugin;
+
+		$tools_scope = 'admin_only';
+		if ( class_exists( 'Swift_CSV_Pro_Settings_Helper' ) ) {
+			$tools_scope = (string) Swift_CSV_Pro_Settings_Helper::get( 'security', 'tools_access_scope', 'admin_only' );
+		} else {
+			$tools_scope = (string) get_option( 'swift_csv_pro_tools_access_scope', 'admin_only' );
+		}
+
+		$disabled_attr = $is_pro_ready ? '' : 'disabled';
+		?>
+		<dl>
+			<dt>
+				<?php esc_html_e( 'Execution Permission', 'swift-csv' ); ?>
+			</dt>
+			<dd>
+				<label>
+					<select name="tools_access_scope" id="swift-csv-pro-tools-access-scope" <?php echo esc_attr( $disabled_attr ); ?>>
+						<option value="admin_only" <?php selected( $tools_scope, 'admin_only' ); ?>><?php esc_html_e( 'Administrators only', 'swift-csv' ); ?></option>
+						<option value="admin_editor" <?php selected( $tools_scope, 'admin_editor' ); ?>><?php esc_html_e( 'Administrators and Editors', 'swift-csv' ); ?></option>
+					</select>
+					<?php
+					if ( ! $is_pro_ready ) {
+						echo ' (';
+						echo '<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">';
+						esc_html_e( 'Pro', 'swift-csv' );
+						echo '</a>)';
+					}
+					?>
+				</label>
+				<p class="description">
+					<?php esc_html_e( 'Set which user roles can execute import and export operations.', 'swift-csv' ); ?>
+				</p>
 			</dd>
 		</dl>
 		<?php

@@ -175,7 +175,7 @@ const SwiftCSVExportUnified = {
 
 			// Add starting message
 			window.SwiftCSVUtils.addLogEntry(
-				swiftCSV.messages.startingDirectSqlExport || 'Starting export process (SQL)...',
+				swiftCSV.messages.startingDirectSqlExport || swiftCSV.messages.startingExport,
 				'info',
 				'export'
 			);
@@ -308,7 +308,19 @@ const SwiftCSVExportUnified = {
 		})
 			.then(response => {
 				if (!response || !response.success) {
-					throw new Error((response && response.data) || 'Direct SQL export failed');
+					let errorMessage = (response && response.data) || '';
+					// If this is the known Pro-only runtime error, pass only the localized reason.
+					// The UI module will prepend the common "Export failed" prefix.
+					if (
+						errorMessage.includes(
+							'Direct SQL runtime is available in Swift CSV Pro only.'
+						)
+					) {
+						errorMessage =
+							swiftCSV.directSqlRuntimeUnavailable ||
+							'Direct SQL runtime is available in Swift CSV Pro only.';
+					}
+					throw new Error(errorMessage);
 				}
 
 				exportSession = response.export_session || exportSession;
@@ -372,6 +384,16 @@ const SwiftCSVExportUnified = {
 				if (isCancelled) {
 					return;
 				}
+				let localizedErrorMessage = error.message || swiftCSV.messages.unknownError;
+				if (
+					localizedErrorMessage &&
+					localizedErrorMessage.includes(
+						'Direct SQL runtime is available in Swift CSV Pro only.'
+					)
+				) {
+					localizedErrorMessage =
+						swiftCSV.directSqlRuntimeUnavailable || localizedErrorMessage;
+				}
 				// Add error log
 				if (
 					formData.enable_logs === '1' &&
@@ -379,16 +401,13 @@ const SwiftCSVExportUnified = {
 					window.SwiftCSVUtils.addLogEntry
 				) {
 					window.SwiftCSVUtils.addLogEntry(
-						'SQL ' +
-							swiftCSV.messages.exportError +
-							' ' +
-							(error.message || swiftCSV.messages.unknownError),
+						'SQL ' + swiftCSV.messages.exportError + ' ' + localizedErrorMessage,
 						'error',
 						'export'
 					);
 				}
 
-				this.showError(button, error.message || swiftCSV.messages.failed);
+				this.showError(button, localizedErrorMessage || swiftCSV.messages.failed);
 				button.disabled = false;
 			});
 	},

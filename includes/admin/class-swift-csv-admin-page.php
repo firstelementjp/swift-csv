@@ -230,9 +230,12 @@ class Swift_CSV_Admin_Page {
 					<?php do_settings_fields( 'swift-csv', 'swift_csv_export_section' ); ?>
 						<?php do_action( 'swift_csv_after_export_settings_fields', $this->admin ); ?>
 						<?php
-						$sql_export_enabled = class_exists( 'Swift_CSV_License_Handler' )
+						$is_pro_license_active = class_exists( 'Swift_CSV_License_Handler' )
 							&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
 							&& Swift_CSV_License_Handler::is_pro_active();
+						$has_pro_plugin        = class_exists( 'Swift_CSV_Pro_Admin' )
+							|| class_exists( 'Swift_CSV_Pro_Ajax_Export_Handler_Direct_SQL' );
+						$sql_export_enabled    = $is_pro_license_active && $has_pro_plugin;
 						?>
 
 						<p class="submit">
@@ -340,11 +343,8 @@ class Swift_CSV_Admin_Page {
 							<?php do_action( 'swift_csv_after_import_settings_fields', $this->admin ); ?>
 
 						<p class="submit">
-						<button type="button" class="button button-secondary" id="high-speed-import-btn" disabled>
-							<?php esc_html_e( 'High-Speed Import', 'swift-csv' ); ?>
-						</button>
-						<button type="submit" name="ajax_import_csv" class="button button-primary" id="ajax-import-csv-btn" style="margin-left: 10px;">
-							<?php esc_html_e( 'Standard Import (WP Compatible)', 'swift-csv' ); ?>
+							<button type="submit" name="ajax_import_csv" class="button button-primary" id="ajax-import-csv-btn" style="margin-left: 10px;">
+							<?php esc_html_e( 'Import', 'swift-csv' ); ?>
 						</button>
 						<button type="button" class="button" id="ajax-import-cancel-btn" style="display: none; margin-left: 10px;">
 							<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
@@ -421,53 +421,53 @@ class Swift_CSV_Admin_Page {
 
 				if ( ! $pro_is_loaded || ! $is_license_active ) :
 					?>
-						<div class="swift-csv-pro-promo">
-							<hr>
-							<h3><?php esc_html_e( 'Unlock more with Swift CSV Pro', 'swift-csv' ); ?></h3>
-							<p><?php esc_html_e( 'With a Pro license, you can:', 'swift-csv' ); ?></p>
-							<ul>
-								<li>
-									<h4><?php esc_html_e( 'ACF Integration', 'swift-csv' ); ?></h4>
-									<ul>
-										<li><?php esc_html_e( 'Export and import Advanced Custom Fields with proper formatting', 'swift-csv' ); ?></li>
-										<li><?php esc_html_e( 'Support for all ACF field types including taxonomy, repeater, and relationship fields', 'swift-csv' ); ?></li>
-										<li><?php esc_html_e( 'Automatic field type detection and proper value formatting', 'swift-csv' ); ?></li>
-									</ul>
-								</li>
-								<li>
-									<h4><?php esc_html_e( 'Advanced Features', 'swift-csv' ); ?></h4>
-									<ul>
-										<li><?php esc_html_e( 'Batch processing for large datasets (1000+ records)', 'swift-csv' ); ?></li>
-										<li><?php esc_html_e( 'Real-time progress tracking with AJAX', 'swift-csv' ); ?></li>
-										<li><?php esc_html_e( 'Custom field filtering and selection', 'swift-csv' ); ?></li>
-										<li><?php esc_html_e( 'Advanced taxonomy handling with term ID or name export', 'swift-csv' ); ?></li>
-									</ul>
-								</li>
-								<li>
-									<h4><?php esc_html_e( 'Import Enhancements', 'swift-csv' ); ?></h4>
-									<ul>
-										<li><?php esc_html_e( 'Multi-value custom fields support', 'swift-csv' ); ?></li>
-										<li><?php esc_html_e( 'Advanced filtering and sorting options', 'swift-csv' ); ?></li>
-										<li><?php esc_html_e( 'Custom export templates and formats', 'swift-csv' ); ?></li>
-										<li><?php esc_html_e( 'Scheduled export functionality', 'swift-csv' ); ?></li>
-									</ul>
-								</li>
-								<li>
-									<h4><?php esc_html_e( 'Support & Updates', 'swift-csv' ); ?></h4>
-									<ul>
-										<li><?php esc_html_e( 'Priority customer support', 'swift-csv' ); ?></li>
-										<li><?php esc_html_e( 'Automatic updates from our update server', 'swift-csv' ); ?></li>
-										<li><?php esc_html_e( 'Access to beta features and early releases', 'swift-csv' ); ?></li>
-										<li><?php esc_html_e( 'Extended documentation and tutorials', 'swift-csv' ); ?></li>
-									</ul>
-								</li>
-							</ul>
-							<a href="<?php echo esc_url( SWIFT_CSV_PRO_URL ); ?>" target="_blank" class="button button-primary button-hero">
-							<?php esc_html_e( 'View Swift CSV Pro Details', 'swift-csv' ); ?>
-							</a>
-						</div>
-						<?php
-						endif;
+					<div class="swift-csv-pro-promo">
+						<hr>
+						<h3><?php esc_html_e( 'Unlock more with Swift CSV Pro', 'swift-csv' ); ?></h3>
+						<p><?php esc_html_e( 'With a Pro license, you can:', 'swift-csv' ); ?></p>
+						<ul>
+							<li>
+								<h4><?php esc_html_e( 'ACF Integration', 'swift-csv' ); ?></h4>
+								<ul>
+									<li><?php esc_html_e( 'Import and export ACF data while preserving field formatting', 'swift-csv' ); ?></li>
+									<li><?php esc_html_e( 'Export taxonomy values as readable names and handle multi-value fields with pipe-separated values', 'swift-csv' ); ?></li>
+									<li><?php esc_html_e( 'Support major ACF field types including Taxonomy, User, File, Relationship, Repeater, and Flexible Content fields', 'swift-csv' ); ?></li>
+								</ul>
+							</li>
+							<li>
+								<h4><?php esc_html_e( 'Security', 'swift-csv' ); ?></h4>
+								<ul>
+									<li><?php esc_html_e( 'Shared execution-only password protection for import and export operations', 'swift-csv' ); ?></li>
+									<li><?php esc_html_e( 'Require the logged-in user password at execution time', 'swift-csv' ); ?></li>
+									<li><?php esc_html_e( 'UpdraftPlus database backup before import', 'swift-csv' ); ?></li>
+									<li><?php esc_html_e( 'Access control for the tools page and execution permissions', 'swift-csv' ); ?></li>
+								</ul>
+							</li>
+							<li>
+								<h4><?php esc_html_e( 'Direct SQL Export Mode', 'swift-csv' ); ?></h4>
+								<ul>
+									<li><?php esc_html_e( 'Customize export queries directly for advanced workflows and integrations', 'swift-csv' ); ?></li>
+								</ul>
+								<h4><?php esc_html_e( 'Support & Updates', 'swift-csv' ); ?></h4>
+								<ul>
+									<li><?php esc_html_e( 'Dedicated customer support', 'swift-csv' ); ?></li>
+									<li><?php esc_html_e( 'Automatic updates from our update server', 'swift-csv' ); ?></li>
+								</ul>
+							</li>
+							<li>
+								<h4><?php esc_html_e( 'Upcoming Features', 'swift-csv' ); ?></h4>
+								<ul>
+									<li><?php esc_html_e( 'Downloadable detailed export/import operation logs', 'swift-csv' ); ?></li>
+									<li><?php esc_html_e( 'AI (LLM)-powered security checks', 'swift-csv' ); ?></li>
+								</ul>
+							</li>
+						</ul>
+						<a href="<?php echo esc_url( SWIFT_CSV_PRO_URL ); ?>" target="_blank" class="button button-primary button-hero">
+						<?php esc_html_e( 'View Swift CSV Pro Details', 'swift-csv' ); ?>
+						</a>
+					</div>
+					<?php
+					endif;
 				?>
 				</div>
 			</div>
@@ -498,12 +498,12 @@ class Swift_CSV_Admin_Page {
 				<a href="<?php echo esc_url( SWIFT_CSV_DOCS_URL ); ?>"
 					target="_blank"
 					title="<?php esc_attr_e( 'Go to the instruction manual', 'swift-csv' ); ?>">
-				<?php esc_html_e( 'Documentation', 'swift-csv' ); ?>
+			<?php esc_html_e( 'Documentation', 'swift-csv' ); ?>
 				</a>
 				<a href="<?php echo esc_url( SWIFT_CSV_DEEPWIKI_URL ); ?>"
 					target="_blank"
 					title="<?php esc_attr_e( 'Go to DeepWiki documentation', 'swift-csv' ); ?>">
-				<?php esc_html_e( 'DeepWiki', 'swift-csv' ); ?>
+			<?php esc_html_e( 'DeepWiki', 'swift-csv' ); ?>
 				</a>
 				<a href="https://github.com/firstelementjp/swift-csv"
 					target="_blank"
@@ -550,46 +550,46 @@ class Swift_CSV_Admin_Page {
 				</a>
 			</div>
 		</div>
-		<?php
+			<?php
 	}
 
-	/**
-	 * Render export batch progress UI.
-	 *
-	 * @since 0.9.8
-	 * @param string $batch_id Batch ID.
-	 * @return void
-	 */
+		/**
+		 * Render export batch progress UI.
+		 *
+		 * @since 0.9.8
+		 * @param string $batch_id Batch ID.
+		 * @return void
+		 */
 	private function render_export_batch_progress( $batch_id ) {
 		?>
 		<div class="notice notice-info">
 			<p><?php echo esc_html( sprintf( 'Batch export: %s', (string) $batch_id ) ); ?></p>
 		</div>
-		<?php
+			<?php
 	}
 
-	/**
-	 * Render import batch progress UI.
-	 *
-	 * @since 0.9.8
-	 * @param string $batch_id Batch ID.
-	 * @return void
-	 */
+		/**
+		 * Render import batch progress UI.
+		 *
+		 * @since 0.9.8
+		 * @param string $batch_id Batch ID.
+		 * @return void
+		 */
 	private function render_batch_progress( $batch_id ) {
 		?>
 		<div class="notice notice-info">
 			<p><?php echo esc_html( sprintf( 'Batch import: %s', (string) $batch_id ) ); ?></p>
 		</div>
-		<?php
+			<?php
 	}
 
-	/**
-	 * Render import results UI.
-	 *
-	 * @since 0.9.8
-	 * @param array $import_results Import results.
-	 * @return void
-	 */
+		/**
+		 * Render import results UI.
+		 *
+		 * @since 0.9.8
+		 * @param array $import_results Import results.
+		 * @return void
+		 */
 	private function render_import_results( $import_results ) {
 		$imported = (int) ( $import_results['imported'] ?? 0 );
 		$updated  = (int) ( $import_results['updated'] ?? 0 );
@@ -598,17 +598,17 @@ class Swift_CSV_Admin_Page {
 		?>
 		<div class="notice notice-success is-dismissible">
 			<p>
-				<?php
-				printf(
-					/* translators: 1: imported count, 2: updated count, 3: error count */
-					esc_html__( 'Import finished. Created: %1$s, Updated: %2$s, Errors: %3$s', 'swift-csv' ),
-					esc_html( (string) $imported ),
-					esc_html( (string) $updated ),
-					esc_html( (string) $errors )
-				);
-				?>
+			<?php
+			printf(
+				/* translators: 1: imported count, 2: updated count, 3: error count */
+				esc_html__( 'Import finished. Created: %1$s, Updated: %2$s, Errors: %3$s', 'swift-csv' ),
+				esc_html( (string) $imported ),
+				esc_html( (string) $updated ),
+				esc_html( (string) $errors )
+			);
+			?>
 			</p>
-			<?php if ( ! empty( $import_results['error_details'] ) && is_array( $import_results['error_details'] ) ) : ?>
+				<?php if ( ! empty( $import_results['error_details'] ) && is_array( $import_results['error_details'] ) ) : ?>
 				<ul>
 					<?php foreach ( $import_results['error_details'] as $detail ) : ?>
 						<li><?php echo esc_html( (string) $detail ); ?></li>
@@ -616,6 +616,6 @@ class Swift_CSV_Admin_Page {
 				</ul>
 			<?php endif; ?>
 		</div>
-		<?php
+			<?php
 	}
 }

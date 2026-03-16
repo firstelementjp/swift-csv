@@ -184,6 +184,10 @@ class Swift_CSV_Admin_Assets {
 				true
 			);
 
+			$sql_export_enabled = class_exists( 'Swift_CSV_License_Handler' )
+				&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
+				&& Swift_CSV_License_Handler::is_pro_active();
+
 			wp_localize_script(
 				'swift-csv-core',
 				'swiftCSV',
@@ -196,10 +200,10 @@ class Swift_CSV_Admin_Assets {
 						'enableLogs' => $advanced_enable_logs,
 					],
 					'hasProAdmin'           => class_exists( 'Swift_CSV_Pro_Admin' ),
+					'enableDirectSqlExport' => $sql_export_enabled,
 					'enableDirectSqlImport' => (bool) apply_filters( 'swift_csv_enable_direct_sql_import', false ),
 					'maxLogEntries'         => apply_filters( 'swift_csv_max_log_entries', 30 ),
-					'highSpeedExportText'   => esc_html__( 'High-Speed Export', 'swift-csv' ),
-					'standardExportText'    => esc_html__( 'Standard Export (WP Compatible)', 'swift-csv' ),
+					'highSpeedExportText'   => esc_html__( 'Export (SQL)', 'swift-csv' ),
 					'exportCompleteText'    => esc_html__( 'Export Complete', 'swift-csv' ),
 					'exportFailedText'      => esc_html__( 'Export Failed', 'swift-csv' ),
 					'csvContentNotFound'    => esc_html__( 'CSV content not found in response', 'swift-csv' ),
@@ -210,6 +214,8 @@ class Swift_CSV_Admin_Assets {
 					'importFailedText'      => esc_html__( 'Import Failed', 'swift-csv' ),
 					'messages'              => [
 						'exportCsv'               => esc_html__( 'Export CSV', 'swift-csv' ),
+						'directSqlExport'         => esc_html__( 'Export (SQL)', 'swift-csv' ),
+						'directSqlProOnly'        => esc_html__( 'Export (SQL) is available in Swift CSV Pro only.', 'swift-csv' ),
 						'startExport'             => esc_html__( 'Start Export', 'swift-csv' ),
 						'importCsv'               => esc_html__( 'Import CSV', 'swift-csv' ),
 						'startImport'             => esc_html__( 'Start Import', 'swift-csv' ),
@@ -270,7 +276,7 @@ class Swift_CSV_Admin_Assets {
 						'batchExportStarted'      => esc_html__( 'Batch export started', 'swift-csv' ),
 						'exportAction'            => esc_html__( 'Exported', 'swift-csv' ),
 						'exportPrefix'            => esc_html__( 'Export', 'swift-csv' ),
-						'startingDirectSqlExport' => esc_html__( 'Starting export process (High-Speed)...', 'swift-csv' ),
+						'startingDirectSqlExport' => esc_html__( 'Starting export process (SQL)...', 'swift-csv' ),
 						'secondsLabel'            => esc_html__( 's', 'swift-csv' ),
 						'rowLabel'                => esc_html__( 'Row', 'swift-csv' ),
 						'yes'                     => esc_html__( 'Yes', 'swift-csv' ),

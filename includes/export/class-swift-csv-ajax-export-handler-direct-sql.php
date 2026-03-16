@@ -81,7 +81,7 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 				$headers_key  = 'swift_csv_csv_headers_' . get_current_user_id() . '_' . $export_session;
 				$headers_line = get_transient( $headers_key );
 				if ( ! is_string( $headers_line ) || '' === $headers_line ) {
-					$export       = new Swift_CSV_Export_Direct_SQL( $config );
+					$export       = $this->create_export_instance( $config );
 					$headers      = $export->direct_sql_get_post_headers();
 					$headers_line = implode( ',', array_map( [ $this, 'escape_csv_field' ], $headers ) );
 					set_transient( $headers_key, $headers_line, HOUR_IN_SECONDS );
@@ -119,7 +119,7 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 			}
 
 			// Create Direct SQL Export instance.
-			$export = isset( $export ) && $export instanceof Swift_CSV_Export_Direct_SQL ? $export : new Swift_CSV_Export_Direct_SQL( $config );
+			$export = isset( $export ) && $export instanceof Swift_CSV_Export_Base ? $export : $this->create_export_instance( $config );
 
 			// Get posts for current batch.
 			$posts_data = $export->direct_sql_batch_fetch_posts( $start_row, $batch_size );
@@ -191,6 +191,20 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 			throw new Exception( 'Direct SQL export failed: ' . esc_html( $e->getMessage() ) );
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
+	}
+
+	/**
+	 * Create the Direct SQL export runtime instance.
+	 *
+	 * @since 0.9.17
+	 * @param array $config Export configuration.
+	 * @return Swift_CSV_Export_Base
+	 * @throws Exception Always thrown because Direct SQL runtime is owned by Swift CSV Pro.
+	 */
+	protected function create_export_instance( array $config ): Swift_CSV_Export_Base {
+		unset( $config );
+
+		throw new Exception( __( 'Direct SQL runtime is available in Swift CSV Pro only.', 'swift-csv' ) );
 	}
 
 	/**

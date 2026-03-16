@@ -91,26 +91,114 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 			'offset'         => (int) $offset,
 			'orderby'        => 'date',
 			'order'          => 'DESC',
-			'fields'         => 'ids',
 			'no_found_rows'  => true,
 		];
 
-		$post_ids = get_posts( $query_args );
+		$posts = get_posts( $query_args );
+		if ( empty( $posts ) ) {
+			return [];
+		}
+
+		$post_ids = array_values(
+			array_filter(
+				array_map(
+					static function ( $post ): int {
+						return ( $post instanceof \WP_Post ) ? (int) $post->ID : 0;
+					},
+					(array) $posts
+				)
+			)
+		);
+
 		if ( empty( $post_ids ) ) {
 			return [];
 		}
 
-		$headers = $this->get_complete_headers( $this->config, [], 'wp_compatible' );
+		$headers              = $this->get_complete_headers( $this->config, [], 'wp_compatible' );
+		$custom_field_headers = [];
+		$taxonomy_data        = [];
+		$taxonomy_names       = [];
+		$taxonomy_format      = $this->config['taxonomy_format'] ?? 'name';
+
+		if ( ! empty( $this->config['include_custom_fields'] ) ) {
+			update_meta_cache( 'post', $post_ids );
+
+			foreach ( (array) $headers as $header ) {
+				if ( ! is_string( $header ) || 0 !== strpos( $header, 'cf_' ) ) {
+					continue;
+				}
+				$custom_field_headers[] = $header;
+			}
+		}
+
+		if ( ! empty( $this->config['include_taxonomies'] ) ) {
+			$post_type_for_tax = $this->config['post_type'] ?? 'post';
+			$taxonomy_names    = get_object_taxonomies( $post_type_for_tax, 'names' );
+			$taxonomy_names    = is_array( $taxonomy_names ) ? array_values( array_filter( array_map( 'sanitize_key', $taxonomy_names ) ) ) : [];
+
+			if ( ! empty( $taxonomy_names ) ) {
+				update_object_term_cache( $post_ids, $post_type_for_tax );
+
+				$terms = wp_get_object_terms(
+					$post_ids,
+					$taxonomy_names,
+					[
+						'fields' => 'all_with_object_id',
+					]
+				);
+
+				if ( ! is_wp_error( $terms ) && is_array( $terms ) ) {
+					foreach ( $terms as $term ) {
+						$object_id = isset( $term->object_id ) ? (int) $term->object_id : 0;
+						if ( 0 === $object_id ) {
+							continue;
+						}
+
+						$taxonomy = isset( $term->taxonomy ) ? (string) $term->taxonomy : '';
+						if ( '' === $taxonomy ) {
+							continue;
+						}
+
+						$term_value = ( 'id' === $taxonomy_format ) ? (string) $term->term_id : (string) $term->name;
+						if ( '' === $term_value ) {
+							continue;
+						}
+
+						if ( ! isset( $taxonomy_data[ $object_id ] ) ) {
+							$taxonomy_data[ $object_id ] = [];
+						}
+
+						if ( ! isset( $taxonomy_data[ $object_id ][ $taxonomy ] ) ) {
+							$taxonomy_data[ $object_id ][ $taxonomy ] = [];
+						}
+
+						$taxonomy_data[ $object_id ][ $taxonomy ][] = $term_value;
+					}
+				}
+			}
+		}
+
+		/**
+		 * Allow integrations to preload batch-scoped export data.
+		 *
+		 * @since 0.9.15
+		 *
+		 * @param array<int>                 $post_ids Post IDs included in the batch.
+		 * @param array<int, \WP_Post>       $posts Raw post objects included in the batch.
+		 * @param array<int, string>         $headers Complete export headers.
+		 * @param array<string, mixed>       $config Export configuration.
+		 * @param string                     $context Export context.
+		 */
+		do_action( 'swift_csv_export_batch_prepare', $post_ids, $posts, $headers, $this->config, 'wp_compatible' );
 
 		$rows = [];
-		foreach ( (array) $post_ids as $post_id ) {
-			$post_id = (int) $post_id;
-			if ( 0 === $post_id ) {
+		foreach ( (array) $posts as $post ) {
+			if ( ! ( $post instanceof \WP_Post ) ) {
 				continue;
 			}
 
-			$post = get_post( $post_id );
-			if ( ! $post ) {
+			$post_id = (int) $post->ID;
+			if ( 0 === $post_id ) {
 				continue;
 			}
 
@@ -135,10 +223,9 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 			];
 
 			if ( ! empty( $this->config['include_custom_fields'] ) ) {
-				foreach ( (array) $headers as $header ) {
-					if ( ! is_string( $header ) || 0 !== strpos( $header, 'cf_' ) ) {
-						continue;
-					}
+				$post_meta = get_post_meta( $post_id );
+
+				foreach ( $custom_field_headers as $header ) {
 					$meta_key = substr( $header, 3 );
 					if ( ! is_string( $meta_key ) || '' === $meta_key ) {
 						continue;
@@ -146,7 +233,8 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 					if ( empty( $this->config['include_private_meta'] ) && 0 === strpos( $meta_key, '_' ) ) {
 						continue;
 					}
-					$values         = get_post_meta( $post_id, $meta_key, false );
+
+					$values         = $post_meta[ $meta_key ] ?? [];
 					$values         = is_array( $values ) ? array_values(
 						array_filter(
 							array_map(
@@ -165,20 +253,8 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 			}
 
 			if ( ! empty( $this->config['include_taxonomies'] ) ) {
-				$post_type_for_tax = $this->config['post_type'] ?? 'post';
-				$taxonomy_names    = get_object_taxonomies( $post_type_for_tax, 'names' );
-				$taxonomy_names    = is_array( $taxonomy_names ) ? array_values( array_filter( array_map( 'sanitize_key', $taxonomy_names ) ) ) : [];
-				$taxonomy_format   = $this->config['taxonomy_format'] ?? 'name';
-
 				foreach ( $taxonomy_names as $taxonomy ) {
-					$terms = wp_get_object_terms( $post_id, $taxonomy, [ 'fields' => 'all' ] );
-					if ( is_wp_error( $terms ) || ! is_array( $terms ) ) {
-						continue;
-					}
-					$values = [];
-					foreach ( $terms as $term ) {
-						$values[] = ( 'id' === $taxonomy_format ) ? (string) $term->term_id : (string) $term->name;
-					}
+					$values                    = $taxonomy_data[ $post_id ][ $taxonomy ] ?? [];
 					$values                    = array_values( array_unique( array_filter( array_map( 'strval', $values ) ) ) );
 					$row[ 'tax_' . $taxonomy ] = Swift_CSV_Helper::join_pipe_separated_values( $values );
 				}

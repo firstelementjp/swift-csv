@@ -36,7 +36,7 @@ const SwiftCSVExportUnified = {
 	bindEvents() {
 		const self = this;
 
-		// Standard Export button click handler
+		// WP compatible export button click handler.
 		document.addEventListener('click', function (e) {
 			if (e.target && e.target.id === 'ajax-export-csv-btn') {
 				e.preventDefault();
@@ -44,13 +44,29 @@ const SwiftCSVExportUnified = {
 			}
 		});
 
-		// Direct SQL Export button click handler
+		// Direct SQL export button click handler.
 		document.addEventListener('click', function (e) {
 			if (e.target && e.target.id === 'direct-sql-export-btn') {
 				e.preventDefault();
+				if (!swiftCSV.enableDirectSqlExport || e.target.disabled) {
+					self.showSqlProOnlyMessage();
+					return;
+				}
 				self.handleExport('direct_sql');
 			}
 		});
+	},
+
+	/**
+	 * Show SQL export availability message.
+	 */
+	showSqlProOnlyMessage() {
+		if (window.SwiftCSVUtils && window.SwiftCSVUtils.showNotice) {
+			window.SwiftCSVUtils.showNotice(swiftCSV.messages.directSqlProOnly, 'warning');
+			return;
+		}
+
+		window.alert(swiftCSV.messages.directSqlProOnly);
 	},
 
 	/**
@@ -159,8 +175,7 @@ const SwiftCSVExportUnified = {
 
 			// Add starting message
 			window.SwiftCSVUtils.addLogEntry(
-				swiftCSV.messages.startingDirectSqlExport ||
-					'Starting export process (High-Speed)...',
+				swiftCSV.messages.startingDirectSqlExport || 'Starting export process (SQL)...',
 				'info',
 				'export'
 			);
@@ -277,7 +292,7 @@ const SwiftCSVExportUnified = {
 				}
 				cleanupUi();
 				button.disabled = false;
-				button.textContent = swiftCSV.messages.directSqlExport || 'High-Speed Export';
+				button.textContent = swiftCSV.messages.directSqlExport || 'Export (SQL)';
 			};
 
 			ui.cancelBtn._swiftCsvDirectSqlCancelHandler = cancelHandler;
@@ -364,7 +379,7 @@ const SwiftCSVExportUnified = {
 					window.SwiftCSVUtils.addLogEntry
 				) {
 					window.SwiftCSVUtils.addLogEntry(
-						'Direct SQL ' +
+						'SQL ' +
 							swiftCSV.messages.exportError +
 							' ' +
 							(error.message || swiftCSV.messages.unknownError),

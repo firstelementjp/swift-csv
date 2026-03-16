@@ -229,12 +229,17 @@ class Swift_CSV_Admin_Page {
 
 					<?php do_settings_fields( 'swift-csv', 'swift_csv_export_section' ); ?>
 						<?php do_action( 'swift_csv_after_export_settings_fields', $this->admin ); ?>
+						<?php
+						$sql_export_enabled = class_exists( 'Swift_CSV_License_Handler' )
+							&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
+							&& Swift_CSV_License_Handler::is_pro_active();
+						?>
 
 						<p class="submit">
-							<button type="button" class="button button-primary" id="direct-sql-export-btn">
-							<?php esc_html_e( 'High-Speed Export', 'swift-csv' ); ?>
+							<input type="submit" name="ajax_export_csv" class="button button-primary" id="ajax-export-csv-btn" value="<?php esc_html_e( 'Export', 'swift-csv' ); ?>">
+							<button type="button" class="button button-secondary" id="direct-sql-export-btn" style="margin-left: 10px;" <?php disabled( ! $sql_export_enabled ); ?>>
+							<?php esc_html_e( 'Export (SQL)', 'swift-csv' ); ?>
 							</button>
-							<input type="submit" name="ajax_export_csv" class="button button-secondary" id="ajax-export-csv-btn" value="<?php esc_html_e( 'Standard Export (WP Compatible)', 'swift-csv' ); ?>" style="margin-left: 10px;">
 							<button type="button" class="button" id="ajax-export-cancel-btn" style="display: none;">
 					<?php esc_html_e( 'Cancel', 'swift-csv' ); ?>
 				</button>

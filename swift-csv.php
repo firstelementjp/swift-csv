@@ -26,7 +26,7 @@ define( 'SWIFT_CSV_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );
 define( 'SWIFT_CSV_PRO_URL', 'https://www.firstelement.co.jp/swift-csv/' );
 define( 'SWIFT_CSV_DOCS_URL', 'https://firstelementjp.github.io/swift-csv/#/' );
-define( 'SWIFT_CSV_DEEPWIKI_URL', 'https://deepwiki.com/firstelementjp/swift-csv' );
+define( 'SWIFT_CSV_DEEPWIKI_URL', 'https://deepwiki.com/firstelementjp/swift-csv/' );
 
 /**
  * Custom autoloader for Swift CSV classes
@@ -135,6 +135,11 @@ function swift_csv_init() {
 		Swift_CSV_Settings_Helper::migrate_legacy_options();
 	}
 
+	if ( class_exists( 'Swift_CSV_License_Handler' ) ) {
+		Swift_CSV_License_Handler::register_license_resync_cron();
+		add_action( 'admin_init', [ 'Swift_CSV_License_Handler', 'maybe_schedule_license_resync' ] );
+	}
+
 	if ( is_admin() ) {
 		new Swift_CSV_Admin();
 	}
@@ -156,6 +161,11 @@ function swift_csv_init() {
 function swift_csv_activate() {
 	// Clean up any orphaned cron jobs from previous installations.
 	wp_clear_scheduled_hook( 'swift_csv_process_batch' );
+	if ( class_exists( 'Swift_CSV_License_Handler' ) ) {
+		Swift_CSV_License_Handler::clear_license_resync_schedule();
+		Swift_CSV_License_Handler::register_license_resync_cron();
+		Swift_CSV_License_Handler::maybe_schedule_license_resync();
+	}
 
 	// Create temp directory and cleanup old files.
 	$upload_dir = wp_upload_dir();
@@ -204,4 +214,7 @@ function swift_csv_activate() {
 function swift_csv_deactivate() {
 	// Clean up all scheduled cron jobs.
 	wp_clear_scheduled_hook( 'swift_csv_process_batch' );
+	if ( class_exists( 'Swift_CSV_License_Handler' ) ) {
+		Swift_CSV_License_Handler::clear_license_resync_schedule();
+	}
 }

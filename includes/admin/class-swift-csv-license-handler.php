@@ -26,6 +26,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Swift_CSV_License_Handler {
 
 	/**
+	 * Cron hook name for license resync.
+	 *
+	 * @since 0.9.9
+	 * @var string
+	 */
+	public const CRON_HOOK_RESYNC_LICENSE = 'swift_csv_resync_license';
+
+	/**
 	 * Product IDs for each paid add-on.
 	 *
 	 * These IDs should be kept in sync with the
@@ -65,6 +73,17 @@ class Swift_CSV_License_Handler {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Fetch current license status from the license server.
+	 *
+	 * @since 0.9.9
+	 * @param string $license_key The license key.
+	 * @return array The response from the license server.
+	 */
+	public function fetch_status( $license_key ) {
+		return $this->call_license_api( 'status', $license_key );
 	}
 
 	/**
@@ -137,6 +156,7 @@ class Swift_CSV_License_Handler {
 					'action'      => $action,
 					'license_key' => $license_key,
 					'productId'   => $this->product_id,
+					'product_id'  => $this->product_id,
 					'instance'    => home_url(),
 				],
 				'timeout' => 30,
@@ -217,14 +237,15 @@ class Swift_CSV_License_Handler {
 			$product_id = (int) key( $products );
 		}
 
-		$status = isset( $entry['status'] ) ? (string) $entry['status'] : 'inactive';
-		$data   = isset( $entry['data'] ) && is_array( $entry['data'] ) ? $entry['data'] : [];
+		$status     = isset( $entry['status'] ) ? (string) $entry['status'] : 'inactive';
+		$data       = isset( $entry['data'] ) && is_array( $entry['data'] ) ? $entry['data'] : [];
+		$is_expired = self::is_entry_expired( $entry );
 
 		return [
 			'status'     => $status,
 			'data'       => $data,
 			'product_id' => $product_id,
-			'is_active'  => ( 'active' === $status ),
+			'is_active'  => ( 'active' === $status ) && ! $is_expired,
 		];
 	}
 
@@ -242,9 +263,167 @@ class Swift_CSV_License_Handler {
 			return false;
 		}
 
-		$status = isset( $products[ $product_id ]['status'] ) ? (string) $products[ $product_id ]['status'] : 'inactive';
+		$entry  = $products[ $product_id ];
+		$status = isset( $entry['status'] ) ? (string) $entry['status'] : 'inactive';
+		if ( 'active' !== $status ) {
+			return false;
+		}
+		if ( self::is_entry_expired( $entry ) ) {
+			return false;
+		}
+		return true;
+	}
 
-		return ( 'active' === $status );
+	/**
+	 * Check if the given product license entry is expired.
+	 *
+	 * @since 0.9.9
+	 * @param array $entry Product license entry.
+	 * @return bool True if expired.
+	 */
+	private static function is_entry_expired( $entry ) {
+		if ( ! is_array( $entry ) ) {
+			return false;
+		}
+
+		$data = $entry['data'] ?? [];
+		if ( ! is_array( $data ) ) {
+			$data = [];
+		}
+
+		$expires_at = '';
+		if ( isset( $data['expiresAt'] ) ) {
+			$expires_at = (string) $data['expiresAt'];
+		} elseif ( isset( $data['expires_at'] ) ) {
+			$expires_at = (string) $data['expires_at'];
+		} elseif ( isset( $data['data']['expiresAt'] ) ) {
+			$expires_at = (string) $data['data']['expiresAt'];
+		} elseif ( isset( $data['data']['expires_at'] ) ) {
+			$expires_at = (string) $data['data']['expires_at'];
+		}
+
+		if ( '' === $expires_at ) {
+			return false;
+		}
+
+		$expires_ts = strtotime( $expires_at );
+		if ( ! $expires_ts ) {
+			return false;
+		}
+
+		return time() > $expires_ts;
+	}
+
+	/**
+	 * Register wp-cron hook for license resync.
+	 *
+	 * @since 0.9.9
+	 * @return void
+	 */
+	public static function register_license_resync_cron() {
+		add_action( self::CRON_HOOK_RESYNC_LICENSE, [ __CLASS__, 'cron_resync_license' ] );
+	}
+
+	/**
+	 * Schedule daily license resync if not already scheduled.
+	 *
+	 * @since 0.9.9
+	 * @return void
+	 */
+	public static function maybe_schedule_license_resync() {
+		if ( wp_next_scheduled( self::CRON_HOOK_RESYNC_LICENSE ) ) {
+			return;
+		}
+		wp_schedule_event( time(), 'daily', self::CRON_HOOK_RESYNC_LICENSE );
+	}
+
+	/**
+	 * Clear scheduled license resync.
+	 *
+	 * @since 0.9.9
+	 * @return void
+	 */
+	public static function clear_license_resync_schedule() {
+		wp_clear_scheduled_hook( self::CRON_HOOK_RESYNC_LICENSE );
+	}
+
+	/**
+	 * Cron callback: resync license state from server and update local option.
+	 *
+	 * @since 0.9.9
+	 * @return void
+	 */
+	public static function cron_resync_license() {
+		self::resync_license_from_server();
+	}
+
+	/**
+	 * Resync Pro license state from server and update local cached option.
+	 *
+	 * @since 0.9.9
+	 * @return array Result.
+	 */
+	public static function resync_license_from_server() {
+		$license_data = get_option( 'swift_csv_pro_license', [] );
+		if ( ! is_array( $license_data ) ) {
+			$license_data = [];
+		}
+		$products = $license_data['products'] ?? [];
+		if ( ! is_array( $products ) ) {
+			$products = [];
+		}
+		$entry = $products[ self::PRODUCT_ID_PRO ] ?? [];
+		if ( ! is_array( $entry ) ) {
+			$entry = [];
+		}
+		$license_key = $entry['key'] ?? '';
+		$license_key = is_string( $license_key ) ? $license_key : '';
+		if ( '' === $license_key ) {
+			return [
+				'success' => false,
+				'message' => 'Missing license key.',
+			];
+		}
+
+		if ( ! defined( 'SWIFT_CSV_LICENSE_API_URL' ) || empty( SWIFT_CSV_LICENSE_API_URL ) ) {
+			return [
+				'success' => false,
+				'message' => 'License server is not configured.',
+			];
+		}
+
+		$handler = new self();
+		$result  = $handler->fetch_status( $license_key );
+		if ( ! ( $result['success'] ?? false ) ) {
+			set_transient( 'swift_csv_pro_license_error', (string) ( $result['message'] ?? '' ), 60 );
+			return is_array( $result ) ? $result : [
+				'success' => false,
+				'message' => 'Unknown error.',
+			];
+		}
+
+		$product_id = self::PRODUCT_ID_PRO;
+		if ( isset( $result['data']['data']['productId'] ) ) {
+			$product_id = (int) $result['data']['data']['productId'];
+		} elseif ( isset( $result['data']['productId'] ) ) {
+			$product_id = (int) $result['data']['productId'];
+		}
+		if ( $product_id <= 0 ) {
+			$product_id = self::PRODUCT_ID_PRO;
+		}
+
+		$license_data['products']                = $products;
+		$license_data['products'][ $product_id ] = [
+			'key'    => $license_key,
+			'status' => (string) ( $result['status'] ?? 'inactive' ),
+			'data'   => $result['data'] ?? [],
+		];
+
+		update_option( 'swift_csv_pro_license', $license_data );
+		delete_transient( 'swift_csv_pro_license_error' );
+		self::clear_cache();
+
+		return $result;
 	}
 
 	/**

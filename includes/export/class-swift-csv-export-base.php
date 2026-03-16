@@ -38,6 +38,14 @@ abstract class Swift_CSV_Export_Base {
 	protected $export_session;
 
 	/**
+	 * Cached author display names keyed by user ID
+	 *
+	 * @since 0.9.12
+	 * @var array<int, string>
+	 */
+	protected $author_display_names = [];
+
+	/**
 	 * Constructor
 	 *
 	 * @since 0.9.8
@@ -493,8 +501,7 @@ abstract class Swift_CSV_Export_Base {
 				$value = $post_id;
 			} elseif ( 'post_author' === $header ) {
 				$author_id = isset( $post_data['post_author'] ) ? (int) $post_data['post_author'] : 0;
-				$author    = $author_id ? get_user_by( 'id', $author_id ) : false;
-				$value     = $author ? (string) $author->display_name : '';
+				$value     = $this->get_author_display_name( $author_id );
 			} elseif ( array_key_exists( $header, $post_data ) && 0 !== strpos( $header, 'tax_' ) && 0 !== strpos( $header, 'cf_' ) ) {
 				$value = $post_data[ $header ];
 			} elseif ( 0 === strpos( $header, 'tax_' ) ) {
@@ -503,8 +510,9 @@ abstract class Swift_CSV_Export_Base {
 				$value = $post_data[ $header ] ?? '';
 			} else {
 				$custom_args = [
-					'post_type' => $this->config['post_type'] ?? 'post',
-					'context'   => 'export_data_processing',
+					'post_type'       => $this->config['post_type'] ?? 'post',
+					'context'         => 'export_data_processing',
+					'taxonomy_format' => $this->config['taxonomy_format'] ?? 'name',
 				];
 				$value       = apply_filters( 'swift_csv_export_process_custom_header', '', $header, $post_id, $custom_args );
 			}
@@ -513,6 +521,30 @@ abstract class Swift_CSV_Export_Base {
 		}
 
 		return $row;
+	}
+
+	/**
+	 * Get cached author display name
+	 *
+	 * @since 0.9.12
+	 * @param int $author_id Author user ID.
+	 * @return string Author display name.
+	 */
+	protected function get_author_display_name( int $author_id ): string {
+		if ( $author_id <= 0 ) {
+			return '';
+		}
+
+		if ( isset( $this->author_display_names[ $author_id ] ) ) {
+			return $this->author_display_names[ $author_id ];
+		}
+
+		$author = get_user_by( 'id', $author_id );
+		$name   = $author ? (string) $author->display_name : '';
+
+		$this->author_display_names[ $author_id ] = $name;
+
+		return $name;
 	}
 
 	/**

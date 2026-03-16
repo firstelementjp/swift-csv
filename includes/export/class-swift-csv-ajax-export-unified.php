@@ -102,6 +102,14 @@ class Swift_CSV_Ajax_Export_Unified {
 			$export_method = 'wp_compatible';
 		}
 
+		if ( 'direct_sql' === $export_method && ! $this->is_direct_sql_export_enabled() ) {
+			while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
+				ob_end_clean();
+			}
+			wp_send_json_error( __( 'SQL export is available in Swift CSV Pro only.', 'swift-csv' ) );
+			return;
+		}
+
 		// Get export configuration.
 		$config = $this->get_export_config();
 
@@ -117,16 +125,13 @@ class Swift_CSV_Ajax_Export_Unified {
 			// Route to appropriate export method.
 			switch ( $export_method ) {
 				case 'direct_sql':
-					$handler = new Swift_CSV_Ajax_Export_Handler_Direct_SQL( $this->log_store, $this->cancel_manager );
-					$result  = $handler->handle( $config );
+					$result = $this->handle_direct_sql_export( $config );
 					break;
 				case 'wp_compatible':
-					$handler = new Swift_CSV_Ajax_Export_Handler_WP_Compatible( $this->log_store, $this->cancel_manager );
-					$result  = $handler->handle( $config );
+					$result = $this->handle_wp_compatible_export( $config );
 					break;
 				default:
-					$handler = new Swift_CSV_Ajax_Export_Handler_WP_Compatible( $this->log_store, $this->cancel_manager );
-					$result  = $handler->handle( $config );
+					$result = $this->handle_wp_compatible_export( $config );
 					break;
 			}
 		} catch ( Exception $e ) {
@@ -271,7 +276,13 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @throws Exception When export fails.
 	 */
 	private function handle_direct_sql_export( $config ) {
-		$handler = new Swift_CSV_Ajax_Export_Handler_Direct_SQL( $this->log_store, $this->cancel_manager );
+		$handler_class = 'Swift_CSV_Ajax_Export_Handler_Direct_SQL';
+
+		if ( class_exists( 'Swift_CSV_Pro_Ajax_Export_Handler_Direct_SQL' ) ) {
+			$handler_class = 'Swift_CSV_Pro_Ajax_Export_Handler_Direct_SQL';
+		}
+
+		$handler = new $handler_class( $this->log_store, $this->cancel_manager );
 		return $handler->handle( (array) $config );
 	}
 
@@ -286,5 +297,17 @@ class Swift_CSV_Ajax_Export_Unified {
 	private function handle_wp_compatible_export( $config ) {
 		$handler = new Swift_CSV_Ajax_Export_Handler_WP_Compatible( $this->log_store, $this->cancel_manager );
 		return $handler->handle( (array) $config );
+	}
+
+	/**
+	 * Check whether Direct SQL export is enabled.
+	 *
+	 * @since 0.9.17
+	 * @return bool
+	 */
+	private function is_direct_sql_export_enabled(): bool {
+		return class_exists( 'Swift_CSV_License_Handler' )
+			&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
+			&& Swift_CSV_License_Handler::is_pro_active();
 	}
 }

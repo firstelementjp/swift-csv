@@ -287,7 +287,7 @@ class Swift_CSV_Admin_Settings {
 					);
 					if ( ! $is_pro_ready ) {
 						echo ' (';
-						echo '<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">';
+						echo '<a href="?page=swift-csv&tab=license">';
 						esc_html_e( 'Pro', 'swift-csv' );
 						echo '</a>)';
 					}
@@ -385,6 +385,10 @@ class Swift_CSV_Admin_Settings {
 						<label class="swift-csv-block-label">
 							<input type="radio" id="swift_csv_taxonomy_format_id" name="taxonomy_format" value="id">
 						<?php esc_html_e( 'Term IDs (term_id)', 'swift-csv' ); ?>
+						</label>
+						<label>
+							<input type="checkbox" id="swift_csv_taxonomy_hierarchical" name="swift_csv_taxonomy_hierarchical" value="1">
+						<?php esc_html_e( 'Display hierarchy', 'swift-csv' ); ?>
 						</label>
 						<p class="description"><?php esc_html_e( 'Choose how taxonomy terms are exported: names for readability or term IDs for data integrity.', 'swift-csv' ); ?></p>
 					</div>
@@ -618,7 +622,7 @@ class Swift_CSV_Admin_Settings {
 					<?php
 					if ( ! $is_pro_ready ) {
 						echo ' (';
-						echo '<a href="' . esc_url( SWIFT_CSV_PRO_URL ) . '" target="_blank" rel="noopener noreferrer">';
+						echo '<a href="?page=swift-csv&tab=license">';
 						esc_html_e( 'Pro', 'swift-csv' );
 						echo '</a>)';
 					}

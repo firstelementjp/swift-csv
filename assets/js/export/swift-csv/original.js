@@ -56,6 +56,11 @@ function handleAjaxExport(e) {
 	)?.checked
 		? '1'
 		: '0';
+	const taxonomyHierarchical = document.querySelector(
+		'input[name="swift_csv_taxonomy_hierarchical"]'
+	)?.checked
+		? '1'
+		: '0';
 	const taxonomyFormat =
 		document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name';
 	const exportLimit = document.querySelector('#swift_csv_export_limit')?.value || '';
@@ -304,6 +309,7 @@ function handleAjaxExport(e) {
 			include_taxonomies: includeTaxonomies,
 			include_custom_fields: includeCustomFields,
 			include_private_meta: includePrivateMeta,
+			taxonomy_hierarchical: taxonomyHierarchical,
 			taxonomy_format: taxonomyFormat,
 			export_limit: exportLimit,
 			enable_logs: enableLogs,

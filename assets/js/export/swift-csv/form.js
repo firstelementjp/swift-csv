@@ -36,6 +36,11 @@
 				)?.checked
 					? '1'
 					: '0',
+				taxonomy_hierarchical: document.querySelector(
+					'input[name="swift_csv_taxonomy_hierarchical"]'
+				)?.checked
+					? '1'
+					: '0',
 				export_limit: document.getElementById('swift_csv_export_limit')?.value || '0',
 				taxonomy_format:
 					document.querySelector('input[name="taxonomy_format"]:checked')?.value ||

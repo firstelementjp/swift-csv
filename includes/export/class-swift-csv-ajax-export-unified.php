@@ -258,6 +258,7 @@ class Swift_CSV_Ajax_Export_Unified {
 			'include_taxonomies'    => isset( $_POST['include_taxonomies'] ) && in_array( (string) wp_unslash( $_POST['include_taxonomies'] ), [ '1', 'true' ], true ),
 			'include_custom_fields' => isset( $_POST['include_custom_fields'] ) && in_array( (string) wp_unslash( $_POST['include_custom_fields'] ), [ '1', 'true' ], true ),
 			'include_private_meta'  => isset( $_POST['include_private_meta'] ) ? (bool) $_POST['include_private_meta'] : false,
+			'taxonomy_hierarchical' => isset( $_POST['taxonomy_hierarchical'] ) && in_array( (string) wp_unslash( $_POST['taxonomy_hierarchical'] ), [ '1', 'true' ], true ),
 			'export_limit'          => isset( $_POST['export_limit'] ) ? absint( $_POST['export_limit'] ) : 0,
 			'taxonomy_format'       => sanitize_text_field( wp_unslash( $_POST['taxonomy_format'] ?? 'name' ) ),
 			'enable_logs'           => isset( $_POST['enable_logs'] ) ? (bool) $_POST['enable_logs'] : false,

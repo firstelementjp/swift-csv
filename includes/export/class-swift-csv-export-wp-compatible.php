@@ -24,6 +24,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 
+	private $term_path_cache = [];
+
 	/**
 	 * Get posts data
 	 *
@@ -114,11 +116,12 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 			return [];
 		}
 
-		$headers              = $this->get_complete_headers( $this->config, [], 'wp_compatible' );
-		$custom_field_headers = [];
-		$taxonomy_data        = [];
-		$taxonomy_names       = [];
-		$taxonomy_format      = $this->config['taxonomy_format'] ?? 'name';
+		$headers               = $this->get_complete_headers( $this->config, [], 'wp_compatible' );
+		$custom_field_headers  = [];
+		$taxonomy_data         = [];
+		$taxonomy_names        = [];
+		$taxonomy_format       = $this->config['taxonomy_format'] ?? 'name';
+		$taxonomy_hierarchical = 'name' === $taxonomy_format && ! empty( $this->config['taxonomy_hierarchical'] );
 
 		if ( ! empty( $this->config['include_custom_fields'] ) ) {
 			update_meta_cache( 'post', $post_ids );
@@ -148,6 +151,8 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 				);
 
 				if ( ! is_wp_error( $terms ) && is_array( $terms ) ) {
+					$term_lookup = $taxonomy_hierarchical ? $this->build_term_lookup( $terms, $taxonomy_names ) : [];
+					$term_groups = $taxonomy_hierarchical ? $this->group_terms_by_object_and_taxonomy( $terms ) : [];
 					foreach ( $terms as $term ) {
 						$object_id = isset( $term->object_id ) ? (int) $term->object_id : 0;
 						if ( 0 === $object_id ) {
@@ -159,7 +164,13 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 							continue;
 						}
 
-						$term_value = ( 'id' === $taxonomy_format ) ? (string) $term->term_id : (string) $term->name;
+						if ( $taxonomy_hierarchical && $this->should_skip_parent_term_in_hierarchical_output( $term, $term_groups ) ) {
+							continue;
+						}
+
+						$term_value = 'id' === $taxonomy_format
+							? (string) $term->term_id
+							: ( $taxonomy_hierarchical ? $this->build_term_path( $term, $term_lookup ) : (string) $term->name );
 						if ( '' === $term_value ) {
 							continue;
 						}
@@ -287,5 +298,192 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 		}
 
 		return $csv;
+	}
+
+	private function build_term_lookup( array $terms, array $taxonomy_names ): array {
+		$lookup             = [];
+		$pending_parent_ids = [];
+
+		foreach ( $terms as $term ) {
+			if ( ! ( $term instanceof \WP_Term ) ) {
+				continue;
+			}
+
+			$key            = $this->get_term_cache_key( (string) $term->taxonomy, (int) $term->term_id );
+			$lookup[ $key ] = $term;
+
+			$parent_id = isset( $term->parent ) ? (int) $term->parent : 0;
+			$taxonomy  = isset( $term->taxonomy ) ? (string) $term->taxonomy : '';
+			if ( $parent_id <= 0 || '' === $taxonomy ) {
+				continue;
+			}
+
+			$parent_key = $this->get_term_cache_key( $taxonomy, $parent_id );
+			if ( ! isset( $lookup[ $parent_key ] ) ) {
+				$pending_parent_ids[ $parent_key ] = [
+					'taxonomy' => $taxonomy,
+					'term_id'  => $parent_id,
+				];
+			}
+		}
+
+		while ( ! empty( $pending_parent_ids ) ) {
+			$grouped_ids = [];
+			foreach ( $pending_parent_ids as $pending_item ) {
+				$taxonomy = isset( $pending_item['taxonomy'] ) ? (string) $pending_item['taxonomy'] : '';
+				$term_id  = isset( $pending_item['term_id'] ) ? (int) $pending_item['term_id'] : 0;
+				if ( '' === $taxonomy || $term_id <= 0 || ! in_array( $taxonomy, $taxonomy_names, true ) ) {
+					continue;
+				}
+
+				if ( ! isset( $grouped_ids[ $taxonomy ] ) ) {
+					$grouped_ids[ $taxonomy ] = [];
+				}
+
+				$grouped_ids[ $taxonomy ][] = $term_id;
+			}
+
+			$pending_parent_ids = [];
+			foreach ( $grouped_ids as $taxonomy => $term_ids ) {
+				$term_ids = array_values( array_unique( array_filter( array_map( 'intval', $term_ids ) ) ) );
+				if ( empty( $term_ids ) ) {
+					continue;
+				}
+
+				$parent_terms = get_terms(
+					[
+						'taxonomy'   => $taxonomy,
+						'include'    => $term_ids,
+						'hide_empty' => false,
+					]
+				);
+
+				if ( is_wp_error( $parent_terms ) || ! is_array( $parent_terms ) ) {
+					continue;
+				}
+
+				foreach ( $parent_terms as $parent_term ) {
+					if ( ! ( $parent_term instanceof \WP_Term ) ) {
+						continue;
+					}
+
+					$parent_key            = $this->get_term_cache_key( $taxonomy, (int) $parent_term->term_id );
+					$lookup[ $parent_key ] = $parent_term;
+
+					$grand_parent_id = isset( $parent_term->parent ) ? (int) $parent_term->parent : 0;
+					if ( $grand_parent_id <= 0 ) {
+						continue;
+					}
+
+					$grand_parent_key = $this->get_term_cache_key( $taxonomy, $grand_parent_id );
+					if ( ! isset( $lookup[ $grand_parent_key ] ) ) {
+						$pending_parent_ids[ $grand_parent_key ] = [
+							'taxonomy' => $taxonomy,
+							'term_id'  => $grand_parent_id,
+						];
+					}
+				}
+			}
+		}
+
+		return $lookup;
+	}
+
+	/**
+	 * Group terms by object ID and taxonomy
+	 *
+	 * @since 0.9.17
+	 * @param array $terms Term list.
+	 * @return array Grouped terms.
+	 */
+	private function group_terms_by_object_and_taxonomy( array $terms ): array {
+		$groups = [];
+
+		foreach ( $terms as $term ) {
+			if ( ! ( $term instanceof \WP_Term ) ) {
+				continue;
+			}
+
+			$object_id = isset( $term->object_id ) ? (int) $term->object_id : 0;
+			$taxonomy  = isset( $term->taxonomy ) ? (string) $term->taxonomy : '';
+			if ( 0 === $object_id || '' === $taxonomy ) {
+				continue;
+			}
+
+			if ( ! isset( $groups[ $object_id ] ) ) {
+				$groups[ $object_id ] = [];
+			}
+
+			if ( ! isset( $groups[ $object_id ][ $taxonomy ] ) ) {
+				$groups[ $object_id ][ $taxonomy ] = [];
+			}
+
+			$groups[ $object_id ][ $taxonomy ][] = $term;
+		}
+
+		return $groups;
+	}
+
+	/**
+	 * Determine whether a parent term should be skipped in hierarchical output
+	 *
+	 * @since 0.9.17
+	 * @param \WP_Term $term Current term.
+	 * @param array    $term_groups Grouped terms.
+	 * @return bool True when the term should be skipped.
+	 */
+	private function should_skip_parent_term_in_hierarchical_output( \WP_Term $term, array $term_groups ): bool {
+		$object_id = isset( $term->object_id ) ? (int) $term->object_id : 0;
+		$taxonomy  = isset( $term->taxonomy ) ? (string) $term->taxonomy : '';
+		$term_id   = (int) $term->term_id;
+		if ( 0 === $object_id || '' === $taxonomy || 0 === $term_id ) {
+			return false;
+		}
+
+		$taxonomy_terms = $term_groups[ $object_id ][ $taxonomy ] ?? [];
+		foreach ( $taxonomy_terms as $candidate_term ) {
+			if ( ! ( $candidate_term instanceof \WP_Term ) ) {
+				continue;
+			}
+
+			$parent_id = isset( $candidate_term->parent ) ? (int) $candidate_term->parent : 0;
+			if ( $parent_id === $term_id ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function build_term_path( \WP_Term $term, array $term_lookup ): string {
+		$cache_key = $this->get_term_cache_key( (string) $term->taxonomy, (int) $term->term_id );
+		if ( isset( $this->term_path_cache[ $cache_key ] ) ) {
+			return $this->term_path_cache[ $cache_key ];
+		}
+
+		$path_segments = [ (string) $term->name ];
+		$parent_id     = isset( $term->parent ) ? (int) $term->parent : 0;
+		$guard         = 0;
+
+		while ( $parent_id > 0 && $guard < 100 ) {
+			++$guard;
+			$parent_key = $this->get_term_cache_key( (string) $term->taxonomy, $parent_id );
+			if ( ! isset( $term_lookup[ $parent_key ] ) || ! ( $term_lookup[ $parent_key ] instanceof \WP_Term ) ) {
+				break;
+			}
+
+			$parent_term     = $term_lookup[ $parent_key ];
+			$path_segments[] = (string) $parent_term->name;
+			$parent_id       = isset( $parent_term->parent ) ? (int) $parent_term->parent : 0;
+		}
+
+		$path                                = implode( ' > ', array_reverse( $path_segments ) );
+		$this->term_path_cache[ $cache_key ] = $path;
+
+		return $path;
+	}
+
+	private function get_term_cache_key( string $taxonomy, int $term_id ): string {
+		return $taxonomy . ':' . $term_id;
 	}
 }

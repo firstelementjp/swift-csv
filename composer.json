@@ -25,7 +25,8 @@
 		"test": "phpunit",
 		"test-coverage": "phpunit --coverage-html tests/coverage",
 		"test-unit": "phpunit --testsuite=\"Swift CSV Unit Tests\"",
-		"test-integration": "phpunit --testsuite=\"Swift CSV Integration Tests\""
+		"test-integration": "phpunit --testsuite=\"Swift CSV Integration Tests\"",
+		"test-standalone": "phpunit --configuration phpunit-standalone.xml"
 	},
 	"config": {
 		"allow-plugins": {

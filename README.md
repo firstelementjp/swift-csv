@@ -138,7 +138,50 @@ Currently supported languages:
 
 Interested in helping with translations? Contact us on [GitHub](https://github.com/firstelementjp/swift-csv).
 
-## 🤝 Contributing
+## 🧪 Testing
+
+### Running Tests
+
+#### Standard Environment
+
+```bash
+composer test
+composer run test-coverage
+```
+
+#### Unit/Integration Tests
+
+```bash
+composer run test-unit        # Unit tests only
+composer run test-integration # Integration tests only
+```
+
+#### Local by Flywheel
+
+When testing in Local by Flywheel environment, you may need to set the absolute path to the bootstrap file:
+
+```bash
+export PHPUNIT_BOOTSTRAP="/app/public/wp-content/plugins/swift-csv/tests/bootstrap.php"
+composer run test-coverage
+```
+
+Alternatively, update the `phpunit.xml` bootstrap path to use the absolute path for your Local environment.
+
+### Test Coverage
+
+Coverage reports are generated in `tests/coverage/` directory. Open `tests/coverage/index.html` in your browser to view detailed coverage information.
+
+### Test Structure
+
+- **Unit Tests**: `tests/Unit/` - Isolated component testing
+- **Integration Tests**: `tests/Integration/` - WordPress environment testing
+- **Bootstrap**: `tests/bootstrap.php` - WordPress test environment setup
+
+### CI/CD
+
+Tests are automatically run in GitHub Actions with full WordPress environment support.
+
+## �� Contributing
 
 We welcome contributions! Please follow our development workflow:
 

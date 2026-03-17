@@ -68,7 +68,7 @@ class SimpleTest extends TestCase {
 		$return_code = 0;
 
 		// Check PHP syntax
-		exec( "php -l {$plugin_file} 2>&1", $output, $return_code );
+		exec( "php -l \"{$plugin_file}\" 2>&1", $output, $return_code );
 
 		$this->assertEquals( 0, $return_code, 'Plugin file should have valid PHP syntax' );
 		$this->assertStringContainsString( 'No syntax errors', $output[0] ?? '' );
@@ -88,7 +88,7 @@ class SimpleTest extends TestCase {
 			$output      = [];
 			$return_code = 0;
 
-			exec( "php -l {$file} 2>&1", $output, $return_code );
+			exec( "php -l \"{$file}\" 2>&1", $output, $return_code );
 
 			$this->assertEquals( 0, $return_code, "File {$file} should have valid PHP syntax" );
 		}

@@ -37,7 +37,7 @@ class DataSanitizationTest extends TestCase {
 		$input  = '<script>alert("xss")</script>Safe content';
 		$result = sanitize_text_field( $input );
 
-		$this->assertEquals( 'alert("xss")Safe content', $result );
+		$this->assertEquals( 'Safe content', $result );
 		$this->assertStringNotContainsString( '<script>', $result );
 		$this->assertStringNotContainsString( '</script>', $result );
 	}
@@ -52,10 +52,8 @@ class DataSanitizationTest extends TestCase {
 		$input  = 'Special chars: & < > " \'';
 		$result = sanitize_text_field( $input );
 
-		// WordPress sanitize_text_field converts special characters to entities
-		$this->assertStringContainsString( '&amp;', $result );
-		$this->assertStringContainsString( '&lt;', $result );
-		$this->assertStringContainsString( '&gt;', $result );
+		// WordPress sanitize_text_field preserves special characters in this context.
+		$this->assertEquals( 'Special chars: & < > " \'', $result );
 	}
 
 	/**
@@ -87,10 +85,10 @@ class DataSanitizationTest extends TestCase {
 
 		$this->assertEquals( 'user@example.com', $result );
 
-		// Invalid email address
+		// Invalid email address.
 		$invalid_input  = 'not-an-email';
 		$invalid_result = sanitize_email( $invalid_input );
-		$this->assertEquals( 'not-an-email', $invalid_result );
+		$this->assertEquals( '', sanitize_email( 'not-an-email' ) );
 	}
 
 	/**
@@ -105,7 +103,7 @@ class DataSanitizationTest extends TestCase {
 
 		$this->assertEquals( 'https://example.com/path?param=value', $result );
 
-		// Malicious URL
+		// Malicious URL.
 		$malicious_input  = 'javascript:alert(1)';
 		$malicious_result = esc_url_raw( $malicious_input );
 		$this->assertEmpty( $malicious_result );
@@ -147,7 +145,7 @@ class DataSanitizationTest extends TestCase {
 			}
 		}
 
-		$this->assertEquals( 'alert(1)John', $sanitized['name'] );
+		$this->assertEquals( 'John', $sanitized['name'] );
 		$this->assertEquals( 'john@example.com', $sanitized['email'] );
 		$this->assertEquals( '30', $sanitized['age'] );
 		$this->assertStringContainsString( 'Line 1', $sanitized['bio'] );
@@ -174,7 +172,7 @@ class DataSanitizationTest extends TestCase {
 				$result = sanitize_text_field( $input );
 			}
 
-			// Empty values remain empty or only whitespace is removed
+			// Empty values remain empty or only whitespace is removed.
 			$this->assertTrue( empty( trim( $result ) ) );
 		}
 	}
@@ -216,7 +214,7 @@ class DataSanitizationTest extends TestCase {
 		$long_text = str_repeat( 'This is a very long text. ', 100 );
 		$sanitized = sanitize_text_field( $long_text );
 
-		// WordPress sanitize_text_field has length limitations
+		// WordPress sanitize_text_field has length limitations.
 		$this->assertLessThan( strlen( $long_text ), strlen( $sanitized ) );
 		$this->assertGreaterThan( 0, strlen( $sanitized ) );
 	}

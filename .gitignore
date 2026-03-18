@@ -42,3 +42,47 @@ init.sh
 .envrc
 *.local
 README.en.md
+
+# Test outputs and coverage
+tests/coverage/
+tests/results/
+phpunit-coverage/
+
+# Cache files
+.phpunit.result.cache
+.phpcs.cache
+.php-cs-fixer.cache
+
+# Release artifacts
+*.zip
+*.tar.gz
+release-*/
+
+# Documentation builds
+docs/_build/
+docs/site/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# PHP specific
+composer.phar
+.phpcs.xml
+
+# Security files
+*.pem
+*.key
+*.crt
+id_rsa*

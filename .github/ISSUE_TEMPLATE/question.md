@@ -17,4 +17,3 @@ assignees: ''
 
 - WordPress version:
 - Swift CSV version:
-- ACF version (if relevant):

@@ -23,11 +23,10 @@ Thumbs.db
 /build/
 
 # Minified files (build artifacts)
-# Note: We need to include minified files in git archive for releases
-# *.min.js
-# *.min.css
-# assets/js/*.min.js
-# assets/css/*.min.css
+*.min.js
+*.min.css
+assets/js/*.min.js
+assets/css/*.min.css
 
 # Logs
 *.log

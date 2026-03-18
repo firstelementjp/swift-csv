@@ -32,7 +32,7 @@
 	"devDependencies": {
 		"@wordpress/babel-plugin-makepot": "^6.39.0",
 		"@wordpress/eslint-plugin": "^14.0.0",
-		"@wordpress/scripts": "^26.0.0",
+		"@wordpress/scripts": "^31.6.0",
 		"esbuild": "^0.27.2",
 		"eslint": "^8.0.0",
 		"eslint-config-wordpress": "^2.0.0",

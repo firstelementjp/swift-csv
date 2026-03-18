@@ -11,7 +11,7 @@
  */
 const SwiftCSVExportUnified = {
 	/**
-	 * Initialize unified export functionality
+	 * Initialize unified export functionality and bind DOM events.
 	 */
 	init() {
 		if (!SwiftCSVExportUnifiedModulesReady) {
@@ -21,17 +21,17 @@ const SwiftCSVExportUnified = {
 	},
 
 	/**
-	 * Enable download button for export
+	 * Enable download button for export.
 	 *
-	 * @param {string} csvContent CSV content
-	 * @param {string} postType   Post type
+	 * @param {string} csvContent Stringified CSV payload.
+	 * @param {string} postType   Selected post type slug.
 	 */
 	enableDownloadButtonForExport(csvContent, postType) {
 		SwiftCSVExportUnifiedDownload.enableDownloadButtonForExport(csvContent, postType);
 	},
 
 	/**
-	 * Bind event handlers
+	 * Bind UI event handlers for standard and Direct SQL export buttons.
 	 */
 	bindEvents() {
 		const self = this;
@@ -70,9 +70,9 @@ const SwiftCSVExportUnified = {
 	},
 
 	/**
-	 * Handle export with specified method
+	 * Handle export with specified method.
 	 *
-	 * @param {string} exportMethod Export method ('standard' or 'direct_sql')
+	 * @param {string} exportMethod Export method identifier (wp_compatible/direct_sql).
 	 */
 	handleExport(exportMethod) {
 		// Get form data
@@ -88,11 +88,11 @@ const SwiftCSVExportUnified = {
 	},
 
 	/**
-	 * Complete export process
+	 * Complete export process by enabling download and updating UI state.
 	 *
-	 * @param {string}      finalCsv Final CSV content
-	 * @param {Object}      formData Form data
-	 * @param {HTMLElement} button   Export button
+	 * @param {string}      finalCsv Final CSV content.
+	 * @param {Object}      formData Original form payload used for export.
+	 * @param {HTMLElement} button   Button that triggered export.
 	 */
 	completeExport(finalCsv, formData, button) {
 		// Export completed
@@ -106,9 +106,9 @@ const SwiftCSVExportUnified = {
 	},
 
 	/**
-	 * Handle Direct SQL export
+	 * Handle Direct SQL export orchestration, including UI state and logging.
 	 *
-	 * @param {Object} formData Form data
+	 * @param {Object} formData Normalized export form payload.
 	 */
 	handleDirectSqlExport(formData) {
 		const button = document.getElementById('direct-sql-export-btn');
@@ -291,8 +291,8 @@ const SwiftCSVExportUnified = {
 					currentAbortController.abort();
 				}
 				cleanupUi();
-				button.disabled = false;
-				button.textContent = swiftCSV.messages.directSqlExport || 'Export (SQL)';
+				button.disabled = !swiftCSV.enableDirectSqlExport;
+				button.textContent = button.dataset.originalText || swiftCSV.highSpeedExportText;
 			};
 
 			ui.cancelBtn._swiftCsvDirectSqlCancelHandler = cancelHandler;
@@ -408,7 +408,7 @@ const SwiftCSVExportUnified = {
 				}
 
 				this.showError(button, localizedErrorMessage || swiftCSV.messages.failed);
-				button.disabled = false;
+				button.disabled = !swiftCSV.enableDirectSqlExport;
 			});
 	},
 
@@ -649,6 +649,7 @@ const SwiftCSVExportUnified = {
 				: '0',
 			taxonomy_format:
 				document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name',
+			export_limit: document.getElementById('swift_csv_export_limit')?.value || '0',
 			enable_logs:
 				window.swiftCSV &&
 				window.swiftCSV.advancedSettings &&

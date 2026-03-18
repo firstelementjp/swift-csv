@@ -1,8 +1,14 @@
 /**
  * Swift CSV Admin Scripts - Export (Original)
- *
  */
 
+/**
+ * Truncate a title to a maximum length and append ellipsis when necessary.
+ *
+ * @param {string} title          Original title text.
+ * @param {number} [maxLength=20] Maximum number of characters to keep.
+ * @return {string} Truncated title.
+ */
 function truncateTitle(title, maxLength = 20) {
 	if (!title || title.length <= maxLength) {
 		return title;
@@ -91,6 +97,12 @@ function handleAjaxExport(e) {
 			? window.SwiftCSVExportUnifiedModules.Ajax
 			: null;
 
+	/**
+	 * Stop the export log polling timer and optionally abort the pending request.
+	 *
+	 * @param {Object}  [options]                   Control flags.
+	 * @param {boolean} [options.abortRequest=true] Whether to abort the inflight request.
+	 */
 	function stopExportLogPolling({ abortRequest = true } = {}) {
 		if (exportLogPollingTimer) {
 			clearInterval(exportLogPollingTimer);
@@ -102,6 +114,11 @@ function handleAjaxExport(e) {
 		}
 	}
 
+	/**
+	 * Poll export logs from the server when logging is enabled.
+	 *
+	 * @return {Promise|undefined} Polling promise or undefined when disabled.
+	 */
 	function pollExportLogs() {
 		if (isCancelled) return;
 
@@ -172,6 +189,9 @@ function handleAjaxExport(e) {
 		return exportLogPollingPromise;
 	}
 
+	/**
+	 * Begin periodic export log polling when logging is enabled.
+	 */
 	function startExportLogPolling() {
 		if (exportLogPollingTimer) return;
 		if (enableLogs !== '1') return;
@@ -273,10 +293,10 @@ function handleAjaxExport(e) {
 
 			if (exportBtn) {
 				exportBtn.disabled = false;
-				exportBtn.value = swiftCSV.messages.exportCsv;
+				exportBtn.value = exportBtn.dataset.originalText || swiftCSV.messages.exportCsv;
 			}
 			if (directSqlBtn) {
-				directSqlBtn.disabled = false;
+				directSqlBtn.disabled = !swiftCSV.enableDirectSqlExport;
 			}
 			if (cancelBtn) {
 				cancelBtn.style.display = 'none';
@@ -291,6 +311,11 @@ function handleAjaxExport(e) {
 	 * Handles chunked export processing for large datasets.
 	 *
 	 * @param {number} startRow - Starting row number
+	 */
+	/**
+	 * Request the next export chunk and update progress indicators.
+	 *
+	 * @param {number} [startRow=0] CSV row offset to resume from.
 	 */
 	function processChunk(startRow = 0) {
 		if (isCancelled) return;
@@ -520,7 +545,7 @@ function completeAjaxExport(csvContent, exportBtn, cancelBtn, postType) {
 		exportBtn.value = exportBtn.dataset.originalText || swiftCSV.messages.startExport;
 	}
 	if (directSqlBtn) {
-		directSqlBtn.disabled = false;
+		directSqlBtn.disabled = !swiftCSV.enableDirectSqlExport;
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'none';

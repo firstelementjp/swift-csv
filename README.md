@@ -12,7 +12,7 @@ It supports custom post types, custom taxonomies, custom fields, and Gutenberg b
 This repository contains the plugin source code, tests, and developer resources.
 For end-user guides and full documentation, see the links below.
 
-## Overview
+## 📖 Overview
 
 Swift CSV provides:
 
@@ -22,7 +22,7 @@ Swift CSV provides:
 - Real-time progress logging
 - Hook-based extensibility for developers
 
-## Quick Links
+## ⚡ Quick Links
 
 - **Documentation**: https://firstelementjp.github.io/swift-csv/
 - **Installation Guide**: https://firstelementjp.github.io/swift-csv/#/installation
@@ -33,13 +33,13 @@ Swift CSV provides:
 - **Releases**: https://github.com/firstelementjp/swift-csv/releases
 - **Issues**: https://github.com/firstelementjp/swift-csv/issues
 
-## Requirements
+## ⚙️ Requirements
 
 - WordPress 6.0 or higher
 - PHP 8.0 or higher
 - OpenSSL extension
 
-## Installation
+## 🚀 Installation
 
 ### From WordPress Admin
 
@@ -58,7 +58,7 @@ Swift CSV provides:
 > [!IMPORTANT]
 > Use the release ZIP file for installation, not **Source code (zip)**.
 
-## Local Development
+## 💻 Local Development
 
 ```bash
 git clone https://github.com/firstelementjp/swift-csv.git
@@ -68,7 +68,7 @@ composer install
 
 After installing dependencies, place the plugin in your local WordPress environment and activate it from the admin dashboard.
 
-## Testing
+## 🧪 Testing
 
 Run all tests:
 
@@ -95,7 +95,7 @@ Coverage reports are generated in:
 tests/coverage/
 ```
 
-## Development Commands
+## 🛠️ Development Commands
 
 ```bash
 composer test              # Run test suite
@@ -107,7 +107,7 @@ npm run build              # Build/minify frontend assets
 
 See the project documentation for detailed development and release workflows.
 
-## Developer Notes
+## 📝 Developer Notes
 
 - Import/export operations are designed to work in batches for large datasets.
 - Gutenberg block content is preserved during import/export.
@@ -119,7 +119,7 @@ For detailed implementation notes, see:
 - [Import AJAX architecture notes](https://firstelementjp.github.io/swift-csv/#/import-ajax-architecture)
 - [Hooks documentation](https://firstelementjp.github.io/swift-csv/#/hooks)
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome.
 
@@ -132,12 +132,13 @@ Basic workflow:
 
 Please check existing issues before opening a new feature request or bug report.
 
-## License
+## 📄 License
 
 GPLv2+
+
 See LICENSE for details.
 
-## Authors
+## 👨‍💻 Authors
 
-- FirstElement, Inc.
-- Daijiro Miyazawa
+- [Daijiro Miyazawa](https://x.com/dxd5001)
+- [FirstElement, Inc.](https://www.firstelement.co.jp)

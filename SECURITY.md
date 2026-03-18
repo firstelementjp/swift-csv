@@ -15,16 +15,16 @@ To protect our users, **do not** open a public issue for security vulnerabilitie
 
 ### How to Report
 
-**Preferred Method**: Use GitHub's private vulnerability reporting
+**Primary Method**: Email us directly
+
+- Send to: security@firstelement.co.jp
+- Use subject: `[Swift CSV Security] Brief description of issue`
+
+**Alternative Method**: GitHub Security Advisories (if enabled)
 
 1. Go to our [Security Advisories](https://github.com/firstelementjp/swift-csv/security/advisories)
 2. Click "Report a vulnerability"
 3. Fill in the details with as much information as possible
-
-**Alternative Method**: Email us directly
-
-- Send to: security@firstelement.co.jp
-- Use subject: `[Swift CSV Security] Brief description of issue`
 
 ### What to Include
 

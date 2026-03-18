@@ -3,9 +3,9 @@
 ## Supported Versions
 
 | Version | Supported |
-|---------|------------|
-| 0.9.x   | ✅ Yes     |
-| < 0.9.0 | ❌ No      |
+| ------- | --------- |
+| 0.9.8+  | ✅ Yes    |
+| < 0.9.8 | ❌ No     |
 
 ## Reporting a Vulnerability
 

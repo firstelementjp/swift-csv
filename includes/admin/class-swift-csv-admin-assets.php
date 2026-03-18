@@ -33,13 +33,25 @@ class Swift_CSV_Admin_Assets {
 			$suffix     = $debug_mode ? '' : '.min';
 			$css_path   = 'assets/css/swift-csv-style' . $suffix . '.css';
 			$css_fs     = SWIFT_CSV_PLUGIN_DIR . ltrim( $css_path, '/' );
-			if ( '' === $suffix && ! file_exists( $css_fs ) ) {
-				$css_path = 'assets/css/swift-csv-style.min.css';
+
+			if ( file_exists( $css_fs ) ) {
+				// Preferred file exists
+				$css_url = SWIFT_CSV_PLUGIN_URL . ltrim( $css_path, '/' );
+			} else {
+				// Fallback to opposite format
+				if ( '' === $suffix ) {
+					// Debug mode: prefer unminified, fallback to minified
+					$css_path = 'assets/css/swift-csv-style.min.css';
+				} else {
+					// Production mode: prefer minified, fallback to unminified
+					$css_path = 'assets/css/swift-csv-style.css';
+				}
+				$css_url = SWIFT_CSV_PLUGIN_URL . ltrim( $css_path, '/' );
 			}
 
 			wp_enqueue_style(
 				'swift-csv-admin',
-				SWIFT_CSV_PLUGIN_URL . ltrim( $css_path, '/' ),
+				$css_url,
 				[],
 				SWIFT_CSV_VERSION
 			);
@@ -71,10 +83,22 @@ class Swift_CSV_Admin_Assets {
 					return SWIFT_CSV_PLUGIN_URL . ltrim( $min_path, '/' );
 				}
 
-				if ( '' === $suffix && file_exists( $fallback_fs ) ) {
-					return SWIFT_CSV_PLUGIN_URL . ltrim( $fallback_path, '/' );
+				// Fallback: if preferred file doesn't exist, try the opposite format
+				if ( '' === $suffix ) {
+					// Debug mode: prefer unminified, fallback to minified
+					if ( file_exists( $fallback_fs ) ) {
+						return SWIFT_CSV_PLUGIN_URL . ltrim( $fallback_path, '/' );
+					}
+				} else {
+					// Production mode: prefer minified, fallback to unminified
+					$unmin_path = preg_replace( '/\.js$/', '.js', $relative_path );
+					$unmin_fs   = SWIFT_CSV_PLUGIN_DIR . ltrim( $unmin_path, '/' );
+					if ( file_exists( $unmin_fs ) ) {
+						return SWIFT_CSV_PLUGIN_URL . ltrim( $unmin_path, '/' );
+					}
 				}
 
+				// Final fallback: return original path (may result in 404)
 				return SWIFT_CSV_PLUGIN_URL . ltrim( $relative_path, '/' );
 			};
 

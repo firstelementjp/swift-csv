@@ -236,9 +236,11 @@ abstract class Swift_CSV_Export_Base {
 		if ( ! empty( $query_spec ) ) {
 			// Convert tax_query and meta_query to WP_Query format.
 			if ( isset( $query_spec['tax_query'] ) ) {
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Sample query needs matching tax conditions for accurate header discovery.
 				$sample_query_args['tax_query'] = $query_spec['tax_query'];
 			}
 			if ( isset( $query_spec['meta_query'] ) ) {
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Sample query needs matching meta conditions for accurate header discovery.
 				$sample_query_args['meta_query'] = $query_spec['meta_query'];
 			}
 		}
@@ -510,9 +512,10 @@ abstract class Swift_CSV_Export_Base {
 				$value = $post_data[ $header ] ?? '';
 			} else {
 				$custom_args = [
-					'post_type'       => $this->config['post_type'] ?? 'post',
-					'context'         => 'export_data_processing',
-					'taxonomy_format' => $this->config['taxonomy_format'] ?? 'name',
+					'post_type'             => $this->config['post_type'] ?? 'post',
+					'context'               => 'export_data_processing',
+					'taxonomy_format'       => $this->config['taxonomy_format'] ?? 'name',
+					'taxonomy_hierarchical' => ! empty( $this->config['taxonomy_hierarchical'] ),
 				];
 				$value       = apply_filters( 'swift_csv_export_process_custom_header', '', $header, $post_id, $custom_args );
 			}

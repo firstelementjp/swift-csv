@@ -196,7 +196,7 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 	/**
 	 * Create the Direct SQL export runtime instance.
 	 *
-	 * @since 0.9.17
+	 * @since 0.9.8
 	 * @param array $config Export configuration.
 	 * @return Swift_CSV_Export_Base
 	 * @throws Exception Always thrown because Direct SQL runtime is owned by Swift CSV Pro.

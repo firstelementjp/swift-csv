@@ -25,7 +25,7 @@ class Swift_CSV_Admin_Ajax {
 	 *
 	 * Saves free plugin advanced settings from the advanced settings tab.
 	 *
-	 * @since 0.9.15
+	 * @since 0.9.8
 	 * @return void
 	 */
 	public function ajax_save_advanced_settings() {
@@ -42,10 +42,14 @@ class Swift_CSV_Admin_Ajax {
 		$enable_logs = isset( $_POST['enable_logs'] )
 			&& in_array( (string) wp_unslash( $_POST['enable_logs'] ), [ '1', 'true' ], true );
 
+		$uninstall_remove_all_data = isset( $_POST['uninstall_remove_all_data'] )
+			&& in_array( (string) wp_unslash( $_POST['uninstall_remove_all_data'] ), [ '1', 'true' ], true );
+
 		$result = Swift_CSV_Settings_Helper::update_section(
 			'advanced',
 			[
-				'enable_logs' => $enable_logs,
+				'enable_logs'               => $enable_logs,
+				'uninstall_remove_all_data' => $uninstall_remove_all_data,
 			]
 		);
 

@@ -4,7 +4,7 @@
  *
  * Defines the taxonomy writing strategy for Swift CSV import.
  *
- * @since 0.9.10
+ * @since 0.9.8
  * @package Swift_CSV
  */
 
@@ -15,14 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Import taxonomy writer interface.
  *
- * @since 0.9.10
+ * @since 0.9.8
  * @package Swift_CSV
  */
 interface Swift_CSV_Import_Taxonomy_Writer_Interface {
 	/**
 	 * Apply taxonomy terms for a post.
 	 *
-	 * @since 0.9.10
+	 * @since 0.9.8
 	 * @param wpdb                              $wpdb WordPress database handler.
 	 * @param int                               $post_id Post ID.
 	 * @param array<string, array<int, string>> $taxonomies Taxonomy terms map.

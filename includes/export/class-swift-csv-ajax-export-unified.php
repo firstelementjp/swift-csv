@@ -303,7 +303,7 @@ class Swift_CSV_Ajax_Export_Unified {
 	/**
 	 * Check whether Direct SQL export is enabled.
 	 *
-	 * @since 0.9.17
+	 * @since 0.9.8
 	 * @return bool
 	 */
 	private function is_direct_sql_export_enabled(): bool {

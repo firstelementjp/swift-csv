@@ -159,6 +159,14 @@ class Swift_CSV_Admin_Settings {
 		);
 
 		add_settings_field(
+			'swift_csv_advanced_uninstall_remove_all_data',
+			'',
+			[ $this, 'uninstall_data_removal_field_html' ],
+			'swift-csv',
+			'swift_csv_advanced_section'
+		);
+
+		add_settings_field(
 			'swift_csv_import_updraft_backup_before_import',
 			'',
 			[ $this, 'import_updraft_backup_before_import_field_html' ],
@@ -203,7 +211,7 @@ class Swift_CSV_Admin_Settings {
 	/**
 	 * Advanced section description callback
 	 *
-	 * @since 0.9.14
+	 * @since 0.9.8
 	 * @return void
 	 */
 	public function advanced_section_description() {
@@ -242,7 +250,7 @@ class Swift_CSV_Admin_Settings {
 	 * Displays a Pro feature checkbox that triggers an UpdraftPlus database backup
 	 * before starting import when the Pro plugin is licensed.
 	 *
-	 * @since 0.9.13
+	 * @since 0.9.8
 	 * @return void
 	 */
 	public function import_updraft_backup_before_import_field_html() {
@@ -441,7 +449,7 @@ class Swift_CSV_Admin_Settings {
 				<label for="swift_csv_export_limit"><?php esc_html_e( 'Export Limit', 'swift-csv' ); ?></label>
 			</dt>
 			<dd>
-				<input type="number" name="swift_csv_export_limit" id="swift_csv_export_limit" min="0" value="1000" placeholder="<?php esc_attr_e( 'No limit (0 = all)', 'swift-csv' ); ?>" class="small-text">
+				<input type="number" name="swift_csv_export_limit" id="swift_csv_export_limit" min="0" value="0" placeholder="<?php esc_attr_e( 'No limit (0 = all)', 'swift-csv' ); ?>" class="small-text">
 				<p class="description"><?php esc_html_e( 'Maximum number of posts to export. Enter 0 for no limit.', 'swift-csv' ); ?></p>
 			</dd>
 		</dl>
@@ -537,7 +545,7 @@ class Swift_CSV_Admin_Settings {
 	/**
 	 * Advanced enable logs field callback
 	 *
-	 * @since 0.9.15
+	 * @since 0.9.8
 	 * @return void
 	 */
 	public function advanced_enable_logs_field_html() {
@@ -555,6 +563,32 @@ class Swift_CSV_Admin_Settings {
 					<?php esc_html_e( 'Output logs during import and export', 'swift-csv' ); ?>
 				</label>
 				<p class="description"><?php esc_html_e( 'If checked, detailed per-row logs will be generated and displayed during import and export. Disable for maximum speed.', 'swift-csv' ); ?></p>
+			</dd>
+		</dl>
+		<?php
+	}
+
+	/**
+	 * Data removal on uninstall field callback
+	 *
+	 * @since 0.9.8
+	 * @return void
+	 */
+	public function uninstall_data_removal_field_html() {
+		$uninstall_remove_all_data = class_exists( 'Swift_CSV_Settings_Helper' )
+			? (bool) Swift_CSV_Settings_Helper::get( 'advanced', 'uninstall_remove_all_data', true )
+			: true;
+		?>
+		<dl>
+			<dt>
+				<?php esc_html_e( 'Data Removal on Uninstall', 'swift-csv' ); ?>
+			</dt>
+			<dd>
+				<label>
+					<input type="checkbox" id="swift_csv_advanced_uninstall_remove_all_data" name="swift_csv_advanced_uninstall_remove_all_data" value="1" <?php checked( $uninstall_remove_all_data ); ?>>
+					<?php esc_html_e( 'Remove all plugin data when uninstalling', 'swift-csv' ); ?>
+				</label>
+				<p class="description"><?php esc_html_e( 'If checked, all plugin settings, transients, and custom database tables will be removed when the plugin is uninstalled. Uncheck to preserve data for future reinstallation.', 'swift-csv' ); ?></p>
 			</dd>
 		</dl>
 		<?php
@@ -589,7 +623,7 @@ class Swift_CSV_Admin_Settings {
 	 * Displays a Pro feature select for execution permission settings.
 	 * Shows the field even when Pro is inactive, but disables it.
 	 *
-	 * @since 0.9.17
+	 * @since 0.9.8
 	 * @return void
 	 */
 	public function advanced_tools_access_field_html() {

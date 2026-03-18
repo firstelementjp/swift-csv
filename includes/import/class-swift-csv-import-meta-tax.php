@@ -23,7 +23,7 @@ class Swift_CSV_Import_Meta_Tax {
 	/**
 	 * CSV utility.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Csv|null
 	 */
 	private $csv_util;
@@ -31,7 +31,7 @@ class Swift_CSV_Import_Meta_Tax {
 	/**
 	 * Taxonomy utility.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Taxonomy_Util|null
 	 */
 	private $taxonomy_util;
@@ -39,7 +39,7 @@ class Swift_CSV_Import_Meta_Tax {
 	/**
 	 * Taxonomy writer strategy.
 	 *
-	 * @since 0.9.10
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Taxonomy_Writer_Interface
 	 */
 	private $taxonomy_writer;
@@ -47,7 +47,7 @@ class Swift_CSV_Import_Meta_Tax {
 	/**
 	 * Constructor.
 	 *
-	 * @since 0.9.10
+	 * @since 0.9.8
 	 * @param Swift_CSV_Import_Taxonomy_Writer_Interface|null $taxonomy_writer Taxonomy writer.
 	 * @param Swift_CSV_Import_Taxonomy_Util|null             $taxonomy_util Taxonomy util.
 	 */
@@ -59,7 +59,7 @@ class Swift_CSV_Import_Meta_Tax {
 	/**
 	 * Get CSV utility instance.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Csv
 	 */
 	private function get_csv_util(): Swift_CSV_Import_Csv {
@@ -72,7 +72,7 @@ class Swift_CSV_Import_Meta_Tax {
 	/**
 	 * Get taxonomy utility instance.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Taxonomy_Util
 	 */
 	private function get_taxonomy_util(): Swift_CSV_Import_Taxonomy_Util {

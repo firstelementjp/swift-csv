@@ -22,8 +22,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 0.9.8
  * @package Swift_CSV
  */
-class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
+class Swift_CSV_Export_WP_Compatible extends \Swift_CSV_Export_Base {
 
+	/**
+	 * Cache of resolved taxonomy term paths keyed by taxonomy:term_id.
+	 *
+	 * @var array<string, string>
+	 */
 	private $term_path_cache = [];
 
 	/**
@@ -192,7 +197,7 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 		/**
 		 * Allow integrations to preload batch-scoped export data.
 		 *
-		 * @since 0.9.15
+		 * @since 0.9.8
 		 *
 		 * @param array<int>                 $post_ids Post IDs included in the batch.
 		 * @param array<int, \WP_Post>       $posts Raw post objects included in the batch.
@@ -259,7 +264,7 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 							)
 						)
 					) : [];
-					$row[ $header ] = Swift_CSV_Helper::join_pipe_separated_values( $values );
+					$row[ $header ] = \Swift_CSV_Helper::join_pipe_separated_values( $values );
 				}
 			}
 
@@ -267,7 +272,7 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 				foreach ( $taxonomy_names as $taxonomy ) {
 					$values                    = $taxonomy_data[ $post_id ][ $taxonomy ] ?? [];
 					$values                    = array_values( array_unique( array_filter( array_map( 'strval', $values ) ) ) );
-					$row[ 'tax_' . $taxonomy ] = Swift_CSV_Helper::join_pipe_separated_values( $values );
+					$row[ 'tax_' . $taxonomy ] = \Swift_CSV_Helper::join_pipe_separated_values( $values );
 				}
 			}
 
@@ -300,6 +305,15 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 		return $csv;
 	}
 
+	/**
+	 * Build lookup array of terms keyed by taxonomy/id including parent hydration.
+	 *
+	 * @since 0.9.8
+	 *
+	 * @param array              $terms          Terms returned from wp_get_object_terms.
+	 * @param array<int, string> $taxonomy_names Allowed taxonomy names to resolve parent terms for.
+	 * @return array<string, \WP_Term>
+	 */
 	private function build_term_lookup( array $terms, array $taxonomy_names ): array {
 		$lookup             = [];
 		$pending_parent_ids = [];
@@ -392,9 +406,11 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 	/**
 	 * Group terms by object ID and taxonomy
 	 *
-	 * @since 0.9.17
-	 * @param array $terms Term list.
-	 * @return array Grouped terms.
+	 * @since 0.9.8
+	 *
+	 * @param array $terms Term list to group by object/taxonomy.
+	 *
+	 * @return array
 	 */
 	private function group_terms_by_object_and_taxonomy( array $terms ): array {
 		$groups = [];
@@ -427,10 +443,12 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 	/**
 	 * Determine whether a parent term should be skipped in hierarchical output
 	 *
-	 * @since 0.9.17
-	 * @param \WP_Term $term Current term.
-	 * @param array    $term_groups Grouped terms.
-	 * @return bool True when the term should be skipped.
+	 * @since 0.9.8
+	 *
+	 * @param \WP_Term $term        Current term.
+	 * @param array    $term_groups Grouped terms indexed by object/taxonomy.
+	 *
+	 * @return bool
 	 */
 	private function should_skip_parent_term_in_hierarchical_output( \WP_Term $term, array $term_groups ): bool {
 		$object_id = isset( $term->object_id ) ? (int) $term->object_id : 0;
@@ -455,6 +473,16 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 		return false;
 	}
 
+	/**
+	 * Build hierarchical path string for a term using cached lookup.
+	 *
+	 * @since 0.9.8
+	 *
+	 * @param \WP_Term $term        Current term to resolve.
+	 * @param array    $term_lookup Lookup keyed by taxonomy:term_id.
+	 *
+	 * @return string
+	 */
 	private function build_term_path( \WP_Term $term, array $term_lookup ): string {
 		$cache_key = $this->get_term_cache_key( (string) $term->taxonomy, (int) $term->term_id );
 		if ( isset( $this->term_path_cache[ $cache_key ] ) ) {
@@ -483,6 +511,14 @@ class Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base {
 		return $path;
 	}
 
+	/**
+	 * Get a deterministic cache key for a taxonomy/term pair.
+	 *
+	 * @since 0.9.8
+	 * @param string $taxonomy Taxonomy slug.
+	 * @param int    $term_id  Term ID.
+	 * @return string Cache key.
+	 */
 	private function get_term_cache_key( string $taxonomy, int $term_id ): string {
 		return $taxonomy . ':' . $term_id;
 	}

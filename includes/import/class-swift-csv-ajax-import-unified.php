@@ -219,7 +219,7 @@ class Swift_CSV_Ajax_Import_Unified {
 	/**
 	 * Cleanup output buffers to avoid corrupting JSON responses.
 	 *
-	 * @since 0.9.10
+	 * @since 0.9.8
 	 * @param int $initial_ob_level Initial output buffer level.
 	 * @return void
 	 */
@@ -260,7 +260,7 @@ class Swift_CSV_Ajax_Import_Unified {
 	 *
 	 * Disabled by default to reduce the risk of data corruption.
 	 *
-	 * @since 0.9.10
+	 * @since 0.9.8
 	 * @return bool True if enabled.
 	 */
 	private function is_direct_sql_import_enabled(): bool {

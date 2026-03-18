@@ -40,7 +40,7 @@ class Swift_CSV_Admin_Page {
 	/**
 	 * Render advanced settings tab content
 	 *
-	 * @since 0.9.14
+	 * @since 0.9.8
 	 * @return void
 	 */
 	private function render_advanced_tab_content(): void {
@@ -483,10 +483,24 @@ class Swift_CSV_Admin_Page {
 	 */
 	private function render_plugin_header() {
 		$forum_url = 'https://github.com/firstelementjp/swift-csv/issues';
+
+		// Check if Pro license is active
+		$is_pro_license_active = class_exists( 'Swift_CSV_License_Handler' )
+			&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
+			&& Swift_CSV_License_Handler::is_pro_active()
+			&& defined( 'SWIFT_CSV_PRO_VERSION' ); // Also check if Pro plugin is actually installed and active
 		?>
 		<div id="plugin_header">
 			<div id="plugin_header_upper">
-				<div id="plugin_header_title">Swift <span>CSV</span></div>
+				<div id="plugin_header_title">Swift <span>CSV</span>
+				<?php
+				if ( $is_pro_license_active ) :
+					?>
+					<span class="pro-badge">Pro</span>
+					<?php
+				endif;
+				?>
+				</div>
 				<a href="https://www.firstelement.co.jp/" id="plugin_logo" target="_blank" title="Go to the developer's website">
 					<img src="<?php echo esc_url( SWIFT_CSV_PLUGIN_URL . 'assets/images/logo-feas-white-shadow-s@2x-min.png' ); ?>" width="106" height="27" alt="FirstElement">
 				</a>

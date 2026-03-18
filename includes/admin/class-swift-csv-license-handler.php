@@ -28,7 +28,7 @@ class Swift_CSV_License_Handler {
 	/**
 	 * Cron hook name for license resync.
 	 *
-	 * @since 0.9.9
+	 * @since 0.9.8
 	 * @var string
 	 */
 	public const CRON_HOOK_RESYNC_LICENSE = 'swift_csv_resync_license';
@@ -78,7 +78,7 @@ class Swift_CSV_License_Handler {
 	/**
 	 * Fetch current license status from the license server.
 	 *
-	 * @since 0.9.9
+	 * @since 0.9.8
 	 * @param string $license_key The license key.
 	 * @return array The response from the license server.
 	 */
@@ -277,7 +277,7 @@ class Swift_CSV_License_Handler {
 	/**
 	 * Check if the given product license entry is expired.
 	 *
-	 * @since 0.9.9
+	 * @since 0.9.8
 	 * @param array $entry Product license entry.
 	 * @return bool True if expired.
 	 */
@@ -317,7 +317,7 @@ class Swift_CSV_License_Handler {
 	/**
 	 * Register wp-cron hook for license resync.
 	 *
-	 * @since 0.9.9
+	 * @since 0.9.8
 	 * @return void
 	 */
 	public static function register_license_resync_cron() {
@@ -327,7 +327,7 @@ class Swift_CSV_License_Handler {
 	/**
 	 * Schedule daily license resync if not already scheduled.
 	 *
-	 * @since 0.9.9
+	 * @since 0.9.8
 	 * @return void
 	 */
 	public static function maybe_schedule_license_resync() {
@@ -340,7 +340,7 @@ class Swift_CSV_License_Handler {
 	/**
 	 * Clear scheduled license resync.
 	 *
-	 * @since 0.9.9
+	 * @since 0.9.8
 	 * @return void
 	 */
 	public static function clear_license_resync_schedule() {
@@ -350,7 +350,7 @@ class Swift_CSV_License_Handler {
 	/**
 	 * Cron callback: resync license state from server and update local option.
 	 *
-	 * @since 0.9.9
+	 * @since 0.9.8
 	 * @return void
 	 */
 	public static function cron_resync_license() {
@@ -360,7 +360,7 @@ class Swift_CSV_License_Handler {
 	/**
 	 * Resync Pro license state from server and update local cached option.
 	 *
-	 * @since 0.9.9
+	 * @since 0.9.8
 	 * @return array Result.
 	 */
 	public static function resync_license_from_server() {
@@ -378,6 +378,15 @@ class Swift_CSV_License_Handler {
 		}
 		$license_key = $entry['key'] ?? '';
 		$license_key = is_string( $license_key ) ? $license_key : '';
+
+		// Decrypt license key if encrypted
+		if ( '' !== $license_key && class_exists( 'Swift_CSV_Encryption_Utils' ) && Swift_CSV_Encryption_Utils::is_available() ) {
+			$decrypted_key = Swift_CSV_Encryption_Utils::decrypt( $license_key );
+			if ( false !== $decrypted_key ) {
+				$license_key = $decrypted_key;
+			}
+		}
+
 		if ( '' === $license_key ) {
 			return [
 				'success' => false,
@@ -412,9 +421,15 @@ class Swift_CSV_License_Handler {
 			$product_id = self::PRODUCT_ID_PRO;
 		}
 
+		// Encrypt license key before saving
+		$encrypted_key = '';
+		if ( class_exists( 'Swift_CSV_Encryption_Utils' ) && Swift_CSV_Encryption_Utils::is_available() ) {
+			$encrypted_key = Swift_CSV_Encryption_Utils::encrypt( $license_key );
+		}
+
 		$license_data['products']                = $products;
 		$license_data['products'][ $product_id ] = [
-			'key'    => $license_key,
+			'key'    => $encrypted_key ?: $license_key, // Fallback to plain text if encryption fails
 			'status' => (string) ( $result['status'] ?? 'inactive' ),
 			'data'   => $result['data'] ?? [],
 		];

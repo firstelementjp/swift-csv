@@ -3,7 +3,6 @@
  * Uninstall hook for Swift CSV
  *
  * Removes plugin data when the plugin is uninstalled.
- * This file is called when the user uninstalls the plugin via WordPress admin.
  *
  * @package Swift_CSV
  * @since  0.9.4
@@ -14,7 +13,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-// Define plugin constants if not already defined
+// Define plugin constants if not already defined.
 if ( ! defined( 'SWIFT_CSV_PLUGIN_DIR' ) ) {
 	define( 'SWIFT_CSV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 }
@@ -28,15 +27,30 @@ if ( ! defined( 'SWIFT_CSV_PLUGIN_DIR' ) ) {
 function swift_csv_uninstall() {
 	global $wpdb;
 
-	// Delete custom table
-	$table_name = $wpdb->prefix . 'swift_csv_batches';
-	$wpdb->query( "DROP TABLE IF EXISTS $table_name" );
+	// Check if user wants to remove all data.
+	$remove_all_data = true; // Default to true for backward compatibility.
+	if ( class_exists( 'Swift_CSV_Settings_Helper' ) ) {
+		$remove_all_data = (bool) Swift_CSV_Settings_Helper::get( 'advanced', 'uninstall_remove_all_data', true );
+	}
 
-	// Delete plugin options
+	if ( ! $remove_all_data ) {
+		// User chose to preserve data, only delete custom table.
+		$table_name = $wpdb->prefix . 'swift_csv_batches';
+		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table_name ) );
+		return;
+	}
+
+	// Delete custom table.
+	$table_name = $wpdb->prefix . 'swift_csv_batches';
+	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table_name ) );
+
+	// Delete plugin options.
 	$options = [
 		'swift_csv_version',
 		'swift_csv_db_version',
 		'swift_csv_settings',
+		'swift_csv_pro_license', // Also remove license data
+		'swift_csv_encryption_key', // Remove encryption key
 	];
 
 	foreach ( $options as $option ) {

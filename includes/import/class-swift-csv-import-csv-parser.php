@@ -38,7 +38,7 @@ class Swift_CSV_Import_Csv_Parser {
 	/**
 	 * Taxonomy utility instance.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Taxonomy_Util|null
 	 */
 	private $taxonomy_util;
@@ -199,7 +199,7 @@ class Swift_CSV_Import_Csv_Parser {
 	/**
 	 * Get taxonomy utility instance.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Taxonomy_Util
 	 */
 	private function get_taxonomy_util(): Swift_CSV_Import_Taxonomy_Util {

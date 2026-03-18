@@ -4,7 +4,7 @@
  *
  * Provides common functionality for WP-compatible and future Direct SQL imports.
  *
- * @since 0.9.12
+ * @since 0.9.8
  * @package Swift_CSV
  */
 
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Base Import Class
  *
- * @since 0.9.12
+ * @since 0.9.8
  * @package Swift_CSV
  */
 abstract class Swift_CSV_Import_Base {
@@ -23,7 +23,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Import log store.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Log_Store
 	 */
 	protected $log_store;
@@ -31,7 +31,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Import CSV store.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Csv_Store
 	 */
 	protected $csv_store;
@@ -39,7 +39,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * CSV utility.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Csv
 	 */
 	protected $csv_util;
@@ -47,7 +47,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * CSV parser.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Csv_Parser
 	 */
 	protected $csv_parser;
@@ -55,7 +55,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * File processor.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_File_Processor
 	 */
 	protected $file_processor;
@@ -63,7 +63,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Batch processor.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Batch_Processor
 	 */
 	protected $batch_processor;
@@ -71,7 +71,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Response manager.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Response_Manager
 	 */
 	protected $response_manager;
@@ -79,7 +79,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Request parser.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Request_Parser
 	 */
 	protected $request_parser;
@@ -87,7 +87,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Taxonomy utility.
 	 *
-	 * @since 0.9.14
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Taxonomy_Util
 	 */
 	protected $taxonomy_util;
@@ -95,7 +95,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Constructor.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @param Swift_CSV_Import_Log_Store|null        $log_store Log store.
 	 * @param Swift_CSV_Import_Csv_Store|null        $csv_store CSV store.
 	 * @param Swift_CSV_Import_Csv|null              $csv_util CSV utility.
@@ -131,7 +131,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Handle file upload.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @return array|null Upload result or null when upload failed (response already sent).
 	 */
 	protected function upload_file_or_return_null(): ?array {
@@ -141,7 +141,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Get import session key.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @return string Import session (empty string when missing; error response is sent).
 	 */
 	protected function get_import_session_or_send_error(): string {
@@ -158,7 +158,7 @@ abstract class Swift_CSV_Import_Base {
 	 *
 	 * Initializes log store when needed.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @param string $import_session Import session key.
 	 * @param bool   $enable_logs Whether logs are enabled.
 	 * @param int    $start_row Start row.
@@ -180,7 +180,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Read CSV content for the first request.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @param string $file_path Uploaded file path.
 	 * @param int    $start_row Start row.
 	 * @return string CSV content (empty string when not needed).
@@ -197,7 +197,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Build normalized import configuration array.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @param array         $parsed_config Parsed config.
 	 * @param string        $file_path Uploaded file path.
 	 * @param int           $start_row Start row.
@@ -230,7 +230,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Ensure parsed CSV data is available for current request.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @param array|null $csv_data Cached csv data.
 	 * @param int        $start_row Start row.
 	 * @param string     $file_path Uploaded file path.
@@ -270,7 +270,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Build recent logs array for UI.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @param bool   $should_continue Whether import continues.
 	 * @param string $import_session Import session key.
 	 * @return array Recent logs by type.
@@ -292,7 +292,7 @@ abstract class Swift_CSV_Import_Base {
 	/**
 	 * Run the import.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @return void
 	 */
 	abstract public function import(): void;

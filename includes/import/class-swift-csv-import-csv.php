@@ -54,7 +54,7 @@ class Swift_CSV_Import_Csv {
 	/**
 	 * Split a pipe-separated string respecting backslash escaping.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @param string $value Raw value from CSV.
 	 * @return array<int, string>
 	 */
@@ -94,7 +94,7 @@ class Swift_CSV_Import_Csv {
 	/**
 	 * Normalize field name by removing BOM and control characters.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @param string $name Field name.
 	 * @return string
 	 */

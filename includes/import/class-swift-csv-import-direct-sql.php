@@ -4,7 +4,7 @@
  *
  * Placeholder for future high-speed import implementation.
  *
- * @since 0.9.12
+ * @since 0.9.8
  * @package Swift_CSV
  */
 
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Direct SQL Import Class
  *
- * @since 0.9.12
+ * @since 0.9.8
  * @package Swift_CSV
  */
 class Swift_CSV_Import_Direct_SQL extends Swift_CSV_Import_Base {
@@ -23,7 +23,7 @@ class Swift_CSV_Import_Direct_SQL extends Swift_CSV_Import_Base {
 	/**
 	 * Run the import.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @return void
 	 */
 	public function import(): void {

@@ -4,7 +4,7 @@
  *
  * WP-compatible taxonomy writing strategy for Swift CSV import.
  *
- * @since 0.9.10
+ * @since 0.9.8
  * @package Swift_CSV
  */
 
@@ -15,14 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Import taxonomy writer (WP compatible).
  *
- * @since 0.9.10
+ * @since 0.9.8
  * @package Swift_CSV
  */
 class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_Writer_Interface {
 	/**
 	 * Taxonomy utility instance.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @var Swift_CSV_Import_Taxonomy_Util|null
 	 */
 	private $taxonomy_util;
@@ -30,7 +30,7 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	/**
 	 * Constructor.
 	 *
-	 * @since 0.9.14
+	 * @since 0.9.8
 	 * @param Swift_CSV_Import_Taxonomy_Util|null $taxonomy_util Taxonomy util.
 	 */
 	public function __construct( ?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null ) {
@@ -40,7 +40,7 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	/**
 	 * Apply taxonomy terms for a post.
 	 *
-	 * @since 0.9.10
+	 * @since 0.9.8
 	 * @param wpdb  $wpdb WordPress database handler.
 	 * @param int   $post_id Post ID.
 	 * @param array $taxonomies Taxonomy terms map.
@@ -66,7 +66,7 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	/**
 	 * Resolve term IDs for a single taxonomy.
 	 *
-	 * @since 0.9.10
+	 * @since 0.9.8
 	 * @param string             $taxonomy Taxonomy name.
 	 * @param array<int, string> $terms Term values.
 	 * @param string             $taxonomy_format Taxonomy format.
@@ -92,7 +92,7 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	/**
 	 * Resolve term IDs from a term value.
 	 *
-	 * @since 0.9.10
+	 * @since 0.9.8
 	 * @param string $taxonomy Taxonomy name.
 	 * @param string $term_value Term value.
 	 * @param string $taxonomy_format Taxonomy format.
@@ -106,7 +106,7 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	/**
 	 * Get taxonomy utility instance.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @return Swift_CSV_Import_Taxonomy_Util
 	 */
 	private function get_taxonomy_util(): Swift_CSV_Import_Taxonomy_Util {
@@ -119,7 +119,7 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	/**
 	 * Apply taxonomy terms to a post.
 	 *
-	 * @since 0.9.10
+	 * @since 0.9.8
 	 * @param int                $post_id Post ID.
 	 * @param string             $taxonomy Taxonomy name.
 	 * @param array<int, int>    $term_ids Term IDs.

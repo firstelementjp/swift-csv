@@ -80,7 +80,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Allows injecting dependencies for alternative import methods (e.g., direct SQL)
 	 * while keeping the default lazy instantiation behavior.
 	 *
-	 * @since 0.9.10
+	 * @since 0.9.8
 	 * @param Swift_CSV_Ajax_Import_Batch_Planner|null $batch_planner Batch planner.
 	 * @param Swift_CSV_Import_Row_Context|null        $row_context_util Row context util.
 	 * @param Swift_CSV_Import_Meta_Tax|null           $meta_tax_util Meta/tax util.
@@ -148,7 +148,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	/**
 	 * Execute the actual batch processing.
 	 *
-	 * @since 0.9.13
+	 * @since 0.9.8
 	 * @param array $config Import configuration.
 	 * @param array $csv_data Parsed CSV data.
 	 * @param array $counters Counters (by reference).
@@ -163,7 +163,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	/**
 	 * Initialize counters for a batch.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @return array<string, mixed>
 	 */
 	protected function initialize_counters(): array {
@@ -219,7 +219,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	/**
 	 * Validate ID column for the current batch.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @param array $config Import configuration.
 	 * @param array $csv_data Parsed CSV data.
 	 * @return int|null|false ID column index, null when missing in non-first batch, or false when validation failed.
@@ -246,7 +246,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	/**
 	 * Run the batch loop.
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @param wpdb                           $wpdb WordPress database handler.
 	 * @param array                          $config Import configuration.
 	 * @param array                          $csv_data Parsed CSV data.

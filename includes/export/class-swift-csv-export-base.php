@@ -40,7 +40,7 @@ abstract class Swift_CSV_Export_Base {
 	/**
 	 * Cached author display names keyed by user ID
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @var array<int, string>
 	 */
 	protected $author_display_names = [];
@@ -162,7 +162,7 @@ abstract class Swift_CSV_Export_Base {
 	 * Generates taxonomy column headers with 'tax_' prefix.
 	 * Supports filtering of taxonomy objects.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @param array $config Export configuration.
 	 * @return string[] Taxonomy headers.
 	 */
@@ -207,7 +207,7 @@ abstract class Swift_CSV_Export_Base {
 	 * Supports meta key classification and header generation via hooks.
 	 * Uses the "cf_" prefix for custom field columns.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @param array $config Export configuration.
 	 * @param array $query_spec Query specification for filtering.
 	 * @return string[] Custom field headers.
@@ -368,7 +368,7 @@ abstract class Swift_CSV_Export_Base {
 	 * based on export configuration. Provides unified header generation
 	 * for both standard and Direct SQL export methods.
 	 *
-	 * @since 0.9.11
+	 * @since 0.9.8
 	 * @param array  $config Export configuration.
 	 * @param array  $query_spec Query specification for filtering.
 	 * @param string $context Export context ('standard' or 'direct_sql').
@@ -469,7 +469,7 @@ abstract class Swift_CSV_Export_Base {
 	/**
 	 * Escape CSV field
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @param string $field Field value.
 	 * @return string Escaped field.
 	 */
@@ -482,7 +482,7 @@ abstract class Swift_CSV_Export_Base {
 	/**
 	 * Build a CSV row by iterating headers
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @param array    $post_data Post data for a single row.
 	 * @param string[] $headers CSV headers.
 	 * @return string[] Escaped CSV row values.
@@ -529,7 +529,7 @@ abstract class Swift_CSV_Export_Base {
 	/**
 	 * Get cached author display name
 	 *
-	 * @since 0.9.12
+	 * @since 0.9.8
 	 * @param int $author_id Author user ID.
 	 * @return string Author display name.
 	 */

@@ -4,7 +4,7 @@
  *
  * Defines the template method for batch processing.
  *
- * @since 0.9.13
+ * @since 0.9.8
  * @package Swift_CSV
  */
 
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Base class for batch processors.
  *
- * @since 0.9.13
+ * @since 0.9.8
  * @package Swift_CSV
  */
 abstract class Swift_CSV_Import_Batch_Processor_Base {
@@ -25,7 +25,7 @@ abstract class Swift_CSV_Import_Batch_Processor_Base {
 	 * Template method. Subclasses implement the actual processing via
 	 * {@see Swift_CSV_Import_Batch_Processor_Base::do_process_batch()}.
 	 *
-	 * @since 0.9.13
+	 * @since 0.9.8
 	 * @param array $config Import configuration.
 	 * @param array $csv_data Parsed CSV data.
 	 * @return array Processing results.
@@ -39,7 +39,7 @@ abstract class Swift_CSV_Import_Batch_Processor_Base {
 	/**
 	 * Initialize counters for a batch.
 	 *
-	 * @since 0.9.13
+	 * @since 0.9.8
 	 * @return array<string, mixed>
 	 */
 	protected function initialize_counters(): array {
@@ -56,7 +56,7 @@ abstract class Swift_CSV_Import_Batch_Processor_Base {
 	/**
 	 * Execute the actual batch processing.
 	 *
-	 * @since 0.9.13
+	 * @since 0.9.8
 	 * @param array $config Import configuration.
 	 * @param array $csv_data Parsed CSV data.
 	 * @param array $counters Counters (by reference).

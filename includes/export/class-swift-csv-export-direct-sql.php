@@ -27,7 +27,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	/**
 	 * Build the Direct SQL runtime unavailable exception.
 	 *
-	 * @since 0.9.17
+	 * @since 0.9.8
 	 * @return Exception
 	 */
 	private function get_direct_sql_runtime_exception(): Exception {
@@ -50,7 +50,7 @@ class Swift_CSV_Export_Direct_SQL extends Swift_CSV_Export_Base {
 	 *
 	 * Provides public access to header generation for external callers.
 	 *
-	 * @since 0.9.9
+	 * @since 0.9.8
 	 * @return string[] Post field headers.
 	 * @throws Exception Always thrown because Direct SQL runtime is owned by Swift CSV Pro.
 	 */

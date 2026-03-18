@@ -4,7 +4,7 @@
  *
  * Centralizes settings storage in a single option array.
  *
- * @since 0.9.15
+ * @since 0.9.8
  * @package Swift_CSV
  */
 
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Settings helper for Swift CSV Free version
  *
- * @since 0.9.15
+ * @since 0.9.8
  * @package Swift_CSV
  */
 class Swift_CSV_Settings_Helper {
@@ -33,25 +33,9 @@ class Swift_CSV_Settings_Helper {
 	 * @var array
 	 */
 	private const DEFAULTS = [
-		'export'   => [
-			'post_type'             => 'post',
-			'post_status'           => 'publish',
-			'scope'                 => 'basic',
-			'include_taxonomies'    => true,
-			'include_custom_fields' => true,
-			'include_private_meta'  => false,
-			'taxonomy_format'       => 'name',
-			'limit'                 => 1000,
-		],
-		'import'   => [
-			'post_type'       => 'post',
-			'update_existing' => false,
-			'taxonomy_format' => 'name',
-			'dry_run'         => false,
-		],
 		'advanced' => [
-			'enable_logs'                  => true,
-			'updraft_backup_before_import' => false,
+			'enable_logs'               => true,
+			'uninstall_remove_all_data' => true,
 		],
 	];
 
@@ -161,48 +145,14 @@ class Swift_CSV_Settings_Helper {
 		$migrated           = [];
 		$legacy_enable_logs = null;
 
-		// Export settings.
-		$export_keys = [
-			'swift_csv_export_post_type'      => 'post_type',
-			'swift_csv_export_post_status'    => 'post_status',
-			'swift_csv_export_scope'          => 'scope',
-			'swift_csv_include_taxonomies'    => 'include_taxonomies',
-			'swift_csv_include_custom_fields' => 'include_custom_fields',
-			'swift_csv_include_private_meta'  => 'include_private_meta',
-			'swift_csv_taxonomy_format'       => 'taxonomy_format',
-			'swift_csv_export_limit'          => 'limit',
-		];
-
-		foreach ( $export_keys as $old_key => $new_key ) {
-			$value = get_option( $old_key );
-			if ( false !== $value ) {
-				$migrated['export'][ $new_key ] = $value;
-				delete_option( $old_key ); // Clean up old option.
-			}
-		}
-
+		// Export logs setting.
 		$legacy_export_enable_logs = get_option( 'swift_csv_export_enable_logs' );
 		if ( false !== $legacy_export_enable_logs ) {
 			$legacy_enable_logs = (bool) $legacy_export_enable_logs;
 			delete_option( 'swift_csv_export_enable_logs' );
 		}
 
-		// Import settings.
-		$import_keys = [
-			'swift_csv_import_post_type'       => 'post_type',
-			'swift_csv_import_update_existing' => 'update_existing',
-			'swift_csv_import_taxonomy_format' => 'taxonomy_format',
-			'swift_csv_import_dry_run'         => 'dry_run',
-		];
-
-		foreach ( $import_keys as $old_key => $new_key ) {
-			$value = get_option( $old_key );
-			if ( false !== $value ) {
-				$migrated['import'][ $new_key ] = $value;
-				delete_option( $old_key ); // Clean up old option.
-			}
-		}
-
+		// Import logs setting.
 		$legacy_import_enable_logs = get_option( 'swift_csv_import_enable_logs' );
 		if ( false !== $legacy_import_enable_logs ) {
 			$legacy_enable_logs = ( null === $legacy_enable_logs )
@@ -214,12 +164,6 @@ class Swift_CSV_Settings_Helper {
 		// Advanced settings.
 		if ( null !== $legacy_enable_logs ) {
 			$migrated['advanced']['enable_logs'] = $legacy_enable_logs;
-		}
-
-		$updraft_value = get_option( 'swift_csv_import_updraft_backup_before_import' );
-		if ( false !== $updraft_value ) {
-			$migrated['advanced']['updraft_backup_before_import'] = $updraft_value;
-			delete_option( 'swift_csv_import_updraft_backup_before_import' );
 		}
 
 		// Save migrated data if we have any.

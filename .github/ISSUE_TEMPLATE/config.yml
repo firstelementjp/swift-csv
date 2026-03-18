@@ -4,5 +4,5 @@ contact_links:
       url: https://firstelementjp.github.io/swift-csv/
       about: Please check the docs first.
     - name: Security
-      url: https://github.com/firstelementjp/swift-csv/security/policy
-      about: Please report security issues privately.
+      url: https://github.com/firstelementjp/swift-csv/blob/main/SECURITY.md
+      about: Please report security issues privately via email.

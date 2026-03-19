@@ -27,8 +27,20 @@ export WP_PATH="/Users/name/Local Sites/app"  # ✅ Quoted for spaces
 **Test commands**:
 
 ```bash
+# Quick WP-CLI connection test
+wp --path="$WP_PATH" --info
+
+# Database connection test
 wp db query "SELECT 1;" --path="$WP_PATH"
+
+# Environment variables check
 env | grep -E "(DB_|WP_)"
+
+# WordPress installation check
+wp --path="$WP_PATH" core is-installed
+
+# Plugin status check
+wp --path="$WP_PATH" plugin status swift-csv
 ```
 
 **Lesson**: Database variables: unquoted. Paths with spaces: quoted. Always test WP-CLI connection after setup.

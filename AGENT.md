@@ -6,11 +6,11 @@
 ## Project Overview
 
 **Swift CSV** is a WordPress plugin for CSV import/export.
-Supports custom post types, custom taxonomies, ACF fields, and custom fields.
+Supports custom post types, custom taxonomies, and custom fields.
 
-- **Version**: 0.9.5
+- **Version**: 0.9.8
 - **License**: GPL-2.0+
-- **PHP**: >= 7.4
+- **PHP**: >= 8.1 (recommended)
 - **Repository**: https://github.com/firstelementjp/swift-csv
 
 ## Architecture
@@ -21,10 +21,22 @@ includes/
   class-swift-csv-admin.php            # Admin UI (menu, tabs, rendering)
   class-swift-csv-ajax-export.php      # AJAX export handler (chunked)
   class-swift-csv-ajax-import.php      # AJAX import handler (chunked)
-  class-swift-csv-batch.php            # Batch processing engine
-  class-swift-csv-exporter.php         # Core export logic
-  class-swift-csv-importer.php         # Core import logic
-  class-swift-csv-sql-importer.php     # SQL-based fast import
+  class-swift-csv-ajax-util.php         # AJAX utilities and response handling
+  class-swift-csv-batch-processor.php   # Batch processing engine
+  class-swift-csv-csv-parser.php        # CSV parsing utilities
+  class-swift-csv-export-base.php       # Base export class
+  class-swift-csv-export-wp-compatible.php # WP compatible export implementation
+  class-swift-csv-import-base.php       # Base import class
+  class-swift-csv-import-wp-compatible.php # WP compatible import implementation
+  class-swift-csv-import-persister.php  # Import data persistence
+  class-swift-csv-import-request-parser.php # Import request parsing
+  class-swift-csv-import-row-context.php # Import row context management
+  class-swift-csv-import-row-processor.php # Import row processing
+  class-swift-csv-import-taxonomy-util.php # Taxonomy utilities
+  class-swift-csv-import-taxonomy-writer-interface.php # Taxonomy writer interface
+  class-swift-csv-import-taxonomy-writer-wp.php # WP taxonomy writer
+  class-swift-csv-import-meta-tax.php   # Meta and taxonomy processing
+  class-swift-csv-import-direct-sql.php # Direct SQL import (legacy)
   class-swift-csv-updater.php          # Plugin update checker
 assets/
   js/admin-scripts.js                  # Frontend JS (logging, AJAX, file upload)
@@ -37,12 +49,11 @@ docs/                                  # Docsify documentation site
 
 ## CSV Column Prefix Convention
 
-| Prefix | Source              | Example        |
-| ------ | ------------------- | -------------- |
-| (none) | WP post fields      | `post_title`   |
-| `tax_` | Taxonomy terms      | `tax_category` |
-| `acf_` | ACF fields          | `acf_area`     |
-| `cf_`  | Other custom fields | `cf_my_field`  |
+| Prefix | Source         | Example        |
+| ------ | -------------- | -------------- |
+| (none) | WP post fields | `post_title`   |
+| `tax_` | Taxonomy terms | `tax_category` |
+| `cf_`  | Custom fields  | `cf_my_field`  |
 
 ## Build & Dev Commands
 
@@ -82,27 +93,18 @@ npm run format         # Prettier
 
 ## Critical Constraints
 
-### ACF Integration
+### Import/Export Architecture
 
-**Always pass `$post_id` to ACF functions.** This is the #1 source of bugs.
-
-```php
-// WRONG - returns false/null
-get_field_object( $field_name );
-
-// CORRECT - requires post context
-get_field_object( $field_name, $post_id, false, false );
-```
-
-Always implement a fallback when field object is not found:
+**Always use proper type hints and PHPDoc with object types for IDE compatibility.**
 
 ```php
-if ( ! $field_object ) {
-    $value = get_field( $field_name, $post_id );
-}
-```
+// PHPDoc - Use object for IDE compatibility
+/** @param object $util Utility instance. */
+public function method( object $util ): void
 
-See `SKILL.md > ACF Field Export Issue` for full details.
+// Method signature - Use specific class for type safety
+public function method( Specific_Class $util ): void
+```
 
 ### JavaScript DOM Selectors
 
@@ -132,13 +134,14 @@ Use local time, not UTC.
 
 ## Workflow Checklists
 
-### Adding a New ACF Field Type
+### Adding New Import/Export Features
 
-1. Update `swift_csv_ajax_export_build_headers()` for header detection
-2. Add value processing in the `acf_` branch of the export loop
-3. Use `get_field_object($name, $post_id, false, false)` with fallback
-4. Test with real data, check `debug.log`
-5. Update `SKILL.md` if a new pattern is discovered
+1. Create interface/base class if needed
+2. Implement WP-compatible version
+3. Add proper PHPDoc with object types
+4. Update request parser if needed
+5. Test with real data, check `debug.log`
+6. Update documentation if new pattern discovered
 
 ### Changing Admin UI
 

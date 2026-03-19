@@ -10,8 +10,8 @@
 | Item           | Value                                |
 | -------------- | ------------------------------------ |
 | **Type**       | WordPress Plugin (Free + Pro add-on) |
-| **WordPress**  | 6.0+                                 |
-| **PHP**        | 8.0+                                 |
+| **WordPress**  | 6.6+                                 |
+| **PHP**        | 8.1+                                 |
 | **JavaScript** | Vanilla JS, modular (no framework)   |
 | **Build**      | esbuild for JS/CSS minification      |
 | **i18n**       | English (default), Japanese          |
@@ -26,29 +26,61 @@ swift-csv/                          # Free version (this repo)
 │   ├── class-swift-csv-admin.php   # Admin UI, script/style enqueue, settings
 │   ├── class-swift-csv-ajax-export.php  # AJAX export handler (chunked)
 │   ├── class-swift-csv-ajax-import.php  # AJAX import handler (chunked)
+│   ├── class-swift-csv-ajax-util.php     # AJAX utilities and response handling
+│   ├── class-swift-csv-batch-processor.php # Batch processing engine
+│   ├── class-swift-csv-csv-parser.php      # CSV parsing utilities
+│   ├── class-swift-csv-export-base.php     # Base export class
+│   ├── class-swift-csv-export-wp-compatible.php # WP compatible export
+│   ├── class-swift-csv-import-base.php     # Base import class
+│   ├── class-swift-csv-import-wp-compatible.php # WP compatible import
+│   ├── class-swift-csv-import-persister.php  # Import data persistence
+│   ├── class-swift-csv-import-request-parser.php # Import request parsing
+│   ├── class-swift-csv-import-row-context.php # Import row context management
+│   ├── class-swift-csv-import-row-processor.php # Import row processing
+│   ├── class-swift-csv-import-taxonomy-util.php # Taxonomy utilities
+│   ├── class-swift-csv-import-taxonomy-writer-interface.php # Taxonomy writer interface
+│   ├── class-swift-csv-import-taxonomy-writer-wp.php # WP taxonomy writer
+│   ├── class-swift-csv-import-meta-tax.php   # Meta and taxonomy processing
+│   ├── class-swift-csv-import-direct-sql.php # Direct SQL import (legacy)
 │   ├── class-swift-csv-license-handler.php  # License validation/activation
 │   └── class-swift-csv-updater.php  # Plugin update system
 ├── assets/
 │   ├── js/
 │   │   ├── swift-csv-core.js       # Shared utilities (__(), wpPost, logging)
-│   │   ├── swift-csv-export.js     # Export UI and AJAX logic
+│   │   ├── swift-csv-export-unified.js # Export UI and AJAX logic
 │   │   ├── swift-csv-import.js     # Import UI, file upload, AJAX logic
 │   │   ├── swift-csv-license.js    # License activation/deactivation
 │   │   ├── swift-csv-main.js       # Entry point, module initializer
-│   │   └── *.min.js                # Minified versions (production)
+│   │   ├── export/
+│   │   │   └── swift-csv/          # Export modules (6 files)
+│   │   │       ├── ajax.js         # Export AJAX handling
+│   │   │       ├── download.js     # File download logic
+│   │   │       ├── form.js         # Export form handling
+│   │   │       ├── logs.js         # Export log management
+│   │   │       ├── original.js     # Original export logic
+│   │   │       └── ui.js           # Export UI components
+│   │   └── *.min.js                # Minified versions (distribution only)
 │   └── css/
 │       ├── swift-csv-style.css     # Admin styles
-│       └── swift-csv-style.min.css # Minified (production)
+│       └── swift-csv-style.min.css # Minified (distribution only)
 ├── languages/                      # Translation files (.po/.mo)
 ├── docs/                           # Docsify documentation site
+├── tests/                          # PHPUnit tests (Unit + Integration)
+│   ├── Unit/                       # Unit tests
+│   ├── Integration/                # Integration tests
+│   ├── bootstrap.php               # Test environment setup
+│   └── results/                    # Test results and coverage
+├── _deprecated/                    # Deprecated code (kept for reference)
+│   ├── export/                     # Legacy export code
+│   └── import/                     # Legacy import code
 └── .github/skills/                 # This directory
     ├── SKILL.md                    # ← You are here
     ├── architecture/               # Design decisions & hook API
     ├── troubleshooting/            # Pitfall catalog by category
-    └── conventions/                # Coding standards & patterns
+    └── conventions/                # Coding standards, environment setup & patterns
 
 swift-csv-pro/                      # Pro add-on (separate repo)
-└── Extends Free version via WordPress hooks (ACF support, license system)
+└── Extends Free version via WordPress hooks (enhanced features)
 ```
 
 ## Key Architecture Decisions
@@ -58,37 +90,41 @@ swift-csv-pro/                      # Pro add-on (separate repo)
 - **Chunked AJAX processing** — Both import and export use chunked requests to avoid PHP timeouts.
 - **Session-based export cancellation** — Uses `wp_options` with direct DB reads (bypasses cache) and per-session flags.
 - **Temporary file security** — Import temp files are cleaned up on completion/error, protected by `.htaccess`, and purged after 24h.
+- **Interface-based architecture** — Export/Import use base classes with WP-compatible implementations for extensibility.
+- **Object-type PHPDoc** — Use `object` in PHPDoc for IDE compatibility while maintaining strict type hints in signatures.
 
 ## Critical Rules (Always Follow)
 
 1. **WordPress AJAX responses** must include `'success' => true/false`. Use `wp_send_json_success()` / `wp_send_json_error()`.
-2. **ACF functions** always require `$post_id`. Never call `get_field_object()` without it.
+2. **PHPDoc object types** — Use `object` in @param/@return for IDE compatibility, specific classes in method signatures.
 3. **DOM manipulation** — Target specific child elements (`#export-log-content`), never clear parent containers (`.swift-csv-log`).
 4. **Temporary files** — Call `unlink()` on ALL error paths, not just success.
 5. **Module loading** — Wait for all `window.SwiftCSV*` globals before calling module functions.
-6. **Build after JS/CSS changes** — Run `npm run build:modules` (JS) or `npm run build:css` (CSS).
+6. **Build after JS/CSS changes** — Run `npm run build` (CSS + JS) or `npm run dev` for watch mode.
 
 ## Build Commands
 
 ```bash
-npm run build            # Build all (CSS + JS modules)
-npm run build:modules    # Build all JS modules
-npm run build:css        # Build CSS only
-npm run build:core       # Build single module
+npm run build          # Build all minified assets
+npm run dev            # Watch mode for JS + CSS
+composer phpcs         # Run PHP CodeSniffer
+composer phpcbf        # Auto-fix PHP style
+npm run lint:js        # ESLint
+npm run format         # Prettier
 ```
 
 ## Pitfall Quick Reference
 
-| #   | Category | Symptom                               | Root Cause                                       | Detail                                                             |
-| --- | -------- | ------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------ |
-| 001 | PHP      | Empty ACF columns in export           | Missing `$post_id` in `get_field_object()`       | [→ php-pitfalls.md](troubleshooting/php-pitfalls.md#001)           |
-| 002 | JS       | Progress element not found            | Old DOM selector after UI refactor               | [→ js-pitfalls.md](troubleshooting/js-pitfalls.md#002)             |
-| 003 | JS       | Malformed date in filename            | Missing hyphen in string concat                  | [→ js-pitfalls.md](troubleshooting/js-pitfalls.md#003)             |
-| 004 | Env      | WP-CLI connection fails               | DB vars quoted, paths unquoted                   | [→ env-pitfalls.md](troubleshooting/env-pitfalls.md#004)           |
-| 005 | PHP      | AJAX error after success              | Missing `success: true` in response              | [→ php-pitfalls.md](troubleshooting/php-pitfalls.md#005)           |
-| 006 | JS       | Export cancellation broken            | Option cache, session isolation, race conditions | [→ js-pitfalls.md](troubleshooting/js-pitfalls.md#006)             |
-| 007 | Security | Temp CSV files persist                | No cleanup on error paths                        | [→ security-pitfalls.md](troubleshooting/security-pitfalls.md#007) |
-| 008 | JS       | UI disappears after JS modularization | Wrong DOM selectors, over-aggressive cleanup     | [→ js-pitfalls.md](troubleshooting/js-pitfalls.md#008)             |
+| #   | Category | Symptom                               | Root Cause                                       | Detail                                                              |
+| --- | -------- | ------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------- |
+| 001 | PHP      | IDE static analysis warnings          | Specific class names in PHPDoc                   | Use `object` type in @param/@return, specific classes in signatures |
+| 002 | JS       | Progress element not found            | Old DOM selector after UI refactor               | Check element existence before DOM manipulation                     |
+| 003 | JS       | Malformed date in filename            | Missing hyphen in string concat                  | Use proper date formatting in filename generation                   |
+| 004 | Env      | WP-CLI connection fails               | DB vars quoted, paths unquoted                   | Check environment configuration syntax                              |
+| 005 | PHP      | AJAX error after success              | Missing `success: true` in response              | Always include success flag in AJAX responses                       |
+| 006 | JS       | Export cancellation broken            | Option cache, session isolation, race conditions | Use proper session management and caching                           |
+| 007 | Security | Temp CSV files persist                | No cleanup on error paths                        | Ensure cleanup on all execution paths                               |
+| 008 | JS       | UI disappears after JS modularization | Wrong DOM selectors, over-aggressive cleanup     | Test DOM selectors after UI changes                                 |
 
 ## Detailed Documentation
 

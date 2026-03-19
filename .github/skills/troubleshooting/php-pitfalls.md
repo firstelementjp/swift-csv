@@ -1,26 +1,31 @@
 # PHP Pitfalls
 
-## #001 ACF Field Export Issue (2026-02-06)
+## #001 IDE Static Analysis Warnings (2026-03-19)
 
-**Symptom**: All `acf_*` columns are empty in exported CSV. `tax_*` columns work fine.
+**Symptom**: IDE shows static analysis warnings for PHPDoc @param/@return types with specific class names.
 
-**Cause**: `get_field_object()` was called without `$post_id`, so it returned `false`.
+**Cause**: IDE cannot resolve class names in PHPDoc while method signatures use strict types.
 
-**Fix** (`class-swift-csv-ajax-export.php`):
+**Fix** (All import classes):
 
 ```php
-// BEFORE
-$acf_field_cache[$field_name] = get_field_object( $field_name );
+// BEFORE — Specific class names in PHPDoc
+/**
+ * @param Swift_CSV_Import_Persister $persister Persister utility.
+ * @return Swift_CSV_Import_Row_Context
+ */
 
-// AFTER
-$acf_field_cache[$field_name] = get_field_object( $field_name, $post_id, false, false );
-
-if ( ! $field_object ) {
-    $value = get_field( $field_name, $post_id );
+// AFTER — Use object type in PHPDoc
+/**
+ * @param object $persister Persister utility.
+ * @return object
+ */
+public function method( Swift_CSV_Import_Persister $persister ): Swift_CSV_Import_Row_Context {
+    // Implementation
 }
 ```
 
-**Lesson**: ACF functions almost always require `$post_id`. Never call them without context.
+**Lesson**: Use `object` in PHPDoc for IDE compatibility while maintaining strict type hints in method signatures.
 
 ---
 
@@ -30,7 +35,7 @@ if ( ! $field_object ) {
 
 **Cause**: WordPress AJAX responses must include `success: true` flag. JavaScript checks `if (!data.success)` and throws error when flag is missing.
 
-**Fix** (`class-swift-csv-ajax-import.php`):
+**Fix** (AJAX handlers):
 
 ```php
 // BEFORE — Missing success flag
@@ -52,3 +57,40 @@ wp_send_json_error($message);
 ```
 
 **Lesson**: Always include `success` flag in WordPress AJAX JSON responses. Prefer `wp_send_json_success()` / `wp_send_json_error()`.
+
+---
+
+## #006 Import File Cleanup Issues (2026-03-19)
+
+**Symptom**: Temporary import files persist after errors or completion, causing disk space issues.
+
+**Cause**: Missing cleanup on error paths or exception handling.
+
+**Fix** (Import classes):
+
+```php
+// BEFORE — No cleanup on error
+try {
+    $result = $this->process_import( $file_path );
+} catch ( Exception $e ) {
+    wp_send_json_error( $e->getMessage() );
+    // File not cleaned up!
+}
+
+// AFTER — Cleanup on all paths
+try {
+    $result = $this->process_import( $file_path );
+} catch ( Exception $e ) {
+    if ( $file_path && file_exists( $file_path ) ) {
+        wp_delete_file( $file_path );
+    }
+    wp_send_json_error( $e->getMessage() );
+}
+
+// Always cleanup on completion
+if ( $file_path && file_exists( $file_path ) ) {
+    wp_delete_file( $file_path );
+}
+```
+
+**Lesson**: Always include cleanup on ALL execution paths, not just success paths.

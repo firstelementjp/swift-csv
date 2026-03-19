@@ -13,15 +13,14 @@ It focuses on:
 - [Export Hooks](#export-hooks)
     - [Header generation](#header-generation)
     - [Row generation](#row-generation)
-    - [Direct SQL export query customization](#direct-sql-export-query-customization)
     - [Batch / performance](#batch--performance)
 - [Import Hooks](#import-hooks)
-    - [Phased import actions](#phased-import-actions)
-    - [Row validation and normalization](#row-validation-and-normalization)
-    - [Field mapping and post-persist](#field-mapping-and-post-persist)
-    - [Batch / performance](#batch--performance-1)
+    - [Permission and validation](#permission-and-validation)
+    - [Field preparation and mapping](#field-preparation-and-mapping)
+    - [Batch processing](#batch-processing)
+    - [Logging and diagnostics](#logging-and-diagnostics)
 - [Admin / UI Hooks](#admin--ui-hooks)
-- [Feature Flags / Diagnostics](#feature-flags--diagnostics)
+- [Feature Flags](#feature-flags)
 - [Best Practices](#best-practices)
 
 ---
@@ -554,6 +553,190 @@ function my_swiftcsv_export_batch_size( $batch_size, $total_count, $post_type, $
 
 ## Import Hooks
 
+### Permission and validation
+
+#### `swift_csv_user_can_import`
+
+Filter user permission to perform imports.
+
+**Type:** filter
+
+**Signature:**
+
+```php
+apply_filters( 'swift_csv_user_can_import', bool $can_import ): bool
+```
+
+**Parameters:**
+
+- `$can_import` (`bool`) Default permission based on `current_user_can('import')`.
+
+**Example:** (require custom capability)
+
+```php
+add_filter( 'swift_csv_user_can_import', 'my_swiftcsv_import_permission', 10, 1 );
+
+function my_swiftcsv_import_permission( $can_import ) {
+    return current_user_can( 'manage_options' ) || current_user_can( 'import_csv' );
+}
+```
+
+#### `swift_csv_pre_ajax_import`
+
+Filter pre-import validation result.
+
+**Type:** filter
+
+**Signature:**
+
+```php
+apply_filters( 'swift_csv_pre_ajax_import', bool|WP_Error $result, array $post_data ): bool|WP_Error
+```
+
+**Parameters:**
+
+- `$result` (`bool|WP_Error`) Validation result.
+- `$post_data` (`array`) POST data from import request.
+
+**Example:** (validate business hours)
+
+```php
+add_filter( 'swift_csv_pre_ajax_import', 'my_swiftcsv_business_hours_check', 10, 2 );
+
+function my_swiftcsv_business_hours_check( $result, $post_data ) {
+    $hour = (int) date( 'H' );
+    if ( $hour < 9 || $hour > 17 ) {
+        return new WP_Error( 'business_hours', 'Import only allowed during business hours (9AM-5PM)' );
+    }
+    return $result;
+}
+```
+
+### Field preparation and mapping
+
+#### `swift_csv_prepare_import_fields`
+
+Filter prepared meta fields before import.
+
+**Type:** filter
+
+**Signature:**
+
+```php
+apply_filters( 'swift_csv_prepare_import_fields', array $meta_fields, int $post_id, array $args ): array
+```
+
+**Parameters:**
+
+- `$meta_fields` (`array`) Prepared meta fields.
+- `$post_id` (`int`) Post ID being imported.
+- `$args` (`array`) Context arguments including post_type and context.
+
+**Example:** (process custom field formats)
+
+```php
+add_filter( 'swift_csv_prepare_import_fields', 'my_swiftcsv_process_custom_fields', 10, 3 );
+
+function my_swiftcsv_process_custom_fields( $meta_fields, $post_id, $args ) {
+    foreach ( $meta_fields as $key => $value ) {
+        if ( strpos( $key, 'price_' ) === 0 ) {
+            $meta_fields[$key] = floatval( $value );
+        }
+    }
+    return $meta_fields;
+}
+```
+
+#### `swift_csv_import_phase_map_prepared`
+
+Action fired after field mapping is prepared.
+
+**Type:** action
+
+**Signature:**
+
+```php
+do_action( 'swift_csv_import_phase_map_prepared', int $post_id, array $prepared_fields, array $args ): void
+```
+
+#### `swift_csv_import_phase_post_persist`
+
+Action fired after post data is persisted.
+
+**Type:** action
+
+**Signature:**
+
+```php
+do_action( 'swift_csv_import_phase_post_persist', int $post_id, array $prepared_fields, array $args ): void
+```
+
+### Batch processing
+
+#### `swift_csv_import_batch_size`
+
+Filter import batch size.
+
+**Type:** filter
+
+**Signature:**
+
+```php
+apply_filters( 'swift_csv_import_batch_size', int $batch_size, int $total_rows, array $config ): int
+```
+
+**Parameters:**
+
+- `$batch_size` (`int`) Calculated batch size.
+- `$total_rows` (`int`) Total rows to process.
+- `$config` (`array`) Import configuration.
+
+**Example:** (optimize for server performance)
+
+```php
+add_filter( 'swift_csv_import_batch_size', 'my_swiftcsv_optimize_batch_size', 10, 3 );
+
+function my_swiftcsv_optimize_batch_size( $batch_size, $total_rows, $config ) {
+    // Reduce batch size for memory-constrained servers
+    $memory_limit = ini_get( 'memory_limit' );
+    if ( $memory_limit === '128M' ) {
+        return min( 5, $batch_size );
+    }
+    return $batch_size;
+}
+```
+
+### Logging and diagnostics
+
+#### `swift_csv_max_log_entries`
+
+Filter maximum log entries to store.
+
+**Type:** filter
+
+**Signature:**
+
+```php
+apply_filters( 'swift_csv_max_log_entries', int $max_entries ): int
+```
+
+**Parameters:**
+
+- `$max_entries` (`int`) Default 30.
+
+**Example:** (increase logging for debugging)
+
+```php
+add_filter( 'swift_csv_max_log_entries', 'my_swiftcsv_increase_logging', 10, 1 );
+
+function my_swiftcsv_increase_logging( $max_entries ) {
+    if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+        return 100;
+    }
+    return $max_entries;
+}
+```
+
 ### Phased import actions
 
 Swift CSV import exposes a phased model via `do_action`.
@@ -848,7 +1031,7 @@ do_action( 'swift_csv_settings_tabs_content', string $tab, array $import_results
 
 #### `swift_csv_export_form_action`
 
-Filter the export form action value (advanced use).
+Filter the form action URL for the export form.
 
 **Type:** filter
 
@@ -856,6 +1039,46 @@ Filter the export form action value (advanced use).
 
 ```php
 apply_filters( 'swift_csv_export_form_action', string $action_url ): string
+```
+
+**Parameters:**
+
+- `$action_url` (`string`) Empty by default (uses current page).
+
+**Example:** (redirect to custom handler)
+
+```php
+add_filter( 'swift_csv_export_form_action', 'my_swiftcsv_custom_export_handler', 10, 1 );
+
+function my_swiftcsv_custom_export_handler( $action_url ) {
+    return 'https://my-api.com/handle-swift-csv-export';
+}
+```
+
+#### `swift_csv_tools_page_capability`
+
+Filter the capability required to access the Swift CSV admin page.
+
+**Type:** filter
+
+**Signature:**
+
+```php
+apply_filters( 'swift_csv_tools_page_capability', string $capability ): string
+```
+
+**Parameters:**
+
+- `$capability` (`string`) Default `manage_options`.
+
+**Example:** (allow editors to access)
+
+```php
+add_filter( 'swift_csv_tools_page_capability', 'my_swiftcsv_tools_capability', 10, 1 );
+
+function my_swiftcsv_tools_capability( $capability ) {
+    return 'edit_posts'; // Allow any user who can edit posts
+}
 ```
 
 ---
@@ -884,6 +1107,66 @@ Controls how many log entries are stored/displayed.
 
 ```php
 apply_filters( 'swift_csv_max_log_entries', int $max_entries ): int
+```
+
+#### `swift_csv_user_can_export`
+
+Filter user permission to perform exports.
+
+**Type:** filter
+
+**Signature:**
+
+```php
+apply_filters( 'swift_csv_user_can_export', bool $can_export ): bool
+```
+
+**Parameters:**
+
+- `$can_export` (`bool`) Default permission based on `current_user_can('export')`.
+
+**Example:** (require custom capability)
+
+```php
+add_filter( 'swift_csv_user_can_export', 'my_swiftcsv_export_permission', 10, 1 );
+
+function my_swiftcsv_export_permission( $can_export ) {
+    return current_user_can( 'manage_options' ) || current_user_can( 'export_csv' );
+}
+```
+
+#### `swift_csv_pre_ajax_export`
+
+Filter pre-export validation result.
+
+**Type:** filter
+
+**Signature:**
+
+```php
+apply_filters( 'swift_csv_pre_ajax_export', bool|WP_Error $result, array $post_data ): bool|WP_Error
+```
+
+**Parameters:**
+
+- `$result` (`bool|WP_Error`) Validation result.
+- `$post_data` (`array`) POST data from export request.
+
+**Example:** (validate export limits)
+
+```php
+add_filter( 'swift_csv_pre_ajax_export', 'my_swiftcsv_export_limits', 10, 2 );
+
+function my_swiftcsv_export_limits( $result, $post_data ) {
+    $user_id = get_current_user_id();
+    $today_exports = get_transient( 'swift_csv_exports_' . $user_id ) ?: 0;
+
+    if ( $today_exports >= 10 ) {
+        return new WP_Error( 'daily_limit', 'Daily export limit reached (10 exports per day)' );
+    }
+
+    return $result;
+}
 ```
 
 ---

@@ -1,7 +1,30 @@
+/**
+ * Swift CSV Export Scripts - Logs Helper Module
+ *
+ * Handles polling of export log entries and exposes helpers for appending them
+ * to the unified export UI log panel.
+ *
+ */
+
 (function () {
+	/**
+	 * @namespace SwiftCSVExportUnifiedModules
+	 */
 	window.SwiftCSVExportUnifiedModules = window.SwiftCSVExportUnifiedModules || {};
 
 	window.SwiftCSVExportUnifiedModules.Logs = {
+		/**
+		 * Poll export logs from the server and append them to the export log panel.
+		 *
+		 * @param {Object}   options                 Polling options.
+		 * @param {string}   options.enableLogs      Whether logs are enabled ('1'/'0').
+		 * @param {string}   options.exportSession   Current export session ID.
+		 * @param {number}   options.afterId         Last log ID retrieved.
+		 * @param {Function} options.setAfterId      Callback to update the log cursor.
+		 * @param {Function} options.buildLogMessage Optional log message builder.
+		 * @param {Object}   options.requestOptions  Extra fetch options.
+		 * @return {Promise<void>} Resolves when polling is complete.
+		 */
 		pollExportLogs({
 			enableLogs,
 			exportSession,

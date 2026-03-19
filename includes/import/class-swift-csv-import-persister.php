@@ -66,7 +66,15 @@ class Swift_CSV_Import_Persister {
 	 * @param array<int, string> $dry_run_log Dry run log (by reference).
 	 * @return array{success:bool,operation:string,post_id:int|null,db_result:int|false}
 	 */
-	public function persist_post_row_from_csv_with_result( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, string $post_type, bool $dry_run, array &$dry_run_log ): array {
+	public function persist_post_row_from_csv_with_result(
+		wpdb $wpdb,
+		bool $is_update,
+		&$post_id,
+		array $post_fields_from_csv,
+		string $post_type,
+		bool $dry_run,
+		array &$dry_run_log
+	): array {
 		$post_data = $this->build_post_data_for_import( $is_update, $post_fields_from_csv, $post_type );
 		$result    = $this->execute_post_db_operation( $wpdb, $is_update, $post_id, $post_data, $dry_run, $dry_run_log );
 
@@ -108,8 +116,24 @@ class Swift_CSV_Import_Persister {
 	 * @param array<int, string> $dry_run_log Dry run log (by reference).
 	 * @return int|false Result of DB operation (post ID on insert, rows affected on update, or false on failure).
 	 */
-	public function persist_post_row_from_csv( wpdb $wpdb, bool $is_update, &$post_id, array $post_fields_from_csv, string $post_type, bool $dry_run, array &$dry_run_log ) {
-		$result = $this->persist_post_row_from_csv_with_result( $wpdb, $is_update, $post_id, $post_fields_from_csv, $post_type, $dry_run, $dry_run_log );
+	public function persist_post_row_from_csv(
+		wpdb $wpdb,
+		bool $is_update,
+		&$post_id,
+		array $post_fields_from_csv,
+		string $post_type,
+		bool $dry_run,
+		array &$dry_run_log
+	) {
+		$result = $this->persist_post_row_from_csv_with_result(
+			$wpdb,
+			$is_update,
+			$post_id,
+			$post_fields_from_csv,
+			$post_type,
+			$dry_run,
+			$dry_run_log
+		);
 		return $result['db_result'];
 	}
 
@@ -125,7 +149,14 @@ class Swift_CSV_Import_Persister {
 	 * @param array<int, string> $dry_run_log Dry run log (by reference).
 	 * @return int|false Result of DB operation (post ID on insert, rows affected on update, or false on failure).
 	 */
-	public function execute_post_db_operation( wpdb $wpdb, bool $is_update, &$post_id, array $post_data, bool $dry_run, array &$dry_run_log ) {
+	public function execute_post_db_operation(
+		wpdb $wpdb,
+		bool $is_update,
+		&$post_id,
+		array $post_data,
+		bool $dry_run,
+		array &$dry_run_log
+	) {
 		if ( $is_update ) {
 			return $this->execute_post_update( $wpdb, $post_id, $post_data, $dry_run, $dry_run_log );
 		}

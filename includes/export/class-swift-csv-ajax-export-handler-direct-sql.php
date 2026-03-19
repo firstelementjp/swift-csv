@@ -24,7 +24,7 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 	 * Export log store.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Export_Log_Store
+	 * @var object
 	 */
 	private $log_store;
 
@@ -32,7 +32,7 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 	 * Export cancel manager.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Export_Cancel_Manager
+	 * @var object
 	 */
 	private $cancel_manager;
 
@@ -40,7 +40,7 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 	 * Batch planner.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Ajax_Export_Batch_Planner
+	 * @var object
 	 */
 	private $batch_planner;
 
@@ -48,10 +48,10 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 	 * Constructor.
 	 *
 	 * @since 0.9.8
-	 * @param Swift_CSV_Export_Log_Store      $log_store Export log store.
-	 * @param Swift_CSV_Export_Cancel_Manager $cancel_manager Export cancel manager.
+	 * @param object $log_store Export log store.
+	 * @param object $cancel_manager Export cancel manager.
 	 */
-	public function __construct( Swift_CSV_Export_Log_Store $log_store, Swift_CSV_Export_Cancel_Manager $cancel_manager ) {
+	public function __construct( object $log_store, object $cancel_manager ) {
 		$this->log_store      = $log_store;
 		$this->cancel_manager = $cancel_manager;
 		$this->batch_planner  = new Swift_CSV_Ajax_Export_Batch_Planner();
@@ -198,10 +198,9 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 	 *
 	 * @since 0.9.8
 	 * @param array $config Export configuration.
-	 * @return Swift_CSV_Export_Base
 	 * @throws Exception Always thrown because Direct SQL runtime is owned by Swift CSV Pro.
 	 */
-	protected function create_export_instance( array $config ): Swift_CSV_Export_Base {
+	protected function create_export_instance( array $config ): void {
 		unset( $config );
 
 		throw new Exception( 'Direct SQL runtime is available in Swift CSV Pro only.' );

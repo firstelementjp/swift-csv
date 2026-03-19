@@ -1,6 +1,6 @@
 <?php
 /**
- * File utilities for Swift CSV.
+ * File utilities for Swift CSV
  *
  * @since 0.9.0
  * @package Swift_CSV
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * File utilities.
+ * File utilities
  *
  * @since 0.9.0
  * @package Swift_CSV
@@ -35,7 +35,7 @@ class Swift_CSV_File_Util {
 	}
 
 	/**
-	 * Generate temporary file path.
+	 * Generate temporary file path
 	 *
 	 * @since 0.9.0
 	 * @param string $temp_dir Temporary directory path.
@@ -46,7 +46,7 @@ class Swift_CSV_File_Util {
 	}
 
 	/**
-	 * Cleanup old temporary files.
+	 * Cleanup old temporary files
 	 *
 	 * Removes all ajax-import temporary files except the current one.
 	 *

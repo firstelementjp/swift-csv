@@ -2,10 +2,13 @@
 /**
  * Direct SQL Import Class for Swift CSV
  *
- * Placeholder for future high-speed import implementation.
+ * Legacy placeholder for Direct SQL import functionality.
+ * This feature has been moved to Swift CSV Pro.
+ * The class exists for compatibility but shows error messages.
  *
  * @since 0.9.8
  * @package Swift_CSV
+ * @deprecated This functionality is now available in Swift CSV Pro.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,8 +18,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Direct SQL Import Class
  *
+ * Legacy compatibility class for Direct SQL import.
+ * All methods throw exceptions or show errors directing users to Swift CSV Pro.
+ * This class maintains API compatibility while preventing usage.
+ *
  * @since 0.9.8
  * @package Swift_CSV
+ * @deprecated Use Swift CSV Pro for Direct SQL import functionality.
  */
 class Swift_CSV_Import_Direct_SQL extends Swift_CSV_Import_Base {
 

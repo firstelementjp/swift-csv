@@ -62,7 +62,11 @@ class Swift_CSV_Import_Taxonomy_Util {
 	 * @param string|null $file_path Optional file path for cleanup.
 	 * @return array{valid:bool,error:string|null}
 	 */
-	public function validate_taxonomy_format_consistency( string $taxonomy_format, array $validation, ?string $file_path = null ): array {
+	public function validate_taxonomy_format_consistency(
+		string $taxonomy_format,
+		array $validation,
+		?string $file_path = null
+	): array {
 		if ( 'name' === $taxonomy_format && ! empty( $validation['all_numeric'] ) ) {
 			$error = sprintf(
 				/* translators: 1: taxonomy name, 2: UI format, 3: sample values */
@@ -203,12 +207,20 @@ class Swift_CSV_Import_Taxonomy_Util {
 	 * @param array  $taxonomy_format_validation Taxonomy format validation data.
 	 * @return array<int, int>
 	 */
-	public function resolve_term_ids_from_value( string $taxonomy, string $term_value, string $taxonomy_format, array $taxonomy_format_validation ): array {
+	public function resolve_term_ids_from_value(
+		string $taxonomy,
+		string $term_value,
+		string $taxonomy_format,
+		array $taxonomy_format_validation
+	): array {
 		if ( 'id' === $taxonomy_format ) {
 			$term_id = intval( $term_value );
 
 			if ( 0 === $term_id ) {
-				if ( isset( $taxonomy_format_validation[ $taxonomy ] ) && ! empty( $taxonomy_format_validation[ $taxonomy ]['mixed'] ) ) {
+				if (
+				isset( $taxonomy_format_validation[ $taxonomy ] ) &&
+				! empty( $taxonomy_format_validation[ $taxonomy ]['mixed'] )
+				) {
 					$name_result = $this->resolve_term_by_name( $term_value, $taxonomy );
 					if ( $name_result['valid'] ) {
 						return [ (int) $name_result['term_id'] ];

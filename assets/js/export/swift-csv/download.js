@@ -1,7 +1,25 @@
+/**
+ * Swift CSV Export Scripts - Download Helper Module
+ *
+ * Handles enabling the Export UI download button and provides utility helpers
+ * for triggering CSV downloads using data generated during export.
+ *
+ * @namespace SwiftCSVExportUnifiedModules
+ */
+
 (function () {
+	/**
+	 * @namespace SwiftCSVExportUnifiedModules
+	 */
 	window.SwiftCSVExportUnifiedModules = window.SwiftCSVExportUnifiedModules || {};
 
 	window.SwiftCSVExportUnifiedModules.Download = {
+		/**
+		 * Enable the download button once CSV export is ready and attach file metadata.
+		 *
+		 * @param {string} csvContent CSV text content returned from export.
+		 * @param {string} postType   Target post type slug used for filename.
+		 */
 		enableDownloadButtonForExport(csvContent, postType) {
 			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 			const url = URL.createObjectURL(blob);
@@ -38,6 +56,11 @@
 			}
 		},
 
+		/**
+		 * Trigger immediate CSV download using a temporary anchor element.
+		 *
+		 * @param {string} csvContent CSV text content to download.
+		 */
 		downloadCSV(csvContent) {
 			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 			const link = document.createElement('a');

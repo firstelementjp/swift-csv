@@ -23,7 +23,7 @@ class Swift_CSV_Admin_Page {
 	/**
 	 * Admin instance
 	 *
-	 * @var Swift_CSV_Admin
+	 * @var object
 	 */
 	private $admin;
 
@@ -31,7 +31,7 @@ class Swift_CSV_Admin_Page {
 	 * Constructor
 	 *
 	 * @since 0.9.8
-	 * @param Swift_CSV_Admin $admin Admin instance.
+	 * @param object $admin Admin instance.
 	 */
 	public function __construct( $admin ) {
 		$this->admin = $admin;
@@ -125,32 +125,32 @@ class Swift_CSV_Admin_Page {
 					<?php esc_html_e( 'Advanced Settings', 'swift-csv' ); ?>
 					</a>
 				<?php endif; ?>
-			<?php
-				/**
-				 * Fires within the settings page's tab wrapper to add custom navigation tabs.
-				 *
-				 * This action allows Pro version and other add-ons to add custom tabs.
-				 *
-				 * @since 0.9.5
-				 * @param string $tab Currently active tab
-				 */
-				do_action( 'swift_csv_settings_tabs', $tab );
-			?>
-			<?php
-			// Add license tab directly as default tab (always last).
-			$icon = '';
-			if ( class_exists( 'Swift_CSV_Pro_Admin' ) && ! Swift_CSV_License_Handler::is_pro_active() ) {
-				$icon = '<span class="dashicons dashicons-warning" style="color: #f59e0b;"></span>';
-			}
+				<?php
+					/**
+					 * Fires within the settings page's tab wrapper to add custom navigation tabs.
+					 *
+					 * This action allows Pro version and other add-ons to add custom tabs.
+					 *
+					 * @since 0.9.5
+					 * @param string $tab Currently active tab
+					 */
+					do_action( 'swift_csv_settings_tabs', $tab );
+				?>
+				<?php
+				// Add license tab directly as default tab (always last).
+				$icon = '';
+				if ( class_exists( 'Swift_CSV_Pro_Admin' ) && ! Swift_CSV_License_Handler::is_pro_active() ) {
+					$icon = '<span class="dashicons dashicons-warning" style="color: #f59e0b;"></span>';
+				}
 
-			// Custom allowed HTML list for safe output.
-			$allowed_html = [
-				'span' => [
-					'class' => true,
-					'style' => true,
-				],
-			];
-			?>
+				// Custom allowed HTML list for safe output.
+				$allowed_html = [
+					'span' => [
+						'class' => true,
+						'style' => true,
+					],
+				];
+				?>
 				<?php if ( $can_manage_options ) : ?>
 					<a href="?page=swift-csv&tab=license" class="nav-tab <?php echo 'license' === $tab ? 'nav-tab-active' : ''; ?>">
 						<?php esc_html_e( 'License', 'swift-csv' ); ?>
@@ -484,11 +484,11 @@ class Swift_CSV_Admin_Page {
 	private function render_plugin_header() {
 		$forum_url = 'https://github.com/firstelementjp/swift-csv/issues';
 
-		// Check if Pro license is active
+		// Check if Pro license is active.
 		$is_pro_license_active = class_exists( 'Swift_CSV_License_Handler' )
 			&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
 			&& Swift_CSV_License_Handler::is_pro_active()
-			&& defined( 'SWIFT_CSV_PRO_VERSION' ); // Also check if Pro plugin is actually installed and active
+			&& defined( 'SWIFT_CSV_PRO_VERSION' ); // Also check if Pro plugin is actually installed and active.
 		?>
 		<div id="plugin_header">
 			<div id="plugin_header_upper">
@@ -512,12 +512,12 @@ class Swift_CSV_Admin_Page {
 				<a href="<?php echo esc_url( SWIFT_CSV_DOCS_URL ); ?>"
 					target="_blank"
 					title="<?php esc_attr_e( 'Go to the instruction manual', 'swift-csv' ); ?>">
-			<?php esc_html_e( 'Documentation', 'swift-csv' ); ?>
+					<?php esc_html_e( 'Documentation', 'swift-csv' ); ?>
 				</a>
 				<a href="<?php echo esc_url( SWIFT_CSV_DEEPWIKI_URL ); ?>"
 					target="_blank"
 					title="<?php esc_attr_e( 'Go to DeepWiki documentation', 'swift-csv' ); ?>">
-			<?php esc_html_e( 'DeepWiki', 'swift-csv' ); ?>
+					<?php esc_html_e( 'DeepWiki', 'swift-csv' ); ?>
 				</a>
 				<a href="https://github.com/firstelementjp/swift-csv"
 					target="_blank"
@@ -564,16 +564,16 @@ class Swift_CSV_Admin_Page {
 				</a>
 			</div>
 		</div>
-			<?php
+		<?php
 	}
 
-		/**
-		 * Render export batch progress UI.
-		 *
-		 * @since 0.9.8
-		 * @param string $batch_id Batch ID.
-		 * @return void
-		 */
+	/**
+	 * Render export batch progress UI.
+	 *
+	 * @since 0.9.8
+	 * @param string $batch_id Batch ID.
+	 * @return void
+	 */
 	private function render_export_batch_progress( $batch_id ) {
 		?>
 		<div class="notice notice-info">
@@ -582,13 +582,13 @@ class Swift_CSV_Admin_Page {
 			<?php
 	}
 
-		/**
-		 * Render import batch progress UI.
-		 *
-		 * @since 0.9.8
-		 * @param string $batch_id Batch ID.
-		 * @return void
-		 */
+	/**
+	 * Render import batch progress UI.
+	 *
+	 * @since 0.9.8
+	 * @param string $batch_id Batch ID.
+	 * @return void
+	 */
 	private function render_batch_progress( $batch_id ) {
 		?>
 		<div class="notice notice-info">
@@ -597,13 +597,13 @@ class Swift_CSV_Admin_Page {
 			<?php
 	}
 
-		/**
-		 * Render import results UI.
-		 *
-		 * @since 0.9.8
-		 * @param array $import_results Import results.
-		 * @return void
-		 */
+	/**
+	 * Render import results UI.
+	 *
+	 * @since 0.9.8
+	 * @param array $import_results Import results.
+	 * @return void
+	 */
 	private function render_import_results( $import_results ) {
 		$imported = (int) ( $import_results['imported'] ?? 0 );
 		$updated  = (int) ( $import_results['updated'] ?? 0 );

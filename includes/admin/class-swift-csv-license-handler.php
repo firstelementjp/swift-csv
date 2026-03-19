@@ -379,7 +379,7 @@ class Swift_CSV_License_Handler {
 		$license_key = $entry['key'] ?? '';
 		$license_key = is_string( $license_key ) ? $license_key : '';
 
-		// Decrypt license key if encrypted
+		// Decrypt license key if encrypted.
 		if ( '' !== $license_key && class_exists( 'Swift_CSV_Encryption_Utils' ) && Swift_CSV_Encryption_Utils::is_available() ) {
 			$decrypted_key = Swift_CSV_Encryption_Utils::decrypt( $license_key );
 			if ( false !== $decrypted_key ) {
@@ -421,7 +421,7 @@ class Swift_CSV_License_Handler {
 			$product_id = self::PRODUCT_ID_PRO;
 		}
 
-		// Encrypt license key before saving
+		// Encrypt license key before saving.
 		$encrypted_key = '';
 		if ( class_exists( 'Swift_CSV_Encryption_Utils' ) && Swift_CSV_Encryption_Utils::is_available() ) {
 			$encrypted_key = Swift_CSV_Encryption_Utils::encrypt( $license_key );
@@ -429,7 +429,7 @@ class Swift_CSV_License_Handler {
 
 		$license_data['products']                = $products;
 		$license_data['products'][ $product_id ] = [
-			'key'    => $encrypted_key ?: $license_key, // Fallback to plain text if encryption fails
+			'key'    => ! empty( $encrypted_key ) ? $encrypted_key : $license_key, // Fallback to plain text if encryption fails.
 			'status' => (string) ( $result['status'] ?? 'inactive' ),
 			'data'   => $result['data'] ?? [],
 		];

@@ -28,7 +28,7 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * Export log store
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Export_Log_Store
+	 * @var object
 	 */
 	private $log_store;
 
@@ -36,7 +36,7 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * Export cancel manager
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Export_Cancel_Manager
+	 * @var object
 	 */
 	private $cancel_manager;
 
@@ -46,7 +46,10 @@ class Swift_CSV_Ajax_Export_Unified {
 	 * @since 0.9.8
 	 */
 	public function __construct() {
-		$this->log_store      = new Swift_CSV_Export_Log_Store();
+		// Log store is Pro-only, cancel manager exists in Free version.
+		if ( class_exists( 'Swift_CSV_Export_Log_Store' ) ) {
+			$this->log_store = new Swift_CSV_Export_Log_Store();
+		}
 		$this->cancel_manager = new Swift_CSV_Export_Cancel_Manager();
 
 		// Enable unified handler for Direct SQL export.

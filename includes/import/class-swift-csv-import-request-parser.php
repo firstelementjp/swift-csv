@@ -73,7 +73,14 @@ class Swift_CSV_Import_Request_Parser {
 	 *
 	 * @since 0.9.8
 	 * @param string $csv_content CSV content (first request only).
-	 * @return array{batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool,csv_content:string}
+	 * @return array{
+	 *   batch_size:      int,
+	 *   post_type:       string,
+	 *   update_existing: string,
+	 *   taxonomy_format: string,
+	 *   dry_run:         bool,
+	 *   csv_content:     string
+	 * }
 	 */
 	public function parse_import_config( string $csv_content ): array {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -101,7 +108,10 @@ class Swift_CSV_Import_Request_Parser {
 	 * Parse import log fetch parameters.
 	 *
 	 * @since 0.9.8
-	 * @return array{after_id:int,limit:int}
+	 * @return array{
+	 *   after_id: int,
+	 *   limit:    int
+	 * }
 	 */
 	public function parse_log_fetch_params(): array {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing

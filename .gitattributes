@@ -61,6 +61,11 @@ Thumbs.db export-ignore
 # Exclude test files
 tests/ export-ignore
 phpunit.xml export-ignore
+phpunit-standalone.xml export-ignore
+
+# Exclude development directories
+_deprecated/ export-ignore
+dev-notes/ export-ignore
 
 # Exclude build artifacts
 *.tar.gz export-ignore

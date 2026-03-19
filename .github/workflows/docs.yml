@@ -2,7 +2,7 @@ name: Generate Documentation
 
 on:
     push:
-        branches: [main, develop]
+        branches: [main]
     release:
         types: [published]
 
@@ -47,7 +47,7 @@ jobs:
             url: ${{ steps.deployment.outputs.page_url }}
         runs-on: ubuntu-latest
         needs: build
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.event_name == 'release'
+        if: github.ref == 'refs/heads/main' || github.event_name == 'release'
         permissions:
             pages: write
             id-token: write

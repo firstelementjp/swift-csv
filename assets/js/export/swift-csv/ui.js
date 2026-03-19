@@ -16,7 +16,12 @@
 		 * @param {HTMLButtonElement} button - The export button element
 		 */
 		showComplete(button) {
-			button.disabled = false;
+			// For SQL export button, respect Pro license status
+			if (button.id === 'direct-sql-export-btn') {
+				button.disabled = !swiftCSV.enableDirectSqlExport;
+			} else {
+				button.disabled = false;
+			}
 			button.textContent = button.dataset.originalText || swiftCSV.highSpeedExportText;
 		},
 
@@ -27,7 +32,12 @@
 		 * @param {string}            errorMessage - The error message to display
 		 */
 		showError(button, errorMessage) {
-			button.disabled = false;
+			// For SQL export button, respect Pro license status
+			if (button.id === 'direct-sql-export-btn') {
+				button.disabled = !swiftCSV.enableDirectSqlExport;
+			} else {
+				button.disabled = false;
+			}
 			button.textContent = button.dataset.originalText || swiftCSV.highSpeedExportText;
 			const failedLabel =
 				swiftCSV && swiftCSV.messages && swiftCSV.messages.failed

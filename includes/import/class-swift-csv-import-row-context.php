@@ -24,7 +24,7 @@ class Swift_CSV_Import_Row_Context {
 	 * CSV utility instance.
 	 *
 	 * @since 0.9.0
-	 * @var Swift_CSV_Import_Csv
+	 * @var object
 	 */
 	private $csv_util;
 
@@ -32,7 +32,7 @@ class Swift_CSV_Import_Row_Context {
 	 * Constructor.
 	 *
 	 * @since 0.9.0
-	 * @param Swift_CSV_Import_Csv|null $csv_util CSV utility.
+	 * @param object|null $csv_util CSV utility.
 	 */
 	public function __construct( ?Swift_CSV_Import_Csv $csv_util = null ) {
 		$this->csv_util = null !== $csv_util ? $csv_util : new Swift_CSV_Import_Csv();
@@ -42,15 +42,27 @@ class Swift_CSV_Import_Row_Context {
 	 * Build per-row import context using config values.
 	 *
 	 * @since 0.9.0
-	 * @param wpdb                                                                                                                             $wpdb WordPress database handler.
-	 * @param array{file_path:string,start_row:int,batch_size:int,post_type:string,update_existing:string,taxonomy_format:string,dry_run:bool} $config Import configuration.
-	 * @param string                                                                                                                           $line Raw CSV line.
-	 * @param string                                                                                                                           $delimiter CSV delimiter.
-	 * @param array<int, string>                                                                                                               $headers CSV headers.
-	 * @param array<int, string>                                                                                                               $allowed_post_fields Allowed post fields.
-	 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int,is_update:bool}|null Null means skip this row.
+	 * @param wpdb   $wpdb WordPress database handler.
+	 * @param array  $config Import configuration.
+	 * @param string $line Raw CSV line.
+	 * @param string $delimiter CSV delimiter.
+	 * @param array  $headers CSV headers.
+	 * @param array  $allowed_post_fields Allowed post fields.
+	 * @return array{
+	 *   data:                array<int,string>,
+	 *   post_fields_from_csv: array<string,mixed>,
+	 *   post_id:             int,
+	 *   is_update:           bool
+	 * }|null Null means skip this row.
 	 */
-	public function build_import_row_context_from_config( wpdb $wpdb, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
+	public function build_import_row_context_from_config(
+		wpdb $wpdb,
+		array $config,
+		string $line,
+		string $delimiter,
+		array $headers,
+		array $allowed_post_fields
+	): ?array {
 		return $this->build_import_row_context(
 			$wpdb,
 			$line,
@@ -66,16 +78,29 @@ class Swift_CSV_Import_Row_Context {
 	 * Build per-row import context (parse row, collect fields, resolve existing post, validate).
 	 *
 	 * @since 0.9.0
-	 * @param wpdb               $wpdb WordPress database handler.
-	 * @param string             $line Raw CSV line.
-	 * @param string             $delimiter CSV delimiter.
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array<int, string> $allowed_post_fields Allowed post fields.
-	 * @param string             $update_existing Update flag from request.
-	 * @param string             $post_type Post type.
-	 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}|null Null means skip this row.
+	 * @param wpdb   $wpdb WordPress database handler.
+	 * @param string $line Raw CSV line.
+	 * @param string $delimiter CSV delimiter.
+	 * @param array  $headers CSV headers.
+	 * @param array  $allowed_post_fields Allowed post fields.
+	 * @param string $update_existing Update flag from request.
+	 * @param string $post_type Post type.
+	 * @return array{
+	 *   data:                array<int,string>,
+	 *   post_fields_from_csv: array<string,mixed>,
+	 *   post_id:             int|null,
+	 *   is_update:           bool
+	 * }|null Null means skip this row.
 	 */
-	public function build_import_row_context( wpdb $wpdb, string $line, string $delimiter, array $headers, array $allowed_post_fields, string $update_existing, string $post_type ): ?array {
+	public function build_import_row_context(
+		wpdb $wpdb,
+		string $line,
+		string $delimiter,
+		array $headers,
+		array $allowed_post_fields,
+		string $update_existing,
+		string $post_type
+	): ?array {
 		$parsed               = $this->parse_row_and_collect_post_fields( $line, $delimiter, $headers, $allowed_post_fields );
 		$data                 = $parsed['data'];
 		$post_id_from_csv     = $parsed['post_id_from_csv'];
@@ -104,10 +129,28 @@ class Swift_CSV_Import_Row_Context {
 		 * validation, data format checks, and custom business rules.
 		 *
 		 * @since 0.9.7
-		 * @param array{valid:bool,errors:array<string>,warnings:array<string>} $row_validation Row validation result.
-		 * @param array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool} $row_context Complete row processing context.
-		 * @param array{headers:array<int,string>,allowed_post_fields:array<int,string>,update_existing:string,post_type:string} $context Processing context and configuration.
-		 * @return array{valid:bool,errors:array<string>,warnings:array<string>} Modified validation result.
+		 * @param array{
+		 *   valid:    bool,
+		 *   errors:   array<string>,
+		 *   warnings: array<string>
+		 * } $row_validation Row validation result.
+		 * @param array{
+		 *   data:                array<int,string>,
+		 *   post_fields_from_csv: array<string,mixed>,
+		 *   post_id:             int|null,
+		 *   is_update:           bool
+		 * } $row_context Complete row processing context.
+		 * @param array{
+		 *   headers:             array<int,string>,
+		 *   allowed_post_fields: array<int,string>,
+		 *   update_existing:     string,
+		 *   post_type:           string
+		 * } $context Processing context and configuration.
+		 * @return array{
+		 *   valid:    bool,
+		 *   errors:   array<string>,
+		 *   warnings: array<string>
+		 * } Modified validation result.
 		 */
 		$row_validation = apply_filters(
 			'swift_csv_import_row_validation',
@@ -158,10 +201,24 @@ class Swift_CSV_Import_Row_Context {
 		 * transformation, normalization, and custom preprocessing.
 		 *
 		 * @since 0.9.7
-		 * @param array{data:array<int,string>,post_fields_from_csv:array<string,mixed>} $filtered_data Modified row data and post fields.
-		 * @param array{data:array<int,string>,post_fields_from_csv:array<string,mixed>} $original_data Original row data and post fields.
-		 * @param array{headers:array<int,string>,allowed_post_fields:array<int,string>,update_existing:string,post_type:string} $context Processing context and configuration.
-		 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>} Modified row data and post fields.
+		 * @param array{
+		 *   data:                array<int,string>,
+		 *   post_fields_from_csv: array<string,mixed>
+		 * } $filtered_data Modified row data and post fields.
+		 * @param array{
+		 *   data:                array<int,string>,
+		 *   post_fields_from_csv: array<string,mixed>
+		 * } $original_data Original row data and post fields.
+		 * @param array{
+		 *   headers:             array<int,string>,
+		 *   allowed_post_fields: array<int,string>,
+		 *   update_existing:     string,
+		 *   post_type:           string
+		 * } $context Processing context and configuration.
+		 * @return array{
+		 *   data:                array<int,string>,
+		 *   post_fields_from_csv: array<string,mixed>
+		 * } Modified row data and post fields.
 		 */
 		$filtered_data = apply_filters(
 			'swift_csv_import_data_filter',
@@ -200,16 +257,26 @@ class Swift_CSV_Import_Row_Context {
 	}
 
 	/**
-	 * Build the import row context array.
+	 * Build per-row import context array.
 	 *
 	 * @since 0.9.0
-	 * @param array<int, string>   $data Parsed CSV row data.
-	 * @param array<string, mixed> $post_fields_from_csv Post fields collected from CSV.
-	 * @param int|null             $post_id Resolved target post ID.
-	 * @param bool                 $is_update Whether this row is an update.
-	 * @return array{data:array<int,string>,post_fields_from_csv:array<string,mixed>,post_id:int|null,is_update:bool}
+	 * @param array    $data Parsed CSV row.
+	 * @param array    $post_fields_from_csv Post fields collected from CSV.
+	 * @param int|null $post_id Resolved target post ID.
+	 * @param bool     $is_update Whether this row is an update.
+	 * @return array{
+	 *   data:                array<int,string>,
+	 *   post_fields_from_csv: array<string,mixed>,
+	 *   post_id:             int|null,
+	 *   is_update:           bool
+	 * }
 	 */
-	public function build_import_row_context_array( array $data, array $post_fields_from_csv, ?int $post_id, bool $is_update ): array {
+	public function build_import_row_context_array(
+		array $data,
+		array $post_fields_from_csv,
+		?int $post_id,
+		bool $is_update
+	): array {
 		return [
 			'data'                 => $data,
 			'post_fields_from_csv' => $post_fields_from_csv,
@@ -219,16 +286,25 @@ class Swift_CSV_Import_Row_Context {
 	}
 
 	/**
-	 * Parse a CSV line and collect post fields.
+	 * Parse row and collect post fields.
 	 *
 	 * @since 0.9.0
-	 * @param string             $line Raw CSV line.
-	 * @param string             $delimiter CSV delimiter.
-	 * @param array<int, string> $headers CSV headers.
-	 * @param array<int, string> $allowed_post_fields Allowed post fields.
-	 * @return array{data:array<int,string>,post_id_from_csv:int,post_fields_from_csv:array<string,mixed>}
+	 * @param string $line Raw CSV line.
+	 * @param string $delimiter CSV delimiter.
+	 * @param array  $headers CSV headers.
+	 * @param array  $allowed_post_fields Allowed post fields.
+	 * @return array{
+	 *   data:                 array<int,string>,
+	 *   post_id_from_csv:     int,
+	 *   post_fields_from_csv: array<string,mixed>
+	 * }
 	 */
-	public function parse_row_and_collect_post_fields( string $line, string $delimiter, array $headers, array $allowed_post_fields ): array {
+	public function parse_row_and_collect_post_fields(
+		string $line,
+		string $delimiter,
+		array $headers,
+		array $allowed_post_fields
+	): array {
 		$data                 = $this->get_parsed_csv_row( $line, $delimiter );
 		$post_id_from_csv     = $this->get_post_id_from_csv_row( $data );
 		$post_fields_from_csv = $this->get_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
@@ -269,31 +345,52 @@ class Swift_CSV_Import_Row_Context {
 	}
 
 	/**
-	 * Resolve whether a CSV row should update an existing post.
+	 * Resolve existing post for import.
 	 *
 	 * @since 0.9.0
 	 * @param wpdb   $wpdb WordPress database handler.
 	 * @param string $update_existing Update flag from request.
 	 * @param string $post_type Post type.
 	 * @param string $post_id_from_csv Post ID from CSV (first column).
-	 * @return array{post_id:int,is_update:bool}
+	 * @return array{
+	 *   post_id:   int,
+	 *   is_update: bool
+	 * }
 	 */
-	public function resolve_existing_post_for_import( wpdb $wpdb, string $update_existing, string $post_type, string $post_id_from_csv ): array {
+	public function resolve_existing_post_for_import(
+		wpdb $wpdb,
+		string $update_existing,
+		string $post_type,
+		string $post_id_from_csv
+	): array {
 		return $this->find_existing_post_for_update( $wpdb, $update_existing, $post_type, $post_id_from_csv );
 	}
 
 	/**
-	 * Resolve target post ID and whether the row should be treated as an update.
+	 * Resolve post ID and update flag.
 	 *
 	 * @since 0.9.0
 	 * @param wpdb   $wpdb WordPress database handler.
 	 * @param string $update_existing Update flag from request.
 	 * @param string $post_type Post type.
 	 * @param int    $post_id_from_csv Post ID value from CSV.
-	 * @return array{post_id:int,is_update:bool}
+	 * @return array{
+	 *   post_id:   int,
+	 *   is_update: bool
+	 * }
 	 */
-	public function resolve_post_id_and_update_flag( wpdb $wpdb, string $update_existing, string $post_type, int $post_id_from_csv ): array {
-		$existing = $this->resolve_existing_post_for_import( $wpdb, $update_existing, $post_type, (string) $post_id_from_csv );
+	public function resolve_post_id_and_update_flag(
+		wpdb $wpdb,
+		string $update_existing,
+		string $post_type,
+		int $post_id_from_csv
+	): array {
+		$existing = $this->resolve_existing_post_for_import(
+			$wpdb,
+			$update_existing,
+			$post_type,
+			(string) $post_id_from_csv
+		);
 
 		return [
 			'post_id'   => $existing['post_id'],
@@ -309,8 +406,14 @@ class Swift_CSV_Import_Row_Context {
 	 * @param array  $post_fields_from_csv Post fields collected from CSV.
 	 * @return bool True if the row should be skipped.
 	 */
-	public function should_skip_import_row( string $update_existing, array $post_fields_from_csv ): bool {
-		return null !== $this->get_skip_reason_for_import_row( $update_existing, $post_fields_from_csv );
+	public function should_skip_import_row(
+		string $update_existing,
+		array $post_fields_from_csv
+	): bool {
+		return null !== $this->get_skip_reason_for_import_row(
+			$update_existing,
+			$post_fields_from_csv
+		);
 	}
 
 	/**
@@ -321,8 +424,16 @@ class Swift_CSV_Import_Row_Context {
 	 * @param array  $post_fields_from_csv Post fields collected from CSV.
 	 * @return string|null Null means do not skip.
 	 */
-	public function get_skip_reason_for_import_row( string $update_existing, array $post_fields_from_csv ): ?string {
-		if ( $this->should_skip_row_due_to_missing_title( $update_existing, $post_fields_from_csv ) ) {
+	public function get_skip_reason_for_import_row(
+		string $update_existing,
+		array $post_fields_from_csv
+	): ?string {
+		if (
+			$this->should_skip_row_due_to_missing_title(
+				$update_existing,
+				$post_fields_from_csv
+			)
+		) {
 			return 'missing_title';
 		}
 
@@ -337,7 +448,10 @@ class Swift_CSV_Import_Row_Context {
 	 * @param array  $post_fields_from_csv Post fields collected from CSV.
 	 * @return bool True if the row context should be skipped.
 	 */
-	public function maybe_skip_import_row_context( string $update_existing, array $post_fields_from_csv ): bool {
+	public function maybe_skip_import_row_context(
+		string $update_existing,
+		array $post_fields_from_csv
+	): bool {
 		return null !== $this->get_skip_reason_for_import_row( $update_existing, $post_fields_from_csv );
 	}
 
@@ -349,7 +463,10 @@ class Swift_CSV_Import_Row_Context {
 	 * @param array<string,mixed> $post_fields_from_csv Post fields.
 	 * @return bool
 	 */
-	public function should_skip_row_due_to_missing_title( string $update_existing, array $post_fields_from_csv ): bool {
+	public function should_skip_row_due_to_missing_title(
+		string $update_existing,
+		array $post_fields_from_csv
+	): bool {
 		return '1' !== $update_existing && empty( $post_fields_from_csv['post_title'] );
 	}
 
@@ -362,7 +479,11 @@ class Swift_CSV_Import_Row_Context {
 	 * @param array<int, string> $allowed_post_fields Allowed post fields.
 	 * @return array<string, mixed> Collected post fields.
 	 */
-	public function get_post_fields_from_csv_row( array $headers, array $data, array $allowed_post_fields ): array {
+	public function get_post_fields_from_csv_row(
+		array $headers,
+		array $data,
+		array $allowed_post_fields
+	): array {
 		return $this->collect_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
 	}
 

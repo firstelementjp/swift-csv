@@ -1,5 +1,43 @@
 # 📋 Changelog
 
+## [0.9.8] - 2026-03-19
+
+### 🏗️ Architecture Improvements
+
+- **Interface-based import system** - New base classes and WP-compatible implementations
+- **Enhanced taxonomy handling** - Dedicated taxonomy writer interface and utilities
+- **Object-type PHPDoc** - IDE compatibility improvements with generic object types
+- **Modular JavaScript architecture** - Organized export modules with 6 separate files
+
+### 🛠️ Development Experience
+
+- **Environment setup guide** - Comprehensive direnv + wp-config.php integration documentation
+- **PHPUnit configuration fix** - Local development testing now works out of the box
+- **Enhanced developer documentation** - Updated skills/ directory with latest patterns
+- **Build process improvements** - Streamlined npm scripts and development workflow
+
+### 📚 Documentation Updates
+
+- **Complete hooks reference** - Updated for current implementation with new import hooks
+- **Environment setup conventions** - New guide for AI feature development and API key management
+- **Troubleshooting guides** - Updated for current architecture and common issues
+- **Coding standards refresh** - Object-type PHPDoc guidelines and modern practices
+
+### 🔧 Technical Improvements
+
+- **WordPress 6.6+ compatibility** - Updated minimum requirements and tested compatibility
+- **PHP 8.1+ optimization** - Modern PHP features and performance improvements
+- **Enhanced error handling** - Better cleanup on error paths and exception management
+- **Improved logging system** - Transient-based log storage with configurable limits
+
+### 🎯 Breaking Changes
+
+- **ACF references removed** - Documentation updated to use "enhanced features" terminology
+- **PHPUnit bootstrap path** - Fixed for local development (may require configuration update)
+- **Hook signature updates** - Some import hooks have updated parameters for better extensibility
+
+---
+
 ## [0.9.7] - 2026-02-15
 
 ### 🎉 Major Features

@@ -24,7 +24,7 @@ class Swift_CSV_Import_Meta_Tax {
 	 * CSV utility.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Csv|null
+	 * @var object|null
 	 */
 	private $csv_util;
 
@@ -32,7 +32,7 @@ class Swift_CSV_Import_Meta_Tax {
 	 * Taxonomy utility.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Taxonomy_Util|null
+	 * @var object|null
 	 */
 	private $taxonomy_util;
 
@@ -40,7 +40,7 @@ class Swift_CSV_Import_Meta_Tax {
 	 * Taxonomy writer strategy.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Taxonomy_Writer_Interface
+	 * @var object
 	 */
 	private $taxonomy_writer;
 
@@ -48,10 +48,13 @@ class Swift_CSV_Import_Meta_Tax {
 	 * Constructor.
 	 *
 	 * @since 0.9.8
-	 * @param Swift_CSV_Import_Taxonomy_Writer_Interface|null $taxonomy_writer Taxonomy writer.
-	 * @param Swift_CSV_Import_Taxonomy_Util|null             $taxonomy_util Taxonomy util.
+	 * @param object|null $taxonomy_writer Taxonomy writer.
+	 * @param object|null $taxonomy_util Taxonomy util.
 	 */
-	public function __construct( ?Swift_CSV_Import_Taxonomy_Writer_Interface $taxonomy_writer = null, ?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null ) {
+	public function __construct(
+		?Swift_CSV_Import_Taxonomy_Writer_Interface $taxonomy_writer = null,
+		?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null
+	) {
 		$this->taxonomy_util   = $taxonomy_util;
 		$this->taxonomy_writer = $taxonomy_writer ? $taxonomy_writer : new Swift_CSV_Import_Taxonomy_Writer_WP( $this->taxonomy_util );
 	}
@@ -60,9 +63,9 @@ class Swift_CSV_Import_Meta_Tax {
 	 * Get CSV utility instance.
 	 *
 	 * @since 0.9.8
-	 * @return Swift_CSV_Import_Csv
+	 * @return object
 	 */
-	private function get_csv_util(): Swift_CSV_Import_Csv {
+	private function get_csv_util(): object {
 		if ( null === $this->csv_util ) {
 			$this->csv_util = new Swift_CSV_Import_Csv();
 		}
@@ -73,9 +76,9 @@ class Swift_CSV_Import_Meta_Tax {
 	 * Get taxonomy utility instance.
 	 *
 	 * @since 0.9.8
-	 * @return Swift_CSV_Import_Taxonomy_Util
+	 * @return object
 	 */
-	private function get_taxonomy_util(): Swift_CSV_Import_Taxonomy_Util {
+	private function get_taxonomy_util(): object {
 		if ( null === $this->taxonomy_util ) {
 			$this->taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
 		}
@@ -83,19 +86,28 @@ class Swift_CSV_Import_Meta_Tax {
 	}
 
 	/**
-	 * Process meta fields and taxonomies for a post using explicit arguments.
+	 * Process meta fields and taxonomies for a post using explicit arguments
 	 *
 	 * @since 0.9.0
-	 * @param wpdb                                                                                  $wpdb WordPress database handler.
-	 * @param int                                                                                   $post_id Post ID.
-	 * @param array<int, string>                                                                    $headers CSV headers.
-	 * @param array<int, string>                                                                    $data CSV row data.
-	 * @param array<int, string>                                                                    $allowed_post_fields Allowed WP post fields.
-	 * @param string                                                                                $taxonomy_format Taxonomy format.
-	 * @param array                                                                                 $taxonomy_format_validation Taxonomy format validation.
-	 * @param bool                                                                                  $dry_run Dry run flag.
-	 * @param array{processed:int,created:int,updated:int,errors:int,dry_run_log:array<int,string>} $counters Counters (by reference).
-	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>}
+	 * @param wpdb   $wpdb WordPress database handler.
+	 * @param int    $post_id Post ID.
+	 * @param array  $headers CSV headers.
+	 * @param array  $data CSV row data.
+	 * @param array  $allowed_post_fields Allowed WP post fields.
+	 * @param string $taxonomy_format Taxonomy format.
+	 * @param array  $taxonomy_format_validation Taxonomy format validation.
+	 * @param bool   $dry_run Dry run flag.
+	 * @param array{
+	 *   processed: int,
+	 *   created:   int,
+	 *   updated:   int,
+	 *   errors:    int,
+	 *   dry_run_log: array<int,string>
+	 * } $counters Counters (by reference).
+	 * @return array{
+	 *   meta_fields: array<string,string>,
+	 *   taxonomies:  array<string,array<int,string>>
+	 * }
 	 */
 	public function process_meta_and_taxonomies_for_row_with_args(
 		wpdb $wpdb,
@@ -112,20 +124,34 @@ class Swift_CSV_Import_Meta_Tax {
 
 		// Process custom fields and taxonomies like original Swift CSV.
 		$collected_fields = $this->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
+
 		/**
 		 * Filter field mapping before processing.
 		 *
-		 * Allows extensions to process custom columns (e.g., acf_, custom_) before they are saved.
 		 * This hook is called after basic field collection but before database operations.
 		 *
 		 * @since 0.9.0
-		 * @param array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>} $collected_fields Collected fields.
+		 * @param array{
+		 *   meta_fields:     array<string,string>,
+		 *   taxonomies:      array<string,array<int,string>>,
+		 *   taxonomy_term_ids: array<string,array<int,int>>
+		 * } $collected_fields Collected fields.
 		 * @param array<int, string> $headers CSV headers.
 		 * @param array $data CSV row data.
 		 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
-		 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>} Modified collected fields.
+		 * @return array{
+		 *   meta_fields:     array<string,string>,
+		 *   taxonomies:      array<string,array<int,string>>,
+		 *   taxonomy_term_ids: array<string,array<int,int>>
+		 * } Modified collected fields.
 		 */
-		$collected_fields = apply_filters( 'swift_csv_import_field_mapping', $collected_fields, $headers, $data, $allowed_post_fields );
+		$collected_fields = apply_filters(
+			'swift_csv_import_field_mapping',
+			$collected_fields,
+			$headers,
+			$data,
+			$allowed_post_fields
+		);
 		do_action(
 			'swift_csv_import_phase_map',
 			$collected_fields,
@@ -164,7 +190,10 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @since 0.9.0
 	 * @param array<int, string> $headers CSV headers.
 	 * @param array<int, string> $data CSV row data.
-	 * @return array{taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
+	 * @return array{
+	 *   taxonomies:      array<string,array<int,string>>,
+	 *   taxonomy_term_ids: array<string,array<int,int>>
+	 * }
 	 */
 	public function collect_taxonomy_fields_from_row( array $headers, array $data ): array {
 		$taxonomies        = [];
@@ -268,9 +297,17 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @param array<int, string> $headers CSV headers.
 	 * @param array<int, string> $data CSV row data.
 	 * @param array<int, string> $allowed_post_fields Allowed WP post fields.
-	 * @return array{meta_fields:array<string,string>,taxonomies:array<string,array<int,string>>,taxonomy_term_ids:array<string,array<int,int>>}
+	 * @return array{
+	 *   meta_fields:     array<string,string>,
+	 *   taxonomies:      array<string,array<int,string>>,
+	 *   taxonomy_term_ids: array<string,array<int,int>>
+	 * }
 	 */
-	public function collect_taxonomies_and_meta_fields_from_row( array $headers, array $data, array $allowed_post_fields ): array {
+	public function collect_taxonomies_and_meta_fields_from_row(
+		array $headers,
+		array $data,
+		array $allowed_post_fields
+	): array {
 		$taxonomy_data = $this->collect_taxonomy_fields_from_row( $headers, $data );
 		$meta_fields   = $this->collect_meta_fields_from_row( $headers, $data, $allowed_post_fields );
 
@@ -291,7 +328,12 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @param array              $taxonomy_format_validation Taxonomy format validation.
 	 * @return array<int, int>
 	 */
-	public function resolve_taxonomy_term_ids( string $taxonomy, array $terms, string $taxonomy_format, array $taxonomy_format_validation ): array {
+	public function resolve_taxonomy_term_ids(
+		string $taxonomy,
+		array $terms,
+		string $taxonomy_format,
+		array $taxonomy_format_validation
+	): array {
 		$term_ids = [];
 		foreach ( $terms as $term_value ) {
 			$term_value = trim( (string) $term_value );
@@ -299,7 +341,12 @@ class Swift_CSV_Import_Meta_Tax {
 				continue;
 			}
 
-			$resolved_term_ids = $this->resolve_term_ids_for_term_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
+			$resolved_term_ids = $this->resolve_term_ids_for_term_value(
+				$taxonomy,
+				$term_value,
+				$taxonomy_format,
+				$taxonomy_format_validation
+			);
 			foreach ( $resolved_term_ids as $resolved_term_id ) {
 				$term_ids[] = $resolved_term_id;
 			}
@@ -318,7 +365,13 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @param array<int, string> $dry_run_log Dry run log.
 	 * @return void
 	 */
-	public function apply_taxonomy_terms_to_post( int $post_id, string $taxonomy, array $term_ids, bool $dry_run, array &$dry_run_log ): void {
+	public function apply_taxonomy_terms_to_post(
+		int $post_id,
+		string $taxonomy,
+		array $term_ids,
+		bool $dry_run,
+		array &$dry_run_log
+	): void {
 		if ( empty( $term_ids ) ) {
 			return;
 		}
@@ -353,7 +406,13 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @param array<int, string>                $dry_run_log Dry run log.
 	 * @return void
 	 */
-	public function apply_taxonomies_for_post( wpdb $wpdb, int $post_id, array $taxonomies, array $context, array &$dry_run_log ): void {
+	public function apply_taxonomies_for_post(
+		wpdb $wpdb,
+		int $post_id,
+		array $taxonomies,
+		array $context,
+		array &$dry_run_log
+	): void {
 		$this->taxonomy_writer->apply_taxonomies_for_post( $wpdb, $post_id, $taxonomies, $context, $dry_run_log );
 	}
 
@@ -367,8 +426,18 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @param array  $taxonomy_format_validation Taxonomy format validation.
 	 * @return array<int, int>
 	 */
-	public function resolve_term_ids_for_term_value( string $taxonomy, string $term_value, string $taxonomy_format, array $taxonomy_format_validation ): array {
-		$term_ids = $this->get_taxonomy_util()->resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
+	public function resolve_term_ids_for_term_value(
+		string $taxonomy,
+		string $term_value,
+		string $taxonomy_format,
+		array $taxonomy_format_validation
+	): array {
+		$term_ids = $this->get_taxonomy_util()->resolve_term_ids_from_value(
+			$taxonomy,
+			$term_value,
+			$taxonomy_format,
+			$taxonomy_format_validation
+		);
 
 		return $term_ids;
 	}
@@ -384,7 +453,13 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @param array $dry_run_log Dry run log.
 	 * @return void
 	 */
-	public function apply_meta_fields_for_post( wpdb $wpdb, int $post_id, array $meta_fields, array $context, array &$dry_run_log ): void {
+	public function apply_meta_fields_for_post(
+		wpdb $wpdb,
+		int $post_id,
+		array $meta_fields,
+		array $context,
+		array &$dry_run_log
+	): void {
 		$dry_run = $context['dry_run'];
 
 		foreach ( $meta_fields as $key => $value ) {
@@ -426,8 +501,8 @@ class Swift_CSV_Import_Meta_Tax {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->query(
 				$wpdb->prepare(
-					"DELETE FROM {$wpdb->postmeta} 
-	                         WHERE post_id = %d 
+					"DELETE FROM {$wpdb->postmeta}
+	                         WHERE post_id = %d
 	                         AND meta_key = %s",
 					$post_id,
 					$key
@@ -438,7 +513,10 @@ class Swift_CSV_Import_Meta_Tax {
 			if ( count( $values ) > 1 ) {
 				foreach ( array_map( 'trim', $values ) as $single_value ) {
 					if ( '' !== $single_value ) {
-						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,
+						// WordPress.DB.DirectDatabaseQuery.NoCaching,
+						// WordPress.DB.SlowDBQuery.slow_db_query_meta_key,
+						// WordPress.DB.SlowDBQuery.slow_db_query_meta_value.
 						$wpdb->insert(
 							$wpdb->postmeta,
 							[
@@ -455,7 +533,10 @@ class Swift_CSV_Import_Meta_Tax {
 
 			$value = trim( (string) ( $values[0] ?? '' ) );
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,
+			// WordPress.DB.DirectDatabaseQuery.NoCaching,
+			// WordPress.DB.SlowDBQuery.slow_db_query_meta_key,
+			// WordPress.DB.SlowDBQuery.slow_db_query_meta_value.
 			$wpdb->insert(
 				$wpdb->postmeta,
 				[

@@ -1,7 +1,25 @@
+/**
+ * Swift CSV Export Scripts - Form Helper Module
+ *
+ * Collects export form values, normalizes them, and yields payloads consumed by
+ * the unified export AJAX/Direct SQL handlers.
+ *
+ * @package
+ */
+
 (function () {
+	/**
+	 * @namespace SwiftCSVExportUnifiedModules
+	 */
 	window.SwiftCSVExportUnifiedModules = window.SwiftCSVExportUnifiedModules || {};
 
 	window.SwiftCSVExportUnifiedModules.Form = {
+		/**
+		 * Collect export form values and normalize them into an AJAX payload.
+		 *
+		 * @return {Object} Normalized export request payload.
+		 * @throws {Error} When the post type field is missing.
+		 */
 		getFormData() {
 			const postTypeElement = document.getElementById('swift_csv_export_post_type');
 			const postType = postTypeElement ? postTypeElement.value : 'post';

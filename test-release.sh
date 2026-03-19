@@ -2,11 +2,12 @@
 
 set -euo pipefail
 
-TAG="v0.9.8-test"
+BRANCH="develop"
 RELEASE_DIR="test-release"
+TAG="v0.9.8-dev"
 ZIP_NAME="swift-csv-$TAG.zip"
 
-echo "Testing release process for tag: $TAG"
+echo "Testing release process for branch: $BRANCH (tag: $TAG)"
 
 echo "=== Build assets in working directory ==="
 npm run build >/dev/null
@@ -15,7 +16,7 @@ rm -rf "$RELEASE_DIR"
 mkdir -p "$RELEASE_DIR"
 
 echo "=== Create release tree from git archive (worktree attributes) ==="
-git archive --format=tar --prefix=swift-csv/ --worktree-attributes "$TAG" | tar -x -C "$RELEASE_DIR"
+git archive --format=tar --prefix=swift-csv/ --worktree-attributes "$BRANCH" | tar -x -C "$RELEASE_DIR"
 
 echo "=== Inject built minified assets into release tree ==="
 mkdir -p "$RELEASE_DIR/swift-csv/assets/js/export/swift-csv"

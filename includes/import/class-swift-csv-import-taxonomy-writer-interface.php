@@ -30,5 +30,11 @@ interface Swift_CSV_Import_Taxonomy_Writer_Interface {
 	 * @param array                             $dry_run_log Dry run log.
 	 * @return void
 	 */
-	public function apply_taxonomies_for_post( wpdb $wpdb, int $post_id, array $taxonomies, array $context, array &$dry_run_log ): void;
+	public function apply_taxonomies_for_post(
+		wpdb $wpdb,
+		int $post_id,
+		array $taxonomies,
+		array $context,
+		array &$dry_run_log
+	): void;
 }

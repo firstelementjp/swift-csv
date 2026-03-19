@@ -23,7 +23,7 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	 * Taxonomy utility instance.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Taxonomy_Util|null
+	 * @var object|null
 	 */
 	private $taxonomy_util;
 
@@ -31,7 +31,7 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	 * Constructor.
 	 *
 	 * @since 0.9.8
-	 * @param Swift_CSV_Import_Taxonomy_Util|null $taxonomy_util Taxonomy util.
+	 * @param object|null $taxonomy_util Taxonomy util.
 	 */
 	public function __construct( ?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null ) {
 		$this->taxonomy_util = $taxonomy_util;
@@ -48,7 +48,13 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	 * @param array $dry_run_log Dry run log.
 	 * @return void
 	 */
-	public function apply_taxonomies_for_post( wpdb $wpdb, int $post_id, array $taxonomies, array $context, array &$dry_run_log ): void {
+	public function apply_taxonomies_for_post(
+		wpdb $wpdb,
+		int $post_id,
+		array $taxonomies,
+		array $context,
+		array &$dry_run_log
+	): void {
 		$taxonomy_format            = $context['taxonomy_format'];
 		$taxonomy_format_validation = $context['taxonomy_format_validation'];
 		$dry_run                    = $context['dry_run'];
@@ -73,7 +79,12 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	 * @param array              $taxonomy_format_validation Taxonomy format validation.
 	 * @return array<int, int>
 	 */
-	private function resolve_taxonomy_term_ids( string $taxonomy, array $terms, string $taxonomy_format, array $taxonomy_format_validation ): array {
+	private function resolve_taxonomy_term_ids(
+		string $taxonomy,
+		array $terms,
+		string $taxonomy_format,
+		array $taxonomy_format_validation
+	): array {
 		$term_ids = [];
 		foreach ( $terms as $term_value ) {
 			$term_value = trim( (string) $term_value );
@@ -81,7 +92,12 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 				continue;
 			}
 
-			$resolved_term_ids = $this->resolve_term_ids_for_term_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
+			$resolved_term_ids = $this->resolve_term_ids_for_term_value(
+				$taxonomy,
+				$term_value,
+				$taxonomy_format,
+				$taxonomy_format_validation
+			);
 			foreach ( $resolved_term_ids as $resolved_term_id ) {
 				$term_ids[] = $resolved_term_id;
 			}
@@ -99,15 +115,25 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	 * @param array  $taxonomy_format_validation Taxonomy format validation.
 	 * @return array<int, int>
 	 */
-	private function resolve_term_ids_for_term_value( string $taxonomy, string $term_value, string $taxonomy_format, array $taxonomy_format_validation ): array {
-		return $this->get_taxonomy_util()->resolve_term_ids_from_value( $taxonomy, $term_value, $taxonomy_format, $taxonomy_format_validation );
+	private function resolve_term_ids_for_term_value(
+		string $taxonomy,
+		string $term_value,
+		string $taxonomy_format,
+		array $taxonomy_format_validation
+	): array {
+		return $this->get_taxonomy_util()->resolve_term_ids_from_value(
+			$taxonomy,
+			$term_value,
+			$taxonomy_format,
+			$taxonomy_format_validation
+		);
 	}
 
 	/**
 	 * Get taxonomy utility instance.
 	 *
 	 * @since 0.9.8
-	 * @return Swift_CSV_Import_Taxonomy_Util
+	 * @return object
 	 */
 	private function get_taxonomy_util(): Swift_CSV_Import_Taxonomy_Util {
 		if ( null === $this->taxonomy_util ) {
@@ -127,7 +153,13 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 	 * @param array<int, string> $dry_run_log Dry run log.
 	 * @return void
 	 */
-	private function apply_taxonomy_terms_to_post( int $post_id, string $taxonomy, array $term_ids, bool $dry_run, array &$dry_run_log ): void {
+	private function apply_taxonomy_terms_to_post(
+		int $post_id,
+		string $taxonomy,
+		array $term_ids,
+		bool $dry_run,
+		array &$dry_run_log
+	): void {
 		if ( empty( $term_ids ) ) {
 			return;
 		}

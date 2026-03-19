@@ -5,6 +5,9 @@
  *
  */
 
+/**
+ * Bootstrap Swift CSV admin scripts when the DOM is ready.
+ */
 document.addEventListener('DOMContentLoaded', function () {
 	// Log initialization (debug mode only)
 	if (window.SwiftCSVCore && window.swiftCSV && window.swiftCSV.debug) {
@@ -16,9 +19,13 @@ document.addEventListener('DOMContentLoaded', function () {
 		SwiftCSVCore.initLoggingSystem();
 	}
 
-	// Initialize modules when available
+	/**
+	 * Initialize Swift CSV modules once dependencies are available.
+	 */
 	const initializeModules = () => {
-		// Wait for all modules to be loaded
+		/**
+		 * Verify module availability; retry until import/export modules are ready.
+		 */
 		const checkModules = () => {
 			if (window.SwiftCSVCore && window.SwiftCSVExport && window.SwiftCSVImport) {
 				const advancedSaveButton = document.getElementById('swift-csv-save-all-settings');
@@ -112,6 +119,35 @@ document.addEventListener('DOMContentLoaded', function () {
 				// License functionality (optional)
 				if (window.SwiftCSVLicense) {
 					window.SwiftCSVLicense.initLicense();
+				}
+
+				const taxonomyHierarchyCheckbox = document.getElementById(
+					'swift_csv_taxonomy_hierarchical'
+				);
+				const taxonomyFormatRadios = document.querySelectorAll(
+					'input[name="taxonomy_format"]'
+				);
+				/**
+				 * Enable or disable the taxonomy hierarchy checkbox based on active format.
+				 */
+				const updateTaxonomyHierarchyState = () => {
+					if (!taxonomyHierarchyCheckbox) {
+						return;
+					}
+					const activeFormat = document.querySelector(
+						'input[name="taxonomy_format"]:checked'
+					)?.value;
+					const shouldEnable = 'name' === activeFormat;
+					taxonomyHierarchyCheckbox.disabled = !shouldEnable;
+					if (!shouldEnable) {
+						taxonomyHierarchyCheckbox.checked = false;
+					}
+				};
+				if (taxonomyFormatRadios.length > 0 && taxonomyHierarchyCheckbox) {
+					taxonomyFormatRadios.forEach(radio => {
+						radio.addEventListener('change', updateTaxonomyHierarchyState);
+					});
+					updateTaxonomyHierarchyState();
 				}
 			} else {
 				// Modules not ready, retry after short delay

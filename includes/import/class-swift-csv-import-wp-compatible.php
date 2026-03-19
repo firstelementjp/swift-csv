@@ -57,7 +57,14 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		$csv_content = $this->read_csv_content_for_start_row( $file_path, $start_row );
 
 		$parsed_config = $this->request_parser->parse_import_config( $csv_content );
-		$config        = $this->build_import_config_from_parsed( $parsed_config, $file_path, $start_row, $csv_content, $import_session, $append_log );
+		$config        = $this->build_import_config_from_parsed(
+			$parsed_config,
+			$file_path,
+			$start_row,
+			$csv_content,
+			$import_session,
+			$append_log
+		);
 		if ( empty( $config ) ) {
 			if ( ! Swift_CSV_Ajax_Util::has_sent_response() ) {
 				Swift_CSV_Ajax_Util::send_error_response( 'Invalid import config' );

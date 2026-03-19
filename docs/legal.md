@@ -1,6 +1,6 @@
 # 📄 License
 
-Swift CSV v0.9.7 is provided under the GPL-2.0+ license.
+Swift CSV v0.9.8 is provided under the GPL-2.0+ license.
 
 ## License Text
 
@@ -36,22 +36,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 ## Version Information
 
-### Current Version: v0.9.7
+### Current Version: v0.9.8
 
-**Release Date**: February 15, 2026
+**Release Date**: March 19, 2026
 
 **Key Features**:
 
-- Complete progress bar UI with shimmer animations
-- Real-time export details with post titles
+- Real-time progress UI for import and export
+- Detailed processing logs in the admin UI
 - Enhanced license status detection
-- Complete Japanese localization
-- Adaptive batch processing (1-500 posts)
+- Localized interface with translation support
+- Automatic batch processing
 - Multi-value custom field support
 
 ### License Compliance
 
-**v0.9.7 Compliance**:
+**v0.9.8 Compliance**:
 
 - ✅ All code is GPL-2.0+ compliant
 - ✅ Third-party libraries properly licensed
@@ -81,8 +81,8 @@ This plugin uses the following open-source libraries for development:
 
 ### Runtime Requirements
 
-- **PHP**: 8.0 or higher (no external runtime dependencies)
-- **WordPress**: 6.0 or higher
+- **PHP**: 8.1 or higher (no external runtime dependencies)
+- **WordPress**: 6.6 or higher
 - **Browser**: Modern browser with JavaScript and CSS animation support
 
 ### Frontend Assets
@@ -131,9 +131,8 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 **Community Support**:
 
 - **GitHub Issues**: [Report bugs](https://github.com/firstelementjp/swift-csv/issues)
-- **GitHub Discussions**: [Community support](https://github.com/firstelementjp/swift-csv/discussions)
 - **Documentation**: Available in the [docs/](./) directory
-- **Wiki**: [Community wiki](https://github.com/firstelementjp/swift-csv/wiki)
+- **GitHub Repository**: [Source code](https://github.com/firstelementjp/swift-csv)
 
 **Commercial Support**:
 
@@ -163,7 +162,7 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 ### Data Collection
 
-**v0.9.7 Data Handling**:
+**v0.9.8 Data Handling**:
 
 - **No Personal Data**: Plugin does not collect personal data
 - **Local Processing**: All processing happens on your server
@@ -208,7 +207,7 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 **Current Translations**:
 
-- **Japanese**: Complete translation included (v0.9.7)
+- **Japanese**: Translation included
 - **English**: Default language
 - **Other Languages**: Community translations welcome
 
@@ -221,10 +220,10 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 ### Localization Features
 
-**v0.9.7 Localization**:
+**v0.9.8 Localization**:
 
-- Complete Japanese language support
-- Natural Japanese messaging
+- Japanese translation support
+- Localized admin messaging
 - HTML tag rendering in translations
 - Context-aware messaging
 - RTL language support preparation
@@ -330,7 +329,7 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 ### License Changes
 
-**v0.9.7**: No license changes
+**v0.9.8**: No license changes
 
 - Maintained GPL-2.0+ license
 - Added commercial Pro version features
@@ -357,8 +356,8 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 This legal information is provided for informational purposes only and does not constitute legal advice. For specific legal questions regarding your use of this plugin, please consult with a qualified legal professional.
 
-**Last Updated**: February 15, 2026
-**Plugin Version**: v0.9.7
+**Last Updated**: March 19, 2026
+**Plugin Version**: v0.9.8
 **License Version**: GPL-2.0+
 
 ## Compliance

@@ -30,7 +30,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Batch planner.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Ajax_Import_Batch_Planner|null
+	 * @var object|null
 	 */
 	private $batch_planner;
 
@@ -38,7 +38,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Taxonomy utility instance.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Taxonomy_Util|null
+	 * @var object|null
 	 */
 	private $taxonomy_util;
 
@@ -46,7 +46,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Row context utility instance
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Row_Context|null
+	 * @var object|null
 	 */
 	private $row_context_util;
 
@@ -54,7 +54,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Meta/taxonomy utility instance
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Meta_Tax|null
+	 * @var object|null
 	 */
 	private $meta_tax_util;
 
@@ -62,7 +62,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Persister utility instance
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Persister|null
+	 * @var object|null
 	 */
 	private $persister_util;
 
@@ -70,7 +70,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Row processor utility instance
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Row_Processor|null
+	 * @var object|null
 	 */
 	private $row_processor_util;
 
@@ -123,9 +123,9 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Get batch planner.
 	 *
 	 * @since 0.9.8
-	 * @return Swift_CSV_Ajax_Import_Batch_Planner
+	 * @return object
 	 */
-	private function get_batch_planner(): Swift_CSV_Ajax_Import_Batch_Planner {
+	private function get_batch_planner(): object {
 		if ( null === $this->batch_planner ) {
 			$this->batch_planner = new Swift_CSV_Ajax_Import_Batch_Planner();
 		}
@@ -136,9 +136,9 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Get taxonomy utility instance.
 	 *
 	 * @since 0.9.8
-	 * @return Swift_CSV_Import_Taxonomy_Util
+	 * @return object
 	 */
-	private function get_taxonomy_util(): Swift_CSV_Import_Taxonomy_Util {
+	private function get_taxonomy_util(): object {
 		if ( null === $this->taxonomy_util ) {
 			$this->taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
 		}
@@ -478,9 +478,9 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Get row context utility instance.
 	 *
 	 * @since 0.9.8
-	 * @return Swift_CSV_Import_Row_Context
+	 * @return object
 	 */
-	protected function get_row_context_util(): Swift_CSV_Import_Row_Context {
+	protected function get_row_context_util(): object {
 		if ( null === $this->row_context_util ) {
 			$this->row_context_util = new Swift_CSV_Import_Row_Context( new Swift_CSV_Import_Csv() );
 		}
@@ -491,9 +491,9 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Get meta/taxonomy utility instance.
 	 *
 	 * @since 0.9.8
-	 * @return Swift_CSV_Import_Meta_Tax
+	 * @return object
 	 */
-	protected function get_meta_tax_util(): Swift_CSV_Import_Meta_Tax {
+	protected function get_meta_tax_util(): object {
 		if ( null === $this->meta_tax_util ) {
 			$this->meta_tax_util = new Swift_CSV_Import_Meta_Tax( null, $this->get_taxonomy_util() );
 		}
@@ -504,9 +504,9 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Get persister utility instance.
 	 *
 	 * @since 0.9.8
-	 * @return Swift_CSV_Import_Persister
+	 * @return object
 	 */
-	protected function get_persister_util(): Swift_CSV_Import_Persister {
+	protected function get_persister_util(): object {
 		if ( null === $this->persister_util ) {
 			$this->persister_util = new Swift_CSV_Import_Persister();
 		}
@@ -517,9 +517,9 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * Get row processor utility instance.
 	 *
 	 * @since 0.9.8
-	 * @return Swift_CSV_Import_Row_Processor
+	 * @return object
 	 */
-	protected function get_row_processor_util(): Swift_CSV_Import_Row_Processor {
+	protected function get_row_processor_util(): object {
 		if ( null === $this->row_processor_util ) {
 			$this->row_processor_util = new Swift_CSV_Import_Row_Processor();
 		}

@@ -6,7 +6,7 @@
  */
 
 /**
- * Initialize file upload functionality
+ * Initialize file upload drag/drop interactions and button bindings.
  */
 function initFileUpload() {
 	const uploadArea = document.querySelector('#csv-file-upload');
@@ -128,7 +128,13 @@ let globalCumulativeCreated = 0;
 let globalCumulativeUpdated = 0;
 let globalCumulativeErrors = 0;
 
-// Helper function to truncate title to 20 characters
+/**
+ * Helper function to truncate titles to the specified length.
+ *
+ * @param {string} title          Original title.
+ * @param {number} [maxLength=20] Maximum characters to keep.
+ * @return {string} Truncated title.
+ */
 function truncateTitle(title, maxLength = 20) {
 	if (!title || title.length <= maxLength) {
 		return title;
@@ -136,6 +142,12 @@ function truncateTitle(title, maxLength = 20) {
 	return title.substring(0, maxLength) + '...';
 }
 
+/**
+ * Escape HTML entities in a string.
+ *
+ * @param {string} str Source string.
+ * @return {string} Escaped string.
+ */
 function escapeHtml(str) {
 	return String(str)
 		.replace(/&/g, '&amp;')
@@ -145,6 +157,12 @@ function escapeHtml(str) {
 		.replace(/'/g, '&#039;');
 }
 
+/**
+ * Split a log entry into meta prefix and title body.
+ *
+ * @param {string} message Log message text.
+ * @return {{meta: string, title: string}} Parsed parts.
+ */
 function splitMetaAndTitle(message) {
 	const text = String(message || '');
 	if (text.startsWith('[')) {
@@ -162,6 +180,15 @@ function splitMetaAndTitle(message) {
 	};
 }
 
+/**
+ * Append a real-time import log entry to the appropriate panel.
+ *
+ * @param {Object} params         Log parameters.
+ * @param {string} params.message Log message text.
+ * @param {string} params.level   Severity level.
+ * @param {string} params.action  Action identifier.
+ * @param {string} params.status  Status string (success/error).
+ */
 function appendImportRealtimeLog({ message, level, action, status }) {
 	const panelsRoot = document.querySelector('.swift-csv-logs-area');
 	if (!panelsRoot) {
@@ -201,6 +228,12 @@ function appendImportRealtimeLog({ message, level, action, status }) {
 	logContent.scrollTop = logContent.scrollHeight;
 }
 
+/**
+ * Stop polling timer and optionally abort active log request.
+ *
+ * @param {Object}  [options]                   Control flags.
+ * @param {boolean} [options.abortRequest=true] Abort the in-flight fetch.
+ */
 function stopImportLogPolling({ abortRequest = true } = {}) {
 	if (importLogPollingTimer) {
 		clearInterval(importLogPollingTimer);
@@ -218,6 +251,11 @@ function stopImportLogPolling({ abortRequest = true } = {}) {
 	importLogPollingPromise = null;
 }
 
+/**
+ * Fetch latest import logs from the server when logging is enabled.
+ *
+ * @return {Promise|undefined} Promise resolving when polling completes.
+ */
 function pollImportLogs() {
 	if (isImportCancelled) return Promise.resolve();
 
@@ -292,6 +330,14 @@ function pollImportLogs() {
 	return importLogPollingPromise;
 }
 
+/**
+ * Trigger several additional log polls after completion to capture tail entries.
+ *
+ * @param {Object} [options]             Configuration for retries.
+ * @param {number} [options.attempts=3]  Number of polling attempts.
+ * @param {number} [options.delayMs=300] Delay between attempts in ms.
+ * @return {Promise} Resolves once all attempts finish.
+ */
 function flushImportLogsAfterComplete({ attempts = 3, delayMs = 300 } = {}) {
 	let chain = Promise.resolve();
 	for (let i = 0; i < attempts; i++) {
@@ -308,9 +354,9 @@ function flushImportLogsAfterComplete({ attempts = 3, delayMs = 300 } = {}) {
 }
 
 /**
- * Handle file selection
+ * Handle file selection and update the UI with file metadata.
  *
- * @param {File} file Selected file
+ * @param {File} file Selected file.
  */
 function handleFileSelect(file) {
 	const fileInfo = document.querySelector('#csv-file-info');
@@ -327,7 +373,7 @@ function handleFileSelect(file) {
 }
 
 /**
- * Start AJAX import.
+ * Start AJAX-based import with the given strategy.
  *
  * @param {string} importMethod Import method ('wp_compatible' or 'direct_sql').
  */

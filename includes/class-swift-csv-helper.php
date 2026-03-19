@@ -91,6 +91,7 @@ class Swift_CSV_Helper {
 		}
 		return implode( '|', $escaped_values );
 	}
+
 	/**
 	 * Parse CSV content line by line to handle quoted fields with newlines.
 	 *
@@ -176,6 +177,7 @@ class Swift_CSV_Helper {
 
 		return $headers;
 	}
+
 	/**
 	 * Count actual data rows (exclude empty lines).
 	 *

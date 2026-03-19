@@ -31,8 +31,8 @@ We welcome contributions to Swift CSV!
 ### Prerequisites
 
 - Node.js 18.0.0 or higher
-- PHP 7.4 or higher
-- WordPress installation
+- PHP 8.1 or higher
+- WordPress 6.6 or higher
 - Composer
 - direnv (recommended for environment setup)
 
@@ -147,5 +147,5 @@ swift-csv/
 
 - Check [SKILL.md](../.github/skills/SKILL.md) for troubleshooting
 - Review existing issues for similar problems
-- Join discussions in GitHub Issues
+- Open a GitHub Issue when you need to report a bug or request a feature
 - Refer to WordPress coding standards documentation

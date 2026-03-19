@@ -1,17 +1,17 @@
 <?php
 /**
- * Plugin Name:       Swift CSV
- * Plugin URI:        https://github.com/firstelementjp/swift-csv
- * Description:       Lightweight and simple CSV import/export plugin. Supports custom post types, custom taxonomies, and custom fields.
- * Version:           0.9.8
- * Author:            FirstElement, Inc.
- * Author URI:        https://www.firstelement.co.jp/
- * License:           GPL-2.0+
- * License URI:       https://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       swift-csv
- * Domain Path:       /languages
+ * Plugin Name:  Swift CSV
+ * Plugin URI:   https://github.com/firstelementjp/swift-csv
+ * Description:  Lightweight and simple CSV import/export plugin. Supports custom post types, custom taxonomies, and custom fields.
+ * Version:      0.9.8
+ * Author:       FirstElement, Inc.
+ * Author URI:   https://www.firstelement.co.jp/
+ * License:      GPL-2.0+
+ * License URI:  https://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:  swift-csv
+ * Domain Path:  /languages
  *
- * @package           Swift_CSV
+ * @package      Swift_CSV
  */
 
 // If this file is called directly, abort.
@@ -24,21 +24,15 @@ define( 'SWIFT_CSV_VERSION', '0.9.8' );
 define( 'SWIFT_CSV_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SWIFT_CSV_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SWIFT_CSV_BASENAME', plugin_basename( __FILE__ ) );
-define( 'SWIFT_CSV_PRO_URL', 'https://www.firstelement.co.jp/swift-csv/' );
+define( 'SWIFT_CSV_PRO_URL', 'https://www.firstelement.co.jp/products/swift-csv/' );
 define( 'SWIFT_CSV_DOCS_URL', 'https://firstelementjp.github.io/swift-csv/#/' );
 define( 'SWIFT_CSV_DEEPWIKI_URL', 'https://deepwiki.com/firstelementjp/swift-csv/' );
 
 /**
  * Custom autoloader for Swift CSV classes
  *
- * Resolves class files from the `includes/` directory by using ordered
- * naming rules for admin, import, and export classes.
- *
- * Import and export AJAX classes are matched before broader tokens to avoid
- * routing them into the wrong directory.
- *
- * Base import and export classes are preloaded when needed so child classes
- * can extend them safely during autoload.
+ * Uses consistent naming convention for reliable class loading.
+ * Class: Swift_CSV_Admin_Assets → File: admin/class-swift-csv-admin-assets.php
  *
  * @since 0.9.8
  * @param string $class_name Class name to load.
@@ -53,43 +47,43 @@ spl_autoload_register(
 			return;
 		}
 
-		// Convert class name to file name.
+		// Convert class name to file path.
 		$relative_class = substr( $class_name, strlen( $prefix ) );
 		$file_name      = 'class-' . str_replace( '_', '-', strtolower( $class_name ) ) . '.php';
 
-		// Determine subdirectory based on ordered naming rules.
-		$sub_dir       = '';
-		$sub_dir_rules = [
-			'import/' => [ 'Ajax_Import', 'Import' ],
-			'export/' => [ 'Ajax_Export', 'Export' ],
-			'admin/'  => [ 'Admin', 'License_Handler', 'Updater', 'Settings' ],
-		];
-
-		foreach ( $sub_dir_rules as $candidate_sub_dir => $tokens ) {
-			foreach ( $tokens as $token ) {
-				if ( false !== strpos( $relative_class, $token ) ) {
-					$sub_dir = $candidate_sub_dir;
-					break 2;
-				}
-			}
+		// Determine subdirectory based on class naming.
+		$sub_dir = '';
+		if ( strpos( $relative_class, 'Admin' ) !== false ||
+			strpos( $relative_class, 'License_Handler' ) !== false ||
+			strpos( $relative_class, 'Updater' ) !== false ||
+			strpos( $relative_class, 'Settings' ) !== false ||
+			strpos( $relative_class, 'Settings_Helper' ) !== false ||
+			strpos( $relative_class, 'Encryption_Utils' ) !== false ) {
+			$sub_dir = 'admin/';
+		} elseif ( strpos( $relative_class, 'Export' ) !== false ) {
+			$sub_dir = 'export/';
+		} elseif ( strpos( $relative_class, 'Import' ) !== false ) {
+			$sub_dir = 'import/';
 		}
 
 		$file_path = $base_dir . $sub_dir . $file_name;
 
-		$base_preload_rules = [
-			[ 'Swift_CSV_Export_', 'Swift_CSV_Export_Base', $base_dir . 'export/class-swift-csv-export-base.php' ],
-			[ 'Swift_CSV_Import_', 'Swift_CSV_Import_Base', $base_dir . 'import/class-swift-csv-import-base.php' ],
-			[ 'Swift_CSV_Import_Batch_Processor', 'Swift_CSV_Import_Batch_Processor_Base', $base_dir . 'import/class-swift-csv-import-batch-processor-base.php' ],
+		// Preload base classes if needed.
+		$base_classes = [
+			'Swift_CSV_Export_Base'                 => $base_dir . 'export/class-swift-csv-export-base.php',
+			'Swift_CSV_Import_Base'                 => $base_dir . 'import/class-swift-csv-import-base.php',
+			'Swift_CSV_Import_Batch_Processor_Base' => $base_dir . 'import/class-swift-csv-import-batch-processor-base.php',
 		];
 
-		foreach ( $base_preload_rules as $rule ) {
-			[ $child_prefix, $base_class, $base_file ] = $rule;
-			if ( 0 === strpos( $class_name, $child_prefix ) && $base_class !== $class_name && file_exists( $base_file ) ) {
+		foreach ( $base_classes as $base_class => $base_file ) {
+			if ( 0 === strpos( $class_name, $base_class ) &&
+				$base_class !== $class_name &&
+				file_exists( $base_file ) ) {
 				require_once $base_file;
 			}
 		}
 
-		// Load file if exists.
+		// Load the class file if exists.
 		if ( file_exists( $file_path ) ) {
 			require_once $file_path;
 		}

@@ -61,17 +61,19 @@ class Swift_CSV_Encryption_Utils {
 
 		$key = self::get_encryption_key();
 		$iv  = openssl_random_pseudo_bytes( 16 );
-		
+
 		if ( false === $iv ) {
 			return false;
 		}
 
 		$encrypted = openssl_encrypt( $data, self::ENCRYPTION_METHOD, $key, 0, $iv );
-		
+
 		if ( false === $encrypted ) {
 			return false;
 		}
 
+		// Base64 encode binary data (IV + encrypted) for safe storage.
+		// This is NOT for obfuscation - it's for converting binary data to text format.
 		return base64_encode( $iv . $encrypted );
 	}
 
@@ -87,16 +89,18 @@ class Swift_CSV_Encryption_Utils {
 		}
 
 		$key = self::get_encryption_key();
+		// Base64 decode to convert text format back to binary data (IV + encrypted).
+		// This is NOT for obfuscation - it's for reversing the text format conversion.
 		$data = base64_decode( $encrypted_data );
-		
+
 		if ( false === $data || strlen( $data ) < 16 ) {
 			return false;
 		}
 
-		$iv         = substr( $data, 0, 16 );
-		$encrypted  = substr( $data, 16 );
+		$iv        = substr( $data, 0, 16 );
+		$encrypted = substr( $data, 16 );
 		$decrypted = openssl_decrypt( $encrypted, self::ENCRYPTION_METHOD, $key, 0, $iv );
-		
+
 		return false === $decrypted ? false : $decrypted;
 	}
 

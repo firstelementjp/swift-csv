@@ -31,7 +31,7 @@ class Swift_CSV_Import_Csv_Parser {
 	 * CSV utility instance.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Csv|null
+	 * @var object|null
 	 */
 	private $csv_util;
 
@@ -39,7 +39,7 @@ class Swift_CSV_Import_Csv_Parser {
 	 * Taxonomy utility instance.
 	 *
 	 * @since 0.9.8
-	 * @var Swift_CSV_Import_Taxonomy_Util|null
+	 * @var object|null
 	 */
 	private $taxonomy_util;
 
@@ -200,9 +200,9 @@ class Swift_CSV_Import_Csv_Parser {
 	 * Get taxonomy utility instance.
 	 *
 	 * @since 0.9.8
-	 * @return Swift_CSV_Import_Taxonomy_Util
+	 * @return object
 	 */
-	private function get_taxonomy_util(): Swift_CSV_Import_Taxonomy_Util {
+	private function get_taxonomy_util(): object {
 		if ( null === $this->taxonomy_util ) {
 			$this->taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
 		}
@@ -213,9 +213,9 @@ class Swift_CSV_Import_Csv_Parser {
 	 * Get CSV utility instance.
 	 *
 	 * @since 0.9.8
-	 * @return Swift_CSV_Import_Csv
+	 * @return object
 	 */
-	private function get_csv_util(): Swift_CSV_Import_Csv {
+	private function get_csv_util(): object {
 		if ( null === $this->csv_util ) {
 			$this->csv_util = new Swift_CSV_Import_Csv();
 		}

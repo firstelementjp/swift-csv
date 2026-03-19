@@ -6,7 +6,10 @@
  */
 
 /**
- * Initialize license functionality
+ * Initialize license UI interactions (visibility toggle and activation actions).
+ *
+ * Sets up password visibility toggle and handles activation/deactivation requests
+ * via delegated click listeners.
  */
 function initLicense() {
 	// License key visibility toggle (Show/Hide password).
@@ -24,6 +27,11 @@ function initLicense() {
 
 	// We must use event delegation on the document body, because the license tab
 	// is part of the main settings form, not a separate Pro feature.
+	/**
+	 * Handle activation/deactivation button clicks within the license form.
+	 *
+	 * @param {MouseEvent} e Click event dispatched on the document body.
+	 */
 	document.body.addEventListener('click', async e => {
 		const button = e.target.closest('.swift-csv-license-button');
 		if (!button) {

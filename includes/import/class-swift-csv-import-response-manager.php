@@ -123,7 +123,10 @@ class Swift_CSV_Import_Response_Manager {
 	 * @param string $file_path Temporary file path.
 	 * @return void
 	 */
-	public function cleanup_temp_file_if_complete( bool $continue, string $file_path ): void { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.continueFound
+	public function cleanup_temp_file_if_complete(
+		bool $continue,
+		string $file_path
+	): void { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.continueFound
 		if ( ! $continue && $file_path && file_exists( $file_path ) ) {
 			wp_delete_file( $file_path );
 		}

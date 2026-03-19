@@ -35,15 +35,15 @@ class Swift_CSV_Admin_Assets {
 			$css_fs     = SWIFT_CSV_PLUGIN_DIR . ltrim( $css_path, '/' );
 
 			if ( file_exists( $css_fs ) ) {
-				// Preferred file exists
+				// Preferred file exists.
 				$css_url = SWIFT_CSV_PLUGIN_URL . ltrim( $css_path, '/' );
 			} else {
-				// Fallback to opposite format
+				// Fallback to opposite format.
 				if ( '' === $suffix ) {
-					// Debug mode: prefer unminified, fallback to minified
+					// Debug mode: prefer unminified, fallback to minified.
 					$css_path = 'assets/css/swift-csv-style.min.css';
 				} else {
-					// Production mode: prefer minified, fallback to unminified
+					// Production mode: prefer minified, fallback to unminified.
 					$css_path = 'assets/css/swift-csv-style.css';
 				}
 				$css_url = SWIFT_CSV_PLUGIN_URL . ltrim( $css_path, '/' );
@@ -83,14 +83,14 @@ class Swift_CSV_Admin_Assets {
 					return SWIFT_CSV_PLUGIN_URL . ltrim( $min_path, '/' );
 				}
 
-				// Fallback: if preferred file doesn't exist, try the opposite format
+				// Fallback: if preferred file doesn't exist, try the opposite format.
 				if ( '' === $suffix ) {
-					// Debug mode: prefer unminified, fallback to minified
+					// Debug mode: prefer unminified, fallback to minified.
 					if ( file_exists( $fallback_fs ) ) {
 						return SWIFT_CSV_PLUGIN_URL . ltrim( $fallback_path, '/' );
 					}
 				} else {
-					// Production mode: prefer minified, fallback to unminified
+					// Production mode: prefer minified, fallback to unminified.
 					$unmin_path = preg_replace( '/\.js$/', '.js', $relative_path );
 					$unmin_fs   = SWIFT_CSV_PLUGIN_DIR . ltrim( $unmin_path, '/' );
 					if ( file_exists( $unmin_fs ) ) {
@@ -98,7 +98,7 @@ class Swift_CSV_Admin_Assets {
 					}
 				}
 
-				// Final fallback: return original path (may result in 404)
+				// Final fallback: return original path (may result in 404).
 				return SWIFT_CSV_PLUGIN_URL . ltrim( $relative_path, '/' );
 			};
 
@@ -260,8 +260,10 @@ class Swift_CSV_Admin_Assets {
 						'failed'                  => esc_html__( 'Export failed', 'swift-csv' ),
 						'importSettings'          => esc_html__( 'Import Settings', 'swift-csv' ),
 						'dropFileHere'            => esc_html__( 'Drop CSV file here or click to browse', 'swift-csv' ),
+						// translators: %s: Maximum file size (e.g., 10MB).
 						'maxFileSize'             => esc_html__( 'Maximum file size: %s', 'swift-csv' ),
 						'custom'                  => esc_html__( 'Custom', 'swift-csv' ),
+						// translators: %1$s: Hook name, %2$s: Documentation link text.
 						'customHelp'              => esc_html__( 'Use the %1$s hook to specify custom export items and order. See %2$s for details.', 'swift-csv' ),
 						'documentation'           => esc_html__( 'documentation', 'swift-csv' ),
 						'startingImport'          => esc_html__( 'Starting import process...', 'swift-csv' ),

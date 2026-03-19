@@ -75,6 +75,10 @@ msgstr "名前（name）"
 msgid "Term IDs (term_id)"
 msgstr "タームID（term_id）"
 
+#: includes/admin/class-swift-csv-admin-settings.php:391
+msgid "Display hierarchy"
+msgstr "階層を含める"
+
 #: includes/class-swift-csv-admin.php:501
 msgid "Choose how taxonomy terms are exported: names for readability or term IDs for data integrity."
 msgstr "タクソノミータームのエクスポート形式を選択：読みやすさのための名前、またはデータ整合性のためのタームID。"
@@ -343,6 +347,10 @@ msgstr "エラー詳細"
 #: includes/class-swift-csv-admin.php:318
 msgid "CSV import completed!"
 msgstr "CSVインポートが完了しました！"
+
+#: includes/class-swift-csv-admin-assets.php:231
+msgid "Import Complete!"
+msgstr "インポート完了！"
 
 #: includes/class-swift-csv-admin.php:324
 msgid "Failed to get progress."
@@ -891,7 +899,7 @@ msgid "Output logs during import and export"
 msgstr "インポート・エクスポート時にログを出力"
 
 msgid "If checked, detailed per-row logs will be generated and displayed during import and export. Disable for maximum speed."
-msgstr "チェックすると、インポート・エクスポート時に行ごとの詳細ログを生成して表示します。最高速度を優先する場合は無効にしてください。"
+msgstr "インポート・エクスポート時にバッチごとの簡易ログを生成して表示します。最高速度を優先する場合は無効にしてください。"
 
 msgid "Run UpdraftPlus database backup before executing import"
 msgstr "インポート実行時、事前にUpdraftPlusでデータベースをバックアップ"
@@ -923,6 +931,9 @@ msgstr "Direct SQLエクスポートに失敗しました: "
 msgid "Direct SQL runtime is available in Swift CSV Pro only."
 msgstr "Direct SQLランタイムはSwift CSV Proのみで利用可能です。"
 
+msgid "Export (SQL) is available in Swift CSV Pro only."
+msgstr "エクスポート（SQL）はSwift CSV Proのみで利用可能です。"
+
 msgid "Export failed: "
 msgstr "エクスポートに失敗しました: "
 
@@ -934,3 +945,12 @@ msgstr "SQL エクスポートを開始します..."
 
 msgid "Export (SQL)"
 msgstr "エクスポート（SQL）"
+
+msgid "Data Removal on Uninstall"
+msgstr "アンインストール時のデータ削除"
+
+msgid "Remove all plugin data when uninstalling"
+msgstr "アンインストール時にすべてのプラグインデータを削除"
+
+msgid "If checked, all plugin settings, transients, and custom database tables will be removed when the plugin is uninstalled. Uncheck to preserve data for future reinstallation."
+msgstr "プラグインのアンインストール時にすべてのプラグイン設定、トランジェント、カスタムデータベーステーブルが削除されます。データを保持して将来の再インストールに備える場合はチェックを外してください。"

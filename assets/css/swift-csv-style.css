@@ -129,7 +129,7 @@
 }
 
 #plugin_header #plugin_header_title span.pro-badge {
-	background: #6d6ddb;
+	background: #3a9b6a;
 	color: white;
 	border-radius: 99px;
 	padding: 0px 5px;
@@ -892,7 +892,7 @@ a.nav-tab:last-of-type {
 	line-height: 1.4;
 }
 .swift-csv-layout.full-width .swift-csv-settings dt {
-	width: 17.5%;
+	width: 22%;
 }
 
 .swift-csv-settings dt:first-child {

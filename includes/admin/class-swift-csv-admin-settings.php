@@ -270,10 +270,12 @@ class Swift_CSV_Admin_Settings {
 		$has_pro_plugin        = class_exists( 'Swift_CSV_Pro_Admin' )
 			|| class_exists( 'Swift_CSV_Pro_Settings_Helper' );
 		$is_pro_ready          = $is_pro_license_active && $has_pro_plugin;
+		$is_backup_enabled     = class_exists( 'Swift_CSV_Settings_Helper' )
+			&& (bool) Swift_CSV_Settings_Helper::get( 'advanced', 'updraft_backup_before_import', false );
 
 		$checkbox_id   = 'swift-csv-pro-backup-before-import';
 		$disabled_attr = $is_pro_ready ? '' : 'disabled';
-		$checked_attr  = $is_pro_ready ? 'checked' : '';
+		$checked_attr  = ( $is_pro_ready && $is_backup_enabled ) ? 'checked' : '';
 		?>
 		<dl>
 			<dt>

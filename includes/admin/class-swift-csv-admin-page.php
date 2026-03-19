@@ -113,6 +113,7 @@ class Swift_CSV_Admin_Page {
 		<div class="wrap swift-csv">
 		<?php $this->render_plugin_header(); ?>
 
+			<h2></h2>
 			<nav class="nav-tab-wrapper">
 				<a href="?page=swift-csv&tab=export" class="nav-tab <?php echo 'export' === $tab ? 'nav-tab-active' : ''; ?>">
 				<?php esc_html_e( 'Export', 'swift-csv' ); ?>
@@ -564,7 +565,6 @@ class Swift_CSV_Admin_Page {
 				</a>
 			</div>
 		</div>
-		<h2></h2>
 		<?php
 	}
 

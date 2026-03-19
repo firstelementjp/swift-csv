@@ -158,7 +158,7 @@ msgstr ""
 
 #. Description of the plugin
 #: swift-csv.php
-msgid "軽量でシンプルなCSVインポート/エクスポートプラグイン。カスタム投稿タイプ、カスタムタクソノミー、カスタムフィールドに対応。"
+msgid "Lightweight and simple CSV import/export plugin. Supports custom post types, custom taxonomies, and custom fields."
 msgstr "軽量でシンプルなCSVインポート/エクスポートプラグイン。カスタム投稿タイプ、カスタムタクソノミー、カスタムフィールドに対応。"
 
 #. Author of the plugin
@@ -862,6 +862,10 @@ msgstr "タクソノミーを含める"
 #: includes/admin/class-swift-csv-admin.php:639
 msgid "Taxonomy Format:"
 msgstr "タクソノミー形式:"
+
+#: includes/admin/class-swift-csv-admin-ajax.php:123
+msgid "License activation failed. Please check that your license key is valid."
+msgstr "ライセンス認証に失敗しました。ライセンスキーが正しいか確認してください。"
 
 #: includes/admin/class-swift-csv-admin.php:553
 msgid "Include custom field columns"

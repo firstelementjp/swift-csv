@@ -564,6 +564,7 @@ class Swift_CSV_Admin_Page {
 				</a>
 			</div>
 		</div>
+		<h2></h2>
 		<?php
 	}
 

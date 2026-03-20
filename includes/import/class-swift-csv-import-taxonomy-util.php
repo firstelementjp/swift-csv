@@ -172,6 +172,10 @@ class Swift_CSV_Import_Taxonomy_Util {
 	 * @return array{valid:bool,term_id:int|null,error:string|null}
 	 */
 	public function resolve_term_by_name( string $term_name, string $taxonomy ): array {
+		if ( $this->should_resolve_hierarchical_path( $term_name, $taxonomy ) ) {
+			return $this->resolve_term_by_path( $term_name, $taxonomy );
+		}
+
 		$term = get_term_by( 'name', $term_name, $taxonomy );
 		if ( $term ) {
 			return [
@@ -198,6 +202,115 @@ class Swift_CSV_Import_Taxonomy_Util {
 	}
 
 	/**
+	 * Determine whether a term value should be treated as a hierarchical path
+	 *
+	 * @since 0.9.8
+	 * @param string $term_name Term value from CSV.
+	 * @param string $taxonomy Taxonomy name.
+	 * @return bool
+	 */
+	private function should_resolve_hierarchical_path( string $term_name, string $taxonomy ): bool {
+		if ( false === strpos( $term_name, '>' ) ) {
+			return false;
+		}
+
+		$taxonomy_object = get_taxonomy( $taxonomy );
+
+		return $taxonomy_object instanceof \WP_Taxonomy && ! empty( $taxonomy_object->hierarchical );
+	}
+
+	/**
+	 * Resolve a hierarchical term path such as `Parent > Child`
+	 *
+	 * Creates missing parent and child terms as needed, preserving hierarchy.
+	 *
+	 * @since 0.9.8
+	 * @param string $term_path Hierarchical term path.
+	 * @param string $taxonomy Taxonomy name.
+	 * @return array{valid:bool,term_id:int|null,error:string|null}
+	 */
+	private function resolve_term_by_path( string $term_path, string $taxonomy ): array {
+		$segments = array_values( array_filter( array_map( 'trim', explode( '>', $term_path ) ), 'strlen' ) );
+
+		if ( empty( $segments ) ) {
+			return [
+				'valid'   => false,
+				'term_id' => null,
+				'error'   => "Invalid hierarchical term path '{$term_path}' in taxonomy '{$taxonomy}'",
+			];
+		}
+
+		$parent_id     = 0;
+		$resolved_term = null;
+
+		foreach ( $segments as $segment ) {
+			$resolved_term = $this->resolve_term_in_parent( $segment, $taxonomy, $parent_id );
+
+			if ( ! $resolved_term['valid'] ) {
+				return $resolved_term;
+			}
+
+			$parent_id = (int) $resolved_term['term_id'];
+		}
+
+		return $resolved_term;
+	}
+
+	/**
+	 * Resolve or create a term under a specific parent term
+	 *
+	 * @since 0.9.8
+	 * @param string $term_name Term name.
+	 * @param string $taxonomy Taxonomy name.
+	 * @param int    $parent_id Parent term ID.
+	 * @return array{valid:bool,term_id:int|null,error:string|null}
+	 */
+	private function resolve_term_in_parent( string $term_name, string $taxonomy, int $parent_id ): array {
+		$existing_terms = get_terms(
+			[
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => false,
+				'name'       => $term_name,
+				'parent'     => $parent_id,
+			]
+		);
+
+		if ( ! is_wp_error( $existing_terms ) && ! empty( $existing_terms ) ) {
+			$term = reset( $existing_terms );
+
+			if ( $term instanceof \WP_Term ) {
+				return [
+					'valid'   => true,
+					'term_id' => (int) $term->term_id,
+					'error'   => null,
+				];
+			}
+		}
+
+		$created = wp_insert_term(
+			$term_name,
+			$taxonomy,
+			[
+				'parent' => $parent_id,
+			]
+		);
+
+		if ( is_wp_error( $created ) ) {
+			return [
+				'valid'   => false,
+				'term_id' => null,
+				'error'   => "Failed to create hierarchical term '{$term_name}' in taxonomy '{$taxonomy}'",
+			];
+		}
+
+		return [
+			'valid'   => true,
+			'term_id' => (int) $created['term_id'],
+			'error'   => null,
+		];
+	}
+
+	/**
 	 * Resolve term IDs from a term value based on format.
 	 *
 	 * @since 0.9.0
@@ -213,6 +326,10 @@ class Swift_CSV_Import_Taxonomy_Util {
 		string $taxonomy_format,
 		array $taxonomy_format_validation
 	): array {
+		if ( 'name' === $taxonomy_format && $this->should_resolve_hierarchical_path( $term_value, $taxonomy ) ) {
+			return $this->resolve_term_ids_from_path( $term_value, $taxonomy );
+		}
+
 		if ( 'id' === $taxonomy_format ) {
 			$term_id = intval( $term_value );
 
@@ -244,5 +361,40 @@ class Swift_CSV_Import_Taxonomy_Util {
 		}
 
 		return [];
+	}
+
+	/**
+	 * Resolve all term IDs included in a hierarchical term path
+	 *
+	 * Returns parent and child IDs in path order so the post can be assigned to
+	 * every hierarchical level represented in the CSV value.
+	 *
+	 * @since 0.9.8
+	 * @param string $term_path Hierarchical term path.
+	 * @param string $taxonomy Taxonomy name.
+	 * @return array<int, int>
+	 */
+	private function resolve_term_ids_from_path( string $term_path, string $taxonomy ): array {
+		$segments = array_values( array_filter( array_map( 'trim', explode( '>', $term_path ) ), 'strlen' ) );
+
+		if ( empty( $segments ) ) {
+			return [];
+		}
+
+		$resolved_ids = [];
+		$parent_id    = 0;
+
+		foreach ( $segments as $segment ) {
+			$resolved_term = $this->resolve_term_in_parent( $segment, $taxonomy, $parent_id );
+
+			if ( ! $resolved_term['valid'] || empty( $resolved_term['term_id'] ) ) {
+				return [];
+			}
+
+			$parent_id      = (int) $resolved_term['term_id'];
+			$resolved_ids[] = $parent_id;
+		}
+
+		return $resolved_ids;
 	}
 }

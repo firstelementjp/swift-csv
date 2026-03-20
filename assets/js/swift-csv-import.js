@@ -129,6 +129,21 @@ let globalCumulativeUpdated = 0;
 let globalCumulativeErrors = 0;
 
 /**
+ * Check whether Dry Run import is enabled.
+ *
+ * @return {boolean} True when Dry Run is enabled.
+ */
+function isDryRunImportEnabled() {
+	const dryRunCheckbox = document.querySelector('input[name="swift_csv_import_dry_run"]');
+
+	if (dryRunCheckbox) {
+		return dryRunCheckbox.checked;
+	}
+
+	return currentDryRun === '1';
+}
+
+/**
  * Helper function to truncate titles to the specified length.
  *
  * @param {string} title          Original title.

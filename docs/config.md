@@ -1,92 +1,102 @@
 # 🔧 Configuration
 
-Detailed configuration settings for Swift CSV.
+This page describes the current behavior of Swift CSV as implemented in v0.9.8.
 
-## Basic Settings
+## Import Configuration
 
-### Import Settings
+### CSV Format
 
-- **Encoding**: UTF-8 (automatic detection and conversion)
-- **Delimiter**: Auto-detected for import (comma, semicolon, tab)
-    - **Note**: Simple detection based on first line character count
-    - **Limitation**: May have issues with complex CSV data containing delimiters in text
-- **Enclosure**: Double quote (fixed)
-- **Batch Size**: 10 rows per batch (fixed for memory management)
+- The first row is treated as headers.
+- The `ID` column is required.
+- Use an empty `ID` value for new posts.
+- Use an existing `ID` only when updating an existing post.
+- Delimiters are auto-detected for common CSV formats.
+- The CSV enclosure is the standard double quote format.
 
-### Export Settings
+### Supported Header Types
 
-- **Output Format**: CSV (fixed)
-- **Character Code**: UTF-8 (fixed)
-- **BOM**: Not supported
-- **Delimiter**: Comma (fixed - PHP fputcsv standard)
-- **Export Limit**: User-configurable (default: 1000, 0 = unlimited)
-- **Batch Size**: 500 posts per batch (fixed for performance)
+- Standard WordPress post fields such as `post_title`, `post_content`, `post_status`
+- Custom fields using the `cf_` prefix
+- Taxonomy fields such as `category`, `post_tag`, and custom taxonomy names
 
-## Advanced Settings
+### Multi-value and Taxonomy Rules
 
-### Memory and Performance
+- Multi-value fields use `|`
+- Hierarchical taxonomy values use `>`
+- Taxonomy parsing and custom field parsing are handled automatically
 
-**Current Implementation**:
+## Export Configuration
 
-- **Export**:
-    - Batch size: 500 posts per chunk
-    - Supports unlimited posts with batch processing
-    - User-configurable export limit
-    - Memory-efficient chunked processing
+### Export Options
 
-- **Import**:
-    - Batch size: 10 rows per chunk
-    - Supports large files over 1000 rows or 10MB
-    - Prevents timeouts with chunked processing
-    - Auto-detects CSV delimiter
+- **Post type**: Select the post type to export
+- **Post status**: Filter exported rows by status
+- **Scope**: Export basic fields, all fields, or custom output via hooks
+- **Export limit**: Optional limit; `0` means unlimited
+- **Private meta**: Optionally include private meta keys
 
-### Field Mapping
+### Output Format
 
-**Current Implementation**:
+- UTF-8 CSV output
+- Standard comma delimiter
+- Standard CSV escaping
+- No BOM output
 
-Field mapping is handled automatically during import:
+## Automatic Batch Processing
 
-- **First CSV Row**: Used as headers for column identification
-- **Delimiter Detection**: Automatically detects comma, semicolon, or tab delimiters
-- **Custom Fields**: Automatically detected and exported with 'cf\_' prefix
-- **Standard Fields**: Mapped automatically (post_title, post_content, etc.)
+Swift CSV automatically adjusts batch sizes.
 
-**Example**: If your CSV has columns `Name`, `Email`, `Phone`, they will be processed as custom fields and exported as `cf_Name`, `cf_Email`, `cf_Phone`.
+### Import
 
-### Export Scopes
+- Import batches are calculated automatically
+- Current implementation targets roughly **10-50 rows** per batch depending on environment limits
 
-**Available Export Scopes**:
+### Export
 
-- **Basic**: Standard WordPress fields (title, content, excerpt, status, etc.)
-- **All**: All fields including custom meta fields
-- **Custom**: User-defined columns via filter hook
+- Export batches are calculated automatically
+- Current implementation uses **500-2000 posts** per batch depending on dataset size
 
-**Private Meta Fields**:
+### Why This Matters
 
-- Option to include/exclude private meta fields
-- Controlled by `include_private_meta` checkbox
+This helps reduce:
 
-## Current Limitations
+- Request timeouts
+- Memory spikes
+- Large single-request processing loads
 
-### Import Limitations
+## UI Behavior
 
-- **CSV Format**: Comma, semicolon, or tab-delimited CSV with double quote enclosure
-- **Delimiter Detection**: Simple character count-based detection may fail with complex data
-- **Character Encoding**: UTF-8 only (automatic conversion from other encodings)
-- **Configuration**: No user-configurable delimiter or enclosure for import
-- **Batch Size**: Fixed at 10 rows for memory management
+During import and export, the admin UI provides:
 
-### Export Limitations
+- Real-time progress updates
+- Processing details while a job is running
+- Localized interface text through WordPress translations
 
-- **Output Format**: Fixed UTF-8 CSV format
-- **BOM**: Not supported
-- **Delimiter**: Fixed comma delimiter (PHP fputcsv standard)
-- **Enclosure**: Fixed double quote enclosure
-- **Configuration**: Limited to scope selection and limits
+## License and Pro Integration
 
-### Technical Constraints
+Swift CSV Free and Swift CSV Pro are integrated through WordPress hooks and capability checks.
 
-- **Memory Management**: Fixed batch sizes prevent timeouts
-- **File Size**: Large files processed in chunks
-- **Database**: Uses WordPress standard post queries
-- **Compatibility**: Works with standard WordPress post types
+Available behavior includes:
+
+- Pro-aware admin messaging
+- License activation UI when Pro functionality is available
+- Feature flags for optional Pro behavior
+
+## Current Practical Limits
+
+- Very large files still depend on server resources
+- Delimiter detection is automatic, but malformed CSV can still fail
+- Export format is fixed to CSV
+- Import behavior assumes WordPress-style field names and plugin conventions
+
+## Developer Extensibility
+
+Swift CSV includes hook-based extension points for:
+
+- Export headers and rows
+- Import permissions and validation
+- Import field preparation
+- Batch-size tuning
+- Feature flags and admin access control
+
+See [Developer Hooks](hooks.md) for the current hook reference.

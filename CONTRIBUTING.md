@@ -2,7 +2,7 @@
 
 Thanks for taking the time to contribute!
 
-This project is a WordPress plugin that provides CSV import/export with support for custom post types, taxonomies, custom fields, and ACF fields.
+This project is a WordPress plugin that provides CSV import/export with support for custom post types, taxonomies, and custom fields.
 
 ## Where to Start
 
@@ -14,9 +14,10 @@ This project is a WordPress plugin that provides CSV import/export with support 
 
 ### Prerequisites
 
-- PHP **7.4+**
+- PHP **8.1+**
 - Node.js **18+**
 - Composer
+- OpenSSL extension
 
 ### Install dependencies
 
@@ -62,13 +63,17 @@ composer phpcbf
 ### JavaScript / CSS
 
 - Write code comments in **English**.
-- After editing `assets/js/admin-scripts.js` or `assets/css/admin-style.css`, rebuild minified files:
+- After editing JavaScript or CSS files in `assets/js/` or `assets/css/`, rebuild minified files:
 
 ```bash
 npm run build
 ```
 
-Optional (if you change JS formatting/style):
+The build process handles:
+
+- `assets/js/swift-csv-*.js` → `assets/js/swift-csv-*.min.js`
+- `assets/css/swift-csv-style.css` → `assets/css/swift-csv-style.min.css`
+- `assets/js/export/swift-csv/*.js` → `assets/js/export/swift-csv/*.min.js`
 
 ```bash
 npm run lint:js
@@ -81,7 +86,7 @@ When you refactor import code or touch CSV parsing / row processing / persistenc
 
 ### 1) Dry Run
 
-1. Open **Admin Dashboard → Swift CSV → Import**
+1. Open **Admin Dashboard → Tools → Swift CSV → Import**
 2. Select a known-good CSV
 3. Run **Dry Run** for:
     - New posts
@@ -116,20 +121,14 @@ npm run build
 ### CSV column prefixes
 
 - `tax_` for taxonomy terms
-- `acf_` for ACF fields
 - `cf_` for other custom fields
 
-### ACF gotcha (important)
+### JavaScript internationalization
 
-When using ACF functions, **always pass `$post_id`**.
-
-```php
-// WRONG
-get_field_object( $field_name );
-
-// CORRECT
-get_field_object( $field_name, $post_id, false, false );
-```
+- **Never** use `__()` or other i18n functions directly in JavaScript
+- All translations should be handled in PHP using i18n functions
+- Pass translated strings to JavaScript via `wp_localize_script`
+- JavaScript should only reference the localized array strings
 
 For recurring pitfalls and fix patterns, see:
 
@@ -158,6 +157,8 @@ For recurring pitfalls and fix patterns, see:
 - [ ] `composer phpcs` passes (or you explain why it cannot)
 - [ ] JS/CSS changes include updated minified files (`npm run build`)
 - [ ] Docs updated if behavior changed
+- [ ] PHP version requirement (8.0+) is still appropriate
+- [ ] No debug code or `error_log()` statements left in committed code
 
 ## Reporting Bugs
 

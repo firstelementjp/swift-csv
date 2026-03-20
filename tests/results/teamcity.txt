@@ -1,0 +1,314 @@
+
+##teamcity[testCount count='70' flowId='27536']
+
+##teamcity[testSuiteStarted name='Swift CSV Unit Tests' flowId='27536']
+
+##teamcity[testSuiteStarted name='SimpleTest' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/SimpleTest.php::\SimpleTest' flowId='27536']
+
+##teamcity[testStarted name='test_includes_files_syntax' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/SimpleTest.php::\SimpleTest::test_includes_files_syntax' flowId='27536']
+
+##teamcity[testFinished name='test_includes_files_syntax' duration='4511' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_header_info' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/SimpleTest.php::\SimpleTest::test_plugin_header_info' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_header_info' duration='1' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_directory_structure' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/SimpleTest.php::\SimpleTest::test_plugin_directory_structure' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_directory_structure' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_main_file_exists' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/SimpleTest.php::\SimpleTest::test_plugin_main_file_exists' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_main_file_exists' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_phpunit_xml_exists' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/SimpleTest.php::\SimpleTest::test_phpunit_xml_exists' flowId='27536']
+
+##teamcity[testFinished name='test_phpunit_xml_exists' duration='1' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_file_syntax' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/SimpleTest.php::\SimpleTest::test_plugin_file_syntax' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_file_syntax' duration='110' flowId='27536']
+
+##teamcity[testStarted name='test_composer_json_structure' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/SimpleTest.php::\SimpleTest::test_composer_json_structure' flowId='27536']
+
+##teamcity[testFinished name='test_composer_json_structure' duration='1' flowId='27536']
+
+##teamcity[testSuiteFinished name='SimpleTest' flowId='27536']
+
+##teamcity[testSuiteStarted name='CSVParserTest' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest' flowId='27536']
+
+##teamcity[testStarted name='test_parse_csv_content_to_lines' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_parse_csv_content_to_lines' flowId='27536']
+
+##teamcity[testFinished name='test_parse_csv_content_to_lines' duration='1' flowId='27536']
+
+##teamcity[testStarted name='test_csv_with_multiline_content' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_csv_with_multiline_content' flowId='27536']
+
+##teamcity[testFinished name='test_csv_with_multiline_content' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_parse_csv_row_semicolon_delimiter' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_parse_csv_row_semicolon_delimiter' flowId='27536']
+
+##teamcity[testFinished name='test_parse_csv_row_semicolon_delimiter' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_extract_csv_headers' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_extract_csv_headers' flowId='27536']
+
+##teamcity[testFinished name='test_extract_csv_headers' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_parse_csv_row_basic' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_parse_csv_row_basic' flowId='27536']
+
+##teamcity[testFinished name='test_parse_csv_row_basic' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_parse_csv_row_tab_delimiter' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_parse_csv_row_tab_delimiter' flowId='27536']
+
+##teamcity[testFinished name='test_parse_csv_row_tab_delimiter' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_parse_csv_row_with_escaped_quotes' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_parse_csv_row_with_escaped_quotes' flowId='27536']
+
+##teamcity[testFinished name='test_parse_csv_row_with_escaped_quotes' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_parse_csv_row_with_quotes' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_parse_csv_row_with_quotes' flowId='27536']
+
+##teamcity[testFinished name='test_parse_csv_row_with_quotes' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_csv_with_special_characters' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_csv_with_special_characters' flowId='27536']
+
+##teamcity[testFinished name='test_csv_with_special_characters' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_csv_with_empty_fields' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_csv_with_empty_fields' flowId='27536']
+
+##teamcity[testFinished name='test_csv_with_empty_fields' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_extract_csv_data_rows' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_extract_csv_data_rows' flowId='27536']
+
+##teamcity[testFinished name='test_extract_csv_data_rows' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_is_empty_csv_line' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/CSVParserTest.php::\CSVParserTest::test_is_empty_csv_line' flowId='27536']
+
+##teamcity[testFinished name='test_is_empty_csv_line' duration='1' flowId='27536']
+
+##teamcity[testSuiteFinished name='CSVParserTest' flowId='27536']
+
+##teamcity[testSuiteStarted name='BasicSanitizationTest' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest' flowId='27536']
+
+##teamcity[testStarted name='test_basic_text_cleaning' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest::test_basic_text_cleaning' flowId='27536']
+
+##teamcity[testFinished name='test_basic_text_cleaning' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_numeric_value_validation' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest::test_numeric_value_validation' flowId='27536']
+
+##teamcity[testFinished name='test_numeric_value_validation' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_html_tag_removal' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest::test_html_tag_removal' flowId='27536']
+
+##teamcity[testFinished name='test_html_tag_removal' duration='1' flowId='27536']
+
+##teamcity[testStarted name='test_url_validation' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest::test_url_validation' flowId='27536']
+
+##teamcity[testFinished name='test_url_validation' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_array_sanitization' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest::test_array_sanitization' flowId='27536']
+
+##teamcity[testFinished name='test_array_sanitization' duration='1' flowId='27536']
+
+##teamcity[testStarted name='test_email_validation' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest::test_email_validation' flowId='27536']
+
+##teamcity[testFinished name='test_email_validation' duration='2' flowId='27536']
+
+##teamcity[testStarted name='test_slug_generation' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest::test_slug_generation' flowId='27536']
+
+##teamcity[testFinished name='test_slug_generation' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_length_validation' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest::test_length_validation' flowId='27536']
+
+##teamcity[testFinished name='test_length_validation' duration='1' flowId='27536']
+
+##teamcity[testStarted name='test_special_character_handling' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest::test_special_character_handling' flowId='27536']
+
+##teamcity[testFinished name='test_special_character_handling' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_csv_field_sanitization' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest::test_csv_field_sanitization' flowId='27536']
+
+##teamcity[testFinished name='test_csv_field_sanitization' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_empty_value_handling' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicSanitizationTest.php::\BasicSanitizationTest::test_empty_value_handling' flowId='27536']
+
+##teamcity[testFinished name='test_empty_value_handling' duration='0' flowId='27536']
+
+##teamcity[testSuiteFinished name='BasicSanitizationTest' flowId='27536']
+
+##teamcity[testSuiteStarted name='StandaloneTest' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php::\StandaloneTest' flowId='27536']
+
+##teamcity[testStarted name='test_readme_structure' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php::\StandaloneTest::test_readme_structure' flowId='27536']
+
+##teamcity[testFinished name='test_readme_structure' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_required_files_exist' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php::\StandaloneTest::test_required_files_exist' flowId='27536']
+
+##teamcity[testFinished name='test_required_files_exist' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_header_info' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php::\StandaloneTest::test_plugin_header_info' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_header_info' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_main_file_exists' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php::\StandaloneTest::test_plugin_main_file_exists' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_main_file_exists' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_composer_json_structure' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php::\StandaloneTest::test_composer_json_structure' flowId='27536']
+
+##teamcity[testFinished name='test_composer_json_structure' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_directory_structure' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php::\StandaloneTest::test_plugin_directory_structure' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_directory_structure' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_includes_files_syntax' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php::\StandaloneTest::test_includes_files_syntax' flowId='27536']
+
+##teamcity[testFinished name='test_includes_files_syntax' duration='4333' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_file_syntax' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php::\StandaloneTest::test_plugin_file_syntax' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_file_syntax' duration='142' flowId='27536']
+
+##teamcity[testStarted name='test_phpunit_xml_exists' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/StandaloneTest.php::\StandaloneTest::test_phpunit_xml_exists' flowId='27536']
+
+##teamcity[testFinished name='test_phpunit_xml_exists' duration='0' flowId='27536']
+
+##teamcity[testSuiteFinished name='StandaloneTest' flowId='27536']
+
+##teamcity[testSuiteStarted name='JapaneseTextTest' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest' flowId='27536']
+
+##teamcity[testStarted name='test_csv_parsing_with_japanese_characters' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_csv_parsing_with_japanese_characters' flowId='27536']
+
+##teamcity[testFinished name='test_csv_parsing_with_japanese_characters' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_japanese_email_validation' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_japanese_email_validation' flowId='27536']
+
+##teamcity[testFinished name='test_japanese_email_validation' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_csv_parsing_with_mixed_languages' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_csv_parsing_with_mixed_languages' flowId='27536']
+
+##teamcity[testFinished name='test_csv_parsing_with_mixed_languages' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_japanese_url_validation' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_japanese_url_validation' flowId='27536']
+
+##teamcity[testFinished name='test_japanese_url_validation' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_csv_parsing_with_japanese_quotes' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_csv_parsing_with_japanese_quotes' flowId='27536']
+
+##teamcity[testFinished name='test_csv_parsing_with_japanese_quotes' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_japanese_empty_value_handling' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_japanese_empty_value_handling' flowId='27536']
+
+##teamcity[testFinished name='test_japanese_empty_value_handling' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_japanese_csv_content_parsing' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_japanese_csv_content_parsing' flowId='27536']
+
+##teamcity[testFinished name='test_japanese_csv_content_parsing' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_japanese_text_html_entities' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_japanese_text_html_entities' flowId='27536']
+
+##teamcity[testFinished name='test_japanese_text_html_entities' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_csv_parsing_with_fullwidth_characters' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_csv_parsing_with_fullwidth_characters' flowId='27536']
+
+##teamcity[testFinished name='test_csv_parsing_with_fullwidth_characters' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_japanese_slug_generation' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_japanese_slug_generation' flowId='27536']
+
+##teamcity[testFinished name='test_japanese_slug_generation' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_japanese_array_sanitization' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_japanese_array_sanitization' flowId='27536']
+
+##teamcity[testFinished name='test_japanese_array_sanitization' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_japanese_text_sanitization' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_japanese_text_sanitization' flowId='27536']
+
+##teamcity[testFinished name='test_japanese_text_sanitization' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_csv_parsing_with_japanese_special_chars' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_csv_parsing_with_japanese_special_chars' flowId='27536']
+
+##teamcity[testFinished name='test_csv_parsing_with_japanese_special_chars' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_japanese_text_length_validation' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/JapaneseTextTest.php::\JapaneseTextTest::test_japanese_text_length_validation' flowId='27536']
+
+##teamcity[testFinished name='test_japanese_text_length_validation' duration='0' flowId='27536']
+
+##teamcity[testSuiteFinished name='JapaneseTextTest' flowId='27536']
+
+##teamcity[testSuiteStarted name='BasicTest' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicTest.php::\BasicTest' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_main_class_exists' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicTest.php::\BasicTest::test_plugin_main_class_exists' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_main_class_exists' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_directory_structure' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicTest.php::\BasicTest::test_plugin_directory_structure' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_directory_structure' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_version_format' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicTest.php::\BasicTest::test_plugin_version_format' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_version_format' duration='1' flowId='27536']
+
+##teamcity[testStarted name='test_helper_functions_exist' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicTest.php::\BasicTest::test_helper_functions_exist' flowId='27536']
+
+##teamcity[testFinished name='test_helper_functions_exist' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_constants_defined' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicTest.php::\BasicTest::test_plugin_constants_defined' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_constants_defined' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_plugin_initialization' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/BasicTest.php::\BasicTest::test_plugin_initialization' flowId='27536']
+
+##teamcity[testFinished name='test_plugin_initialization' duration='0' flowId='27536']
+
+##teamcity[testSuiteFinished name='BasicTest' flowId='27536']
+
+##teamcity[testSuiteStarted name='DataSanitizationTest' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest' flowId='27536']
+
+##teamcity[testStarted name='test_length_validation' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest::test_length_validation' flowId='27536']
+
+##teamcity[testFinished name='test_length_validation' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_empty_value_handling' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest::test_empty_value_handling' flowId='27536']
+
+##teamcity[testFinished name='test_empty_value_handling' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_url_sanitization' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest::test_url_sanitization' flowId='27536']
+
+##teamcity[testFinished name='test_url_sanitization' duration='2' flowId='27536']
+
+##teamcity[testStarted name='test_array_sanitization' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest::test_array_sanitization' flowId='27536']
+
+##teamcity[testFinished name='test_array_sanitization' duration='1' flowId='27536']
+
+##teamcity[testStarted name='test_email_sanitization' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest::test_email_sanitization' flowId='27536']
+
+##teamcity[testFinished name='test_email_sanitization' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_special_character_handling' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest::test_special_character_handling' flowId='27536']
+
+##teamcity[testFinished name='test_special_character_handling' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_slug_generation' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest::test_slug_generation' flowId='27536']
+
+##teamcity[testFinished name='test_slug_generation' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_numeric_value_sanitization' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest::test_numeric_value_sanitization' flowId='27536']
+
+##teamcity[testFinished name='test_numeric_value_sanitization' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_basic_text_sanitization' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest::test_basic_text_sanitization' flowId='27536']
+
+##teamcity[testFinished name='test_basic_text_sanitization' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_csv_field_sanitization' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest::test_csv_field_sanitization' flowId='27536']
+
+##teamcity[testFinished name='test_csv_field_sanitization' duration='0' flowId='27536']
+
+##teamcity[testStarted name='test_html_tag_removal' locationHint='php_qn:///Users/fe_miyazawa/Local Sites/4510m/app/public/wp-content/plugins/swift-csv/tests/Unit/DataSanitizationTest.php::\DataSanitizationTest::test_html_tag_removal' flowId='27536']
+
+##teamcity[testFinished name='test_html_tag_removal' duration='0' flowId='27536']
+
+##teamcity[testSuiteFinished name='DataSanitizationTest' flowId='27536']
+
+##teamcity[testSuiteFinished name='Swift CSV Unit Tests' flowId='27536']

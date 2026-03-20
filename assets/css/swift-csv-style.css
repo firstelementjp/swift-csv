@@ -13,7 +13,7 @@
 	background-repeat: no-repeat;
 	background-size: 27%;
 	background-color: white;
-	margin: -10px -20px 15px -22px;
+	/* margin: -10px -20px 15px -22px; */
 }
 
 #plugin_header_upper {
@@ -129,7 +129,7 @@
 }
 
 #plugin_header #plugin_header_title span.pro-badge {
-	background: #6d6ddb;
+	background: #3a9b6a;
 	color: white;
 	border-radius: 99px;
 	padding: 0px 5px;
@@ -157,7 +157,7 @@
 
 /* Tab navigation */
 .swift-csv .nav-tab-wrapper {
-	margin-bottom: 0;
+	margin: 0 !important;
 	border: none;
 }
 
@@ -175,6 +175,7 @@
 	background: #fff;
 	margin-bottom: -2px;
 	line-height: 1.9;
+	border-bottom: none;
 }
 
 a.nav-tab:last-of-type {
@@ -256,7 +257,6 @@ a.nav-tab:last-of-type {
 
 /* Settings Column */
 .swift-csv-settings {
-	/* min-height: 400px; */
 	padding: 20px;
 }
 
@@ -276,7 +276,6 @@ a.nav-tab:last-of-type {
 
 /* Log Column */
 .swift-csv-log {
-	/* min-height: 600px; */
 	padding: 20px;
 	display: flex;
 	flex-direction: column;
@@ -289,16 +288,11 @@ a.nav-tab:last-of-type {
 	padding: 0;
 }
 
-/* Log Area */
 .swift-csv-log-area {
-	flex: 1;
-	min-height: 300px;
-	max-height: 400px;
-	overflow-y: auto;
 	border: 1px solid #ddd;
 	border-radius: 4px;
 	background-color: #f9f9f9;
-	padding: 15px;
+	padding: 10px;
 	margin-bottom: 20px;
 }
 
@@ -306,6 +300,12 @@ a.nav-tab:last-of-type {
 	font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 	font-size: 12px;
 	line-height: 1.4;
+	min-height: 470px;
+	overflow-y: auto;
+	border-radius: 4px;
+	padding: 10px;
+	background-color: #f9f9f9;
+	resize: vertical;
 }
 
 .log-entry {
@@ -322,6 +322,11 @@ a.nav-tab:last-of-type {
 .log-entry.log-success {
 	color: #46b450;
 	background-color: rgba(70, 180, 80, 0.1);
+}
+
+.log-entry.log-update {
+	color: #2271b1;
+	background-color: rgba(34, 113, 177, 0.1);
 }
 
 .log-entry.log-warning {
@@ -368,7 +373,7 @@ a.nav-tab:last-of-type {
 }
 
 .file-upload-area.file-selected {
-	display: none; /* ← ファイル選択時に非表示 */
+	display: none;
 }
 
 .file-upload-content {
@@ -394,7 +399,7 @@ a.nav-tab:last-of-type {
 }
 
 .file-info {
-	display: none; /* ← デフォルトは非表示 */
+	display: none;
 	align-items: center;
 	justify-content: space-between;
 	padding: 10px 15px;
@@ -405,7 +410,7 @@ a.nav-tab:last-of-type {
 }
 
 .file-info.visible {
-	display: flex; /* ← 表示時はflex */
+	display: flex;
 }
 
 .file-info .file-name {
@@ -452,22 +457,119 @@ a.nav-tab:last-of-type {
 	margin-top: 10px;
 }
 
-.swift-csv-progress .progress-details div {
-	padding: 5px 10px;
-	background-color: #f9f9f9;
+/* Import Logs Section */
+.swift-csv-logs-area {
+	border: 1px solid #ddd;
 	border-radius: 4px;
-	text-align: center;
+	background-color: #fff;
+	margin-bottom: 1rem;
 }
 
-.swift-csv-progress .created {
+.swift-csv-logs-area .progress-details {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0;
+	border-bottom: 1px solid #ddd;
+}
+
+.swift-csv-logs-area .progress-details .log-tab {
+	padding: 10px;
+	background-color: transparent;
+	border-radius: 0;
+	cursor: pointer;
+	text-align: center;
+	border-right: 1px solid #ddd;
+}
+
+.swift-csv-logs-area .progress-details .log-tab:last-child {
+	border-right: none;
+}
+
+.swift-csv-logs-area .progress-details .log-tab:hover {
+	background-color: #f0f0f0;
+}
+
+.swift-csv-logs-area .progress-details .log-tab.active {
+	background-color: #fff;
+	font-weight: bold;
+	border-bottom: 2px solid #0073aa;
+}
+
+.swift-csv-logs-area .created {
 	color: #46b450;
 }
 
-.swift-csv-progress .modified {
-	color: #ffb900;
+.swift-csv-logs-area .modified {
+	color: #2271b1;
 }
 
-.swift-csv-progress .errors {
+.swift-csv-logs-area .errors {
+	color: #dc3232;
+}
+
+.swift-csv-logs-area .progress-details .log-tab.active.created {
+	border-bottom-color: #46b450;
+}
+
+.swift-csv-logs-area .progress-details .log-tab.active.modified {
+	border-bottom-color: #2271b1;
+}
+
+.swift-csv-logs-area .progress-details .log-tab.active.errors {
+	border-bottom-color: #dc3232;
+}
+
+/* Log Panels */
+.swift-csv-logs-area .log-panel {
+	display: none;
+	flex: 1;
+	overflow-y: auto;
+}
+
+.swift-csv-logs-area .log-panel.active {
+	display: block;
+}
+
+/* Use existing log-entry styles */
+.swift-csv-logs-area .log-entry {
+	padding: 4px 8px;
+	border-bottom: 1px solid #f0f0f0;
+	font-size: 12px;
+	line-height: 1.4;
+	font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.swift-csv-logs-area .log-entry:last-child {
+	border-bottom: none;
+}
+
+.swift-csv-logs-area .log-entry.log-success .log-message {
+	color: #46b450;
+}
+
+.swift-csv-logs-area .log-entry.log-update .log-message {
+	color: #2271b1;
+}
+
+.swift-csv-logs-area .log-entry.log-error .log-message {
+	color: #dc3232;
+}
+
+.swift-csv-logs-area .log-meta {
+	margin-right: 4px;
+}
+
+.swift-csv-logs-area .log-title {
+	word-break: break-word;
+}
+
+/* Export-specific log styles */
+
+.swift-csv-logs-area .log-entry.log-export.log-success .log-message {
+	color: #46b450;
+}
+
+.swift-csv-logs-area .log-entry.log-export.log-error .log-message {
 	color: #dc3232;
 }
 
@@ -646,7 +748,6 @@ a.nav-tab:last-of-type {
 .progress-details {
 	display: flex;
 	gap: 20px;
-	margin-bottom: 15px;
 }
 
 .progress-details div {
@@ -791,7 +892,7 @@ a.nav-tab:last-of-type {
 	line-height: 1.4;
 }
 .swift-csv-layout.full-width .swift-csv-settings dt {
-	width: 17.5%;
+	width: 22%;
 }
 
 .swift-csv-settings dt:first-child {
@@ -832,9 +933,9 @@ a.nav-tab:last-of-type {
 
 .swift-csv-settings dd .description {
 	margin-top: 0.5em;
-	font-style: italic;
 	color: #666;
-	font-size: 13px;
+	font-style: normal;
+	font-size: 0.9em;
 }
 
 /* Layout for the Pro feature list */
@@ -966,11 +1067,6 @@ a.nav-tab:last-of-type {
 	margin-left: 4px;
 	font-size: 14px;
 }
-
-/* Warning icon for license tab */
-/* .swift-csv-warning-icon {
-	color: #f59e0b;
-} */
 
 /* Hidden elements (display: none) */
 .swift-csv-hidden {

@@ -2,48 +2,43 @@
 
 ![Banner](https://github.com/firstelementjp/swift-csv/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
 
-> Simple yet powerful CSV import/export plugin for WordPress
+> CSV import/export for WordPress with localized admin UI, automatic batch processing, and developer extensibility.
 
 [![License](https://img.shields.io/badge/license-GPL--2.0%2B-blue.svg)](legal.md)
-[![Version](https://img.shields.io/badge/version-0.9.6-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
-[![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org/)
+[![Version](https://img.shields.io/badge/version-0.9.8-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
+[![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 
-Swift CSV is a lightweight plugin for easily importing and exporting CSV files on WordPress sites. You can start using it right away without complex configurations.
+Swift CSV is a WordPress plugin for importing and exporting post data as CSV from the admin area.
 
 ## ✨ Features
 
-- 🌐 **Complete Internationalization** - Full Japanese translation support with WordPress i18n API
-- 📊 **Dynamic Progress Tracking** - Real-time progress bar with time estimation
-- 🎨 **Modern User Interface** - Professional admin interface with responsive design
-- 📝 **Batch Processing** - Handle large CSV files without timeouts
-- 🎯 **Block Editor Compatible** - Preserves Gutenberg block structure completely
-- 🛑 **Cancel Operations** - Safe operation interruption with cancel button
-- 🎯 **Simple and Intuitive** - No complex setup required
-- ⚡ **High-Speed Processing** - Supports large CSV files
-- 🔧 **Flexible Configuration** - Custom field support
-- 📱 **Responsive Design** - Mobile compatible
-- 🌐 **Multilingual Support** - English and Japanese support
-- 🔒 **Secure** - WordPress security standards compliant
+- Real-time import/export progress display
+- Automatic batch processing for large datasets
+- Support for custom fields with the `cf_` prefix
+- Support for taxonomy columns including hierarchical values
+- Localized UI with English base strings and Japanese translations
+- Hook-based extensibility for developers
+- Separate free/pro integration through WordPress hooks
 
 ## 📋 Requirements
 
-- **WordPress**: 6.0 or higher
-- **PHP**: 8.0 or higher
-- **Memory**: 128MB+ (for large CSV processing)
-- **Extensions**: `mbstring`, `zip` (for file handling)
+- **WordPress**: 6.6 or higher
+- **PHP**: 8.1 or higher
+- **Memory**: 128MB or higher recommended
+- **Extensions**: `mbstring`, `zip`
 
 ## 📥 Download
 
-[Download swift-csv-v0.9.6.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.6/swift-csv-v0.9.6.zip){: .download-btn }
+[Download swift-csv-v0.9.8.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.8/swift-csv-v0.9.8.zip){: .download-btn }
 
 ## 🚀 Quick Start
 
-1. [Download swift-csv-v0.9.6.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.6/swift-csv-v0.9.6.zip)
-2. Extract to get `swift-csv/` folder
-3. Upload to `/wp-content/plugins/`
-4. Activate from admin dashboard
+1. Download `swift-csv-v0.9.8.zip`
+2. Upload and activate the plugin in WordPress
+3. Open **Tools → Swift CSV**
+4. Run a small test import or export first
 
-That's it! CSV data import is complete.
+For the import format, note that the `ID` column is required. Use an empty value for new posts.
 
 ## 📖 Documentation
 

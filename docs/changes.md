@@ -1,5 +1,96 @@
 # 📋 Changelog
 
+## [0.9.8] - 2026-03-19
+
+### 🏗️ Architecture Improvements
+
+- **Interface-based import system** - New base classes and WP-compatible implementations
+- **Enhanced taxonomy handling** - Dedicated taxonomy writer interface and utilities
+- **Object-type PHPDoc** - IDE compatibility improvements with generic object types
+- **Modular JavaScript architecture** - Organized export modules with 6 separate files
+
+### 🛠️ Development Experience
+
+- **Environment setup guide** - Comprehensive direnv + wp-config.php integration documentation
+- **PHPUnit configuration fix** - Local development testing now works out of the box
+- **Enhanced developer documentation** - Updated skills/ directory with latest patterns
+- **Build process improvements** - Streamlined npm scripts and development workflow
+
+### 📚 Documentation Updates
+
+- **Complete hooks reference** - Updated for current implementation with new import hooks
+- **Environment setup conventions** - New guide for AI feature development and API key management
+- **Troubleshooting guides** - Updated for current architecture and common issues
+- **Coding standards refresh** - Object-type PHPDoc guidelines and modern practices
+
+### 🔧 Technical Improvements
+
+- **WordPress 6.6+ compatibility** - Updated minimum requirements and tested compatibility
+- **PHP 8.1+ optimization** - Modern PHP features and performance improvements
+- **Enhanced error handling** - Better cleanup on error paths and exception management
+- **Improved logging system** - Transient-based log storage with configurable limits
+
+### 🎯 Breaking Changes
+
+- **ACF references removed** - Documentation updated to use "enhanced features" terminology
+- **PHPUnit bootstrap path** - Fixed for local development (may require configuration update)
+- **Hook signature updates** - Some import hooks have updated parameters for better extensibility
+
+---
+
+## [0.9.7] - 2026-02-15
+
+### 🎉 Major Features
+
+- **Progress bar UI overhaul** - Complete redesign with beautiful shimmer animations
+- **Real-time export details** - 1-by-1 processing status with post titles
+- **Enhanced license detection** - Accurate status detection for 3 different scenarios
+- **Complete Japanese localization** - Full translation support with proper HTML rendering
+
+### 🎨 UI/UX Improvements
+
+- **Shimmer animations** - 6 different animation patterns (standard, reverse, alternate, pulse, fast, slow)
+- **Progress tracking** - Accurate 1% increment updates during processing
+- **Visual feedback** - Processing state with animated gradients, completed state with green color
+- **Consistent experience** - Unified UI between import and export operations
+
+### 🌐 Internationalization
+
+- **Complete Japanese translation** - All interface elements translated to natural Japanese
+- **HTML tag rendering** - Proper `<code>` tag display for technical documentation
+- **Natural terminology** - 'All statuses' instead of 'All posts' for better clarity
+- **Context-aware messaging** - Different messages for different license states
+
+### 🔧 Technical Improvements
+
+- **Export batch size fix** - Correctly respects export limits instead of total post count
+- **License status detection** - Distinguishes between not installed, inactive, and server unconfigured
+- **Error handling** - Enhanced error messages and state management
+- **Code cleanup** - Removed all debug code for clean production build
+
+### 📊 User Experience
+
+- **Detailed processing display** - Shows individual post titles during export/import
+- **Natural Japanese messaging** - User-friendly messages in proper Japanese
+- **Visual progress indicators** - Beautiful animations and color transitions
+- **Intuitive operation flow** - Clear next-step instructions for each scenario
+
+### 🛠️ Development
+
+- **Asset management** - Updated .gitattributes with correct file names
+- **Build system** - Proper minified asset inclusion for distribution
+- **Version requirements** - Updated to WordPress 6.0+ and PHP 8.0+
+- **Documentation** - Updated README and changelog with latest features
+
+### 🐛 Bug Fixes
+
+- **Progress bar completion** - Fixed import progress bar not turning green on completion
+- **Button state management** - Fixed export button text inconsistency after completion
+- **Message display** - Fixed undefined messages in license handling
+- **Translation rendering** - Fixed HTML tag display in translated strings
+
+---
+
 ## [0.9.6] - 2026-02-13
 
 ### Improvements

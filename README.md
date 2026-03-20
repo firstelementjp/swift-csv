@@ -2,182 +2,143 @@
 
 ![Swift CSV Banner](https://github.com/firstelementjp/swift-csv/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
 
-[![License](https://img.shields.io/badge/license-GPL--2.0%2B-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.9.7-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
-[![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org/)
-
-<!-- WordPress.org badges - Uncomment when plugin is accepted to official directory -->
-<!-- [![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/swift-csv.svg?style=flat-square)](https://wordpress.org/plugins/swift-csv/) -->
-<!-- [![WordPress Requires At Least](https://img.shields.io/wordpress/plugin/tested/swift-csv.svg?style=flat-square)](https://wordpress.org/plugins/swift-csv/) -->
-<!-- [![WordPress Tested Up To](https://img.shields.io/wordpress/plugin/tested/swift-csv.svg?style=flat-square)](https://wordpress.org/plugins/swift-csv/) -->
-<!-- [![WordPress Requires PHP](https://img.shields.io/wordpress/plugin/php-version/swift-csv.svg?style=flat-square)](https://wordpress.org/plugins/swift-csv/) -->
-
+[![Version](https://img.shields.io/badge/version-0.9.8-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Contributors](https://img.shields.io/badge/Contributors-firstelement%2C%20dxd5001-blue.svg)](https://github.com/firstelementjp/swift-csv/graphs/contributors)
-[![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://paypal.me/fejp?country.x=JP&locale.x=ja_JP)
+[![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 
-A lightweight and simple CSV import/export plugin for WordPress. Full support for custom post types, custom taxonomies, and custom fields.
+Swift CSV is a lightweight WordPress plugin for importing and exporting CSV data.
+It supports custom post types, custom taxonomies, custom fields, and Gutenberg block content.
 
-## ✨ Features
+This repository contains the plugin source code, tests, and developer resources.
+For end-user guides and full documentation, see the links below.
 
-- 🌐 **Internationalization** - Multi-language support including Japanese
-- 📊 **Hierarchical Taxonomy Support** - Export/import parent-child relationships
-- 🎨 **Block Editor Compatible** - Preserves Gutenberg block structure completely
-- 📝 **Batch Processing** - Handle large CSV files without timeouts
-- 🔄 **Auto Updates** - One-click updates from WordPress admin
-- 📱 **Responsive UI** - Mobile-friendly admin interface
+## 📖 Overview
+
+Swift CSV provides:
+
+- CSV import/export for WordPress content
+- Support for custom post types, taxonomies, and custom fields
+- Batch processing for large CSV files
+- Real-time progress logging
+- Hook-based extensibility for developers
+
+## ⚡ Quick Links
+
+- **Documentation**: https://firstelementjp.github.io/swift-csv/
+- **Installation Guide**: https://firstelementjp.github.io/swift-csv/#/installation
+- **Getting Started**: https://firstelementjp.github.io/swift-csv/#/getting-started
+- **Configuration**: https://firstelementjp.github.io/swift-csv/#/configuration
+- **Examples**: https://firstelementjp.github.io/swift-csv/#/examples
+- **Troubleshooting**: https://firstelementjp.github.io/swift-csv/#/troubleshooting
+- **Releases**: https://github.com/firstelementjp/swift-csv/releases
+- **Issues**: https://github.com/firstelementjp/swift-csv/issues
+
+## ⚙️ Requirements
+
+- WordPress 6.6 or higher
+- PHP 8.1 or higher
+- OpenSSL extension
 
 ## 🚀 Installation
 
-### Install from WordPress.org (Recommended)
+### From WordPress Admin
 
-1. Go to **Admin Dashboard → Plugins → Add New**
-2. Search for "Swift CSV"
-3. Click **Install Now**
+1. Download the latest release ZIP from the [Releases page](https://github.com/firstelementjp/swift-csv/releases)
+2. Go to **Plugins → Add New → Upload Plugin**
+3. Select the ZIP file and upload it
+4. Activate the plugin
 
 ### Manual Installation
 
-1. [Download swift-csv-v0.9.7.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.7/swift-csv-v0.9.7.zip) ⭐ **Recommended**
-2. Extract the ZIP file to get `swift-csv/` folder
-3. Upload to `/wp-content/plugins/` directory
-4. Activate the plugin from admin dashboard
+1. Download the latest release ZIP from the [Releases page](https://github.com/firstelementjp/swift-csv/releases)
+2. Extract the ZIP file
+3. Upload the `swift-csv/` directory to `/wp-content/plugins/`
+4. Activate the plugin from the WordPress admin screen
 
-⚠️ **Important**: Use the manual ZIP file above, not "Source code (zip)" for proper installation.
+> [!IMPORTANT]
+> Use the release ZIP file for installation, not **Source code (zip)**.
 
-## 📖 Usage
+## 💻 Local Development
 
-### CSV Export
-
-1. Go to **Admin Dashboard → Swift CSV → Export**
-2.  - **Number of posts**: Set the number of posts to export (default: 1000, 0 for unlimited)
-
-- Large datasets are automatically processed in batches to prevent timeouts
-
-3. Select post type
-4. Click **Export CSV**
-
-### CSV Import
-
-1. Go to **Admin Dashboard → Swift CSV → Import**
-2. Select target post type
-3. Choose UTF-8 encoded CSV file
-4. Configure import options
-5. Click **Import CSV**
-
-## 📖 Documentation
-
-For detailed documentation, API reference, and examples:
-
-📚 **[Complete Documentation](https://firstelementjp.github.io/swift-csv/)**
-
-### Quick Links
-
-- [Installation Guide](https://firstelementjp.github.io/swift-csv/#/installation)
-- [Getting Started](https://firstelementjp.github.io/swift-csv/#/getting-started)
-- [Configuration](https://firstelementjp.github.io/swift-csv/#/configuration)
-- [Examples](https://firstelementjp.github.io/swift-csv/#/examples)
-- [Troubleshooting](https://firstelementjp.github.io/swift-csv/#/troubleshooting)
-
-## 📋 CSV Format
-
-### Basic Structure
-
-| Column       | Required | Description                        |
-| ------------ | -------- | ---------------------------------- |
-| post_title   | ✅       | Post title                         |
-| post_content | ❌       | Post content (HTML supported)      |
-| post_excerpt | ❌       | Post excerpt                       |
-| post_status  | ❌       | Post status (publish, draft, etc.) |
-| post_name    | ❌       | Post slug                          |
-
-### Hierarchical Taxonomies
-
-```
-Category A > Subcategory A > Grandchild
-Technology > WordPress > Plugin Development
+```bash
+git clone https://github.com/firstelementjp/swift-csv.git
+cd swift-csv
+composer install
 ```
 
-**Multi-value support**: Use `|` (pipe) to separate multiple values:
+After installing dependencies, place the plugin in your local WordPress environment and activate it from the admin dashboard.
 
-```
-category: "category-a|subcategory-a|grandchild"
-```
+## 🧪 Testing
 
-### Custom Fields
+Run all tests:
 
-Use `cf_` prefix for custom fields:
-
-```
-cf_price, cf_color, cf_size
+```bash
+composer test
 ```
 
-**Multi-value support**: Use `|` (pipe) to separate multiple values:
+Run coverage
+
+```bash
+composer run test-coverage
+```
+
+Run specific test suites
+
+```bash
+composer run test-unit
+composer run test-integration
+```
+
+Coverage reports are generated in:
 
 ```
-cf_tags: "wordpress|php|developer"
+tests/coverage/
 ```
 
-## 🔧 Requirements
+## 🛠️ Development Commands
 
-- **WordPress**: 6.0 or higher
-- **PHP**: 8.0 or higher
-- **Memory**: 128MB+ (for large CSV processing)
+```bash
+composer test              # Run test suite
+composer phpcs             # Check coding standards
+composer phpcbf            # Fix coding standards automatically
+npm run build              # Build/minify frontend assets
+./test-release.sh          # Create a release ZIP locally
+```
 
-## 🌍 Internationalization
+See the project documentation for detailed development and release workflows.
 
-Currently supported languages:
+## 📝 Developer Notes
 
-- 🇯🇵 Japanese
-- 🇺🇸 English (default)
+- Import/export operations are designed to work in batches for large datasets.
+- Gutenberg block content is preserved during import/export.
+- The plugin provides extensibility through WordPress hooks.
 
-Interested in helping with translations? Contact us on [GitHub](https://github.com/firstelementjp/swift-csv).
+For detailed implementation notes, see:
+
+- [Developer documentation](https://firstelementjp.github.io/swift-csv/#/developer)
+- [Architecture overview](https://firstelementjp.github.io/swift-csv/#/architecture)
+- [Hooks documentation](https://firstelementjp.github.io/swift-csv/#/hooks)
 
 ## 🤝 Contributing
 
-We welcome contributions! Please follow our development workflow:
+Contributions are welcome.
 
-### Development Workflow
+Basic workflow:
 
-1. **Fork** the repository
-2. **Create feature branch**: `git checkout -b feature/batch-export-ui`
-3. **Make changes** and test thoroughly
-4. **Push to develop**: `git push origin develop`
-5. **Create Pull Request** to develop branch
-6. **Review and merge** to develop
-7. **Release**: Merge develop to main with version tag
+- Fork the repository
+- Create a feature branch from develop
+- Make changes and run tests
+- Open a Pull Request against develop
 
-### Branch Strategy
-
-- **main**: Stable releases (v0.9.4, v0.9.5, etc.)
-- **develop**: Development branch with latest features
-- **feature/\***: Individual feature development
-
-### Current Development
-
-- **v0.9.7 Released**: Real-time export progress with detailed logging, enhanced license status detection, complete Japanese localization, and adaptive batch processing
-- **Future**: Enhanced features and integrations are welcome through [GitHub Issues](https://github.com/firstelementjp/swift-csv/issues).
+Please check existing issues before opening a new feature request or bug report.
 
 ## 📄 License
 
-GPLv2+ - See [LICENSE](LICENSE) file for details
+GPLv2+
 
-## 🎯 Hooks for Developers
+See LICENSE for details.
 
-Swift CSV provides extensive customization options through hooks. For complete documentation, see **[Hooks Documentation](docs/hooks.md)**.
+## 👨‍💻 Authors
 
-### Popular Hooks
-
-- `swift_csv_export_columns` - Customize export columns
-- `swift_csv_import_row` - Process each import row
-- `swift_csv_before_export` - Before export starts
-- `swift_csv_after_import` - After import completes
-
-📚 **[View All Hooks](docs/hooks.md)** - Complete API reference with examples
-
-## 👨‍💻 Developer
-
-[FirstElement,Inc.](https://www.firstelement.co.jp/), [Daijiro Miyazawa](https://x.com/dxd5001)
-
----
-
-⭐ Please consider leaving a review if you find this plugin helpful!
+- [Daijiro Miyazawa](https://x.com/dxd5001)
+- [FirstElement, Inc.](https://www.firstelement.co.jp)

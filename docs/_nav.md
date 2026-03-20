@@ -2,6 +2,8 @@
 - 📦 [Installation](install.md)
 - 💡 [Examples](example.md)
 - 🔧 [Configuration](config.md)
+- 🧭 [Developer Guide](developer.md)
+- 🏗️ [Architecture](architecture.md)
 - 🪝 [Developer Hooks](hooks.md)
 - 🐛 [Troubleshooting](help.md)
 - 📋 [Changelog](changes.md)

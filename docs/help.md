@@ -1,180 +1,130 @@
 # 🐛 Troubleshooting
 
-Common issues and solutions for Swift CSV plugin.
+Common issues and solutions for the current Swift CSV implementation.
 
-## Quick Debug Steps
+## Quick Checks
 
-1. **Enable Debug Mode**: Set `WP_DEBUG` to true in `wp-config.php`
-2. **Check Browser Console**: Look for JavaScript errors
-3. **Review Error Logs**: Check `[Swift CSV]` prefixed messages
-4. **Test with Small Files**: Start with simple CSV files
+1. Enable `WP_DEBUG` and `WP_DEBUG_LOG`
+2. Check the browser console for JavaScript errors
+3. Test with a small CSV first
+4. Confirm your CSV headers match the expected format
+5. Confirm you are using **Tools → Swift CSV**
 
 ## Common Issues
 
-### Import/Export Not Working
+### Import Fails Immediately
 
-**Symptoms**:
+Check the following:
 
-- AJAX requests failing
-- Progress bars not updating
-- "Import failed" or "Export failed" messages
+- The CSV includes an `ID` column
+- The first row contains headers
+- The file is a valid CSV
+- The selected post type is correct
+- Nonce or capability checks are not being blocked by custom code
 
-**Solutions**:
+### New Posts Are Not Created
 
-1. Check WordPress AJAX nonce: verify nonce is properly passed
-2. Enable debug logging: set `WP_DEBUG` to true
-3. Check browser console for JavaScript errors
-4. Verify file permissions on upload directory
+If you are creating new posts:
 
-### Character Encoding Issues
+- Keep the `ID` column present
+- Leave the `ID` value empty for new rows
+- Do not use dummy numeric IDs for new posts
 
-**Symptoms**:
+### Existing Posts Are Not Updated
 
-- Japanese characters display incorrectly
-- CSV files show garbled text
+For updates:
 
-**Solutions**:
+- Use a real existing WordPress post ID
+- Enable the update-existing option in the import UI
+- Confirm the selected post type matches the existing post
 
-1. Ensure CSV files are saved as UTF-8
-2. Check `mbstring` extension is enabled
-3. Verify database charset is `utf8mb4`
+### Custom Fields Do Not Import
 
-### Large File Processing
+Check the following:
 
-**Symptoms**:
+- Custom field headers start with `cf_`
+- Multi-value custom fields use `|`
+- CSV values are quoted correctly when they contain commas
 
-- Timeouts with large files
-- Memory errors
-- Incomplete imports/exports
+### Taxonomy Values Do Not Import Correctly
 
-**Current Implementation**:
+Check the following:
 
-- **Import**: Automatic batch processing (10 rows per batch)
-- **Export**: Automatic batch processing (500 posts per batch)
+- Hierarchical taxonomy values use `>`
+- Multiple taxonomy values use `|`
+- The taxonomy exists for the selected post type
 
-**Solutions**:
+### Progress UI Does Not Update
 
-1. Files are automatically processed in chunks
-2. Monitor progress bars for completion
-3. Check server limits if issues persist
+Check the following:
 
-### Delimiter Detection Issues
+- Admin JavaScript loaded correctly
+- Browser console has no fatal errors
+- AJAX requests are completing successfully
+- You waited for the request cycle to finish before navigating away
 
-**Symptom**: CSV columns not parsed correctly
+### Large Files Feel Slow
 
-**Cause**: Simple character count-based detection may fail with complex data
+Swift CSV already uses automatic batch processing.
 
-**Solutions**:
+If processing is still slow:
 
-1. Use simple CSV files for reliable auto-detection
-2. Ensure consistent delimiter usage throughout file
-3. Test with small sample files first
+- Test with a smaller dataset first
+- Check server memory and execution limits
+- Reduce the export limit if you only need a subset
+- Use dry run to validate import files before full processing
 
-## Development Environment Issues
+### Text Looks Garbled
 
-### WP-CLI Connection Problems
+Check the following:
 
-**Symptoms**:
+- Save the CSV as UTF-8
+- Confirm `mbstring` is enabled
+- Confirm WordPress/database charset is `utf8mb4`
+- Confirm translation files are present if localized UI text is expected
 
-- `wp db query` fails
-- Environment variables not working
+### Pro License UI Looks Incorrect
 
-**Solutions**:
+Check the following:
 
-```bash
-# Check database variables (unquoted)
-export DB_HOST=localhost
-export DB_NAME=your_db_name
+- Swift CSV Pro is installed if you expect Pro features
+- Swift CSV Pro is activated
+- License-related server configuration is valid
 
-# Check paths with spaces (quoted)
-export WP_PATH="/path with spaces"
-```
+## Debug Logging
 
-### CSS/JS Not Loading
-
-**Symptoms**:
-
-- Styles not applied
-- JavaScript not working
-
-**Solutions**:
-
-1. Run `npm run build` to generate minified assets
-2. Check file permissions
-3. Verify assets are properly enqueued
-
-## Error Messages
-
-### AJAX Errors
-
-**"Import failed" or "Export failed"**:
-
-1. Check browser console for details
-2. Look for `[Swift CSV]` debug logs
-3. Verify nonce is valid
-
-### File Upload Errors
-
-**"File size exceeds limit"**:
-
-1. Check PHP `upload_max_filesize` and `post_max_size`
-2. Split large CSV files into smaller chunks
-3. Verify file format is valid CSV
-
-### Progress Bar Issues
-
-**"Progress element not found"**:
-
-1. Clear browser cache
-2. Check for JavaScript conflicts
-3. Verify UI elements are properly loaded
-
-## Debug Information
-
-### Enable Debug Logging
-
-Add to `wp-config.php`:
+Add to `wp-config.php` if needed:
 
 ```php
 define( 'WP_DEBUG', true );
 define( 'WP_DEBUG_LOG', true );
+define( 'WP_DEBUG_DISPLAY', false );
 ```
 
-### Check Debug Logs
+Useful checks:
 
 ```bash
-# View WordPress debug logs
-tail -f /path/to/wordpress/wp-content/debug.log | grep "\[Swift CSV\]"
+wp core version
+php -v
+wp plugin status swift-csv
+tail -f wp-content/debug.log | grep "Swift CSV"
 ```
 
-### Browser Console Debugging
+## When Reporting an Issue
 
-1. Open browser developer tools
-2. Check Console tab for errors
-3. Monitor Network tab for AJAX requests
-4. Look for `[Swift CSV]` log messages
+Include:
 
-## Getting Help
+- WordPress version
+- PHP version
+- Swift CSV version
+- Browser and version
+- Exact error messages
+- A small sample CSV when possible
+- Whether the issue occurs on import, export, or both
 
-### Self-Service Resources
+## Related Pages
 
-1. **SKILL.md**: Detailed troubleshooting knowledge base
-2. **Configuration Guide**: Check docs/config.md
-3. **Changelog**: Review recent changes in docs/changes.md
-
-### Report Issues
-
-When reporting issues, include:
-
-1. **WordPress Version**: e.g., 6.4.2
-2. **PHP Version**: e.g., 8.1.0
-3. **Plugin Version**: e.g., 0.9.5
-4. **Error Logs**: `[Swift CSV]` prefixed messages
-5. **Steps to Reproduce**: Detailed reproduction steps
-6. **Sample Data**: Small CSV file that demonstrates issue
-
-### Support Channels
-
-- **GitHub Issues**: [Create new issue](https://github.com/firstelementjp/swift-csv/issues)
-- **Documentation**: Check docs/ directory for detailed guides
-- **Community**: Review existing issues for similar problems
+- [Installation](install.md)
+- [Configuration](config.md)
+- [Examples](example.md)
+- [Developer Hooks](hooks.md)

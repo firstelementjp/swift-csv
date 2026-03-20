@@ -1,9 +1,9 @@
 ---
 name: Bug report
 about: Report something that is not working
-title: "[Bug]: "
+title: '[Bug]: '
 labels: bug
-assignees: ""
+assignees: ''
 ---
 
 ## What happened?

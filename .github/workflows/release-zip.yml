@@ -6,9 +6,17 @@ on:
     release:
         types: [published]
 
+permissions:
+    contents: read
+
+concurrency:
+    group: release-zip-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     create-zip:
         runs-on: ubuntu-latest
+        if: github.repository == 'firstelementjp/swift-csv'
         permissions:
             contents: write
         steps:
@@ -16,10 +24,37 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
+                  persist-credentials: false
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '18'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build assets
+              run: npm run build
 
             - name: Create ZIP
               run: |
-                  git archive --format=zip --prefix=swift-csv/ --worktree-attributes ${{ github.ref_name }} > swift-csv-${{ github.ref_name }}.zip
+                  rm -rf release
+                  mkdir -p release
+
+                  # Create release tree from git (respects .gitattributes export-ignore).
+                  git archive --format=tar --prefix=swift-csv/ --worktree-attributes ${{ github.ref_name }} | tar -x -C release
+
+                  # Copy built/minified assets from working directory into the release tree.
+                  mkdir -p release/swift-csv/assets/js/export/swift-csv
+                  cp -f assets/js/*.min.js release/swift-csv/assets/js/ || true
+                  cp -f assets/css/*.min.css release/swift-csv/assets/css/ || true
+                  cp -f assets/js/export/swift-csv/*.min.js release/swift-csv/assets/js/export/swift-csv/ || true
+
+                  cd release
+                  rm -f ../swift-csv-${{ github.ref_name }}.zip
+                  zip -r ../swift-csv-${{ github.ref_name }}.zip swift-csv
 
             - name: Create Release
               uses: softprops/action-gh-release@v1

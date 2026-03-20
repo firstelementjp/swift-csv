@@ -1,9 +1,9 @@
 ---
 name: Question
 about: Ask a question about usage or development
-title: "[Question]: "
+title: '[Question]: '
 labels: question
-assignees: ""
+assignees: ''
 ---
 
 ## Question
@@ -17,4 +17,3 @@ assignees: ""
 
 - WordPress version:
 - Swift CSV version:
-- ACF version (if relevant):

@@ -49,6 +49,7 @@ const dateStr = now.getFullYear() + '-' +
 **Symptom**: Export continues running after clicking cancel, or cancellation flags accumulate across sessions.
 
 **Cause**: Three issues:
+
 1. WordPress option cache prevents immediate flag detection
 2. Cancellation flags not isolated per export session
 3. Multiple cancel handlers registered simultaneously
@@ -75,9 +76,11 @@ cancelBtn.addEventListener('click', cancelHandler);
 
 // AFTER — Clean up previous handler first
 if (exportCancelHandler) {
-    cancelBtn.removeEventListener('click', exportCancelHandler);
+	cancelBtn.removeEventListener('click', exportCancelHandler);
 }
-exportCancelHandler = function() { /* ... */ };
+exportCancelHandler = function () {
+	/* ... */
+};
 cancelBtn.addEventListener('click', exportCancelHandler, { once: true });
 ```
 
@@ -90,6 +93,7 @@ cancelBtn.addEventListener('click', exportCancelHandler, { once: true });
 **Symptom**: Log window, progress bar, and download button disappear on page load. DOM shows `.swift-csv-log` container is empty.
 
 **Cause**: Three compounding issues:
+
 1. `initLoggingSystem()` used `.swift-csv-log` (parent container) instead of `#export-log-content` (child), clearing all children including buttons and progress bar
 2. `addLogEntry()` also targeted the wrong container
 3. Modules tried to initialize before they were loaded
@@ -99,13 +103,13 @@ cancelBtn.addEventListener('click', exportCancelHandler, { once: true });
 ```javascript
 // BEFORE — Destroys all child elements
 function initLoggingSystem() {
-    const logContainer = document.querySelector('.swift-csv-log');
-    logContainer.innerHTML = '';
+	const logContainer = document.querySelector('.swift-csv-log');
+	logContainer.innerHTML = '';
 }
 
 // AFTER — Preserve HTML structure
 function initLoggingSystem() {
-    // Don't clear logs on page load - preserve initial messages
+	// Don't clear logs on page load - preserve initial messages
 }
 ```
 
@@ -125,11 +129,16 @@ if (logContent) logContent.innerHTML = '';
 
 ```javascript
 const checkModules = () => {
-    if (window.SwiftCSVCore && window.SwiftCSVExport && window.SwiftCSVImport && window.SwiftCSVLicense) {
-        // Safe to initialize
-    } else {
-        setTimeout(checkModules, 50);
-    }
+	if (
+		window.SwiftCSVCore &&
+		window.SwiftCSVExport &&
+		window.SwiftCSVImport &&
+		window.SwiftCSVLicense
+	) {
+		// Safe to initialize
+	} else {
+		setTimeout(checkModules, 50);
+	}
 };
 ```
 

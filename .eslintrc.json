@@ -1,22 +1,37 @@
 {
-	"extends": ["plugin:@wordpress/eslint-plugin/recommended", "plugin:prettier/recommended"],
+	"extends": ["plugin:@wordpress/eslint-plugin/recommended"],
 	"rules": {
 		"prettier/prettier": "error",
+		"no-console": "off",
+		"no-alert": "off",
+		"no-undef": "error",
+		"no-unused-vars": "warn",
+		"no-shadow": "warn",
+		"object-shorthand": "warn",
+		"jsdoc/check-line-alignment": "warn",
+		"jsdoc/newline-after-description": "warn",
+		"@wordpress/i18n-text-domain": "off",
+		"@wordpress/i18n-no-variables": "off",
 		"indent": "off",
-		"semi": "off",
+		"semi": ["warn", "always"],
 		"linebreak-style": ["error", "unix"],
 		"comma-dangle": ["error", "only-multiline"],
 		"object-curly-spacing": ["error", "always"],
 		"array-bracket-spacing": ["error", "never"],
 		"keyword-spacing": ["error", { "before": true, "after": true }],
-		"camelcase": "off",
-		"@wordpress/no-unused-vars-before-return": ["error", { "excludePattern": "^_" }],
+		"camelcase": "warn",
+		"@wordpress/no-unused-vars-before-return": "off",
 		"@wordpress/no-global-active-element": "warn",
 		"@wordpress/no-global-get-selection": "warn"
 	},
 	"globals": {
 		"jQuery": "readonly",
-		"wp": "readonly"
+		"wp": "readonly",
+		"swiftCSV": "readonly",
+		"SwiftCSVCore": "readonly",
+		"addLogEntry": "readonly",
+		"clearLog": "readonly",
+		"handleAjaxExport": "readonly"
 	},
 	"env": {
 		"browser": true,

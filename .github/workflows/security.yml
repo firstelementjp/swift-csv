@@ -1,0 +1,35 @@
+name: Security Scan
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+    schedule:
+        - cron: '0 2 * * 1' # Weekly on Monday 2 AM
+
+jobs:
+    security:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.1'
+                  extensions: openssl, mbstring
+                  coverage: none
+
+            - name: Install dependencies
+              run: composer install --no-progress --no-suggest --prefer-dist
+
+            - name: Run security audit
+              run: composer audit
+
+            - name: Run PHPCS security check
+              run: |
+                  vendor/bin/phpcs --standard=WordPress --sniffs=WordPress.Security.ValidatedSanitizedInput,WordPress.Security.PluginMenuSlug,WordPress.Security.SafeRedirect,WordPress.Security.NonceVerification includes/ --extensions=php

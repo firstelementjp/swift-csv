@@ -1,29 +1,10 @@
 # Distribution files for git archive (release ZIP)
-# Include only necessary files for plugin distribution
+# This file controls what is excluded from git archive.
 
-# Include minified assets
-assets/css/swift-csv-style.min.css
-assets/css/swift-csv-admin-style.min.css
-assets/css/swift-csv-pro-admin-style.min.css
-assets/js/swift-csv-core.min.js
-assets/js/swift-csv-export.min.js
-assets/js/swift-csv-import.min.js
-assets/js/swift-csv-license.min.js
-assets/js/swift-csv-main.min.js
-assets/js/swift-csv-admin-scripts.min.js
-assets/js/swift-csv-pro-admin-scripts.min.js
-
-# Exclude development files but keep minified assets
-assets/css/swift-csv-style.css export-ignore
-assets/css/swift-csv-admin-style.css export-ignore
-assets/css/swift-csv-pro-admin-style.css export-ignore
-assets/js/swift-csv-core.js export-ignore
-assets/js/swift-csv-export.js export-ignore
-assets/js/swift-csv-import.js export-ignore
-assets/js/swift-csv-license.js export-ignore
-assets/js/swift-csv-main.js export-ignore
-assets/js/swift-csv-admin-scripts.js export-ignore
-assets/js/swift-csv-pro-admin-scripts.js export-ignore
+# Exclude source JS/CSS (built/minified assets are provided by the release workflow).
+assets/css/*.css export-ignore
+assets/js/*.js export-ignore
+assets/js/export/**/*.js export-ignore
 
 # Exclude development and build files
 composer.json export-ignore
@@ -57,6 +38,8 @@ swift-csv/ export-ignore
 docs/ export-ignore
 phpdoc/ export-ignore
 CONTRIBUTING.md export-ignore
+AGENT.md export-ignore
+SECURITY.md export-ignore
 
 # Exclude large banner images (not needed for plugin functionality)
 assets/images/swift-csv-banner.jpeg export-ignore
@@ -79,7 +62,16 @@ Thumbs.db export-ignore
 # Exclude test files
 tests/ export-ignore
 phpunit.xml export-ignore
+phpunit-standalone.xml export-ignore
+
+# Exclude development directories
+_deprecated/ export-ignore
+dev-notes/ export-ignore
 
 # Exclude build artifacts
 *.tar.gz export-ignore
 *.zip export-ignore
+
+# Exclude local development helpers
+test-release.sh export-ignore
+test-release/ export-ignore

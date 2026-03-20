@@ -10,7 +10,7 @@
 
 ## Manual Installation
 
-1. [Download latest version](https://github.com/firstelementjp/swift-csv/releases/latest)
+1. [Download latest version (v0.9.8)](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.8/swift-csv-v0.9.8.zip)
 2. Extract the downloaded ZIP file
 3. Upload `swift-csv` folder to `/wp-content/plugins/`
 4. Navigate to **Plugins** in WordPress admin
@@ -20,8 +20,8 @@
 
 ### System Requirements
 
-- **WordPress**: 6.0 or higher (recommended: 6.4+)
-- **PHP**: 8.0 or higher (recommended: 8.1+)
+- **WordPress**: 6.6 or higher (recommended: 6.6+)
+- **PHP**: 8.1 or higher (recommended: 8.1+)
 - **Memory Limit**: 128MB or higher (for large CSV processing)
 - **Extensions**: `mbstring`, `zip` (for file handling)
 
@@ -32,21 +32,36 @@
 - **Max Execution Time**: 300 seconds or higher
 - **Output Buffering**: Enabled (for large file processing)
 
+### Browser Compatibility
+
+- **Modern Browsers**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **JavaScript**: Enabled (required for AJAX processing)
+- **CSS Animations**: Supported (for progress bar animations)
+
 ## Initial Setup
 
 ### After Activation
 
-1. **Access Plugin**: Navigate to **Swift CSV** in the WordPress admin menu
+1. **Access Plugin**: Navigate to **Tools** → **Swift CSV** in the WordPress admin menu
 2. **Configure Settings**: Set default post types and export limits
 3. **Test Import**: Try importing a small CSV file first
 4. **Test Export**: Export a few posts to verify functionality
+5. **Check Progress**: Watch the progress UI during processing
 
 ### Basic Configuration
 
 1. **Default Post Type**: Choose which post type to work with by default
 2. **Export Limit**: Set maximum number of posts per export (0 = unlimited)
-3. **Batch Processing**: Enable for large files (automatic for 1000+ items)
+3. **Batch Processing**: Automatic for all datasets (adaptive: 10-50 import rows, 500-2000 export posts)
 4. **Debug Mode**: Enable `WP_DEBUG` for troubleshooting
+
+### Advanced Features
+
+- **Progress Tracking**: Real-time progress during import and export
+- **Batch Processing**: Adaptive batch sizes (10-50 import rows, 500-2000 export posts)
+- **Localized Interface**: English base strings with Japanese translations
+- **License Integration**: Pro version license management
+- **Multi-value Fields**: Pipe-separated values support (e.g., "value1|value2|value3")
 
 ## Troubleshooting Installation
 
@@ -60,74 +75,167 @@
 
 **Activation fails:**
 
-- Check PHP version compatibility (8.0+ required)
+- Check PHP version compatibility (8.1+ required)
 - Verify required PHP extensions are installed
-- Check WordPress version compatibility (6.0+ required)
+- Check WordPress version compatibility (6.6+ required)
 
 **Memory errors during import/export:**
 
-- Increase `memory_limit` in `php.ini`
-- Enable batch processing for large files
-- Split large CSV files into smaller chunks
+- Increase PHP memory limit in `wp-config.php`: `define('WP_MEMORY_LIMIT', '256M');`
+- Enable batch processing (automatic for all datasets)
+- Check server upload limits
 
-**File upload issues:**
+**Progress bar not working:**
 
-- Check `upload_max_filesize` in `php.ini`
-- Verify `post_max_size` is sufficient
-- Ensure proper file permissions on upload directory
+- Check browser console for JavaScript errors
+- Verify CSS files are loading correctly
+- Test with smaller datasets first
+- Check for plugin conflicts
+
+**Japanese characters not displaying:**
+
+- Ensure CSV files are saved as UTF-8
+- Check database charset is `utf8mb4`
+- Verify translation files are loaded correctly
+
+**License activation issues:**
+
+- Check if Swift CSV Pro is installed and activated
+- Verify license server configuration
+- Check translation files for proper message display
+- Test with valid license key
+
+## Performance Optimization
+
+### For Large Datasets
+
+**Automatic Optimizations:**
+
+- **Import Batches**: 10-50 rows based on server performance
+- **Export Batches**: 500-2000 posts based on dataset size
+- **Memory Management**: Automatic cleanup and efficient processing
+- **Real-time Updates**: Progress bars with shimmer animations
+
+**No Manual Configuration Required**
+
+The plugin automatically optimizes batch sizes based on:
+
+- Server execution time limits
+- Available memory
+- Dataset size
+- Processing complexity
 
 ### Server Configuration
 
-For optimal performance with large CSV files, consider these `php.ini` settings:
+**.htaccess Settings** (if needed):
+
+```apache
+# Increase upload limits
+php_value upload_max_filesize 64M
+php_value post_max_size 64M
+php_value max_execution_time 300
+php_value memory_limit 256M
+
+# Enable output buffering
+php_flag output_buffering on
+php_value output_buffering 4096
+```
+
+**php.ini Settings** (if accessible):
 
 ```ini
-memory_limit = 256M
 upload_max_filesize = 64M
 post_max_size = 64M
 max_execution_time = 300
-max_input_time = 300
+memory_limit = 256M
+output_buffering = 4096
 ```
 
-### WordPress Configuration
+## First Steps
 
-Add to `wp-config.php` for debugging:
+### Test Import
 
-```php
-define('WP_DEBUG', true);
-define('WP_DEBUG_LOG', true);
+1. **Create Test CSV**:
+
+```csv
+ID,post_title,post_content,post_status
+"","Test Post 1","This is test content","publish"
+"","Test Post 2","More test content","draft"
 ```
 
-## Upgrade Instructions
+**Note**: The `ID` column is required. Use empty values (`""`) for new posts, or actual post IDs for updates.
 
-### From Previous Versions
+2. **Import Process**:
+    - Navigate to **Tools → Swift CSV → Import**
+    - Select post type
+    - Upload test CSV
+    - Watch progress bar animation
+    - Verify results
 
-1. **Backup**: Export current data before upgrading
-2. **Deactivate**: Deactivate the old version
-3. **Replace**: Upload new version files
-4. **Activate**: Reactivate the plugin
-5. **Verify**: Test import/export functionality
+### Test Export
 
-### Automatic Updates
+1. **Export Process**:
+    - Navigate to **Tools → Swift CSV → Export**
+    - Select post type
+    - Set export limit (try 5 posts)
+    - Click **Export CSV**
+    - Watch real-time progress with post titles
+    - Download and verify CSV file
 
-- Enable automatic updates in WordPress admin
-- Check changelog for breaking changes
-- Test functionality after each update
+### Verify Features
+
+- **Progress Bar**: Real-time progress with animations during processing
+- **Real-time Details**: Individual post titles displayed
+- **Localized Interface**: Natural language messages (English/Japanese)
+- **Batch Processing**: Automatic for larger datasets
+- **Multi-value Support**: Test with pipe-separated values
 
 ## Getting Help
 
-If you encounter issues during installation:
+### Support Resources
 
-1. **Check Requirements**: Verify all system requirements are met
-2. **Enable Debug**: Set `WP_DEBUG` to true for error details
-3. **Review Logs**: Check WordPress debug logs
-4. **Visit Support**: [GitHub Issues](https://github.com/firstelementjp/swift-csv/issues)
-5. **Documentation**: Review [Troubleshooting Guide](help.md)
+1. **Documentation**: Check `docs/` directory for detailed guides
+2. **Troubleshooting**: See `docs/help.md` for common issues
+3. **GitHub Issues**: Report bugs and request features at [GitHub Issues](https://github.com/firstelementjp/swift-csv/issues)
+
+### Debug Information
+
+When reporting issues, please include:
+
+- **WordPress Version**: Current WordPress version
+- **PHP Version**: Current PHP version
+- **Plugin Version**: Swift CSV v0.9.8
+- **Browser Information**: Browser and version
+- **Error Messages**: Full error messages from browser console
+- **Sample Data**: Small sample CSV file for testing
+
+### Quick Debug Commands
+
+```bash
+# Check WordPress version
+wp core version
+
+# Check PHP version
+php -v
+
+# Check plugin status
+wp plugin status swift-csv
+
+# Check debug logs
+tail -f wp-content/debug.log | grep "Swift CSV"
+```
+
+## Uninstallation
+
+### Safe Removal
+
+1. Deactivate Swift CSV from **Plugins**
+2. Delete the plugin from the WordPress admin
+3. Verify any temporary files or logs you care about before cleanup
 
 ## Next Steps
 
-After successful installation:
-
-1. Read the [Getting Started Guide](start.md)
-2. Review [Configuration Options](config.md)
-3. Check [Examples](example.md) for common use cases
-4. Explore [Developer Hooks](hooks.md) for customization
+- Read [Getting Started](start.md)
+- Review [Configuration](config.md)
+- Check [Examples](example.md)
+- See [Troubleshooting](help.md) if needed

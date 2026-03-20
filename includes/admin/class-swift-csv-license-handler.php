@@ -115,7 +115,7 @@ class Swift_CSV_License_Handler {
 			];
 		}
 
-		$result = $this->call_license_api( 'deactivate', $license_key, self::get_saved_activation_token() );
+		$result = $this->call_license_api( 'deactivate', $license_key, self::get_saved_activation_token(), self::get_saved_remote_product_id() );
 
 		// Clear cache after license change.
 		self::clear_cache();
@@ -130,9 +130,10 @@ class Swift_CSV_License_Handler {
 	 * @param string $action      The action to perform (activate/deactivate/status).
 	 * @param string $license_key The license key.
 	 * @param string $token       Activation token.
+	 * @param int    $product_id  Product ID to send to the remote server.
 	 * @return array The response from the license server.
 	 */
-	private function call_license_api( $action, $license_key, $token = '' ) {
+	private function call_license_api( $action, $license_key, $token = '', $product_id = 0 ) {
 		if ( ! defined( 'SWIFT_CSV_LICENSE_API_URL' ) || empty( SWIFT_CSV_LICENSE_API_URL ) ) {
 			// Check if Swift CSV Pro is installed and active.
 			$pro_plugin_path = 'swift-csv-pro/swift-csv-pro.php';
@@ -158,7 +159,9 @@ class Swift_CSV_License_Handler {
 			];
 		}
 
-		$product_id = self::get_pro_product_id();
+		if ( $product_id <= 0 ) {
+			$product_id = self::get_pro_product_id();
+		}
 
 		$response = wp_remote_post(
 			SWIFT_CSV_LICENSE_API_URL,
@@ -217,6 +220,40 @@ class Swift_CSV_License_Handler {
 		}
 
 		return self::extract_activation_token( $entry['data'] ?? [] );
+	}
+
+	/**
+	 * Get the saved remote product ID for the current Pro license.
+	 *
+	 * This keeps local storage normalized to the configured Pro slot while still
+	 * allowing remote operations such as deactivation to target the purchased
+	 * translated product ID when LMFWC returns it.
+	 *
+	 * @since 0.9.8
+	 * @return int
+	 */
+	public static function get_saved_remote_product_id() {
+		$products = self::get_products();
+		$entry    = $products[ self::get_pro_product_id() ] ?? [];
+
+		if ( ! is_array( $entry ) ) {
+			return self::get_pro_product_id();
+		}
+
+		$data = $entry['data'] ?? [];
+		if ( ! is_array( $data ) ) {
+			return self::get_pro_product_id();
+		}
+
+		if ( isset( $data['data']['productId'] ) && absint( $data['data']['productId'] ) > 0 ) {
+			return absint( $data['data']['productId'] );
+		}
+
+		if ( isset( $data['productId'] ) && absint( $data['productId'] ) > 0 ) {
+			return absint( $data['productId'] );
+		}
+
+		return self::get_pro_product_id();
 	}
 
 	/**

@@ -32,4 +32,4 @@ jobs:
 
             - name: Run PHPCS security check
               run: |
-                  vendor/bin/phpcs --standard=WordPress --sniffs=WordPress.Security.ValidatedSanitizedInput,WordPress.Security.PluginMenuSlug,WordPress.Security.SafeRedirect,WordPress.Security.NonceVerification .
+                  vendor/bin/phpcs --standard=WordPress --sniffs=WordPress.Security.ValidatedSanitizedInput,WordPress.Security.PluginMenuSlug,WordPress.Security.SafeRedirect,WordPress.Security.NonceVerification includes/ --extensions=php

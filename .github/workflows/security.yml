@@ -31,5 +31,4 @@ jobs:
 
             - name: Run PHPCS security check
               run: |
-                  composer install --no-dev
                   vendor/bin/phpcs --standard=WordPress --sniffs=WordPress.Security .

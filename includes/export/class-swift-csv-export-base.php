@@ -192,7 +192,7 @@ abstract class Swift_CSV_Export_Base {
 
 		$tax_headers = [];
 		foreach ( $taxonomies as $taxonomy ) {
-			if ( $taxonomy->public ) {
+			if ( ! empty( $taxonomy->public ) || ! empty( $taxonomy->show_ui ) ) {
 				$tax_headers[] = 'tax_' . $taxonomy->name;
 			}
 		}
@@ -203,7 +203,7 @@ abstract class Swift_CSV_Export_Base {
 	/**
 	 * Get custom field (meta) headers
 	 *
-	 * Uses a sample post to discover meta keys and generate custom field headers.
+	 * Uses a sample of posts to discover meta keys and generate custom field headers.
 	 * Supports meta key classification and header generation via hooks.
 	 * Uses the "cf_" prefix for custom field columns.
 	 *
@@ -246,7 +246,7 @@ abstract class Swift_CSV_Export_Base {
 		}
 
 		$sample_query_args                   = apply_filters( 'swift_csv_export_sample_query_args', $sample_query_args, $sample_args );
-		$sample_query_args['posts_per_page'] = 1;
+		$sample_query_args['posts_per_page'] = max( 1, absint( $sample_query_args['posts_per_page'] ?? 1 ) );
 		$sample_post_ids                     = get_posts( $sample_query_args );
 
 		$all_meta_keys      = [];

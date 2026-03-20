@@ -39,6 +39,7 @@ docs/ export-ignore
 phpdoc/ export-ignore
 CONTRIBUTING.md export-ignore
 AGENT.md export-ignore
+SECURITY.md export-ignore
 
 # Exclude large banner images (not needed for plugin functionality)
 assets/images/swift-csv-banner.jpeg export-ignore

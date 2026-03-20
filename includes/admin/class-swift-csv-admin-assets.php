@@ -171,7 +171,7 @@ class Swift_CSV_Admin_Assets {
 					'swift-csv-export-unified-module-ui',
 					'swift-csv-export-unified-module-logs',
 				],
-				'0.9.8',
+				SWIFT_CSV_VERSION . '.' . time(),
 				true
 			);
 

@@ -642,6 +642,11 @@ const SwiftCSVExportUnified = {
 			)?.checked
 				? '1'
 				: '0',
+			include_private_meta: document.querySelector(
+				'input[name="swift_csv_include_private_meta"]'
+			)?.checked
+				? '1'
+				: '0',
 			taxonomy_hierarchical: document.querySelector(
 				'input[name="swift_csv_taxonomy_hierarchical"]'
 			)?.checked

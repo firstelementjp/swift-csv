@@ -306,7 +306,7 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 **FirstElement**
 
-- Website: [firstelement.jp](https://firstelement.jp)
+- Website: [www.firstelement.co.jp](https://www.firstelement.co.jp)
 - Email: legal@firstelement.jp
 - Address: [Registered business address]
 

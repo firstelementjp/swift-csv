@@ -13,7 +13,7 @@
 	background-repeat: no-repeat;
 	background-size: 27%;
 	background-color: white;
-	margin: -10px -20px 15px -22px;
+	/* margin: -10px -20px 15px -22px; */
 }
 
 #plugin_header_upper {
@@ -157,7 +157,7 @@
 
 /* Tab navigation */
 .swift-csv .nav-tab-wrapper {
-	margin-bottom: 0;
+	margin: 0 !important;
 	border: none;
 }
 

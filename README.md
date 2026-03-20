@@ -115,8 +115,8 @@ See the project documentation for detailed development and release workflows.
 
 For detailed implementation notes, see:
 
-- [Developer documentation](https://firstelementjp.github.io/swift-csv/#/developer-notes)
-- [Import AJAX architecture notes](https://firstelementjp.github.io/swift-csv/#/import-ajax-architecture)
+- [Developer documentation](https://firstelementjp.github.io/swift-csv/#/developer)
+- [Architecture overview](https://firstelementjp.github.io/swift-csv/#/architecture)
 - [Hooks documentation](https://firstelementjp.github.io/swift-csv/#/hooks)
 
 ## 🤝 Contributing

@@ -691,9 +691,10 @@ class Swift_CSV_Admin_Settings {
 	public function license_field_html() {
 		$license_data   = get_option( 'swift_csv_pro_license', [] );
 		$products       = is_array( $license_data ) ? ( $license_data['products'] ?? [] ) : [];
-		$pro_product_id = class_exists( 'Swift_CSV_License_Handler' ) ? Swift_CSV_License_Handler::PRODUCT_ID_PRO : 0;
+		$pro_product_id = class_exists( 'Swift_CSV_License_Handler' ) ? Swift_CSV_License_Handler::get_pro_product_id() : 0;
 		$pro_product    = is_array( $products ) && $pro_product_id ? ( $products[ $pro_product_id ] ?? [] ) : [];
 		$license_key    = is_array( $pro_product ) ? ( $pro_product['key'] ?? '' ) : '';
+		$license_key    = class_exists( 'Swift_CSV_License_Handler' ) ? Swift_CSV_License_Handler::maybe_decrypt_license_key( $license_key ) : $license_key;
 		$license_status = Swift_CSV_License_Handler::is_pro_active() ? 'active' : 'inactive';
 		?>
 		<dl>

@@ -257,6 +257,57 @@ class Swift_CSV_License_Handler {
 	}
 
 	/**
+	 * Decrypt a stored license key when possible.
+	 *
+	 * Falls back to the original value when the key is already plaintext or when
+	 * decryption is unavailable.
+	 *
+	 * @since 0.9.8
+	 * @param string $license_key Stored license key value.
+	 * @return string
+	 */
+	public static function maybe_decrypt_license_key( $license_key ) {
+		$license_key = is_string( $license_key ) ? $license_key : '';
+
+		if ( '' === $license_key ) {
+			return '';
+		}
+
+		if ( ! class_exists( 'Swift_CSV_Encryption_Utils' ) || ! Swift_CSV_Encryption_Utils::is_available() ) {
+			return $license_key;
+		}
+
+		$decrypted_key = Swift_CSV_Encryption_Utils::decrypt( $license_key );
+
+		return false !== $decrypted_key ? $decrypted_key : $license_key;
+	}
+
+	/**
+	 * Encrypt a license key for storage when possible.
+	 *
+	 * Falls back to plaintext only when encryption is unavailable or fails.
+	 *
+	 * @since 0.9.8
+	 * @param string $license_key License key value.
+	 * @return string
+	 */
+	public static function prepare_license_key_for_storage( $license_key ) {
+		$license_key = is_string( $license_key ) ? $license_key : '';
+
+		if ( '' === $license_key ) {
+			return '';
+		}
+
+		if ( ! class_exists( 'Swift_CSV_Encryption_Utils' ) || ! Swift_CSV_Encryption_Utils::is_available() ) {
+			return $license_key;
+		}
+
+		$encrypted_key = Swift_CSV_Encryption_Utils::encrypt( $license_key );
+
+		return ! empty( $encrypted_key ) ? $encrypted_key : $license_key;
+	}
+
+	/**
 	 * Extract the activation token from a license API response payload.
 	 *
 	 * @since 0.9.8
@@ -480,13 +531,7 @@ class Swift_CSV_License_Handler {
 		$license_key = $entry['key'] ?? '';
 		$license_key = is_string( $license_key ) ? $license_key : '';
 
-		// Decrypt license key if encrypted.
-		if ( '' !== $license_key && class_exists( 'Swift_CSV_Encryption_Utils' ) && Swift_CSV_Encryption_Utils::is_available() ) {
-			$decrypted_key = Swift_CSV_Encryption_Utils::decrypt( $license_key );
-			if ( false !== $decrypted_key ) {
-				$license_key = $decrypted_key;
-			}
-		}
+		$license_key = self::maybe_decrypt_license_key( $license_key );
 
 		if ( '' === $license_key ) {
 			return [
@@ -520,15 +565,9 @@ class Swift_CSV_License_Handler {
 			$remote_product_id = (int) $result['data']['productId'];
 		}
 
-		// Encrypt license key before saving.
-		$encrypted_key = '';
-		if ( class_exists( 'Swift_CSV_Encryption_Utils' ) && Swift_CSV_Encryption_Utils::is_available() ) {
-			$encrypted_key = Swift_CSV_Encryption_Utils::encrypt( $license_key );
-		}
-
 		$license_data['products']                = $products;
 		$license_data['products'][ $product_id ] = [
-			'key'    => ! empty( $encrypted_key ) ? $encrypted_key : $license_key, // Fallback to plain text if encryption fails.
+			'key'    => self::prepare_license_key_for_storage( $license_key ),
 			'status' => (string) ( $result['status'] ?? 'inactive' ),
 			'data'   => $result['data'] ?? [],
 			'token'  => self::extract_activation_token( $result['data'] ?? [] ),

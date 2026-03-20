@@ -99,6 +99,7 @@ class Swift_CSV_Admin_Ajax {
 		$remote_status = isset( $result['status'] ) ? (string) $result['status'] : 'inactive';
 
 		$all_licenses = get_option( 'swift_csv_pro_license', [] );
+		$stored_key   = class_exists( 'Swift_CSV_License_Handler' ) ? Swift_CSV_License_Handler::prepare_license_key_for_storage( $license_key ) : $license_key;
 
 		// Ensure we have a proper array.
 		if ( ! is_array( $all_licenses ) ) {
@@ -114,7 +115,7 @@ class Swift_CSV_Admin_Ajax {
 
 			if ( $product_id > 0 ) {
 				$all_licenses['products'][ $product_id ] = [
-					'key'    => $license_key,
+					'key'    => $stored_key,
 					'status' => $local_status,
 					'data'   => $result['data'] ?? [],
 					'token'  => $token,
@@ -142,7 +143,7 @@ class Swift_CSV_Admin_Ajax {
 
 		if ( $product_id > 0 ) {
 			$all_licenses['products'][ $product_id ] = [
-				'key'    => $license_key,
+				'key'    => $stored_key,
 				'status' => 'inactive',
 				'data'   => $result['data'] ?? [],
 				'token'  => $token,

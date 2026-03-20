@@ -89,7 +89,7 @@ class Swift_CSV_Helper {
 		foreach ( $values as $value ) {
 			$escaped_values[] = self::escape_pipe_separated_value( (string) $value );
 		}
-		return implode( '|', $escaped_values );
+		return implode( ' | ', $escaped_values );
 	}
 
 	/**

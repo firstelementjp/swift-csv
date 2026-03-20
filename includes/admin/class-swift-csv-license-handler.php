@@ -42,6 +42,14 @@ class Swift_CSV_License_Handler {
 	public const PRODUCT_ID_PRO = 108;
 
 	/**
+	 * Legacy product ID that was stored locally by mistake.
+	 *
+	 * @since 0.9.8
+	 * @var int
+	 */
+	private const LEGACY_PRODUCT_ID_PRO = 328;
+
+	/**
 	 * Static cache for license data
 	 *
 	 * @since 0.9.7
@@ -107,7 +115,7 @@ class Swift_CSV_License_Handler {
 			];
 		}
 
-		$result = $this->call_license_api( 'deactivate', $license_key );
+		$result = $this->call_license_api( 'deactivate', $license_key, self::get_saved_activation_token() );
 
 		// Clear cache after license change.
 		self::clear_cache();
@@ -119,11 +127,12 @@ class Swift_CSV_License_Handler {
 	 * Call license API.
 	 *
 	 * @since 0.9.6
-	 * @param string $action      The action to perform (activate/deactivate).
+	 * @param string $action      The action to perform (activate/deactivate/status).
 	 * @param string $license_key The license key.
+	 * @param string $token       Activation token.
 	 * @return array The response from the license server.
 	 */
-	private function call_license_api( $action, $license_key ) {
+	private function call_license_api( $action, $license_key, $token = '' ) {
 		if ( ! defined( 'SWIFT_CSV_LICENSE_API_URL' ) || empty( SWIFT_CSV_LICENSE_API_URL ) ) {
 			// Check if Swift CSV Pro is installed and active.
 			$pro_plugin_path = 'swift-csv-pro/swift-csv-pro.php';
@@ -149,15 +158,18 @@ class Swift_CSV_License_Handler {
 			];
 		}
 
+		$product_id = self::get_pro_product_id();
+
 		$response = wp_remote_post(
 			SWIFT_CSV_LICENSE_API_URL,
 			[
 				'body'    => [
 					'action'      => $action,
 					'license_key' => $license_key,
-					'productId'   => $this->product_id,
-					'product_id'  => $this->product_id,
+					'productId'   => $product_id,
+					'product_id'  => $product_id,
 					'instance'    => home_url(),
+					'token'       => $token,
 				],
 				'timeout' => 30,
 				'headers' => [
@@ -184,6 +196,58 @@ class Swift_CSV_License_Handler {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Get the saved activation token for the current Pro product.
+	 *
+	 * @since 0.9.8
+	 * @return string
+	 */
+	public static function get_saved_activation_token() {
+		$products = self::get_products();
+		$entry    = $products[ self::get_pro_product_id() ] ?? [];
+
+		if ( ! is_array( $entry ) ) {
+			return '';
+		}
+
+		if ( isset( $entry['token'] ) && is_string( $entry['token'] ) ) {
+			return $entry['token'];
+		}
+
+		return self::extract_activation_token( $entry['data'] ?? [] );
+	}
+
+	/**
+	 * Extract the activation token from a license API response payload.
+	 *
+	 * @since 0.9.8
+	 * @param array $data License API response payload.
+	 * @return string
+	 */
+	public static function extract_activation_token( $data ) {
+		if ( ! is_array( $data ) ) {
+			return '';
+		}
+
+		if ( isset( $data['token'] ) && is_string( $data['token'] ) ) {
+			return $data['token'];
+		}
+
+		if ( isset( $data['activationData'] ) && is_array( $data['activationData'] ) && isset( $data['activationData']['token'] ) && is_string( $data['activationData']['token'] ) ) {
+			return $data['activationData']['token'];
+		}
+
+		if ( isset( $data['data'] ) && is_array( $data['data'] ) && isset( $data['data']['token'] ) && is_string( $data['data']['token'] ) ) {
+			return $data['data']['token'];
+		}
+
+		if ( isset( $data['data'] ) && is_array( $data['data'] ) && isset( $data['data']['activationData'] ) && is_array( $data['data']['activationData'] ) && isset( $data['data']['activationData']['token'] ) && is_string( $data['data']['activationData']['token'] ) ) {
+			return $data['data']['activationData']['token'];
+		}
+
+		return '';
 	}
 
 	/**
@@ -223,15 +287,15 @@ class Swift_CSV_License_Handler {
 			return [
 				'status'     => 'inactive',
 				'data'       => [],
-				'product_id' => self::PRODUCT_ID_PRO,
+				'product_id' => self::get_pro_product_id(),
 				'is_active'  => false,
 			];
 		}
 
 		// Prefer the Pro product entry; fall back to the first available.
-		if ( isset( $products[ self::PRODUCT_ID_PRO ] ) ) {
-			$entry      = $products[ self::PRODUCT_ID_PRO ];
-			$product_id = self::PRODUCT_ID_PRO;
+		if ( isset( $products[ self::get_pro_product_id() ] ) ) {
+			$entry      = $products[ self::get_pro_product_id() ];
+			$product_id = self::get_pro_product_id();
 		} else {
 			$entry      = reset( $products );
 			$product_id = (int) key( $products );
@@ -372,7 +436,7 @@ class Swift_CSV_License_Handler {
 		if ( ! is_array( $products ) ) {
 			$products = [];
 		}
-		$entry = $products[ self::PRODUCT_ID_PRO ] ?? [];
+		$entry = $products[ self::get_pro_product_id() ] ?? [];
 		if ( ! is_array( $entry ) ) {
 			$entry = [];
 		}
@@ -411,14 +475,12 @@ class Swift_CSV_License_Handler {
 			];
 		}
 
-		$product_id = self::PRODUCT_ID_PRO;
+		$product_id        = self::get_pro_product_id();
+		$remote_product_id = 0;
 		if ( isset( $result['data']['data']['productId'] ) ) {
-			$product_id = (int) $result['data']['data']['productId'];
+			$remote_product_id = (int) $result['data']['data']['productId'];
 		} elseif ( isset( $result['data']['productId'] ) ) {
-			$product_id = (int) $result['data']['productId'];
-		}
-		if ( $product_id <= 0 ) {
-			$product_id = self::PRODUCT_ID_PRO;
+			$remote_product_id = (int) $result['data']['productId'];
 		}
 
 		// Encrypt license key before saving.
@@ -432,7 +494,12 @@ class Swift_CSV_License_Handler {
 			'key'    => ! empty( $encrypted_key ) ? $encrypted_key : $license_key, // Fallback to plain text if encryption fails.
 			'status' => (string) ( $result['status'] ?? 'inactive' ),
 			'data'   => $result['data'] ?? [],
+			'token'  => self::extract_activation_token( $result['data'] ?? [] ),
 		];
+
+		if ( $remote_product_id > 0 && $remote_product_id !== $product_id && isset( $license_data['products'][ $remote_product_id ] ) ) {
+			unset( $license_data['products'][ $remote_product_id ] );
+		}
 
 		update_option( 'swift_csv_pro_license', $license_data );
 		delete_transient( 'swift_csv_pro_license_error' );
@@ -448,7 +515,24 @@ class Swift_CSV_License_Handler {
 	 * @return bool
 	 */
 	public static function is_pro_active() {
-		return self::is_product_active( self::PRODUCT_ID_PRO );
+		return self::is_product_active( self::get_pro_product_id() );
+	}
+
+	/**
+	 * Get the current Pro product ID.
+	 *
+	 * Uses the Pro main-file constant when available so migrations can be
+	 * managed from a single obvious place.
+	 *
+	 * @since 0.9.8
+	 * @return int
+	 */
+	public static function get_pro_product_id() {
+		if ( defined( 'SWIFT_CSV_PRO_PRODUCT_ID' ) && absint( SWIFT_CSV_PRO_PRODUCT_ID ) > 0 ) {
+			return absint( SWIFT_CSV_PRO_PRODUCT_ID );
+		}
+
+		return self::PRODUCT_ID_PRO;
 	}
 
 	/**
@@ -458,7 +542,31 @@ class Swift_CSV_License_Handler {
 	 * @return array License data structure
 	 */
 	private static function fetch_license_data() {
-		return get_option( 'swift_csv_pro_license', [] );
+		$license_data = get_option( 'swift_csv_pro_license', [] );
+
+		if ( ! is_array( $license_data ) ) {
+			return [];
+		}
+
+		if ( ! isset( $license_data['products'] ) || ! is_array( $license_data['products'] ) ) {
+			return $license_data;
+		}
+
+		$products = $license_data['products'];
+
+		$current_product_id = self::get_pro_product_id();
+
+		if ( isset( $products[ self::LEGACY_PRODUCT_ID_PRO ] ) && ! isset( $products[ $current_product_id ] ) ) {
+			$products[ $current_product_id ] = $products[ self::LEGACY_PRODUCT_ID_PRO ];
+		}
+
+		if ( isset( $products[ self::LEGACY_PRODUCT_ID_PRO ] ) ) {
+			unset( $products[ self::LEGACY_PRODUCT_ID_PRO ] );
+		}
+
+		$license_data['products'] = $products;
+
+		return $license_data;
 	}
 
 	/**

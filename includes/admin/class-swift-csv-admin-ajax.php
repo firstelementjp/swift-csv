@@ -86,13 +86,17 @@ class Swift_CSV_Admin_Ajax {
 		$handler = new Swift_CSV_License_Handler();
 		$result  = ( 'activate' === $action ) ? $handler->activate( $license_key ) : $handler->deactivate( $license_key );
 
-		// Determine the product ID from the remote response.
-		$product_id = class_exists( 'Swift_CSV_License_Handler' ) ? Swift_CSV_License_Handler::PRODUCT_ID_PRO : 0;
+		// Always persist under the configured local Pro product slot.
+		$product_id        = class_exists( 'Swift_CSV_License_Handler' ) ? Swift_CSV_License_Handler::get_pro_product_id() : 0;
+		$remote_product_id = 0;
 		if ( isset( $result['data']['data']['productId'] ) ) {
-			$product_id = (int) $result['data']['data']['productId'];
+			$remote_product_id = (int) $result['data']['data']['productId'];
 		} elseif ( isset( $result['data']['productId'] ) ) {
-			$product_id = (int) $result['data']['productId'];
+			$remote_product_id = (int) $result['data']['productId'];
 		}
+
+		$token         = class_exists( 'Swift_CSV_License_Handler' ) ? Swift_CSV_License_Handler::extract_activation_token( $result['data'] ?? [] ) : '';
+		$remote_status = isset( $result['status'] ) ? (string) $result['status'] : 'inactive';
 
 		$all_licenses = get_option( 'swift_csv_pro_license', [] );
 
@@ -106,18 +110,32 @@ class Swift_CSV_Admin_Ajax {
 		}
 
 		if ( $result && $result['success'] ) {
-			// Determine the local license status based on the requested action.
-			$local_status = ( 'activate' === $action ) ? 'active' : 'inactive';
+			$local_status = ( 'deactivate' === $action ) ? 'inactive' : $remote_status;
 
 			if ( $product_id > 0 ) {
 				$all_licenses['products'][ $product_id ] = [
 					'key'    => $license_key,
 					'status' => $local_status,
 					'data'   => $result['data'] ?? [],
+					'token'  => $token,
 				];
+
+				if ( $remote_product_id > 0 && $remote_product_id !== $product_id && isset( $all_licenses['products'][ $remote_product_id ] ) ) {
+					unset( $all_licenses['products'][ $remote_product_id ] );
+				}
 			}
 
 			update_option( 'swift_csv_pro_license', $all_licenses );
+
+			if ( 'activate' === $action && 'active' !== $local_status ) {
+				$message = isset( $result['message'] ) && is_string( $result['message'] ) && 'The operation was successful.' !== $result['message']
+					? $result['message']
+					: __( 'License activation failed. Please check that your license key is valid.', 'swift-csv' );
+
+				set_transient( 'swift_csv_pro_license_error', $message, 60 );
+				wp_send_json_error( [ 'message' => $message ] );
+			}
+
 			delete_transient( 'swift_csv_pro_license_error' );
 			wp_send_json_success( [ 'message' => $result['message'] ] );
 		}
@@ -127,7 +145,12 @@ class Swift_CSV_Admin_Ajax {
 				'key'    => $license_key,
 				'status' => 'inactive',
 				'data'   => $result['data'] ?? [],
+				'token'  => $token,
 			];
+
+			if ( $remote_product_id > 0 && $remote_product_id !== $product_id && isset( $all_licenses['products'][ $remote_product_id ] ) ) {
+				unset( $all_licenses['products'][ $remote_product_id ] );
+			}
 		}
 
 		update_option( 'swift_csv_pro_license', $all_licenses );

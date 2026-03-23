@@ -479,6 +479,25 @@ function startAjaxImport(importMethod) {
 	const abortController = new AbortController();
 	isImportCancelled = false;
 
+	const sendImportCancelSignal = () => {
+		if (!importSession) return;
+		const cancelFormData = new URLSearchParams({
+			action: 'swift_csv_cancel_import',
+			nonce: swiftCSV.nonce,
+			import_session: importSession,
+		});
+
+		fetch(swiftCSV.ajaxUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: cancelFormData,
+		}).catch(() => {
+			// ignore.
+		});
+	};
+
 	// Update button states
 	if (importBtn) {
 		importBtn.disabled = true;
@@ -490,9 +509,16 @@ function startAjaxImport(importMethod) {
 
 	// Cancel functionality
 	if (cancelBtn) {
-		cancelBtn.addEventListener('click', function () {
+		const existingCancelHandler = cancelBtn._swiftCsvImportCancelHandler;
+		if (existingCancelHandler) {
+			cancelBtn.removeEventListener('click', existingCancelHandler);
+			cancelBtn._swiftCsvImportCancelHandler = null;
+		}
+
+		const cancelHandler = function () {
 			isImportCancelled = true;
 			stopImportLogPolling({ abortRequest: true });
+			sendImportCancelSignal();
 			abortController.abort(); // Cancel the fetch request
 
 			// Reset progress bar
@@ -515,7 +541,10 @@ function startAjaxImport(importMethod) {
 			if (cancelBtn) {
 				cancelBtn.style.display = 'none';
 			}
-		});
+		};
+
+		cancelBtn._swiftCsvImportCancelHandler = cancelHandler;
+		cancelBtn.addEventListener('click', cancelHandler, { once: true });
 	}
 
 	// Start with first chunk (original 1-stage approach)

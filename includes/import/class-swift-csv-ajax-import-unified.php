@@ -37,6 +37,14 @@ class Swift_CSV_Ajax_Import_Unified {
 	private $request_parser;
 
 	/**
+	 * Import cancel manager.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Cancel_Manager|null
+	 */
+	private $cancel_manager;
+
+	/**
 	 * Constructor: Register AJAX hooks.
 	 *
 	 * @since 0.9.8
@@ -46,6 +54,7 @@ class Swift_CSV_Ajax_Import_Unified {
 		if ( $register_hooks ) {
 			add_action( 'wp_ajax_swift_csv_ajax_import', [ $this, 'handle' ] );
 			add_action( 'wp_ajax_swift_csv_ajax_import_logs', [ $this, 'handle_ajax_import_logs' ] );
+			add_action( 'wp_ajax_swift_csv_cancel_import', [ $this, 'handle_ajax_import_cancel' ] );
 		}
 	}
 
@@ -60,6 +69,19 @@ class Swift_CSV_Ajax_Import_Unified {
 			$this->request_parser = new Swift_CSV_Import_Request_Parser();
 		}
 		return $this->request_parser;
+	}
+
+	/**
+	 * Get import cancel manager.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Cancel_Manager
+	 */
+	private function get_cancel_manager(): Swift_CSV_Import_Cancel_Manager {
+		if ( null === $this->cancel_manager ) {
+			$this->cancel_manager = new Swift_CSV_Import_Cancel_Manager();
+		}
+		return $this->cancel_manager;
 	}
 
 	/**
@@ -126,6 +148,27 @@ class Swift_CSV_Ajax_Import_Unified {
 			$this->cleanup_output_buffers( $initial_ob_level );
 			wp_send_json_error( 'Import logs failed: ' . wp_kses_post( $e->getMessage() ) );
 		}
+	}
+
+	/**
+	 * Handle AJAX import cancellation.
+	 *
+	 * @since 0.9.8
+	 * @return void
+	 */
+	public function handle_ajax_import_cancel(): void {
+		check_ajax_referer( 'swift_csv_ajax_nonce', 'nonce' );
+
+		$import_session = $this->get_request_parser()->parse_import_session();
+		if ( '' === $import_session ) {
+			wp_send_json_error( 'Missing import session' );
+			return;
+		}
+
+		$this->get_cancel_manager()->cancel( $import_session );
+		$this->get_log_store()->cleanup( $import_session );
+
+		wp_send_json_success( 'Import cancellation signal sent' );
 	}
 
 	/**

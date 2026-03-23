@@ -5,6 +5,7 @@
 [![Version](https://img.shields.io/badge/version-0.9.8-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/firstelementjp/swift-csv)
 
 Swift CSV is a lightweight WordPress plugin for importing and exporting CSV data.
 It supports custom post types, custom taxonomies, custom fields, and Gutenberg block content.

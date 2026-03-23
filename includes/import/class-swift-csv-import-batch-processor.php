@@ -75,6 +75,14 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	private $row_processor_util;
 
 	/**
+	 * Import cancel manager.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Cancel_Manager|null
+	 */
+	private $cancel_manager;
+
+	/**
 	 * Constructor.
 	 *
 	 * Allows injecting dependencies for alternative import methods (e.g., direct SQL)
@@ -87,6 +95,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * @param Swift_CSV_Import_Persister|null          $persister_util Persister util.
 	 * @param Swift_CSV_Import_Row_Processor|null      $row_processor_util Row processor util.
 	 * @param Swift_CSV_Import_Taxonomy_Util|null      $taxonomy_util Taxonomy util.
+	 * @param Swift_CSV_Import_Cancel_Manager|null     $cancel_manager Import cancel manager.
 	 */
 	public function __construct(
 		?Swift_CSV_Ajax_Import_Batch_Planner $batch_planner = null,
@@ -94,7 +103,8 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		?Swift_CSV_Import_Meta_Tax $meta_tax_util = null,
 		?Swift_CSV_Import_Persister $persister_util = null,
 		?Swift_CSV_Import_Row_Processor $row_processor_util = null,
-		?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null
+		?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null,
+		?Swift_CSV_Import_Cancel_Manager $cancel_manager = null
 	) {
 		$this->batch_planner      = $batch_planner;
 		$this->row_context_util   = $row_context_util;
@@ -102,6 +112,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		$this->persister_util     = $persister_util;
 		$this->row_processor_util = $row_processor_util;
 		$this->taxonomy_util      = $taxonomy_util;
+		$this->cancel_manager     = $cancel_manager;
 	}
 
 	/**
@@ -143,6 +154,19 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 			$this->taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
 		}
 		return $this->taxonomy_util;
+	}
+
+	/**
+	 * Get import cancel manager.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Cancel_Manager
+	 */
+	private function get_cancel_manager(): Swift_CSV_Import_Cancel_Manager {
+		if ( null === $this->cancel_manager ) {
+			$this->cancel_manager = new Swift_CSV_Import_Cancel_Manager();
+		}
+		return $this->cancel_manager;
 	}
 
 	/**
@@ -192,6 +216,11 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	private function process_batch_import( array $config, array $csv_data, array &$counters ): void {
 		global $wpdb;
 
+		$import_session = (string) ( $config['import_session'] ?? '' );
+		if ( '' !== $import_session && $this->get_cancel_manager()->is_cancelled( $import_session ) ) {
+			return;
+		}
+
 		$row_context_util    = $this->get_row_context_util();
 		$row_processor_util  = $this->get_row_processor_util();
 		$persister_util      = $this->get_persister_util();
@@ -203,17 +232,35 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 			return;
 		}
 
-		$this->process_batch_loop(
-			$wpdb,
-			$config,
-			$csv_data,
-			$allowed_post_fields,
-			$counters,
-			$row_context_util,
-			$row_processor_util,
-			$persister_util,
-			$meta_tax_util
-		);
+		if ( isset( $csv_data['data'] ) && is_array( $csv_data['data'] ) ) {
+			$current_batch_data = array_slice( $csv_data['data'], $config['start_row'], $config['batch_size'] );
+			do_action(
+				'swift_csv_preload_relationship_data_for_batch',
+				$current_batch_data,
+				$csv_data['headers'],
+				[
+					'post_type' => (string) ( $config['post_type'] ?? 'post' ),
+				]
+			);
+		}
+
+		wp_defer_term_counting( true );
+
+		try {
+			$this->process_batch_loop(
+				$wpdb,
+				$config,
+				$csv_data,
+				$allowed_post_fields,
+				$counters,
+				$row_context_util,
+				$row_processor_util,
+				$persister_util,
+				$meta_tax_util
+			);
+		} finally {
+			wp_defer_term_counting( false );
+		}
 	}
 
 	/**
@@ -270,8 +317,13 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		Swift_CSV_Import_Meta_Tax $meta_tax_util
 	): void {
 		// Calculate end row once to avoid function calls in loop test.
-		$end_row = min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] );
+		$import_session = (string) ( $config['import_session'] ?? '' );
+		$end_row        = min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] );
 		for ( $i = $config['start_row']; $i < $end_row; $i++ ) {
+			if ( '' !== $import_session && $this->get_cancel_manager()->is_cancelled( $import_session ) ) {
+				break;
+			}
+
 			$this->process_import_loop_iteration(
 				$wpdb,
 				$config,

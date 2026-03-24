@@ -65,6 +65,7 @@ Swift CSV provides:
 git clone https://github.com/firstelementjp/swift-csv.git
 cd swift-csv
 composer install
+npm install
 ```
 
 After installing dependencies, place the plugin in your local WordPress environment and activate it from the admin dashboard.

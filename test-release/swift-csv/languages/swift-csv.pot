@@ -1,0 +1,284 @@
+# Copyright (C) 2026 FirstElement, Inc.
+# This file is distributed under the GPL-2.0+.
+msgid ""
+msgstr ""
+"Project-Id-Version: Swift CSV 0.9.8\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/swift-csv\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-03-18T05:50:15+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: swift-csv\n"
+
+#. Plugin Name of the plugin
+#: swift-csv.php
+msgid "Swift CSV"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: swift-csv.php
+msgid "https://github.com/firstelementjp/swift-csv"
+msgstr ""
+
+#. Description of the plugin
+#: swift-csv.php
+msgid "Lightweight and simple CSV import/export plugin. Supports custom post types, custom taxonomies, and custom fields."
+msgstr ""
+
+#. Author of the plugin
+#: swift-csv.php
+msgid "FirstElement, Inc."
+msgstr ""
+
+#. Author URI of the plugin
+#: swift-csv.php
+msgid "https://www.firstelement.co.jp/"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:52
+msgid "Export Settings"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:108
+msgid "Import Settings"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:148
+msgid "Advanced Settings"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:209
+msgid "Configure your CSV export settings below."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:218
+msgid "Configure advanced settings below."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:232
+#: includes/admin/class-swift-csv-admin-settings.php:480
+msgid "Post Type"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:280
+msgid "Safety"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:287
+msgid "Run UpdraftPlus database backup before executing import"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:299
+#: includes/admin/class-swift-csv-admin-settings.php:660
+msgid "Pro"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:305
+msgid "A backup dialog will open. Start the backup and the import will begin automatically after it completes."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:322
+msgid "Post Status"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:327
+msgid "Published posts only"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:331
+msgid "All statuses"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:349
+msgid "Export Content"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:354
+msgid "Basic Fields"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:358
+msgid "All Fields"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:362
+msgid "Hook-based customization is active. Export fields may be modified by code."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:380
+msgid "Taxonomies"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:385
+msgid "Include taxonomy columns"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:391
+msgid "Names (name)"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:395
+msgid "Term IDs (term_id)"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:399
+msgid "Display hierarchy"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:401
+msgid "Choose how taxonomy terms are exported: names for readability or term IDs for data integrity."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:419
+msgid "Custom Fields"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:424
+msgid "Include custom field columns"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:430
+msgid "Include private meta fields"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:449
+msgid "Export Limit"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:452
+msgid "No limit (0 = all)"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:453
+msgid "Maximum number of posts to export. Enter 0 for no limit."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:466
+msgid "Configure your CSV import settings below."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:505
+msgid "Update Existing"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:510
+msgid "Update existing posts if they match by ID"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:512
+msgid "If checked, existing posts will be updated. If unchecked, only new posts will be created."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:528
+msgid "Taxonomy Format"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:533
+msgid "Names"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:537
+msgid "Term IDs"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:539
+msgid "Select whether the term values in the CSV are names (text) or term IDs (numeric)."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:558
+msgid "Log Output"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:563
+msgid "Output logs during import and export"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:565
+msgid "If checked, detailed per-row logs will be generated and displayed during import and export. Disable for maximum speed."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:584
+msgid "Data Removal on Uninstall"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:589
+msgid "Remove all plugin data when uninstalling"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:591
+msgid "If checked, all plugin settings, transients, and custom database tables will be removed when the plugin is uninstalled. Uncheck to preserve data for future reinstallation."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:607
+msgid "Dry Run"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:612
+msgid "Test import without creating posts"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:614
+msgid "Run a test import to preview changes without modifying your data. (Dry Run)"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:648
+msgid "Execution Permission"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:653
+msgid "Administrators only"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:654
+msgid "Administrators and Editors"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:666
+msgid "Set which user roles can execute import and export operations."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:680
+msgid "Configure your license settings below."
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:699
+msgid "Pro License Key"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:716
+msgid "Show"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:719
+msgid "Deactivate"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:721
+msgid "Activate"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:728
+msgid "The license is valid."
+msgstr ""
+
+#. translators: 1: expiration date, 2: remaining days
+#: includes/admin/class-swift-csv-admin-settings.php:757
+msgid "License expiration date: %1$s (remaining %2$s days)"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:770
+msgid "Unlimited"
+msgstr ""
+
+#. translators: 1: times activated, 2: max activations
+#: includes/admin/class-swift-csv-admin-settings.php:773
+msgid "Activation count: %1$s / %2$s"
+msgstr ""
+
+#: includes/admin/class-swift-csv-admin-settings.php:781
+msgid "Enter the license key you received at the time of purchase and press the \"Activate\" button."
+msgstr ""

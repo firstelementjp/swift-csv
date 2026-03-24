@@ -192,7 +192,9 @@ function addLogEntry(message, level = 'info', context = 'export') {
 	if (!logContent) {
 		logContent = document.querySelector(`#${context}-log-content`);
 	}
-	if (!logContent) return;
+	if (!logContent) {
+		return;
+	}
 
 	// Get max log entries from localized data (default: 30)
 	const maxLogEntries = swiftCSV.maxLogEntries || 30;

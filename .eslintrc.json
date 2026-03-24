@@ -9,7 +9,6 @@
 		"no-shadow": "warn",
 		"object-shorthand": "warn",
 		"jsdoc/check-line-alignment": "warn",
-		"jsdoc/newline-after-description": "warn",
 		"@wordpress/i18n-text-domain": "off",
 		"@wordpress/i18n-no-variables": "off",
 		"indent": "off",

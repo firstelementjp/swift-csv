@@ -129,21 +129,6 @@ let globalCumulativeUpdated = 0;
 let globalCumulativeErrors = 0;
 
 /**
- * Check whether Dry Run import is enabled.
- *
- * @return {boolean} True when Dry Run is enabled.
- */
-function isDryRunImportEnabled() {
-	const dryRunCheckbox = document.querySelector('input[name="swift_csv_import_dry_run"]');
-
-	if (dryRunCheckbox) {
-		return dryRunCheckbox.checked;
-	}
-
-	return currentDryRun === '1';
-}
-
-/**
  * Helper function to truncate titles to the specified length.
  *
  * @param {string} title          Original title.
@@ -272,11 +257,17 @@ function stopImportLogPolling({ abortRequest = true } = {}) {
  * @return {Promise|undefined} Promise resolving when polling completes.
  */
 function pollImportLogs() {
-	if (isImportCancelled) return Promise.resolve();
+	if (isImportCancelled) {
+		return Promise.resolve();
+	}
 
-	if (currentEnableLogs !== '1') return Promise.resolve();
+	if (currentEnableLogs !== '1') {
+		return Promise.resolve();
+	}
 
-	if (!importSession) return Promise.resolve();
+	if (!importSession) {
+		return Promise.resolve();
+	}
 
 	if (importLogPollingAbortController) {
 		return importLogPollingPromise || Promise.resolve();
@@ -315,7 +306,9 @@ function pollImportLogs() {
 
 			if (payload.logs && Array.isArray(payload.logs) && payload.logs.length > 0) {
 				payload.logs.forEach(item => {
-					if (!item || !item.detail) return;
+					if (!item || !item.detail) {
+						return;
+					}
 					const detail = item.detail;
 					const dryRunPrefixText = String(swiftCSV.messages.dryRunPrefix || '');
 					const importPrefixText = String(swiftCSV.messages.importPrefix || '');
@@ -480,7 +473,9 @@ function startAjaxImport(importMethod) {
 	isImportCancelled = false;
 
 	const sendImportCancelSignal = () => {
-		if (!importSession) return;
+		if (!importSession) {
+			return;
+		}
 		const cancelFormData = new URLSearchParams({
 			action: 'swift_csv_cancel_import',
 			nonce: swiftCSV.nonce,
@@ -608,7 +603,9 @@ function processImportChunk(
 	startTime,
 	abortController
 ) {
-	if (isImportCancelled) return;
+	if (isImportCancelled) {
+		return;
+	}
 
 	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.processingChunk + ' ' + startRow, 'debug');
 
@@ -953,9 +950,15 @@ function displayImportLogs(recentLogs) {
 	const errorsLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunErrors || 'Errors');
 
 	// Clear all panels first
-	if (createdPanel) createdPanel.innerHTML = '';
-	if (updatedPanel) updatedPanel.innerHTML = '';
-	if (errorsPanel) errorsPanel.innerHTML = '';
+	if (createdPanel) {
+		createdPanel.innerHTML = '';
+	}
+	if (updatedPanel) {
+		updatedPanel.innerHTML = '';
+	}
+	if (errorsPanel) {
+		errorsPanel.innerHTML = '';
+	}
 
 	// Add initial "Ready to start import..." message if no logs exist
 	const hasAnyLogs =
@@ -965,9 +968,15 @@ function displayImportLogs(recentLogs) {
 
 	if (!hasAnyLogs) {
 		const readyMessage = swiftCSV.messages.readyToImport || 'Ready to start import...';
-		if (createdPanel) createdPanel.innerHTML = createLogEntry(readyMessage, 'info');
-		if (updatedPanel) updatedPanel.innerHTML = createLogEntry(readyMessage, 'info');
-		if (errorsPanel) errorsPanel.innerHTML = createLogEntry(readyMessage, 'info');
+		if (createdPanel) {
+			createdPanel.innerHTML = createLogEntry(readyMessage, 'info');
+		}
+		if (updatedPanel) {
+			updatedPanel.innerHTML = createLogEntry(readyMessage, 'info');
+		}
+		if (errorsPanel) {
+			errorsPanel.innerHTML = createLogEntry(readyMessage, 'info');
+		}
 		return;
 	}
 

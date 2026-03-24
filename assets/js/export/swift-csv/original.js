@@ -120,9 +120,13 @@ function handleAjaxExport(e) {
 	 * @return {Promise|undefined} Polling promise or undefined when disabled.
 	 */
 	function pollExportLogs() {
-		if (isCancelled) return;
+		if (isCancelled) {
+			return;
+		}
 
-		if (enableLogs !== '1') return Promise.resolve();
+		if (enableLogs !== '1') {
+			return Promise.resolve();
+		}
 
 		if (exportLogPollingAbortController) {
 			return exportLogPollingPromise || Promise.resolve();
@@ -163,7 +167,9 @@ function handleAjaxExport(e) {
 
 				if (payload.logs && Array.isArray(payload.logs) && payload.logs.length > 0) {
 					payload.logs.forEach(item => {
-						if (!item || !item.detail) return;
+						if (!item || !item.detail) {
+							return;
+						}
 						const detail = item.detail;
 						const prefixText = swiftCSV.messages.exportPrefix || 'Export';
 						const rowLabelText = swiftCSV.messages.rowLabel || 'Row';
@@ -193,8 +199,12 @@ function handleAjaxExport(e) {
 	 * Begin periodic export log polling when logging is enabled.
 	 */
 	function startExportLogPolling() {
-		if (exportLogPollingTimer) return;
-		if (enableLogs !== '1') return;
+		if (exportLogPollingTimer) {
+			return;
+		}
+		if (enableLogs !== '1') {
+			return;
+		}
 		pollExportLogs();
 		exportLogPollingTimer = setInterval(pollExportLogs, 2000);
 	}
@@ -318,7 +328,9 @@ function handleAjaxExport(e) {
 	 * @param {number} [startRow=0] CSV row offset to resume from.
 	 */
 	function processChunk(startRow = 0) {
-		if (isCancelled) return;
+		if (isCancelled) {
+			return;
+		}
 
 		currentExportAbortController = new AbortController();
 

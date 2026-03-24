@@ -46,27 +46,27 @@ swift-csv/
 ### Key Areas
 
 - **`includes/admin/`**
-  - Admin page registration
-  - Asset loading
-  - License and updater integration
+    - Admin page registration
+    - Asset loading
+    - License and updater integration
 
 - **`includes/export/`**
-  - Export request handling
-  - Batch processing
-  - CSV row generation
-  - Export logging and download flow
+    - Export request handling
+    - Batch processing
+    - CSV row generation
+    - Export logging and download flow
 
 - **`includes/import/`**
-  - Request parsing
-  - CSV parsing
-  - Row context creation
-  - Row processing and persistence
-  - Taxonomy resolution and writing
+    - Request parsing
+    - CSV parsing
+    - Row context creation
+    - Row processing and persistence
+    - Taxonomy resolution and writing
 
 - **`assets/js/`**
-  - Import and export UI behavior
-  - AJAX request orchestration
-  - Progress display and log updates
+    - Import and export UI behavior
+    - AJAX request orchestration
+    - Progress display and log updates
 
 ## Core Components
 

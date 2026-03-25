@@ -418,7 +418,7 @@ function startAjaxImport(importMethod) {
 		return;
 	}
 
-	const postType = document.querySelector('#import_post_type')?.value || 'post';
+	const postType = document.querySelector('#ajax_import_post_type')?.value || 'post';
 	const updateExisting = document.querySelector('input[name="swift_csv_import_update_existing"]')
 		?.checked
 		? '1'

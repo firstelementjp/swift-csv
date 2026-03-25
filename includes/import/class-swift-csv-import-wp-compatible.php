@@ -71,6 +71,24 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 			$import_session,
 			$append_log
 		);
+		error_log(
+			sprintf(
+				'[Swift CSV][Import Request Debug] %s',
+				wp_json_encode(
+					[
+						'start_row'           => $start_row,
+						'import_session'      => $import_session,
+						'post_type'           => (string) ( $config['post_type'] ?? '' ),
+						'update_existing'     => (string) ( $config['update_existing'] ?? '' ),
+						'dry_run'             => (bool) ( $config['dry_run'] ?? false ),
+						'enable_logs'         => (bool) $enable_logs,
+						'raw_post_type'       => isset( $_POST['post_type'] ) ? sanitize_text_field( wp_unslash( $_POST['post_type'] ) ) : null,
+						'raw_update_existing' => isset( $_POST['update_existing'] ) ? sanitize_text_field( wp_unslash( $_POST['update_existing'] ) ) : null,
+						'raw_dry_run'         => isset( $_POST['dry_run'] ) ? sanitize_text_field( wp_unslash( $_POST['dry_run'] ) ) : null,
+					]
+				)
+			)
+		);
 		if ( empty( $config ) ) {
 			if ( ! Swift_CSV_Ajax_Util::has_sent_response() ) {
 				Swift_CSV_Ajax_Util::send_error_response( 'Invalid import config' );

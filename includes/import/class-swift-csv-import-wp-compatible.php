@@ -100,15 +100,7 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		$batch_size           = $this->batch_processor->calculate_batch_size( $total_rows, $config );
 		$config['batch_size'] = $batch_size;
 
-		if ( $config['dry_run'] ) {
-			$cumulative_counts = [
-				'created' => 0,
-				'updated' => 0,
-				'errors'  => 0,
-			];
-		} else {
-			$cumulative_counts = $this->response_manager->get_cumulative_counts();
-		}
+		$cumulative_counts = $this->response_manager->get_cumulative_counts();
 
 		$previous_created = $cumulative_counts['created'];
 		$previous_updated = $cumulative_counts['updated'];

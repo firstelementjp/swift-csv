@@ -110,6 +110,22 @@ class Swift_CSV_Import_Row_Context {
 		$post_id   = $existing['post_id'];
 		$is_update = $existing['is_update'];
 
+		if ( '1' === $update_existing && ! $is_update && $post_id_from_csv > 0 ) {
+			error_log(
+				sprintf(
+					'[Swift CSV][Import Existing Post Miss] %s',
+					wp_json_encode(
+						[
+							'post_id_from_csv' => $post_id_from_csv,
+							'post_type'        => $post_type,
+							'update_existing'  => $update_existing,
+							'post_title'       => (string) ( $post_fields_from_csv['post_title'] ?? '' ),
+						]
+					)
+				)
+			);
+		}
+
 		if ( $this->maybe_skip_import_row_context( $update_existing, $post_fields_from_csv ) ) {
 			return null;
 		}
@@ -549,6 +565,29 @@ class Swift_CSV_Import_Row_Context {
 
 			if ( $post_id ) {
 				$is_update = true;
+			} else {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+				$existing_post_row = $wpdb->get_row(
+					$wpdb->prepare(
+						"SELECT ID, post_type, post_status, post_title FROM {$wpdb->posts} WHERE ID = %d",
+						$post_id_from_csv
+					),
+					ARRAY_A
+				);
+
+				error_log(
+					sprintf(
+						'[Swift CSV][Import Existing Post Lookup Miss] %s',
+						wp_json_encode(
+							[
+								'post_id_from_csv' => (int) $post_id_from_csv,
+								'post_type'        => (string) $post_type,
+								'update_existing'  => (string) $update_existing,
+								'actual_post'      => is_array( $existing_post_row ) ? $existing_post_row : null,
+							]
+						)
+					)
+				);
 			}
 		}
 

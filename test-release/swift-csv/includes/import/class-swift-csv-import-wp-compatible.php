@@ -48,6 +48,12 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 			return;
 		}
 
+		if ( $this->is_import_cancelled( $import_session ) ) {
+			$this->cleanup_import_session( $import_session );
+			Swift_CSV_Ajax_Util::send_error_response( 'Import cancelled by user' );
+			return;
+		}
+
 		Swift_CSV_Ajax_Util::set_stage( 'wp_compatible:parse_request' );
 		$start_row   = $this->request_parser->parse_start_row();
 		$enable_logs = $this->request_parser->parse_enable_logs();
@@ -110,6 +116,13 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 
 		$counters = $this->batch_processor->process_batch( $config, $csv_data );
 
+		if ( $this->is_import_cancelled( $import_session ) ) {
+			$this->response_manager->cleanup_temp_file_if_complete( false, $config['file_path'] );
+			$this->cleanup_import_session( $import_session );
+			Swift_CSV_Ajax_Util::send_error_response( 'Import cancelled by user' );
+			return;
+		}
+
 		if ( $enable_logs && ! empty( $counters['dry_run_details'] ) && is_array( $counters['dry_run_details'] ) ) {
 			foreach ( $counters['dry_run_details'] as $detail ) {
 				if ( ! is_array( $detail ) ) {
@@ -124,7 +137,7 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 
 		$this->response_manager->cleanup_temp_file_if_complete( $should_continue, $config['file_path'] );
 		if ( ! $should_continue ) {
-			$this->csv_store->cleanup( $import_session );
+			$this->cleanup_import_session( $import_session );
 		}
 		$recent_logs = $this->build_recent_logs_if_complete( $should_continue, $import_session );
 

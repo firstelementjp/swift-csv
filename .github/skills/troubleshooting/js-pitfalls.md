@@ -143,3 +143,35 @@ const checkModules = () => {
 ```
 
 **Lesson**: Always use specific child selectors for DOM manipulation. Never `innerHTML = ''` on a parent container that holds multiple UI elements. Wait for all module globals before initialization.
+
+---
+
+## #009 HTML/JavaScript Naming Convention Mismatch (2025-03-25)
+
+**Symptom**: Custom post type (e.g., `cafe-menu`) updates not working despite selecting correct post type in UI. Dry run always shows "Create" instead of "Update". Actual import neither updates nor creates posts.
+
+**Cause**: HTML id attribute and JavaScript selector mismatch:
+
+```html
+<!-- HTML -->
+<select name="swift_csv_import_post_type" id="ajax_import_post_type" required></select>
+```
+
+```javascript
+// JavaScript (WRONG)
+const postType = document.querySelector('#import_post_type')?.value || 'post';
+```
+
+Selector returns `null`, fallback to `'post'` always sent to server. Update query fails: `ID=123 AND post_type='post'` vs actual `cafe-menu`.
+
+**Fix** (`swift-csv-import.js`):
+
+```javascript
+// BEFORE
+const postType = document.querySelector('#import_post_type')?.value || 'post';
+
+// AFTER
+const postType = document.querySelector('#ajax_import_post_type')?.value || 'post';
+```
+
+**Lesson**: Always verify HTML/JavaScript naming convention consistency. Use debug logging to confirm actual sent values. Test with custom post types, not just default 'post'.

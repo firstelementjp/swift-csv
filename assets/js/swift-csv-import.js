@@ -678,24 +678,11 @@ function processImportChunk(
 						startTime,
 						abortController
 					);
-				} else if (enableLogs === '1') {
-					flushImportLogsAfterComplete({ attempts: 3, delayMs: 300 }).finally(() => {
-						stopImportLogPolling({ abortRequest: false });
-						if (data.recent_logs && !window.swiftCSVLogsDisplayed) {
-							try {
-								displayImportLogs(data.recent_logs);
-								window.swiftCSVLogsDisplayed = true;
-							} catch (e) {
-								console.error('Failed to display import logs:', e);
-							}
-						}
-						completeAjaxImport(data, importBtn, cancelBtn);
-					});
 				} else {
 					stopImportLogPolling({ abortRequest: false });
 					if (data.recent_logs && !window.swiftCSVLogsDisplayed) {
 						try {
-							displayImportLogs(data.recent_logs);
+							displayImportLogs(data.recent_logs, data);
 							window.swiftCSVLogsDisplayed = true;
 						} catch (e) {
 							console.error('Failed to display import logs:', e);
@@ -815,12 +802,13 @@ function updateImportProgress(data, startTime) {
 	} else if (data.errors !== undefined) {
 		globalCumulativeErrors += Number(data.errors) || 0;
 	}
+	const processedCount = Number(data.processed) || 0;
 
 	if (logCreatedEl) {
 		logCreatedEl.textContent = globalCumulativeCreated;
 	}
 	if (logUpdatedEl) {
-		logUpdatedEl.textContent = globalCumulativeUpdated;
+		logUpdatedEl.textContent = `${globalCumulativeUpdated} / ${processedCount}`;
 	}
 	if (logErrorEl) {
 		logErrorEl.textContent = globalCumulativeErrors;
@@ -925,9 +913,10 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 /**
  * Display import logs in tabs
  *
- * @param {Object} recentLogs Recent logs by type
+ * @param {Object} recentLogs    Recent logs by type.
+ * @param {Object} [summaryData] Summary counts from the final response.
  */
-function displayImportLogs(recentLogs) {
+function displayImportLogs(recentLogs, summaryData = {}) {
 	const createdPanel = document.querySelector('.log-panel[data-panel="created"] .log-content');
 	const updatedPanel = document.querySelector('.log-panel[data-panel="updated"] .log-content');
 	const errorsPanel = document.querySelector('.log-panel[data-panel="errors"] .log-content');
@@ -1089,6 +1078,10 @@ function displayImportLogs(recentLogs) {
 
 	// Add completion log and summary to appropriate panel
 	const summaryPrefix = isDryRun ? `${dryRunPrefixText}:` : `${importPrefixText}:`;
+	const createdTotal = Number(summaryData.cumulative_created ?? recentLogs.created?.total ?? 0);
+	const updatedTotal = Number(summaryData.cumulative_updated ?? recentLogs.updated?.total ?? 0);
+	const errorsTotal = Number(summaryData.cumulative_errors ?? recentLogs.errors?.total ?? 0);
+	const processedTotal = Number(summaryData.processed ?? 0);
 
 	// Add completion message
 	const completeMessage = isDryRun
@@ -1104,26 +1097,26 @@ function displayImportLogs(recentLogs) {
 	}
 
 	// Add summary logs to respective panels
-	if (recentLogs.created && recentLogs.created.total > 0) {
-		const createdSummary = `${summaryPrefix}${createdLabelText} ${recentLogs.created.total}`;
+	if (createdTotal > 0) {
+		const createdSummary = `${summaryPrefix}${createdLabelText} ${createdTotal}`;
 		if (createdPanel) {
 			createdPanel.innerHTML += createLogEntry(createdSummary, 'info');
 		}
 	}
 
-	if (recentLogs.updated && recentLogs.updated.total > 0) {
-		const updatedSummary = `${summaryPrefix}${updatedLabelText} ${recentLogs.updated.total}`;
+	if (updatedTotal > 0) {
+		const updatedSummary = `${summaryPrefix}${updatedLabelText} ${updatedTotal} / ${processedTotal}`;
 		if (updatedPanel) {
 			updatedPanel.innerHTML += createLogEntry(updatedSummary, 'info');
 		}
 	}
 
-	if (recentLogs.errors && recentLogs.errors.total > 0) {
-		const errorSummary = `${summaryPrefix}${errorsLabelText} ${recentLogs.errors.total}`;
+	if (errorsTotal > 0) {
+		const errorSummary = `${summaryPrefix}${errorsLabelText} ${errorsTotal}`;
 		if (errorsPanel) {
 			errorsPanel.innerHTML += createLogEntry(
 				errorSummary,
-				recentLogs.errors.total > 0 ? 'warning' : 'info'
+				errorsTotal > 0 ? 'warning' : 'info'
 			);
 		}
 	}

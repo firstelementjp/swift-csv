@@ -105,6 +105,7 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		$previous_created = $cumulative_counts['created'];
 		$previous_updated = $cumulative_counts['updated'];
 		$previous_errors  = $cumulative_counts['errors'];
+		$previous_skipped = $cumulative_counts['skipped'];
 
 		$counters = $this->batch_processor->process_batch( $config, $csv_data );
 
@@ -141,9 +142,11 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 			$counters['errors'],
 			$counters['created'],
 			$counters['updated'],
+			$counters['skipped'] ?? 0,
 			$previous_created,
 			$previous_updated,
 			$previous_errors,
+			$previous_skipped,
 			(bool) $config['dry_run'],
 			$counters['dry_run_log'],
 			$counters['dry_run_details'],

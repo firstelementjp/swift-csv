@@ -83,6 +83,14 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	private $cancel_manager;
 
 	/**
+	 * Change detection utility.
+	 *
+	 * @since 0.9.9
+	 * @var Swift_CSV_Import_Change_Detection|null
+	 */
+	private $change_detection;
+
+	/**
 	 * Constructor.
 	 *
 	 * Allows injecting dependencies for alternative import methods (e.g., direct SQL)
@@ -96,6 +104,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * @param Swift_CSV_Import_Row_Processor|null      $row_processor_util Row processor util.
 	 * @param Swift_CSV_Import_Taxonomy_Util|null      $taxonomy_util Taxonomy util.
 	 * @param Swift_CSV_Import_Cancel_Manager|null     $cancel_manager Import cancel manager.
+	 * @param Swift_CSV_Import_Change_Detection|null   $change_detection Change detection utility.
 	 */
 	public function __construct(
 		?Swift_CSV_Ajax_Import_Batch_Planner $batch_planner = null,
@@ -104,7 +113,8 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		?Swift_CSV_Import_Persister $persister_util = null,
 		?Swift_CSV_Import_Row_Processor $row_processor_util = null,
 		?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null,
-		?Swift_CSV_Import_Cancel_Manager $cancel_manager = null
+		?Swift_CSV_Import_Cancel_Manager $cancel_manager = null,
+		?Swift_CSV_Import_Change_Detection $change_detection = null
 	) {
 		$this->batch_planner      = $batch_planner;
 		$this->row_context_util   = $row_context_util;
@@ -113,6 +123,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		$this->row_processor_util = $row_processor_util;
 		$this->taxonomy_util      = $taxonomy_util;
 		$this->cancel_manager     = $cancel_manager;
+		$this->change_detection   = $change_detection;
 	}
 
 	/**
@@ -170,6 +181,19 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	}
 
 	/**
+	 * Get change detection utility.
+	 *
+	 * @since 0.9.9
+	 * @return Swift_CSV_Import_Change_Detection
+	 */
+	private function get_change_detection(): Swift_CSV_Import_Change_Detection {
+		if ( null === $this->change_detection ) {
+			$this->change_detection = new Swift_CSV_Import_Change_Detection();
+		}
+		return $this->change_detection;
+	}
+
+	/**
 	 * Execute the actual batch processing.
 	 *
 	 * @since 0.9.8
@@ -195,6 +219,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 			'processed'       => 0,
 			'created'         => 0,
 			'updated'         => 0,
+			'skipped'         => 0, // Added for change detection optimization.
 			'errors'          => 0,
 			'dry_run_log'     => [],
 			'dry_run_details' => [],
@@ -220,6 +245,10 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		if ( '' !== $import_session && $this->get_cancel_manager()->is_cancelled( $import_session ) ) {
 			return;
 		}
+
+		// Determine if change detection should be enabled for this dataset.
+		$total_rows           = $csv_data['total_rows'] ?? 0;
+		$use_change_detection = $this->get_change_detection()->should_enable_change_detection( $total_rows );
 
 		$row_context_util    = $this->get_row_context_util();
 		$row_processor_util  = $this->get_row_processor_util();
@@ -256,7 +285,8 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 				$row_context_util,
 				$row_processor_util,
 				$persister_util,
-				$meta_tax_util
+				$meta_tax_util,
+				$use_change_detection
 			);
 		} finally {
 			wp_defer_term_counting( false );
@@ -303,6 +333,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * @param Swift_CSV_Import_Row_Processor $row_processor_util Row processor util.
 	 * @param Swift_CSV_Import_Persister     $persister_util Persister util.
 	 * @param Swift_CSV_Import_Meta_Tax      $meta_tax_util Meta/tax util.
+	 * @param bool                           $use_change_detection Whether to use change detection optimization.
 	 * @return void
 	 */
 	protected function process_batch_loop(
@@ -314,7 +345,8 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		Swift_CSV_Import_Row_Context $row_context_util,
 		Swift_CSV_Import_Row_Processor $row_processor_util,
 		Swift_CSV_Import_Persister $persister_util,
-		Swift_CSV_Import_Meta_Tax $meta_tax_util
+		Swift_CSV_Import_Meta_Tax $meta_tax_util,
+		bool $use_change_detection = false
 	): void {
 		// Calculate end row once to avoid function calls in loop test.
 		$import_session = (string) ( $config['import_session'] ?? '' );
@@ -334,7 +366,8 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 				$row_context_util,
 				$row_processor_util,
 				$persister_util,
-				$meta_tax_util
+				$meta_tax_util,
+				$use_change_detection
 			);
 		}
 	}
@@ -353,6 +386,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * @param Swift_CSV_Import_Row_Processor $row_processor_util Row processor util.
 	 * @param Swift_CSV_Import_Persister     $persister_util Persister util.
 	 * @param Swift_CSV_Import_Meta_Tax      $meta_tax_util Meta/tax util.
+	 * @param bool                           $use_change_detection Whether to use change detection optimization.
 	 * @return void
 	 */
 	private function process_import_loop_iteration(
@@ -365,7 +399,8 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		Swift_CSV_Import_Row_Context $row_context_util,
 		Swift_CSV_Import_Row_Processor $row_processor_util,
 		Swift_CSV_Import_Persister $persister_util,
-		Swift_CSV_Import_Meta_Tax $meta_tax_util
+		Swift_CSV_Import_Meta_Tax $meta_tax_util,
+		bool $use_change_detection = false
 	): void {
 		$lines     = $csv_data['lines'];
 		$delimiter = $csv_data['delimiter'];
@@ -381,6 +416,50 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		$row_context = $this->build_import_row_context_from_config( $wpdb, $row_context_util, $config, $line, $delimiter, $headers, $allowed_post_fields );
 		if ( null === $row_context ) {
 			return;
+		}
+
+		// Apply change detection optimization if enabled and this is an update.
+		if ( $use_change_detection && $row_context['is_update'] ) {
+			$post_id              = $row_context['post_id'];
+			$post_fields_from_csv = $row_context['post_fields_from_csv'];
+
+			// Check if post data has changed.
+			$post_data_changed = $this->get_change_detection()->has_post_data_changed( $post_id, $post_fields_from_csv );
+
+			// Check if custom fields have changed (extract from CSV data).
+			$custom_fields_from_csv = [];
+			foreach ( $headers as $index => $header ) {
+				if ( ! in_array( $header, $allowed_post_fields, true ) && isset( $row_context['data'][ $index ] ) ) {
+					$custom_fields_from_csv[ $header ] = $row_context['data'][ $index ];
+				}
+			}
+			$custom_fields_changed = empty( $custom_fields_from_csv ) ? false :
+				$this->get_change_detection()->has_custom_fields_changed( $post_id, $custom_fields_from_csv );
+
+			// If nothing changed, skip this row.
+			if ( ! $post_data_changed && ! $custom_fields_changed ) {
+				++$counters['skipped'];
+				++$counters['processed'];
+
+				// Log the skip if logging is enabled.
+				if ( isset( $config['append_log'] ) && is_callable( $config['append_log'] ) ) {
+					$row_number = $config['start_row'] + $index + 1;
+					$post_title = $post_fields_from_csv['post_title'] ?? 'Untitled';
+
+					$detail = [
+						'row'     => $row_number,
+						'action'  => 'skip',
+						'title'   => $post_title,
+						'post_id' => $post_id,
+						'status'  => 'skipped',
+						'details' => 'No changes detected - skipped for optimization',
+					];
+
+					call_user_func( $config['append_log'], $detail );
+				}
+
+				return;
+			}
 		}
 
 		$context = $this->build_row_processing_context( $config, $csv_data, $headers, $allowed_post_fields );

@@ -48,9 +48,11 @@ class Swift_CSV_Import_Response_Manager {
 	 * @param int   $errors Error count.
 	 * @param int   $created Created count.
 	 * @param int   $updated Updated count.
+	 * @param int   $skipped Skipped count (for change detection optimization).
 	 * @param int   $previous_created Previous cumulative created.
 	 * @param int   $previous_updated Previous cumulative updated.
 	 * @param int   $previous_errors Previous cumulative errors.
+	 * @param int   $previous_skipped Previous cumulative skipped.
 	 * @param bool  $dry_run Dry run flag.
 	 * @param array $dry_run_log Dry run log.
 	 * @param array $dry_run_details Detailed dry run results.
@@ -64,12 +66,14 @@ class Swift_CSV_Import_Response_Manager {
 		int $errors,
 		int $created,
 		int $updated,
-		int $previous_created,
-		int $previous_updated,
-		int $previous_errors,
-		bool $dry_run,
-		array $dry_run_log,
-		array $dry_run_details,
+		int $skipped = 0,
+		int $previous_created = 0,
+		int $previous_updated = 0,
+		int $previous_errors = 0,
+		int $previous_skipped = 0,
+		bool $dry_run = false,
+		array $dry_run_log = [],
+		array $dry_run_details = [],
 		array $recent_logs = []
 	): void {
 		$next_row = $start_row + $processed; // Use actual processed count.
@@ -82,11 +86,14 @@ class Swift_CSV_Import_Response_Manager {
 				'total'              => $total_rows,
 				'batch_processed'    => $processed,
 				'batch_errors'       => $errors,
+				'batch_skipped'      => $skipped,
 				'created'            => $created,
 				'updated'            => $updated,
+				'skipped'            => $skipped,
 				'errors'             => $errors,
 				'cumulative_created' => $previous_created + $created,
 				'cumulative_updated' => $previous_updated + $updated,
+				'cumulative_skipped' => $previous_skipped + $skipped,
 				'cumulative_errors'  => $previous_errors + $errors,
 				'progress'           => round( ( $next_row / $total_rows ) * 100, 2 ),
 				'continue'           => $continue,
@@ -144,12 +151,14 @@ class Swift_CSV_Import_Response_Manager {
 		$previous_created = isset( $_POST['cumulative_created'] ) ? absint( wp_unslash( $_POST['cumulative_created'] ) ) : 0;
 		$previous_updated = isset( $_POST['cumulative_updated'] ) ? absint( wp_unslash( $_POST['cumulative_updated'] ) ) : 0;
 		$previous_errors  = isset( $_POST['cumulative_errors'] ) ? absint( wp_unslash( $_POST['cumulative_errors'] ) ) : 0;
+		$previous_skipped = isset( $_POST['cumulative_skipped'] ) ? absint( wp_unslash( $_POST['cumulative_skipped'] ) ) : 0;
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		return [
 			'created' => $previous_created,
 			'updated' => $previous_updated,
 			'errors'  => $previous_errors,
+			'skipped' => $previous_skipped,
 		];
 	}
 }

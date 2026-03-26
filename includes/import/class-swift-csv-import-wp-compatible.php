@@ -75,6 +75,7 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 			sprintf(
 				'[Swift CSV][Import Request Debug] %s',
 				wp_json_encode(
+					// phpcs:disable WordPress.Security.NonceVerification.Missing
 					[
 						'start_row'           => $start_row,
 						'import_session'      => $import_session,
@@ -86,6 +87,7 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 						'raw_update_existing' => isset( $_POST['update_existing'] ) ? sanitize_text_field( wp_unslash( $_POST['update_existing'] ) ) : null,
 						'raw_dry_run'         => isset( $_POST['dry_run'] ) ? sanitize_text_field( wp_unslash( $_POST['dry_run'] ) ) : null,
 					]
+					// phpcs:enable WordPress.Security.NonceVerification.Missing
 				)
 			)
 		);

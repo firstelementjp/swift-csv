@@ -111,6 +111,7 @@ class Swift_CSV_Import_Log_Store {
 		$last_id = isset( $store['last_id'] ) ? (int) $store['last_id'] : 0;
 		$new_id  = $last_id + 1;
 		$logs    = isset( $store['logs'] ) && is_array( $store['logs'] ) ? $store['logs'] : [];
+		$detail  = $this->normalize_detail( $detail );
 
 		$logs[] = [
 			'id'     => $new_id,
@@ -131,6 +132,31 @@ class Swift_CSV_Import_Log_Store {
 		);
 
 		return $new_id;
+	}
+
+	/**
+	 * Normalize log detail payload before persisting it.
+	 *
+	 * @since 0.9.8
+	 * @param array $detail Raw detail payload.
+	 * @return array<string, mixed>
+	 */
+	private function normalize_detail( array $detail ): array {
+		$normalized = [
+			'row'     => isset( $detail['row'] ) ? absint( $detail['row'] ) : null,
+			'action'  => isset( $detail['action'] ) ? sanitize_key( (string) $detail['action'] ) : '',
+			'title'   => isset( $detail['title'] ) ? sanitize_text_field( (string) $detail['title'] ) : '',
+			'post_id' => isset( $detail['post_id'] ) ? absint( $detail['post_id'] ) : 0,
+			'status'  => isset( $detail['status'] ) ? sanitize_key( (string) $detail['status'] ) : '',
+			'details' => isset( $detail['details'] ) ? sanitize_textarea_field( (string) $detail['details'] ) : '',
+		];
+
+		return array_filter(
+			$normalized,
+			static function ( $value ) {
+				return null !== $value && '' !== $value;
+			}
+		);
 	}
 
 	/**

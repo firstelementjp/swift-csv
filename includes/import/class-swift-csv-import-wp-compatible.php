@@ -153,6 +153,10 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		}
 		$recent_logs = $this->build_recent_logs_if_complete( $should_continue, $import_session );
 
+		$counters['dry_run_log']     = [];
+		$counters['dry_run_details'] = [];
+		unset( $csv_content, $csv_data );
+
 		Swift_CSV_Ajax_Util::set_stage( 'wp_compatible:send_response' );
 		$this->response_manager->send_import_progress_response(
 			$config['start_row'],

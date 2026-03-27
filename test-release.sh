@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-BRANCH="develop"
+BRANCH="${1:-$(git rev-parse --abbrev-ref HEAD)}"
 RELEASE_DIR="test-release"
 TAG="v0.9.8-dev"
 ZIP_NAME="swift-csv-$TAG.zip"

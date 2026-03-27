@@ -148,10 +148,10 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		$should_continue = $next_row < $total_rows;
 
 		$this->response_manager->cleanup_temp_file_if_complete( $should_continue, $config['file_path'] );
+		$recent_logs = $this->build_recent_logs_if_complete( $should_continue, $import_session );
 		if ( ! $should_continue ) {
 			$this->cleanup_import_session( $import_session );
 		}
-		$recent_logs = $this->build_recent_logs_if_complete( $should_continue, $import_session );
 
 		Swift_CSV_Ajax_Util::set_stage( 'wp_compatible:send_response' );
 		$this->response_manager->send_import_progress_response(

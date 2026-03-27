@@ -196,11 +196,16 @@ function appendImportRealtimeLog({ message, level, action, status }) {
 		return;
 	}
 
-	let panelKey = 'created';
+	const updateExisting = document.querySelector(
+		'input[name="swift_csv_import_update_existing"]'
+	)?.checked;
+	let panelKey = updateExisting ? 'updated' : 'created';
 	if ('error' === status) {
 		panelKey = 'errors';
 	} else if ('update' === action) {
 		panelKey = 'updated';
+	} else if ('create' === action) {
+		panelKey = 'created';
 	}
 
 	const logContent = document.querySelector(
@@ -321,9 +326,15 @@ function pollImportLogs() {
 					const rowText = `${swiftCSV.messages.rowLabel}${detail.row}`;
 					const metaText = `${prefixText}:${rowText}:${actionText}`;
 					const logMessage = `[${metaText}]${truncatedTitle}`;
+					let logLevel = 'info';
+					if (detail.status === 'error') {
+						logLevel = 'error';
+					} else if (detail.status === 'success') {
+						logLevel = 'success';
+					}
 					appendImportRealtimeLog({
 						message: logMessage,
-						level: detail.status === 'success' ? 'success' : 'error',
+						level: logLevel,
 						action: detail.action,
 						status: detail.status,
 					});
@@ -397,6 +408,10 @@ function startAjaxImport(importMethod) {
 	globalCumulativeUpdated = 0;
 	globalCumulativeErrors = 0;
 
+	// Prepare tab state before writing initial logs.
+	initializeLogTabs();
+	window.swiftCSVLogTabsInitialized = true;
+
 	// Clear import log
 	clearLog('import');
 	addLogEntry(swiftCSV.messages.startingImport, 'info', 'import');
@@ -449,9 +464,6 @@ function startAjaxImport(importMethod) {
 	if (importBtn) {
 		importBtn.dataset.originalText = importBtn.textContent;
 	}
-
-	// Clear import logs
-	clearLog('import');
 
 	// Log import settings
 	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.fileInfo + ' ' + file.name, 'debug');

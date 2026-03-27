@@ -135,7 +135,7 @@ class Swift_CSV_Import_Csv {
 	 * @return array<int, string>
 	 */
 	public function read_and_normalize_headers( array &$lines, string $delimiter ): array {
-		$headers = str_getcsv( (string) array_shift( $lines ), $delimiter );
+		$headers = str_getcsv( (string) array_shift( $lines ), $delimiter, '"', '' );
 		// Normalize headers - remove BOM and control characters.
 		$headers = array_map(
 			function ( $header ): string {
@@ -160,7 +160,7 @@ class Swift_CSV_Import_Csv {
 	 * @return array<int, string>
 	 */
 	public function parse_csv_row( string $line, string $delimiter ): array {
-		return str_getcsv( $line, $delimiter );
+		return str_getcsv( $line, $delimiter, '"', '' );
 	}
 
 	/**

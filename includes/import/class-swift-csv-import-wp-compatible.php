@@ -95,9 +95,20 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		$total_rows             = (int) ( $csv_data['total_rows'] ?? 0 );
 		$csv_data['total_rows'] = $total_rows;
 
-		$batch_size              = $this->batch_processor->calculate_batch_size( $total_rows, $config );
-		$config['batch_size']    = $batch_size;
-		$csv_data['batch_lines'] = $this->csv_parser->read_batch_lines( $file_path, $start_row, $batch_size );
+		$batch_size                 = $this->batch_processor->calculate_batch_size( $total_rows, $config );
+		$config['batch_size']       = $batch_size;
+		$batch_read_result          = $this->csv_parser->read_batch_lines(
+			$file_path,
+			$start_row,
+			$batch_size,
+			(int) ( $csv_data['data_start_offset'] ?? 0 ),
+			(int) ( $csv_data['next_offset'] ?? 0 ),
+			(int) ( $csv_data['next_start_row'] ?? 0 )
+		);
+		$csv_data['batch_lines']    = $batch_read_result['lines'];
+		$csv_data['next_offset']    = (int) $batch_read_result['next_offset'];
+		$csv_data['next_start_row'] = (int) $batch_read_result['next_start_row'];
+		$this->csv_store->set( $import_session, $csv_data );
 
 		$cumulative_counts = $this->response_manager->get_cumulative_counts();
 

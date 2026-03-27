@@ -84,10 +84,11 @@ class Swift_CSV_Import_Csv_Parser {
 			$delimiter = $this->get_csv_util()->detect_csv_delimiter( [ $first_line ] );
 
 			// Read and normalize headers.
-			$headers = array_map(
+			$headers           = array_map(
 				[ $this->get_csv_util(), 'normalize_field_name' ],
 				str_getcsv( $first_line, $delimiter )
 			);
+			$data_start_offset = ftell( $handle );
 
 			$taxonomy_format = isset( $config['taxonomy_format'] ) ? (string) $config['taxonomy_format'] : '';
 			if ( '' === $taxonomy_format ) {
@@ -132,6 +133,9 @@ class Swift_CSV_Import_Csv_Parser {
 				'headers'                    => $headers,
 				'taxonomy_format_validation' => $taxonomy_format_validation,
 				'total_rows'                 => $total_rows,
+				'data_start_offset'          => false === $data_start_offset ? 0 : (int) $data_start_offset,
+				'next_offset'                => false === $data_start_offset ? 0 : (int) $data_start_offset,
+				'next_start_row'             => 0,
 			];
 		} catch ( Throwable $t ) {
 			Swift_CSV_Ajax_Util::send_error_response( 'CSV parser error: ' . $t->getMessage() );
@@ -146,32 +150,50 @@ class Swift_CSV_Import_Csv_Parser {
 	 * @param string $file_path Temporary file path.
 	 * @param int    $start_row Start row offset.
 	 * @param int    $batch_size Batch size.
-	 * @return array<int, string>
+	 * @param int    $data_start_offset Byte offset where data rows begin.
+	 * @param int    $next_offset Cached next byte offset.
+	 * @param int    $next_start_row Row number associated with cached next offset.
+	 * @return array{lines: array<int, string>, next_offset: int, next_start_row: int}
 	 */
-	public function read_batch_lines( string $file_path, int $start_row, int $batch_size ): array {
+	public function read_batch_lines( string $file_path, int $start_row, int $batch_size, int $data_start_offset = 0, int $next_offset = 0, int $next_start_row = 0 ): array {
 		$handle = fopen( $file_path, 'rb' );
 		if ( false === $handle ) {
-			return [];
+			return [
+				'lines'          => [],
+				'next_offset'    => 0,
+				'next_start_row' => $start_row,
+			];
 		}
 
-		$logical_row_index = -1;
+		$logical_row_index = 0;
 		$batch_lines       = [];
 		$target_end_row    = $start_row + max( 0, $batch_size );
+		$current_offset    = $data_start_offset;
 
 		try {
-			while ( null !== ( $line = $this->read_next_logical_line( $handle ) ) ) {
-				++$logical_row_index;
+			if ( $start_row > 0 && $next_start_row === $start_row && $next_offset > 0 ) {
+				if ( 0 === fseek( $handle, $next_offset ) ) {
+					$current_offset    = $next_offset;
+					$logical_row_index = $start_row;
+				}
+			} elseif ( $data_start_offset > 0 ) {
+				if ( 0 === fseek( $handle, $data_start_offset ) ) {
+					$current_offset = $data_start_offset;
+				}
+			}
 
-				if ( 0 === $logical_row_index ) {
-					continue;
+			while ( null !== ( $line = $this->read_next_logical_line( $handle ) ) ) {
+				$current_offset_after_line = ftell( $handle );
+				if ( false !== $current_offset_after_line ) {
+					$current_offset = (int) $current_offset_after_line;
 				}
 
-				$data_row_index = $logical_row_index - 1;
-				if ( $data_row_index >= $start_row && $data_row_index < $target_end_row ) {
+				if ( $logical_row_index >= $start_row && $logical_row_index < $target_end_row ) {
 					$batch_lines[] = $line;
 				}
+				++$logical_row_index;
 
-				if ( $data_row_index + 1 >= $target_end_row ) {
+				if ( $logical_row_index >= $target_end_row ) {
 					break;
 				}
 			}
@@ -179,7 +201,11 @@ class Swift_CSV_Import_Csv_Parser {
 			fclose( $handle );
 		}
 
-		return $batch_lines;
+		return [
+			'lines'          => $batch_lines,
+			'next_offset'    => $current_offset,
+			'next_start_row' => $logical_row_index,
+		];
 	}
 
 	/**

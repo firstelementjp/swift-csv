@@ -102,6 +102,45 @@ class Swift_CSV_Import_Row_Processor {
 	}
 
 	/**
+	 * Append error detail to logs.
+	 *
+	 * @since 0.9.0
+	 * @param array    $context Row processing context.
+	 * @param array    $counters Counters.
+	 * @param array    $post_fields_from_csv Post fields collected from CSV.
+	 * @param bool     $is_update Whether this row updates an existing post.
+	 * @param int|null $post_id Post ID.
+	 * @param string   $message Error message.
+	 * @return void
+	 */
+	private function append_error_detail(
+		array $context,
+		array &$counters,
+		array $post_fields_from_csv,
+		bool $is_update,
+		$post_id,
+		string $message
+	): void {
+		$row_number = $context['start_row'] + $counters['processed'] + 1;
+		$post_title = $post_fields_from_csv['post_title'] ?? 'Untitled';
+
+		$detail = [
+			'row'     => $row_number,
+			'action'  => $is_update ? 'update' : 'create',
+			'title'   => $post_title,
+			'post_id' => $post_id,
+			'status'  => 'error',
+			'details' => $message,
+		];
+
+		if ( isset( $context['append_log'] ) && is_callable( $context['append_log'] ) ) {
+			call_user_func( $context['append_log'], $detail );
+		} elseif ( isset( $counters['dry_run_details'] ) ) {
+			$counters['dry_run_details'][] = $detail;
+		}
+	}
+
+	/**
 	 * Process an import row context using a persister instance.
 	 *
 	 * This is a simplified API that avoids injecting the persisting callable.
@@ -261,32 +300,31 @@ class Swift_CSV_Import_Row_Processor {
 		} catch ( Exception $e ) {
 			++$errors;
 
-			$row_number = $context['start_row'] + $counters['processed'] + 1; // Correct row number.
-			$post_title = $post_fields_from_csv['post_title'] ?? 'Untitled';
-
-			$detail = [
-				'row'     => $row_number,
-				'action'  => $is_update ? 'update' : 'create',
-				'title'   => $post_title,
-				'post_id' => $post_id,
-				'status'  => 'error',
-				'details' => sprintf(
+			$this->append_error_detail(
+				$context,
+				$counters,
+				$post_fields_from_csv,
+				$is_update,
+				$post_id,
+				sprintf(
 					// translators: %s: Error message from exception.
 					__( 'Error: %1$s', 'swift-csv' ),
 					$e->getMessage()
-				),
-			];
-
-			if ( isset( $context['append_log'] ) && is_callable( $context['append_log'] ) ) {
-				call_user_func( $context['append_log'], $detail );
-			} elseif ( isset( $counters['dry_run_details'] ) ) {
-				$counters['dry_run_details'][] = $detail;
-			}
+				)
+			);
 
 			return;
 		}
 
 		if ( ! $this->handle_row_result_after_persist_without_callbacks( $persist_result['db_result'], $counters ) ) {
+			$this->append_error_detail(
+				$context,
+				$counters,
+				$post_fields_from_csv,
+				$is_update,
+				$post_id,
+				__( 'Error: Failed to save the post.', 'swift-csv' )
+			);
 			return;
 		}
 

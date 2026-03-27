@@ -252,7 +252,7 @@ function clearLog(context = 'all') {
 	} else {
 		if ('import' === context) {
 			const logContents = document.querySelectorAll(
-				'.swift-csv-import-logs .log-panel .log-content'
+				'.swift-csv-logs-area .log-panel .log-content'
 			);
 			if (logContents.length) {
 				logContents.forEach(content => (content.innerHTML = ''));

@@ -70,6 +70,10 @@ class Swift_CSV_Import_Csv_Store {
 	 * @return void
 	 */
 	public function set( string $import_session, array $csv_data ): void {
+		unset( $csv_data['batch_lines'] );
+		unset( $csv_data['data'] );
+		unset( $csv_data['lines'] );
+
 		set_transient( $this->get_transient_key( $import_session ), $csv_data, $this->ttl );
 	}
 

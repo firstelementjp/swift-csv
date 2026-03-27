@@ -86,7 +86,7 @@ class Swift_CSV_Import_Csv_Parser {
 			// Read and normalize headers.
 			$headers           = array_map(
 				[ $this->get_csv_util(), 'normalize_field_name' ],
-				str_getcsv( $first_line, $delimiter )
+				str_getcsv( $first_line, $delimiter, '"', '' )
 			);
 			$data_start_offset = ftell( $handle );
 

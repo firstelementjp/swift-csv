@@ -76,8 +76,13 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 			return;
 		}
 
+		$batch_started_at   = microtime( true );
+		$batch_memory_start = memory_get_usage( true );
+
 		Swift_CSV_Ajax_Util::set_stage( 'wp_compatible:ensure_csv_data' );
-		$csv_data = $this->ensure_csv_data_available( $csv_data, $start_row, $file_path, $config, $import_session );
+		$ensure_started_at = microtime( true );
+		$csv_data          = $this->ensure_csv_data_available( $csv_data, $start_row, $file_path, $config, $import_session );
+		$ensure_elapsed    = microtime( true ) - $ensure_started_at;
 		if ( null === $csv_data ) {
 			if ( ! Swift_CSV_Ajax_Util::has_sent_response() ) {
 				Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed' );
@@ -97,6 +102,7 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 
 		$batch_size                 = $this->batch_processor->calculate_batch_size( $total_rows, $config );
 		$config['batch_size']       = $batch_size;
+		$read_started_at            = microtime( true );
 		$batch_read_result          = $this->csv_parser->read_batch_lines(
 			$file_path,
 			$start_row,
@@ -105,6 +111,7 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 			(int) ( $csv_data['next_offset'] ?? 0 ),
 			(int) ( $csv_data['next_start_row'] ?? 0 )
 		);
+		$read_elapsed               = microtime( true ) - $read_started_at;
 		$csv_data['batch_lines']    = $batch_read_result['lines'];
 		$csv_data['next_offset']    = (int) $batch_read_result['next_offset'];
 		$csv_data['next_start_row'] = (int) $batch_read_result['next_start_row'];
@@ -116,7 +123,9 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		$previous_updated = $cumulative_counts['updated'];
 		$previous_errors  = $cumulative_counts['errors'];
 
-		$counters = $this->batch_processor->process_batch( $config, $csv_data );
+		$process_started_at = microtime( true );
+		$counters           = $this->batch_processor->process_batch( $config, $csv_data );
+		$process_elapsed    = microtime( true ) - $process_started_at;
 
 		if ( $this->is_import_cancelled( $import_session ) ) {
 			$this->response_manager->cleanup_temp_file_if_complete( false, $config['file_path'] );
@@ -138,10 +147,33 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		$should_continue = $next_row < $total_rows;
 
 		$this->response_manager->cleanup_temp_file_if_complete( $should_continue, $config['file_path'] );
+		$recent_logs = $this->build_recent_logs_if_complete( $should_continue, $import_session );
 		if ( ! $should_continue ) {
 			$this->cleanup_import_session( $import_session );
 		}
-		$recent_logs = $this->build_recent_logs_if_complete( $should_continue, $import_session );
+
+		if ( $enable_logs && is_callable( $append_log ) ) {
+			$append_log(
+				[
+					'action'  => 'profile',
+					'status'  => 'info',
+					'row'     => $start_row + 1,
+					'title'   => 'Batch profile',
+					'details' => sprintf(
+						'start=%d size=%d processed=%d ensure=%.4fs read=%.4fs process=%.4fs total=%.4fs memory_delta=%d peak=%d',
+						$start_row,
+						$batch_size,
+						(int) $counters['processed'],
+						$ensure_elapsed,
+						$read_elapsed,
+						$process_elapsed,
+						microtime( true ) - $batch_started_at,
+						memory_get_usage( true ) - $batch_memory_start,
+						memory_get_peak_usage( true )
+					),
+				]
+			);
+		}
 
 		$counters['dry_run_log']     = [];
 		$counters['dry_run_details'] = [];

@@ -166,7 +166,7 @@ class Swift_CSV_Helper {
 		}
 
 		$first_line  = $lines[0];
-		$header_data = str_getcsv( $first_line, $delimiter );
+		$header_data = str_getcsv( $first_line, $delimiter, '"', '' );
 
 		foreach ( $header_data as $header ) {
 			$normalized_header = trim( (string) $header );
@@ -204,7 +204,7 @@ class Swift_CSV_Helper {
 	 * @return array Parsed CSV row data.
 	 */
 	public static function parse_csv_row( $line, $delimiter ) {
-		return str_getcsv( $line, $delimiter );
+		return str_getcsv( $line, $delimiter, '"', '' );
 	}
 
 	/**

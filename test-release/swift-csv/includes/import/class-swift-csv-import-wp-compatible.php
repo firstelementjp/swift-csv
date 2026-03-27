@@ -71,6 +71,24 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 			$import_session,
 			$append_log
 		);
+		error_log(
+			sprintf(
+				'[Swift CSV][Import Request Debug] %s',
+				wp_json_encode(
+					[
+						'start_row'           => $start_row,
+						'import_session'      => $import_session,
+						'post_type'           => (string) ( $config['post_type'] ?? '' ),
+						'update_existing'     => (string) ( $config['update_existing'] ?? '' ),
+						'dry_run'             => (bool) ( $config['dry_run'] ?? false ),
+						'enable_logs'         => (bool) $enable_logs,
+						'raw_post_type'       => isset( $_POST['post_type'] ) ? sanitize_text_field( wp_unslash( $_POST['post_type'] ) ) : null,
+						'raw_update_existing' => isset( $_POST['update_existing'] ) ? sanitize_text_field( wp_unslash( $_POST['update_existing'] ) ) : null,
+						'raw_dry_run'         => isset( $_POST['dry_run'] ) ? sanitize_text_field( wp_unslash( $_POST['dry_run'] ) ) : null,
+					]
+				)
+			)
+		);
 		if ( empty( $config ) ) {
 			if ( ! Swift_CSV_Ajax_Util::has_sent_response() ) {
 				Swift_CSV_Ajax_Util::send_error_response( 'Invalid import config' );
@@ -100,15 +118,7 @@ class Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base {
 		$batch_size           = $this->batch_processor->calculate_batch_size( $total_rows, $config );
 		$config['batch_size'] = $batch_size;
 
-		if ( $config['dry_run'] ) {
-			$cumulative_counts = [
-				'created' => 0,
-				'updated' => 0,
-				'errors'  => 0,
-			];
-		} else {
-			$cumulative_counts = $this->response_manager->get_cumulative_counts();
-		}
+		$cumulative_counts = $this->response_manager->get_cumulative_counts();
 
 		$previous_created = $cumulative_counts['created'];
 		$previous_updated = $cumulative_counts['updated'];

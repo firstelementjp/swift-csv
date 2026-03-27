@@ -4,7 +4,7 @@
  * Plugin URI:   https://github.com/firstelementjp/swift-csv
  * Description:  Lightweight and simple CSV import/export plugin. Supports custom post types, custom taxonomies, and custom fields.
  * Version:      0.9.8
- * Author:       FirstElement, Inc.
+ * Author:       Daijiro Miyazawa, FirstElement, Inc.
  * Author URI:   https://www.firstelement.co.jp/
  * License:      GPL-2.0+
  * License URI:  https://www.gnu.org/licenses/gpl-2.0.txt
@@ -18,6 +18,10 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
+
+// TEMPORARY: Force enable bulk processing for testing
+// TODO: Remove this in production
+define( 'SWIFT_CSV_FORCE_BULK_PROCESSING', true );
 
 // Custom debug log path
 $log_file = plugin_dir_path( __FILE__ ) . 'debug.log';

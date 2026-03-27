@@ -7,8 +7,8 @@
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/firstelementjp/swift-csv)
 
-Swift CSV is a lightweight WordPress plugin for importing and exporting CSV data.
-It supports custom post types, custom taxonomies, custom fields, and Gutenberg block content.
+Swift CSV is an easy-to-use WordPress plugin for importing and exporting CSV data.
+It combines a simple admin experience with extensibility through WordPress hooks.
 
 This repository contains the plugin source code, tests, and developer resources.
 For end-user guides and full documentation, see the links below.
@@ -100,12 +100,23 @@ tests/coverage/
 ## 🛠️ Development Commands
 
 ```bash
+# PHP/Composer
 composer test              # Run test suite
 composer phpcs             # Check coding standards
 composer phpcbf            # Fix coding standards automatically
+
+# Node.js/npm
 npm run build              # Build/minify frontend assets
+npm run lint:js            # Check JavaScript coding standards
+npm run lint:js:fix        # Fix JavaScript coding standards
+npm run dev                # Development build with source maps
+npm run watch:all          # Watch for changes and rebuild automatically
+
+# Release
 ./test-release.sh          # Create a release ZIP locally
 ```
+
+See `package.json` for the complete list of available npm scripts.
 
 See the project documentation for detailed development and release workflows.
 

@@ -356,6 +356,7 @@ abstract class Swift_CSV_Export_Base {
 
 		if ( ! empty( $config['include_custom_fields'] ) ) {
 			$custom_field_headers = array_merge( $custom_field_headers, $fallback_custom_field_headers );
+			$custom_field_headers = array_values( array_unique( $custom_field_headers ) );
 		}
 
 		return $custom_field_headers;

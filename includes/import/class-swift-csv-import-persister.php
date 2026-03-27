@@ -236,12 +236,16 @@ class Swift_CSV_Import_Persister {
 		}
 
 		if ( $dry_run ) {
-			$dry_run_log[] = sprintf(
+			$dry_run_log_limit = (int) apply_filters( 'swift_csv_dry_run_log_limit', 50 );
+			$dry_run_log[]     = sprintf(
 				/* translators: 1: post ID, 2: post title */
 				__( 'Update post: ID=%1$s, title=%2$s', 'swift-csv' ),
 				$post_id,
 				$post_data['post_title'] ?? 'Untitled'
 			);
+			if ( count( $dry_run_log ) > $dry_run_log_limit ) {
+				$dry_run_log = array_slice( $dry_run_log, -1 * $dry_run_log_limit );
+			}
 			return 1;
 		}
 
@@ -273,11 +277,15 @@ class Swift_CSV_Import_Persister {
 		}
 
 		if ( $dry_run ) {
-			$dry_run_log[] = sprintf(
+			$dry_run_log_limit = (int) apply_filters( 'swift_csv_dry_run_log_limit', 50 );
+			$dry_run_log[]     = sprintf(
 				/* translators: 1: post title */
 				__( 'New post: title=%1$s', 'swift-csv' ),
 				$post_data['post_title'] ?? 'Untitled'
 			);
+			if ( count( $dry_run_log ) > $dry_run_log_limit ) {
+				$dry_run_log = array_slice( $dry_run_log, -1 * $dry_run_log_limit );
+			}
 			$post_id = 0;
 			return 1;
 		}

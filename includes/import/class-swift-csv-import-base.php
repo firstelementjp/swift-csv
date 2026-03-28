@@ -189,35 +189,17 @@ abstract class Swift_CSV_Import_Base {
 	}
 
 	/**
-	 * Read CSV content for the first request.
-	 *
-	 * @since 0.9.8
-	 * @param string $file_path Uploaded file path.
-	 * @param int    $start_row Start row.
-	 * @return string CSV content (empty string when not needed).
-	 */
-	protected function read_csv_content_for_start_row( string $file_path, int $start_row ): string {
-		if ( 0 !== $start_row ) {
-			return '';
-		}
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$csv_content = (string) file_get_contents( $file_path );
-		return str_replace( [ "\r\n", "\r" ], "\n", $csv_content );
-	}
-
-	/**
 	 * Build normalized import configuration array.
 	 *
 	 * @since 0.9.8
 	 * @param array         $parsed_config Parsed config.
 	 * @param string        $file_path Uploaded file path.
 	 * @param int           $start_row Start row.
-	 * @param string        $csv_content CSV content.
 	 * @param string        $import_session Import session key.
 	 * @param callable|null $append_log Append log callback.
 	 * @return array Import config. Returns empty array if validation fails (response already sent).
 	 */
-	protected function build_import_config_from_parsed( array $parsed_config, string $file_path, int $start_row, string $csv_content, string $import_session, $append_log ): array {
+	protected function build_import_config_from_parsed( array $parsed_config, string $file_path, int $start_row, string $import_session, $append_log ): array {
 		$post_type = (string) $parsed_config['post_type'];
 		if ( ! post_type_exists( $post_type ) ) {
 			Swift_CSV_Ajax_Util::send_error_response( 'Invalid post type: ' . $post_type );
@@ -232,7 +214,6 @@ abstract class Swift_CSV_Import_Base {
 			'update_existing' => (string) $parsed_config['update_existing'],
 			'taxonomy_format' => (string) $parsed_config['taxonomy_format'],
 			'dry_run'         => (bool) $parsed_config['dry_run'],
-			'csv_content'     => $csv_content,
 			'import_session'  => $import_session,
 			'append_log'      => $append_log,
 		];
@@ -251,7 +232,7 @@ abstract class Swift_CSV_Import_Base {
 	 */
 	protected function ensure_csv_data_available( ?array $csv_data, int $start_row, string $file_path, array $config, string $import_session ): ?array {
 		if ( 0 === $start_row ) {
-			$csv_data = $this->csv_parser->parse_and_validate_csv( (string) $config['csv_content'], $config, $file_path );
+			$csv_data = $this->csv_parser->parse_and_validate_csv_file( $file_path, $config );
 			if ( null === $csv_data ) {
 				$this->log_store->cleanup( $import_session );
 				Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed' );
@@ -265,10 +246,7 @@ abstract class Swift_CSV_Import_Base {
 			return $csv_data;
 		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$csv_content = (string) file_get_contents( $file_path );
-		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content );
-		$csv_data    = $this->csv_parser->parse_and_validate_csv( $csv_content, $config, $file_path );
+		$csv_data = $this->csv_parser->parse_and_validate_csv_file( $file_path, $config );
 		if ( null === $csv_data ) {
 			$this->log_store->cleanup( $import_session );
 			Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed' );

@@ -473,6 +473,7 @@ class Swift_CSV_Import_Meta_Tax {
 			}
 
 			if ( $dry_run ) {
+				$dry_run_log_limit = (int) apply_filters( 'swift_csv_dry_run_log_limit', 50 );
 				// Handle multi-value custom fields (pipe-separated with escaping).
 				$values = $this->get_csv_util()->split_pipe_separated_values( $value );
 				if ( count( $values ) > 1 ) {
@@ -484,6 +485,9 @@ class Swift_CSV_Import_Meta_Tax {
 								$key,
 								$single_value
 							);
+							if ( count( $dry_run_log ) > $dry_run_log_limit ) {
+								$dry_run_log = array_slice( $dry_run_log, -1 * $dry_run_log_limit );
+							}
 						}
 					}
 				} else {
@@ -494,6 +498,9 @@ class Swift_CSV_Import_Meta_Tax {
 						$key,
 						$single_value
 					);
+					if ( count( $dry_run_log ) > $dry_run_log_limit ) {
+						$dry_run_log = array_slice( $dry_run_log, -1 * $dry_run_log_limit );
+					}
 				}
 				continue;
 			}

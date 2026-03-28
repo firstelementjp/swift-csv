@@ -48,6 +48,7 @@ class Swift_CSV_Import_Row_Context {
 	 * @param string $delimiter CSV delimiter.
 	 * @param array  $headers CSV headers.
 	 * @param array  $allowed_post_fields Allowed post fields.
+	 * @param array  $parsed_data Parsed CSV row.
 	 * @return array{
 	 *   data:                array<int,string>,
 	 *   post_fields_from_csv: array<string,mixed>,
@@ -61,7 +62,8 @@ class Swift_CSV_Import_Row_Context {
 		string $line,
 		string $delimiter,
 		array $headers,
-		array $allowed_post_fields
+		array $allowed_post_fields,
+		array $parsed_data = []
 	): ?array {
 		return $this->build_import_row_context(
 			$wpdb,
@@ -70,7 +72,8 @@ class Swift_CSV_Import_Row_Context {
 			$headers,
 			$allowed_post_fields,
 			(string) ( $config['update_existing'] ?? '0' ),
-			(string) ( $config['post_type'] ?? 'post' )
+			(string) ( $config['post_type'] ?? 'post' ),
+			$parsed_data
 		);
 	}
 
@@ -85,6 +88,7 @@ class Swift_CSV_Import_Row_Context {
 	 * @param array  $allowed_post_fields Allowed post fields.
 	 * @param string $update_existing Update flag from request.
 	 * @param string $post_type Post type.
+	 * @param array  $parsed_data Parsed CSV row.
 	 * @return array{
 	 *   data:                array<int,string>,
 	 *   post_fields_from_csv: array<string,mixed>,
@@ -99,9 +103,10 @@ class Swift_CSV_Import_Row_Context {
 		array $headers,
 		array $allowed_post_fields,
 		string $update_existing,
-		string $post_type
+		string $post_type,
+		array $parsed_data = []
 	): ?array {
-		$parsed               = $this->parse_row_and_collect_post_fields( $line, $delimiter, $headers, $allowed_post_fields );
+		$parsed               = $this->parse_row_and_collect_post_fields( $line, $delimiter, $headers, $allowed_post_fields, $parsed_data );
 		$data                 = $parsed['data'];
 		$post_id_from_csv     = $parsed['post_id_from_csv'];
 		$post_fields_from_csv = $parsed['post_fields_from_csv'];
@@ -309,6 +314,7 @@ class Swift_CSV_Import_Row_Context {
 	 * @param string $delimiter CSV delimiter.
 	 * @param array  $headers CSV headers.
 	 * @param array  $allowed_post_fields Allowed post fields.
+	 * @param array  $parsed_data Parsed CSV row.
 	 * @return array{
 	 *   data:                 array<int,string>,
 	 *   post_id_from_csv:     int,
@@ -319,9 +325,10 @@ class Swift_CSV_Import_Row_Context {
 		string $line,
 		string $delimiter,
 		array $headers,
-		array $allowed_post_fields
+		array $allowed_post_fields,
+		array $parsed_data = []
 	): array {
-		$data                 = $this->get_parsed_csv_row( $line, $delimiter );
+		$data                 = ! empty( $parsed_data ) ? $parsed_data : $this->get_parsed_csv_row( $line, $delimiter );
 		$post_id_from_csv     = $this->get_post_id_from_csv_row( $data );
 		$post_fields_from_csv = $this->get_post_fields_from_csv_row( $headers, $data, $allowed_post_fields );
 

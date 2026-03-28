@@ -75,6 +75,14 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	private $row_processor_util;
 
 	/**
+	 * CSV utility instance.
+	 *
+	 * @since 0.9.8
+	 * @var object|null
+	 */
+	private $csv_util;
+
+	/**
 	 * Import cancel manager.
 	 *
 	 * @since 0.9.8
@@ -170,6 +178,20 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	}
 
 	/**
+	 * Get CSV utility instance.
+	 *
+	 * @since 0.9.8
+	 * @return object
+	 */
+	private function get_csv_util(): object {
+		if ( null === $this->csv_util ) {
+			$this->csv_util = new Swift_CSV_Import_Csv();
+		}
+
+		return $this->csv_util;
+	}
+
+	/**
 	 * Execute the actual batch processing.
 	 *
 	 * @since 0.9.8
@@ -232,8 +254,14 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 			return;
 		}
 
-		if ( isset( $csv_data['data'] ) && is_array( $csv_data['data'] ) ) {
-			$current_batch_data = array_slice( $csv_data['data'], $config['start_row'], $config['batch_size'] );
+		if ( isset( $csv_data['batch_lines'] ) && is_array( $csv_data['batch_lines'] ) ) {
+			$current_batch_data            = array_map(
+				function ( string $line ) use ( $csv_data ): array {
+					return $this->get_csv_util()->parse_csv_row( $line, (string) $csv_data['delimiter'] );
+				},
+				$csv_data['batch_lines']
+			);
+			$csv_data['parsed_batch_data'] = $current_batch_data;
 			do_action(
 				'swift_csv_preload_relationship_data_for_batch',
 				$current_batch_data,
@@ -318,8 +346,9 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	): void {
 		// Calculate end row once to avoid function calls in loop test.
 		$import_session = (string) ( $config['import_session'] ?? '' );
-		$end_row        = min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] );
-		for ( $i = $config['start_row']; $i < $end_row; $i++ ) {
+		$batch_lines    = isset( $csv_data['batch_lines'] ) && is_array( $csv_data['batch_lines'] ) ? $csv_data['batch_lines'] : [];
+		$batch_count    = count( $batch_lines );
+		for ( $i = 0; $i < $batch_count; $i++ ) {
 			if ( '' !== $import_session && $this->get_cancel_manager()->is_cancelled( $import_session ) ) {
 				break;
 			}
@@ -367,18 +396,20 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		Swift_CSV_Import_Persister $persister_util,
 		Swift_CSV_Import_Meta_Tax $meta_tax_util
 	): void {
-		$lines     = $csv_data['lines'];
-		$delimiter = $csv_data['delimiter'];
-		$headers   = $csv_data['headers'];
+		$lines             = $csv_data['batch_lines'];
+		$delimiter         = $csv_data['delimiter'];
+		$headers           = $csv_data['headers'];
+		$parsed_batch_data = isset( $csv_data['parsed_batch_data'] ) && is_array( $csv_data['parsed_batch_data'] ) ? $csv_data['parsed_batch_data'] : [];
 
-		$line = $lines[ $index ] ?? '';
+		$line        = $lines[ $index ] ?? '';
+		$parsed_data = isset( $parsed_batch_data[ $index ] ) && is_array( $parsed_batch_data[ $index ] ) ? $parsed_batch_data[ $index ] : [];
 		if ( empty( trim( $line ) ) ) {
 			++$counters['processed'];
 			return;
 		}
 
 		// Use Ajax_Import's original row processing logic.
-		$row_context = $this->build_import_row_context_from_config( $wpdb, $row_context_util, $config, $line, $delimiter, $headers, $allowed_post_fields );
+		$row_context = $this->build_import_row_context_from_config( $wpdb, $row_context_util, $config, $line, $delimiter, $headers, $allowed_post_fields, $parsed_data );
 		if ( null === $row_context ) {
 			return;
 		}
@@ -411,14 +442,15 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * @param array                        $allowed_post_fields Allowed post fields.
 	 * @return array|null Row context or null if invalid.
 	 */
-	protected function build_import_row_context_from_config( wpdb $wpdb, Swift_CSV_Import_Row_Context $row_context_util, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
+	protected function build_import_row_context_from_config( wpdb $wpdb, Swift_CSV_Import_Row_Context $row_context_util, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields, array $parsed_data = [] ): ?array {
 		return $row_context_util->build_import_row_context_from_config(
 			$wpdb,
 			$config,
 			$line,
 			$delimiter,
 			$headers,
-			$allowed_post_fields
+			$allowed_post_fields,
+			$parsed_data
 		);
 	}
 

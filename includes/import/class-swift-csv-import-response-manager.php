@@ -91,8 +91,8 @@ class Swift_CSV_Import_Response_Manager {
 				'progress'           => round( ( $next_row / $total_rows ) * 100, 2 ),
 				'continue'           => $continue,
 				'dry_run'            => $dry_run,
-				'dry_run_log'        => $dry_run_log,
-				'dry_run_details'    => $dry_run_details,
+				'dry_run_log'        => [],
+				'dry_run_details'    => [],
 				'recent_logs'        => $recent_logs,
 			]
 		);

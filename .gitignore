@@ -21,6 +21,7 @@ Thumbs.db
 # Build
 /dist/
 /build/
+/test-release/
 
 # Minified files (build artifacts)
 *.min.js

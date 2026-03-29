@@ -67,6 +67,7 @@ class Swift_CSV_Import_Csv_Parser {
 		Swift_CSV_Ajax_Util::set_stage( 'csv_parser:parse_and_validate_csv' );
 
 		try {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 			$handle = fopen( $file_path, 'rb' );
 			if ( false === $handle ) {
 				Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed: unable to open file' );
@@ -75,6 +76,7 @@ class Swift_CSV_Import_Csv_Parser {
 
 			$first_line = $this->read_next_logical_line( $handle );
 			if ( null === $first_line ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 				fclose( $handle );
 				Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed: empty file' );
 				return null;
@@ -92,6 +94,7 @@ class Swift_CSV_Import_Csv_Parser {
 
 			$taxonomy_format = isset( $config['taxonomy_format'] ) ? (string) $config['taxonomy_format'] : '';
 			if ( '' === $taxonomy_format ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 				fclose( $handle );
 				Swift_CSV_Ajax_Util::send_error_response( 'Missing taxonomy_format' );
 				return null;
@@ -102,8 +105,10 @@ class Swift_CSV_Import_Csv_Parser {
 			$first_data_row             = null;
 
 			try {
-				while ( null !== ( $line = $this->read_next_logical_line( $handle ) ) ) {
+				$line = $this->read_next_logical_line( $handle );
+				while ( null !== $line ) {
 					if ( '' === trim( $line ) ) {
+						$line = $this->read_next_logical_line( $handle );
 						continue;
 					}
 
@@ -112,8 +117,11 @@ class Swift_CSV_Import_Csv_Parser {
 					if ( null === $first_data_row ) {
 						$first_data_row = $this->get_csv_util()->parse_csv_row( $line, $delimiter );
 					}
+
+					$line = $this->read_next_logical_line( $handle );
 				}
 			} finally {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 				fclose( $handle );
 			}
 
@@ -156,6 +164,7 @@ class Swift_CSV_Import_Csv_Parser {
 	 * @return array{lines: array<int, string>, next_offset: int, next_start_row: int}
 	 */
 	public function read_batch_lines( string $file_path, int $start_row, int $batch_size, int $data_start_offset = 0, int $next_offset = 0, int $next_start_row = 0 ): array {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 		$handle = fopen( $file_path, 'rb' );
 		if ( false === $handle ) {
 			return [
@@ -182,7 +191,8 @@ class Swift_CSV_Import_Csv_Parser {
 				}
 			}
 
-			while ( null !== ( $line = $this->read_next_logical_line( $handle ) ) ) {
+			$line = $this->read_next_logical_line( $handle );
+			while ( null !== $line ) {
 				$current_offset_after_line = ftell( $handle );
 				if ( false !== $current_offset_after_line ) {
 					$current_offset = (int) $current_offset_after_line;
@@ -196,8 +206,11 @@ class Swift_CSV_Import_Csv_Parser {
 				if ( $logical_row_index >= $target_end_row ) {
 					break;
 				}
+
+				$line = $this->read_next_logical_line( $handle );
 			}
 		} finally {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 			fclose( $handle );
 		}
 
@@ -212,8 +225,7 @@ class Swift_CSV_Import_Csv_Parser {
 	 * Detect taxonomy format validation.
 	 *
 	 * @since 0.9.8
-	 * @param array  $lines CSV lines.
-	 * @param string $delimiter CSV delimiter.
+	 * @param array  $row First parsed CSV row.
 	 * @param array  $headers CSV headers.
 	 * @param string $taxonomy_format Taxonomy format selected in UI.
 	 * @param string $file_path Temporary file path for cleanup.
@@ -297,7 +309,8 @@ class Swift_CSV_Import_Csv_Parser {
 		$current_line = '';
 		$in_quotes    = false;
 
-		while ( false !== ( $line = fgets( $handle ) ) ) {
+		$line = fgets( $handle );
+		while ( false !== $line ) {
 			$line        = str_replace( [ "\r\n", "\r" ], "\n", $line );
 			$line        = rtrim( $line, "\n" );
 			$quote_count = substr_count( $line, '"' );
@@ -315,6 +328,8 @@ class Swift_CSV_Import_Csv_Parser {
 			if ( ! $in_quotes ) {
 				return $current_line;
 			}
+
+			$line = fgets( $handle );
 		}
 
 		return '' !== $current_line ? $current_line : null;

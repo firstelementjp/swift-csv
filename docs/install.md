@@ -10,7 +10,7 @@
 
 ## Manual Installation
 
-1. [Download latest version (v0.9.8)](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.8/swift-csv-v0.9.8.zip)
+1. [Download latest version (v0.9.9)](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.9/swift-csv-v0.9.9.zip)
 2. Extract the downloaded ZIP file
 3. Upload `swift-csv` folder to `/wp-content/plugins/`
 4. Navigate to **Plugins** in WordPress admin
@@ -113,8 +113,10 @@
 
 - **Import Batches**: 10-50 rows based on server performance
 - **Export Batches**: 500-2000 posts based on dataset size
-- **Memory Management**: Automatic cleanup and efficient processing
+- **Memory Management**: Automatic cleanup, streamed CSV batch reads, and more efficient batch processing
 - **Real-time Updates**: Progress bars with shimmer animations
+
+Recent import improvements in `v0.9.9` also reduce repeated CSV parsing work within the same batch and improve the reliability of completion logs shown in the admin UI.
 
 **No Manual Configuration Required**
 
@@ -204,7 +206,7 @@ When reporting issues, please include:
 
 - **WordPress Version**: Current WordPress version
 - **PHP Version**: Current PHP version
-- **Plugin Version**: Swift CSV v0.9.8
+- **Plugin Version**: Swift CSV v0.9.9
 - **Browser Information**: Browser and version
 - **Error Messages**: Full error messages from browser console
 - **Sample Data**: Small sample CSV file for testing

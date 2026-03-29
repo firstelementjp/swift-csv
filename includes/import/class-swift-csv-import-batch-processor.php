@@ -440,6 +440,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * @param string                       $delimiter CSV delimiter.
 	 * @param array                        $headers CSV headers.
 	 * @param array                        $allowed_post_fields Allowed post fields.
+	 * @param array                        $parsed_data Parsed CSV row data.
 	 * @return array|null Row context or null if invalid.
 	 */
 	protected function build_import_row_context_from_config( wpdb $wpdb, Swift_CSV_Import_Row_Context $row_context_util, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields, array $parsed_data = [] ): ?array {

@@ -4,7 +4,7 @@ set -euo pipefail
 
 BRANCH="${1:-$(git rev-parse --abbrev-ref HEAD)}"
 RELEASE_DIR="test-release"
-TAG="v0.9.8-dev"
+TAG="v0.9.9-dev"
 ZIP_NAME="swift-csv-$TAG.zip"
 GENERATED_MINIFIED_FILES=(
 	"assets/css/swift-csv-style.min.css"

@@ -350,29 +350,6 @@ function pollImportLogs() {
 }
 
 /**
- * Trigger several additional log polls after completion to capture tail entries.
- *
- * @param {Object} [options]             Configuration for retries.
- * @param {number} [options.attempts=3]  Number of polling attempts.
- * @param {number} [options.delayMs=300] Delay between attempts in ms.
- * @return {Promise} Resolves once all attempts finish.
- */
-function flushImportLogsAfterComplete({ attempts = 3, delayMs = 300 } = {}) {
-	let chain = Promise.resolve();
-	for (let i = 0; i < attempts; i++) {
-		chain = chain
-			.then(() => pollImportLogs())
-			.then(
-				() =>
-					new Promise(resolve => {
-						setTimeout(resolve, delayMs);
-					})
-			);
-	}
-	return chain;
-}
-
-/**
  * Handle file selection and update the UI with file metadata.
  *
  * @param {File} file Selected file.

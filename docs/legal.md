@@ -1,6 +1,6 @@
 # 📄 License
 
-Swift CSV v0.9.8 is provided under the GPL-2.0+ license.
+Swift CSV v0.9.9 is provided under the GPL-2.0+ license.
 
 ## License Text
 
@@ -36,9 +36,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 ## Version Information
 
-### Current Version: v0.9.8
+### Current Version: v0.9.9
 
-**Release Date**: March 19, 2026
+**Release Date**: March 28, 2026
 
 **Key Features**:
 
@@ -51,7 +51,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 ### License Compliance
 
-**v0.9.8 Compliance**:
+**v0.9.9 Compliance**:
 
 - ✅ All code is GPL-2.0+ compliant
 - ✅ Third-party libraries properly licensed
@@ -162,7 +162,7 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 ### Data Collection
 
-**v0.9.8 Data Handling**:
+**v0.9.9 Data Handling**:
 
 - **No Personal Data**: Plugin does not collect personal data
 - **Local Processing**: All processing happens on your server
@@ -220,7 +220,7 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 ### Localization Features
 
-**v0.9.8 Localization**:
+**v0.9.9 Localization**:
 
 - Japanese translation support
 - Localized admin messaging
@@ -329,7 +329,7 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 ### License Changes
 
-**v0.9.8**: No license changes
+**v0.9.9**: No license changes
 
 - Maintained GPL-2.0+ license
 - Added commercial Pro version features
@@ -356,8 +356,8 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 This legal information is provided for informational purposes only and does not constitute legal advice. For specific legal questions regarding your use of this plugin, please consult with a qualified legal professional.
 
-**Last Updated**: March 19, 2026
-**Plugin Version**: v0.9.8
+**Last Updated**: March 28, 2026
+**Plugin Version**: v0.9.9
 **License Version**: GPL-2.0+
 
 ## Compliance

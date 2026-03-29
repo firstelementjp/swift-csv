@@ -74,6 +74,7 @@ class Swift_CSV_Encryption_Utils {
 
 		// Base64 encode binary data (IV + encrypted) for safe storage.
 		// This is NOT for obfuscation - it's for converting binary data to text format.
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		return base64_encode( $iv . $encrypted );
 	}
 
@@ -91,6 +92,7 @@ class Swift_CSV_Encryption_Utils {
 		$key = self::get_encryption_key();
 		// Base64 decode to convert text format back to binary data (IV + encrypted).
 		// This is NOT for obfuscation - it's for reversing the text format conversion.
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 		$data = base64_decode( $encrypted_data );
 
 		if ( false === $data || strlen( $data ) < 16 ) {

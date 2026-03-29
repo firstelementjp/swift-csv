@@ -97,13 +97,7 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @param string $taxonomy_format Taxonomy format.
 	 * @param array  $taxonomy_format_validation Taxonomy format validation.
 	 * @param bool   $dry_run Dry run flag.
-	 * @param array{
-	 *   processed: int,
-	 *   created:   int,
-	 *   updated:   int,
-	 *   errors:    int,
-	 *   dry_run_log: array<int,string>
-	 * } $counters Counters (by reference).
+	 * @param array  $counters Counters (by reference).
 	 * @return array{
 	 *   meta_fields: array<string,string>,
 	 *   taxonomies:  array<string,array<int,string>>
@@ -524,6 +518,7 @@ class Swift_CSV_Import_Meta_Tax {
 						// WordPress.DB.DirectDatabaseQuery.NoCaching,
 						// WordPress.DB.SlowDBQuery.slow_db_query_meta_key,
 						// WordPress.DB.SlowDBQuery.slow_db_query_meta_value.
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 						$wpdb->insert(
 							$wpdb->postmeta,
 							[
@@ -544,6 +539,7 @@ class Swift_CSV_Import_Meta_Tax {
 			// WordPress.DB.DirectDatabaseQuery.NoCaching,
 			// WordPress.DB.SlowDBQuery.slow_db_query_meta_key,
 			// WordPress.DB.SlowDBQuery.slow_db_query_meta_value.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->insert(
 				$wpdb->postmeta,
 				[

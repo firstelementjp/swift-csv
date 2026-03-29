@@ -1,5 +1,27 @@
 # 📋 Changelog
 
+## [0.9.9] - 2026-03-28
+
+### 🚀 Import Reliability and Performance
+
+- **Lower memory usage for large imports** - Import batches now read CSV data incrementally and reuse cached file offsets instead of keeping full CSV content in memory.
+- **Reduced duplicate CSV parsing** - Batch processing reuses parsed row data within the same batch to cut repeated parsing overhead.
+- **Improved batch diagnostics** - Import profiling logs now make it easier to identify time and memory hotspots while debugging large imports.
+
+### 🛠️ CSV Parsing and Import UI Fixes
+
+- **RFC 4180-aligned CSV parsing** - Core `str_getcsv()` usage now disables backslash escaping so quoted fields are interpreted more predictably.
+- **Import log stability improvements** - Import log tabs initialize more reliably, recent logs remain available at completion, and error logs stay aligned with error counts.
+- **Safer log cleanup behavior** - UI log clearing now targets the current import panels more precisely.
+
+### 📦 Release Workflow Updates
+
+- **Branch-aware release script** - `test-release.sh` can build a release ZIP from the current branch or an explicitly provided branch.
+- **Automatic artifact cleanup** - Temporary `test-release` output and generated minified assets are removed after local release builds.
+- **Cleaner repository state** - Generated release artifacts and minified distribution files are no longer expected to remain tracked in Git.
+
+---
+
 ## [0.9.8] - 2026-03-19
 
 ### 🏗️ Architecture Improvements

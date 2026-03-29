@@ -93,6 +93,14 @@ abstract class Swift_CSV_Import_Base {
 	protected $taxonomy_util;
 
 	/**
+	 * Import cancel manager.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Cancel_Manager
+	 */
+	protected $cancel_manager;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 0.9.8
@@ -105,6 +113,7 @@ abstract class Swift_CSV_Import_Base {
 	 * @param Swift_CSV_Import_Response_Manager|null $response_manager Response manager.
 	 * @param Swift_CSV_Import_Request_Parser|null   $request_parser Request parser.
 	 * @param Swift_CSV_Import_Taxonomy_Util|null    $taxonomy_util Taxonomy util.
+	 * @param Swift_CSV_Import_Cancel_Manager|null   $cancel_manager Import cancel manager.
 	 */
 	public function __construct(
 		?Swift_CSV_Import_Log_Store $log_store = null,
@@ -115,7 +124,8 @@ abstract class Swift_CSV_Import_Base {
 		?Swift_CSV_Import_Batch_Processor $batch_processor = null,
 		?Swift_CSV_Import_Response_Manager $response_manager = null,
 		?Swift_CSV_Import_Request_Parser $request_parser = null,
-		?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null
+		?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null,
+		?Swift_CSV_Import_Cancel_Manager $cancel_manager = null
 	) {
 		$this->taxonomy_util    = $taxonomy_util ?? new Swift_CSV_Import_Taxonomy_Util();
 		$this->log_store        = $log_store ?? new Swift_CSV_Import_Log_Store();
@@ -126,6 +136,7 @@ abstract class Swift_CSV_Import_Base {
 		$this->batch_processor  = $batch_processor ?? new Swift_CSV_Import_Batch_Processor( null, null, null, null, null, $this->taxonomy_util );
 		$this->response_manager = $response_manager ?? new Swift_CSV_Import_Response_Manager();
 		$this->request_parser   = $request_parser ?? new Swift_CSV_Import_Request_Parser();
+		$this->cancel_manager   = $cancel_manager ?? new Swift_CSV_Import_Cancel_Manager();
 	}
 
 	/**
@@ -178,35 +189,17 @@ abstract class Swift_CSV_Import_Base {
 	}
 
 	/**
-	 * Read CSV content for the first request.
-	 *
-	 * @since 0.9.8
-	 * @param string $file_path Uploaded file path.
-	 * @param int    $start_row Start row.
-	 * @return string CSV content (empty string when not needed).
-	 */
-	protected function read_csv_content_for_start_row( string $file_path, int $start_row ): string {
-		if ( 0 !== $start_row ) {
-			return '';
-		}
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$csv_content = (string) file_get_contents( $file_path );
-		return str_replace( [ "\r\n", "\r" ], "\n", $csv_content );
-	}
-
-	/**
 	 * Build normalized import configuration array.
 	 *
 	 * @since 0.9.8
 	 * @param array         $parsed_config Parsed config.
 	 * @param string        $file_path Uploaded file path.
 	 * @param int           $start_row Start row.
-	 * @param string        $csv_content CSV content.
 	 * @param string        $import_session Import session key.
 	 * @param callable|null $append_log Append log callback.
 	 * @return array Import config. Returns empty array if validation fails (response already sent).
 	 */
-	protected function build_import_config_from_parsed( array $parsed_config, string $file_path, int $start_row, string $csv_content, string $import_session, $append_log ): array {
+	protected function build_import_config_from_parsed( array $parsed_config, string $file_path, int $start_row, string $import_session, $append_log ): array {
 		$post_type = (string) $parsed_config['post_type'];
 		if ( ! post_type_exists( $post_type ) ) {
 			Swift_CSV_Ajax_Util::send_error_response( 'Invalid post type: ' . $post_type );
@@ -221,7 +214,6 @@ abstract class Swift_CSV_Import_Base {
 			'update_existing' => (string) $parsed_config['update_existing'],
 			'taxonomy_format' => (string) $parsed_config['taxonomy_format'],
 			'dry_run'         => (bool) $parsed_config['dry_run'],
-			'csv_content'     => $csv_content,
 			'import_session'  => $import_session,
 			'append_log'      => $append_log,
 		];
@@ -240,7 +232,7 @@ abstract class Swift_CSV_Import_Base {
 	 */
 	protected function ensure_csv_data_available( ?array $csv_data, int $start_row, string $file_path, array $config, string $import_session ): ?array {
 		if ( 0 === $start_row ) {
-			$csv_data = $this->csv_parser->parse_and_validate_csv( (string) $config['csv_content'], $config, $file_path );
+			$csv_data = $this->csv_parser->parse_and_validate_csv_file( $file_path, $config );
 			if ( null === $csv_data ) {
 				$this->log_store->cleanup( $import_session );
 				Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed' );
@@ -254,10 +246,7 @@ abstract class Swift_CSV_Import_Base {
 			return $csv_data;
 		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$csv_content = (string) file_get_contents( $file_path );
-		$csv_content = str_replace( [ "\r\n", "\r" ], "\n", $csv_content );
-		$csv_data    = $this->csv_parser->parse_and_validate_csv( $csv_content, $config, $file_path );
+		$csv_data = $this->csv_parser->parse_and_validate_csv_file( $file_path, $config );
 		if ( null === $csv_data ) {
 			$this->log_store->cleanup( $import_session );
 			Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed' );
@@ -287,6 +276,30 @@ abstract class Swift_CSV_Import_Base {
 			'updated' => $this->log_store->get_recent_logs_by_type( $import_session, 'updated', $max_entries ),
 			'errors'  => $this->log_store->get_recent_logs_by_type( $import_session, 'errors', $max_entries ),
 		];
+	}
+
+	/**
+	 * Check whether the current import session is cancelled.
+	 *
+	 * @since 0.9.8
+	 * @param string $import_session Import session key.
+	 * @return bool True when cancelled.
+	 */
+	protected function is_import_cancelled( string $import_session ): bool {
+		return $this->cancel_manager->is_cancelled( $import_session );
+	}
+
+	/**
+	 * Cleanup import session artifacts.
+	 *
+	 * @since 0.9.8
+	 * @param string $import_session Import session key.
+	 * @return void
+	 */
+	protected function cleanup_import_session( string $import_session ): void {
+		$this->csv_store->cleanup( $import_session );
+		$this->log_store->cleanup( $import_session );
+		$this->cancel_manager->cleanup( $import_session );
 	}
 
 	/**

@@ -192,7 +192,9 @@ function addLogEntry(message, level = 'info', context = 'export') {
 	if (!logContent) {
 		logContent = document.querySelector(`#${context}-log-content`);
 	}
-	if (!logContent) return;
+	if (!logContent) {
+		return;
+	}
 
 	// Get max log entries from localized data (default: 30)
 	const maxLogEntries = swiftCSV.maxLogEntries || 30;
@@ -250,7 +252,7 @@ function clearLog(context = 'all') {
 	} else {
 		if ('import' === context) {
 			const logContents = document.querySelectorAll(
-				'.swift-csv-import-logs .log-panel .log-content'
+				'.swift-csv-logs-area .log-panel .log-content'
 			);
 			if (logContents.length) {
 				logContents.forEach(content => (content.innerHTML = ''));

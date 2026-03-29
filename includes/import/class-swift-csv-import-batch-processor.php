@@ -75,6 +75,22 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	private $row_processor_util;
 
 	/**
+	 * CSV utility instance.
+	 *
+	 * @since 0.9.8
+	 * @var object|null
+	 */
+	private $csv_util;
+
+	/**
+	 * Import cancel manager.
+	 *
+	 * @since 0.9.8
+	 * @var Swift_CSV_Import_Cancel_Manager|null
+	 */
+	private $cancel_manager;
+
+	/**
 	 * Constructor.
 	 *
 	 * Allows injecting dependencies for alternative import methods (e.g., direct SQL)
@@ -87,6 +103,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * @param Swift_CSV_Import_Persister|null          $persister_util Persister util.
 	 * @param Swift_CSV_Import_Row_Processor|null      $row_processor_util Row processor util.
 	 * @param Swift_CSV_Import_Taxonomy_Util|null      $taxonomy_util Taxonomy util.
+	 * @param Swift_CSV_Import_Cancel_Manager|null     $cancel_manager Import cancel manager.
 	 */
 	public function __construct(
 		?Swift_CSV_Ajax_Import_Batch_Planner $batch_planner = null,
@@ -94,7 +111,8 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		?Swift_CSV_Import_Meta_Tax $meta_tax_util = null,
 		?Swift_CSV_Import_Persister $persister_util = null,
 		?Swift_CSV_Import_Row_Processor $row_processor_util = null,
-		?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null
+		?Swift_CSV_Import_Taxonomy_Util $taxonomy_util = null,
+		?Swift_CSV_Import_Cancel_Manager $cancel_manager = null
 	) {
 		$this->batch_planner      = $batch_planner;
 		$this->row_context_util   = $row_context_util;
@@ -102,6 +120,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		$this->persister_util     = $persister_util;
 		$this->row_processor_util = $row_processor_util;
 		$this->taxonomy_util      = $taxonomy_util;
+		$this->cancel_manager     = $cancel_manager;
 	}
 
 	/**
@@ -143,6 +162,33 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 			$this->taxonomy_util = new Swift_CSV_Import_Taxonomy_Util();
 		}
 		return $this->taxonomy_util;
+	}
+
+	/**
+	 * Get import cancel manager.
+	 *
+	 * @since 0.9.8
+	 * @return Swift_CSV_Import_Cancel_Manager
+	 */
+	private function get_cancel_manager(): Swift_CSV_Import_Cancel_Manager {
+		if ( null === $this->cancel_manager ) {
+			$this->cancel_manager = new Swift_CSV_Import_Cancel_Manager();
+		}
+		return $this->cancel_manager;
+	}
+
+	/**
+	 * Get CSV utility instance.
+	 *
+	 * @since 0.9.8
+	 * @return object
+	 */
+	private function get_csv_util(): object {
+		if ( null === $this->csv_util ) {
+			$this->csv_util = new Swift_CSV_Import_Csv();
+		}
+
+		return $this->csv_util;
 	}
 
 	/**
@@ -192,6 +238,11 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	private function process_batch_import( array $config, array $csv_data, array &$counters ): void {
 		global $wpdb;
 
+		$import_session = (string) ( $config['import_session'] ?? '' );
+		if ( '' !== $import_session && $this->get_cancel_manager()->is_cancelled( $import_session ) ) {
+			return;
+		}
+
 		$row_context_util    = $this->get_row_context_util();
 		$row_processor_util  = $this->get_row_processor_util();
 		$persister_util      = $this->get_persister_util();
@@ -203,17 +254,41 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 			return;
 		}
 
-		$this->process_batch_loop(
-			$wpdb,
-			$config,
-			$csv_data,
-			$allowed_post_fields,
-			$counters,
-			$row_context_util,
-			$row_processor_util,
-			$persister_util,
-			$meta_tax_util
-		);
+		if ( isset( $csv_data['batch_lines'] ) && is_array( $csv_data['batch_lines'] ) ) {
+			$current_batch_data            = array_map(
+				function ( string $line ) use ( $csv_data ): array {
+					return $this->get_csv_util()->parse_csv_row( $line, (string) $csv_data['delimiter'] );
+				},
+				$csv_data['batch_lines']
+			);
+			$csv_data['parsed_batch_data'] = $current_batch_data;
+			do_action(
+				'swift_csv_preload_relationship_data_for_batch',
+				$current_batch_data,
+				$csv_data['headers'],
+				[
+					'post_type' => (string) ( $config['post_type'] ?? 'post' ),
+				]
+			);
+		}
+
+		wp_defer_term_counting( true );
+
+		try {
+			$this->process_batch_loop(
+				$wpdb,
+				$config,
+				$csv_data,
+				$allowed_post_fields,
+				$counters,
+				$row_context_util,
+				$row_processor_util,
+				$persister_util,
+				$meta_tax_util
+			);
+		} finally {
+			wp_defer_term_counting( false );
+		}
 	}
 
 	/**
@@ -270,8 +345,14 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		Swift_CSV_Import_Meta_Tax $meta_tax_util
 	): void {
 		// Calculate end row once to avoid function calls in loop test.
-		$end_row = min( $config['start_row'] + $config['batch_size'], $csv_data['total_rows'] );
-		for ( $i = $config['start_row']; $i < $end_row; $i++ ) {
+		$import_session = (string) ( $config['import_session'] ?? '' );
+		$batch_lines    = isset( $csv_data['batch_lines'] ) && is_array( $csv_data['batch_lines'] ) ? $csv_data['batch_lines'] : [];
+		$batch_count    = count( $batch_lines );
+		for ( $i = 0; $i < $batch_count; $i++ ) {
+			if ( '' !== $import_session && $this->get_cancel_manager()->is_cancelled( $import_session ) ) {
+				break;
+			}
+
 			$this->process_import_loop_iteration(
 				$wpdb,
 				$config,
@@ -315,18 +396,20 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 		Swift_CSV_Import_Persister $persister_util,
 		Swift_CSV_Import_Meta_Tax $meta_tax_util
 	): void {
-		$lines     = $csv_data['lines'];
-		$delimiter = $csv_data['delimiter'];
-		$headers   = $csv_data['headers'];
+		$lines             = $csv_data['batch_lines'];
+		$delimiter         = $csv_data['delimiter'];
+		$headers           = $csv_data['headers'];
+		$parsed_batch_data = isset( $csv_data['parsed_batch_data'] ) && is_array( $csv_data['parsed_batch_data'] ) ? $csv_data['parsed_batch_data'] : [];
 
-		$line = $lines[ $index ] ?? '';
+		$line        = $lines[ $index ] ?? '';
+		$parsed_data = isset( $parsed_batch_data[ $index ] ) && is_array( $parsed_batch_data[ $index ] ) ? $parsed_batch_data[ $index ] : [];
 		if ( empty( trim( $line ) ) ) {
 			++$counters['processed'];
 			return;
 		}
 
 		// Use Ajax_Import's original row processing logic.
-		$row_context = $this->build_import_row_context_from_config( $wpdb, $row_context_util, $config, $line, $delimiter, $headers, $allowed_post_fields );
+		$row_context = $this->build_import_row_context_from_config( $wpdb, $row_context_util, $config, $line, $delimiter, $headers, $allowed_post_fields, $parsed_data );
 		if ( null === $row_context ) {
 			return;
 		}
@@ -357,16 +440,18 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 	 * @param string                       $delimiter CSV delimiter.
 	 * @param array                        $headers CSV headers.
 	 * @param array                        $allowed_post_fields Allowed post fields.
+	 * @param array                        $parsed_data Parsed CSV row data.
 	 * @return array|null Row context or null if invalid.
 	 */
-	protected function build_import_row_context_from_config( wpdb $wpdb, Swift_CSV_Import_Row_Context $row_context_util, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields ): ?array {
+	protected function build_import_row_context_from_config( wpdb $wpdb, Swift_CSV_Import_Row_Context $row_context_util, array $config, string $line, string $delimiter, array $headers, array $allowed_post_fields, array $parsed_data = [] ): ?array {
 		return $row_context_util->build_import_row_context_from_config(
 			$wpdb,
 			$config,
 			$line,
 			$delimiter,
 			$headers,
-			$allowed_post_fields
+			$allowed_post_fields,
+			$parsed_data
 		);
 	}
 
@@ -466,6 +551,7 @@ class Swift_CSV_Import_Batch_Processor extends Swift_CSV_Import_Batch_Processor_
 			'data'      => $data,
 			'context'   => 'import_field_preparation',
 			'post_type' => $context['post_type'] ?? 'post',
+			'dry_run'   => $dry_run,
 		];
 		$prepared_meta_fields = apply_filters( 'swift_csv_prepare_import_fields', $result['meta_fields'], $post_id, $prepare_args );
 		do_action( 'swift_csv_import_phase_map_prepared', $post_id, $prepared_meta_fields, $prepare_args );

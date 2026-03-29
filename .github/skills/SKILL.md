@@ -88,6 +88,7 @@ swift-csv-pro/                      # Pro add-on (separate repo)
 - **JS modules via `window.*` globals** — No bundler; each file exports to `window.SwiftCSVCore`, `window.SwiftCSVExport`, etc. Main entry waits for all modules before initializing.
 - **WP_DEBUG-aware assets** — Debug mode loads unminified JS/CSS; production loads `.min` versions.
 - **Chunked AJAX processing** — Both import and export use chunked requests to avoid PHP timeouts.
+- **Streamed import batches** — Large CSV imports read logical lines incrementally and reuse cached offsets instead of retaining the entire CSV payload in memory.
 - **Session-based export cancellation** — Uses `wp_options` with direct DB reads (bypasses cache) and per-session flags.
 - **Temporary file security** — Import temp files are cleaned up on completion/error, protected by `.htaccess`, and purged after 24h.
 - **Interface-based architecture** — Export/Import use base classes with WP-compatible implementations for extensibility.
@@ -101,6 +102,8 @@ swift-csv-pro/                      # Pro add-on (separate repo)
 4. **Temporary files** — Call `unlink()` on ALL error paths, not just success.
 5. **Module loading** — Wait for all `window.SwiftCSV*` globals before calling module functions.
 6. **Build after JS/CSS changes** — Run `npm run build` (CSS + JS) or `npm run dev` for watch mode.
+7. **CSV parsing behavior** — Treat RFC 4180 double-quote escaping (`""`) as the baseline; do not rely on backslash escaping in `str_getcsv()`.
+8. **Release artifacts** — `test-release/` and generated minified files are build artifacts, not source-controlled files.
 
 ## Build Commands
 
@@ -111,6 +114,7 @@ composer phpcs         # Run PHP CodeSniffer
 composer phpcbf        # Auto-fix PHP style
 npm run lint:js        # ESLint
 npm run format         # Prettier
+./test-release.sh      # Build a local release ZIP and clean artifacts afterward
 ```
 
 ## Pitfall Quick Reference
@@ -125,6 +129,8 @@ npm run format         # Prettier
 | 006 | JS       | Export cancellation broken            | Option cache, session isolation, race conditions | Use proper session management and caching                           |
 | 007 | Security | Temp CSV files persist                | No cleanup on error paths                        | Ensure cleanup on all execution paths                               |
 | 008 | JS       | UI disappears after JS modularization | Wrong DOM selectors, over-aggressive cleanup     | Test DOM selectors after UI changes                                 |
+| 009 | CSV      | Quoted fields parse inconsistently    | Assuming backslash escapes are supported         | Follow RFC 4180 expectations and verify source CSV escaping         |
+| 010 | Release  | Repo gets dirty after local packaging | Build artifacts remain in the working tree       | Use `test-release.sh` cleanup behavior and do not re-track outputs  |
 
 ## Detailed Documentation
 

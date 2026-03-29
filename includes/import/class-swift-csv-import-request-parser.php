@@ -72,17 +72,15 @@ class Swift_CSV_Import_Request_Parser {
 	 * Parse import configuration parameters.
 	 *
 	 * @since 0.9.8
-	 * @param string $csv_content CSV content (first request only).
 	 * @return array{
 	 *   batch_size:      int,
 	 *   post_type:       string,
 	 *   update_existing: string,
 	 *   taxonomy_format: string,
-	 *   dry_run:         bool,
-	 *   csv_content:     string
+	 *   dry_run:         bool
 	 * }
 	 */
-	public function parse_import_config( string $csv_content ): array {
+	public function parse_import_config(): array {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$batch_size = isset( $_POST['batch_size'] ) ? intval( $_POST['batch_size'] ) : 10;
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -100,7 +98,6 @@ class Swift_CSV_Import_Request_Parser {
 			'update_existing' => $update_existing,
 			'taxonomy_format' => $taxonomy_format,
 			'dry_run'         => $dry_run,
-			'csv_content'     => $csv_content,
 		];
 	}
 

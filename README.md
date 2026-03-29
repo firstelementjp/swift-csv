@@ -2,15 +2,23 @@
 
 ![Swift CSV Banner](https://github.com/firstelementjp/swift-csv/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
 
-[![Version](https://img.shields.io/badge/version-0.9.8-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
+[![Version](https://img.shields.io/badge/version-0.9.9-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/firstelementjp/swift-csv)
 
-Swift CSV is a lightweight WordPress plugin for importing and exporting CSV data.
-It supports custom post types, custom taxonomies, custom fields, and Gutenberg block content.
+Swift CSV is an easy-to-use WordPress plugin for importing and exporting CSV data.
+It combines a simple admin experience with extensibility through WordPress hooks.
 
 This repository contains the plugin source code, tests, and developer resources.
 For end-user guides and full documentation, see the links below.
+
+## ✨ Recent Highlights
+
+- Reduced memory usage for large CSV imports by streaming batch reads and reusing file offsets
+- Improved import log tab behavior and preserved recent logs at completion
+- Fixed CSV quote parsing for edge cases involving backslash-escaped double quotes in legacy data
+- Cleaned up local release workflow so `test-release` and generated minified assets do not remain tracked in Git
 
 ## 📖 Overview
 
@@ -64,6 +72,7 @@ Swift CSV provides:
 git clone https://github.com/firstelementjp/swift-csv.git
 cd swift-csv
 composer install
+npm install
 ```
 
 After installing dependencies, place the plugin in your local WordPress environment and activate it from the admin dashboard.
@@ -98,12 +107,25 @@ tests/coverage/
 ## 🛠️ Development Commands
 
 ```bash
+# PHP/Composer
 composer test              # Run test suite
 composer phpcs             # Check coding standards
 composer phpcbf            # Fix coding standards automatically
+
+# Node.js/npm
 npm run build              # Build/minify frontend assets
+npm run lint:js            # Check JavaScript coding standards
+npm run lint:js:fix        # Fix JavaScript coding standards
+npm run dev                # Development build with source maps
+npm run watch:all          # Watch for changes and rebuild automatically
+
+# Release
 ./test-release.sh          # Create a release ZIP locally
 ```
+
+See `package.json` for the complete list of available npm scripts.
+
+`./test-release.sh` now builds release assets, assembles the ZIP, and then removes temporary release artifacts from the working tree.
 
 See the project documentation for detailed development and release workflows.
 

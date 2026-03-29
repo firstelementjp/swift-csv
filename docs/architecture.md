@@ -11,27 +11,27 @@ Swift CSV is organized around a WordPress admin workflow for importing and expor
 The major runtime areas are:
 
 - **Admin layer**
-  - Registers the admin UI
-  - Loads scripts and styles
-  - Provides settings and license-related pages
+    - Registers the admin UI
+    - Loads scripts and styles
+    - Provides settings and license-related pages
 
 - **Export layer**
-  - Builds export headers
-  - Collects content in batches
-  - Streams progress and logs
-  - Generates downloadable CSV output
+    - Builds export headers
+    - Collects content in batches
+    - Streams progress and logs
+    - Generates downloadable CSV output
 
 - **Import layer**
-  - Accepts uploaded CSV files
-  - Parses and validates rows
-  - Maps CSV data into WordPress content
-  - Persists posts, custom fields, and taxonomy terms
+    - Accepts uploaded CSV files
+    - Parses and validates rows
+    - Maps CSV data into WordPress content
+    - Persists posts, custom fields, and taxonomy terms
 
 - **Shared infrastructure**
-  - AJAX helpers
-  - File utilities
-  - General helper utilities
-  - Translation assets
+    - AJAX helpers
+    - File utilities
+    - General helper utilities
+    - Translation assets
 
 ## Architectural Goals
 

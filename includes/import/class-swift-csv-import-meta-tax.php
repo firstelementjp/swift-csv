@@ -97,13 +97,7 @@ class Swift_CSV_Import_Meta_Tax {
 	 * @param string $taxonomy_format Taxonomy format.
 	 * @param array  $taxonomy_format_validation Taxonomy format validation.
 	 * @param bool   $dry_run Dry run flag.
-	 * @param array{
-	 *   processed: int,
-	 *   created:   int,
-	 *   updated:   int,
-	 *   errors:    int,
-	 *   dry_run_log: array<int,string>
-	 * } $counters Counters (by reference).
+	 * @param array  $counters Counters (by reference).
 	 * @return array{
 	 *   meta_fields: array<string,string>,
 	 *   taxonomies:  array<string,array<int,string>>
@@ -473,6 +467,7 @@ class Swift_CSV_Import_Meta_Tax {
 			}
 
 			if ( $dry_run ) {
+				$dry_run_log_limit = (int) apply_filters( 'swift_csv_dry_run_log_limit', 50 );
 				// Handle multi-value custom fields (pipe-separated with escaping).
 				$values = $this->get_csv_util()->split_pipe_separated_values( $value );
 				if ( count( $values ) > 1 ) {
@@ -484,6 +479,9 @@ class Swift_CSV_Import_Meta_Tax {
 								$key,
 								$single_value
 							);
+							if ( count( $dry_run_log ) > $dry_run_log_limit ) {
+								$dry_run_log = array_slice( $dry_run_log, -1 * $dry_run_log_limit );
+							}
 						}
 					}
 				} else {
@@ -494,6 +492,9 @@ class Swift_CSV_Import_Meta_Tax {
 						$key,
 						$single_value
 					);
+					if ( count( $dry_run_log ) > $dry_run_log_limit ) {
+						$dry_run_log = array_slice( $dry_run_log, -1 * $dry_run_log_limit );
+					}
 				}
 				continue;
 			}
@@ -517,6 +518,7 @@ class Swift_CSV_Import_Meta_Tax {
 						// WordPress.DB.DirectDatabaseQuery.NoCaching,
 						// WordPress.DB.SlowDBQuery.slow_db_query_meta_key,
 						// WordPress.DB.SlowDBQuery.slow_db_query_meta_value.
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 						$wpdb->insert(
 							$wpdb->postmeta,
 							[
@@ -537,6 +539,7 @@ class Swift_CSV_Import_Meta_Tax {
 			// WordPress.DB.DirectDatabaseQuery.NoCaching,
 			// WordPress.DB.SlowDBQuery.slow_db_query_meta_key,
 			// WordPress.DB.SlowDBQuery.slow_db_query_meta_value.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->insert(
 				$wpdb->postmeta,
 				[

@@ -238,8 +238,12 @@ const SwiftCSVExportUnified = {
 		};
 
 		const startExportLogPolling = function () {
-			if (formData.enable_logs !== '1') return;
-			if (exportLogPollingTimer) return;
+			if (formData.enable_logs !== '1') {
+				return;
+			}
+			if (exportLogPollingTimer) {
+				return;
+			}
 			pollExportLogs();
 			exportLogPollingTimer = setInterval(pollExportLogs, 2000);
 		};
@@ -254,7 +258,9 @@ const SwiftCSVExportUnified = {
 		};
 
 		const sendCancelSignal = function () {
-			if (!exportSession) return;
+			if (!exportSession) {
+				return;
+			}
 			const cancelFormData = new URLSearchParams({
 				action: 'swift_csv_cancel_export',
 				nonce: swiftCSV.nonce,
@@ -539,7 +545,9 @@ const SwiftCSVExportUnified = {
 
 		// Update progress bar if exists
 		const progressContainer = document.querySelector('.swift-csv-progress');
-		if (!progressContainer) return;
+		if (!progressContainer) {
+			return;
+		}
 
 		const progressFill = progressContainer.querySelector('.progress-bar-fill');
 		const progressStats = progressContainer.querySelector('.progress-stats');

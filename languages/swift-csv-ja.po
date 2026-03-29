@@ -806,13 +806,13 @@ msgid "UpdraftPlus database backup before import"
 msgstr "インポート前にUpdraftPlusでデータベースをバックアップ"
 
 msgid "Access control for the tools page and execution permissions"
-msgstr "ツールページと実行権限のアクセス制御"
+msgstr "設定画面へのアクセスと実行できる権限の設定"
 
 msgid "Support & Updates"
 msgstr "サポートとアップデート"
 
 msgid "Dedicated customer support"
-msgstr "専用カスタマーサポート"
+msgstr "個別カスタマーサポート"
 
 msgid "Automatic updates from our update server"
 msgstr "アップデートサーバーからの自動アップデート"
@@ -823,8 +823,8 @@ msgstr "今後の実装予定"
 msgid "Downloadable detailed export/import operation logs"
 msgstr "ダウンロード可能な詳細なエクスポート/インポート操作ログ"
 
-msgid "AI (LLM)-powered security checks"
-msgstr "AI (LLM) によるセキュリティチェック"
+msgid "AI (LLM)-powered data checks"
+msgstr "AI (LLM) によるデータチェック"
 
 msgid "View Swift CSV Pro Details"
 msgstr "Swift CSV Pro詳細を表示"

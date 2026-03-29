@@ -457,7 +457,7 @@ class Swift_CSV_Admin_Page {
 								<h4><?php esc_html_e( 'Upcoming Features', 'swift-csv' ); ?></h4>
 								<ul>
 									<li><?php esc_html_e( 'Downloadable detailed export/import operation logs', 'swift-csv' ); ?></li>
-									<li><?php esc_html_e( 'AI (LLM)-powered security checks', 'swift-csv' ); ?></li>
+									<li><?php esc_html_e( 'AI (LLM)-powered data checks', 'swift-csv' ); ?></li>
 								</ul>
 							</li>
 						</ul>

@@ -1,6 +1,6 @@
 # 🚀 Getting Started
 
-Welcome to Swift CSV v0.9.8. This guide covers the shortest path from installation to your first successful import and export.
+Welcome to Swift CSV v0.9.9. This guide covers the shortest path from installation to your first successful import and export.
 
 ## What Swift CSV Does
 

@@ -165,6 +165,7 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 		}
 
 		if ( $dry_run ) {
+			$dry_run_log_limit = (int) apply_filters( 'swift_csv_dry_run_log_limit', 50 );
 			foreach ( $term_ids as $term_id ) {
 				$term = get_term( $term_id, $taxonomy );
 				if ( $term && ! is_wp_error( $term ) ) {
@@ -175,6 +176,9 @@ class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_W
 						$term_id,
 						$taxonomy
 					);
+					if ( count( $dry_run_log ) > $dry_run_log_limit ) {
+						$dry_run_log = array_slice( $dry_run_log, -1 * $dry_run_log_limit );
+					}
 				}
 			}
 			return;

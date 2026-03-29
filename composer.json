@@ -17,11 +17,11 @@
 		"phpcsstandards/phpcsextra": "^1.5",
 		"phpunit/phpunit": "^9.6",
 		"wp-phpunit/wp-phpunit": "^6.5",
-		"yoast/phpunit-polyfills": "^2.0"
+		"yoast/phpunit-polyfills": "^4.0"
 	},
 	"scripts": {
-		"phpcs": "phpcs",
-		"phpcbf": "phpcbf",
+		"phpcs": "phpcs --standard=phpcs.xml.dist includes/",
+		"phpcbf": "phpcbf --standard=phpcs.xml.dist includes/",
 		"test": "phpunit",
 		"test-coverage": "phpunit --coverage-html tests/coverage",
 		"test-unit": "phpunit --testsuite=\"Swift CSV Unit Tests\"",

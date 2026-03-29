@@ -129,21 +129,6 @@ let globalCumulativeUpdated = 0;
 let globalCumulativeErrors = 0;
 
 /**
- * Check whether Dry Run import is enabled.
- *
- * @return {boolean} True when Dry Run is enabled.
- */
-function isDryRunImportEnabled() {
-	const dryRunCheckbox = document.querySelector('input[name="swift_csv_import_dry_run"]');
-
-	if (dryRunCheckbox) {
-		return dryRunCheckbox.checked;
-	}
-
-	return currentDryRun === '1';
-}
-
-/**
  * Helper function to truncate titles to the specified length.
  *
  * @param {string} title          Original title.
@@ -211,11 +196,16 @@ function appendImportRealtimeLog({ message, level, action, status }) {
 		return;
 	}
 
-	let panelKey = 'created';
+	const updateExisting = document.querySelector(
+		'input[name="swift_csv_import_update_existing"]'
+	)?.checked;
+	let panelKey = updateExisting ? 'updated' : 'created';
 	if ('error' === status) {
 		panelKey = 'errors';
 	} else if ('update' === action) {
 		panelKey = 'updated';
+	} else if ('create' === action) {
+		panelKey = 'created';
 	}
 
 	const logContent = document.querySelector(
@@ -272,11 +262,17 @@ function stopImportLogPolling({ abortRequest = true } = {}) {
  * @return {Promise|undefined} Promise resolving when polling completes.
  */
 function pollImportLogs() {
-	if (isImportCancelled) return Promise.resolve();
+	if (isImportCancelled) {
+		return Promise.resolve();
+	}
 
-	if (currentEnableLogs !== '1') return Promise.resolve();
+	if (currentEnableLogs !== '1') {
+		return Promise.resolve();
+	}
 
-	if (!importSession) return Promise.resolve();
+	if (!importSession) {
+		return Promise.resolve();
+	}
 
 	if (importLogPollingAbortController) {
 		return importLogPollingPromise || Promise.resolve();
@@ -315,7 +311,9 @@ function pollImportLogs() {
 
 			if (payload.logs && Array.isArray(payload.logs) && payload.logs.length > 0) {
 				payload.logs.forEach(item => {
-					if (!item || !item.detail) return;
+					if (!item || !item.detail) {
+						return;
+					}
 					const detail = item.detail;
 					const dryRunPrefixText = String(swiftCSV.messages.dryRunPrefix || '');
 					const importPrefixText = String(swiftCSV.messages.importPrefix || '');
@@ -328,9 +326,15 @@ function pollImportLogs() {
 					const rowText = `${swiftCSV.messages.rowLabel}${detail.row}`;
 					const metaText = `${prefixText}:${rowText}:${actionText}`;
 					const logMessage = `[${metaText}]${truncatedTitle}`;
+					let logLevel = 'info';
+					if (detail.status === 'error') {
+						logLevel = 'error';
+					} else if (detail.status === 'success') {
+						logLevel = 'success';
+					}
 					appendImportRealtimeLog({
 						message: logMessage,
-						level: detail.status === 'success' ? 'success' : 'error',
+						level: logLevel,
 						action: detail.action,
 						status: detail.status,
 					});
@@ -343,29 +347,6 @@ function pollImportLogs() {
 		});
 
 	return importLogPollingPromise;
-}
-
-/**
- * Trigger several additional log polls after completion to capture tail entries.
- *
- * @param {Object} [options]             Configuration for retries.
- * @param {number} [options.attempts=3]  Number of polling attempts.
- * @param {number} [options.delayMs=300] Delay between attempts in ms.
- * @return {Promise} Resolves once all attempts finish.
- */
-function flushImportLogsAfterComplete({ attempts = 3, delayMs = 300 } = {}) {
-	let chain = Promise.resolve();
-	for (let i = 0; i < attempts; i++) {
-		chain = chain
-			.then(() => pollImportLogs())
-			.then(
-				() =>
-					new Promise(resolve => {
-						setTimeout(resolve, delayMs);
-					})
-			);
-	}
-	return chain;
 }
 
 /**
@@ -404,6 +385,10 @@ function startAjaxImport(importMethod) {
 	globalCumulativeUpdated = 0;
 	globalCumulativeErrors = 0;
 
+	// Prepare tab state before writing initial logs.
+	initializeLogTabs();
+	window.swiftCSVLogTabsInitialized = true;
+
 	// Clear import log
 	clearLog('import');
 	addLogEntry(swiftCSV.messages.startingImport, 'info', 'import');
@@ -425,7 +410,7 @@ function startAjaxImport(importMethod) {
 		return;
 	}
 
-	const postType = document.querySelector('#import_post_type')?.value || 'post';
+	const postType = document.querySelector('#ajax_import_post_type')?.value || 'post';
 	const updateExisting = document.querySelector('input[name="swift_csv_import_update_existing"]')
 		?.checked
 		? '1'
@@ -457,9 +442,6 @@ function startAjaxImport(importMethod) {
 		importBtn.dataset.originalText = importBtn.textContent;
 	}
 
-	// Clear import logs
-	clearLog('import');
-
 	// Log import settings
 	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.fileInfo + ' ' + file.name, 'debug');
 	SwiftCSVCore.swiftCSVLog(
@@ -479,6 +461,27 @@ function startAjaxImport(importMethod) {
 	const abortController = new AbortController();
 	isImportCancelled = false;
 
+	const sendImportCancelSignal = () => {
+		if (!importSession) {
+			return;
+		}
+		const cancelFormData = new URLSearchParams({
+			action: 'swift_csv_cancel_import',
+			nonce: swiftCSV.nonce,
+			import_session: importSession,
+		});
+
+		fetch(swiftCSV.ajaxUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: cancelFormData,
+		}).catch(() => {
+			// ignore.
+		});
+	};
+
 	// Update button states
 	if (importBtn) {
 		importBtn.disabled = true;
@@ -490,9 +493,16 @@ function startAjaxImport(importMethod) {
 
 	// Cancel functionality
 	if (cancelBtn) {
-		cancelBtn.addEventListener('click', function () {
+		const existingCancelHandler = cancelBtn._swiftCsvImportCancelHandler;
+		if (existingCancelHandler) {
+			cancelBtn.removeEventListener('click', existingCancelHandler);
+			cancelBtn._swiftCsvImportCancelHandler = null;
+		}
+
+		const cancelHandler = function () {
 			isImportCancelled = true;
 			stopImportLogPolling({ abortRequest: true });
+			sendImportCancelSignal();
 			abortController.abort(); // Cancel the fetch request
 
 			// Reset progress bar
@@ -515,7 +525,10 @@ function startAjaxImport(importMethod) {
 			if (cancelBtn) {
 				cancelBtn.style.display = 'none';
 			}
-		});
+		};
+
+		cancelBtn._swiftCsvImportCancelHandler = cancelHandler;
+		cancelBtn.addEventListener('click', cancelHandler, { once: true });
 	}
 
 	// Start with first chunk (original 1-stage approach)
@@ -579,7 +592,9 @@ function processImportChunk(
 	startTime,
 	abortController
 ) {
-	if (isImportCancelled) return;
+	if (isImportCancelled) {
+		return;
+	}
 
 	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.processingChunk + ' ' + startRow, 'debug');
 
@@ -652,24 +667,11 @@ function processImportChunk(
 						startTime,
 						abortController
 					);
-				} else if (enableLogs === '1') {
-					flushImportLogsAfterComplete({ attempts: 3, delayMs: 300 }).finally(() => {
-						stopImportLogPolling({ abortRequest: false });
-						if (data.recent_logs && !window.swiftCSVLogsDisplayed) {
-							try {
-								displayImportLogs(data.recent_logs);
-								window.swiftCSVLogsDisplayed = true;
-							} catch (e) {
-								console.error('Failed to display import logs:', e);
-							}
-						}
-						completeAjaxImport(data, importBtn, cancelBtn);
-					});
 				} else {
 					stopImportLogPolling({ abortRequest: false });
 					if (data.recent_logs && !window.swiftCSVLogsDisplayed) {
 						try {
-							displayImportLogs(data.recent_logs);
+							displayImportLogs(data.recent_logs, data);
 							window.swiftCSVLogsDisplayed = true;
 						} catch (e) {
 							console.error('Failed to display import logs:', e);
@@ -789,12 +791,13 @@ function updateImportProgress(data, startTime) {
 	} else if (data.errors !== undefined) {
 		globalCumulativeErrors += Number(data.errors) || 0;
 	}
+	const processedCount = Number(data.processed) || 0;
 
 	if (logCreatedEl) {
 		logCreatedEl.textContent = globalCumulativeCreated;
 	}
 	if (logUpdatedEl) {
-		logUpdatedEl.textContent = globalCumulativeUpdated;
+		logUpdatedEl.textContent = `${globalCumulativeUpdated} / ${processedCount}`;
 	}
 	if (logErrorEl) {
 		logErrorEl.textContent = globalCumulativeErrors;
@@ -899,9 +902,10 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 /**
  * Display import logs in tabs
  *
- * @param {Object} recentLogs Recent logs by type
+ * @param {Object} recentLogs    Recent logs by type.
+ * @param {Object} [summaryData] Summary counts from the final response.
  */
-function displayImportLogs(recentLogs) {
+function displayImportLogs(recentLogs, summaryData = {}) {
 	const createdPanel = document.querySelector('.log-panel[data-panel="created"] .log-content');
 	const updatedPanel = document.querySelector('.log-panel[data-panel="updated"] .log-content');
 	const errorsPanel = document.querySelector('.log-panel[data-panel="errors"] .log-content');
@@ -924,9 +928,15 @@ function displayImportLogs(recentLogs) {
 	const errorsLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunErrors || 'Errors');
 
 	// Clear all panels first
-	if (createdPanel) createdPanel.innerHTML = '';
-	if (updatedPanel) updatedPanel.innerHTML = '';
-	if (errorsPanel) errorsPanel.innerHTML = '';
+	if (createdPanel) {
+		createdPanel.innerHTML = '';
+	}
+	if (updatedPanel) {
+		updatedPanel.innerHTML = '';
+	}
+	if (errorsPanel) {
+		errorsPanel.innerHTML = '';
+	}
 
 	// Add initial "Ready to start import..." message if no logs exist
 	const hasAnyLogs =
@@ -936,9 +946,15 @@ function displayImportLogs(recentLogs) {
 
 	if (!hasAnyLogs) {
 		const readyMessage = swiftCSV.messages.readyToImport || 'Ready to start import...';
-		if (createdPanel) createdPanel.innerHTML = createLogEntry(readyMessage, 'info');
-		if (updatedPanel) updatedPanel.innerHTML = createLogEntry(readyMessage, 'info');
-		if (errorsPanel) errorsPanel.innerHTML = createLogEntry(readyMessage, 'info');
+		if (createdPanel) {
+			createdPanel.innerHTML = createLogEntry(readyMessage, 'info');
+		}
+		if (updatedPanel) {
+			updatedPanel.innerHTML = createLogEntry(readyMessage, 'info');
+		}
+		if (errorsPanel) {
+			errorsPanel.innerHTML = createLogEntry(readyMessage, 'info');
+		}
 		return;
 	}
 
@@ -1051,6 +1067,10 @@ function displayImportLogs(recentLogs) {
 
 	// Add completion log and summary to appropriate panel
 	const summaryPrefix = isDryRun ? `${dryRunPrefixText}:` : `${importPrefixText}:`;
+	const createdTotal = Number(summaryData.cumulative_created ?? recentLogs.created?.total ?? 0);
+	const updatedTotal = Number(summaryData.cumulative_updated ?? recentLogs.updated?.total ?? 0);
+	const errorsTotal = Number(summaryData.cumulative_errors ?? recentLogs.errors?.total ?? 0);
+	const processedTotal = Number(summaryData.processed ?? 0);
 
 	// Add completion message
 	const completeMessage = isDryRun
@@ -1066,26 +1086,26 @@ function displayImportLogs(recentLogs) {
 	}
 
 	// Add summary logs to respective panels
-	if (recentLogs.created && recentLogs.created.total > 0) {
-		const createdSummary = `${summaryPrefix}${createdLabelText} ${recentLogs.created.total}`;
+	if (createdTotal > 0) {
+		const createdSummary = `${summaryPrefix}${createdLabelText} ${createdTotal}`;
 		if (createdPanel) {
 			createdPanel.innerHTML += createLogEntry(createdSummary, 'info');
 		}
 	}
 
-	if (recentLogs.updated && recentLogs.updated.total > 0) {
-		const updatedSummary = `${summaryPrefix}${updatedLabelText} ${recentLogs.updated.total}`;
+	if (updatedTotal > 0) {
+		const updatedSummary = `${summaryPrefix}${updatedLabelText} ${updatedTotal} / ${processedTotal}`;
 		if (updatedPanel) {
 			updatedPanel.innerHTML += createLogEntry(updatedSummary, 'info');
 		}
 	}
 
-	if (recentLogs.errors && recentLogs.errors.total > 0) {
-		const errorSummary = `${summaryPrefix}${errorsLabelText} ${recentLogs.errors.total}`;
+	if (errorsTotal > 0) {
+		const errorSummary = `${summaryPrefix}${errorsLabelText} ${errorsTotal}`;
 		if (errorsPanel) {
 			errorsPanel.innerHTML += createLogEntry(
 				errorSummary,
-				recentLogs.errors.total > 0 ? 'warning' : 'info'
+				errorsTotal > 0 ? 'warning' : 'info'
 			);
 		}
 	}

@@ -8,7 +8,7 @@
 **Swift CSV** is a WordPress plugin for CSV import/export.
 Supports custom post types, custom taxonomies, and custom fields.
 
-- **Version**: 0.9.8
+- **Version**: 0.9.9
 - **License**: GPL-2.0+
 - **PHP**: >= 8.1 (recommended)
 - **Repository**: https://github.com/firstelementjp/swift-csv
@@ -16,35 +16,45 @@ Supports custom post types, custom taxonomies, and custom fields.
 ## Architecture
 
 ```
-swift-csv.php                          # Entry point, constants, bootstrap
+swift-csv.php                               # Entry point, constants, bootstrap
 includes/
-  class-swift-csv-admin.php            # Admin UI (menu, tabs, rendering)
-  class-swift-csv-ajax-export.php      # AJAX export handler (chunked)
-  class-swift-csv-ajax-import.php      # AJAX import handler (chunked)
-  class-swift-csv-ajax-util.php         # AJAX utilities and response handling
-  class-swift-csv-batch-processor.php   # Batch processing engine
-  class-swift-csv-csv-parser.php        # CSV parsing utilities
-  class-swift-csv-export-base.php       # Base export class
-  class-swift-csv-export-wp-compatible.php # WP compatible export implementation
-  class-swift-csv-import-base.php       # Base import class
-  class-swift-csv-import-wp-compatible.php # WP compatible import implementation
-  class-swift-csv-import-persister.php  # Import data persistence
-  class-swift-csv-import-request-parser.php # Import request parsing
-  class-swift-csv-import-row-context.php # Import row context management
-  class-swift-csv-import-row-processor.php # Import row processing
-  class-swift-csv-import-taxonomy-util.php # Taxonomy utilities
-  class-swift-csv-import-taxonomy-writer-interface.php # Taxonomy writer interface
-  class-swift-csv-import-taxonomy-writer-wp.php # WP taxonomy writer
-  class-swift-csv-import-meta-tax.php   # Meta and taxonomy processing
-  class-swift-csv-import-direct-sql.php # Direct SQL import (legacy)
-  class-swift-csv-updater.php          # Plugin update checker
+  class-swift-csv-ajax-util.php            # Shared AJAX utilities and response helpers
+  class-swift-csv-file-util.php            # File helper utilities
+  class-swift-csv-helper.php               # Shared CSV and formatting helpers
+  admin/
+    class-swift-csv-admin.php              # Admin bootstrap
+    class-swift-csv-admin-page.php         # Admin UI rendering
+    class-swift-csv-admin-assets.php       # Script/style registration
+    class-swift-csv-admin-settings.php     # Plugin settings
+    class-swift-csv-license-handler.php    # License management
+    class-swift-csv-updater.php            # Plugin update checker
+  export/
+    class-swift-csv-ajax-export-unified.php        # Export AJAX entry point
+    class-swift-csv-ajax-export-handler-wp-compatible.php # WP-compatible export handler
+    class-swift-csv-export-base.php                # Export base class
+    class-swift-csv-export-wp-compatible.php       # WP-compatible export implementation
+    class-swift-csv-export-log-store.php           # Export log persistence
+  import/
+    class-swift-csv-ajax-import-unified.php        # Import AJAX entry point
+    class-swift-csv-ajax-import-handler-wp-compatible.php # WP-compatible import handler
+    class-swift-csv-import-base.php                # Import base class
+    class-swift-csv-import-batch-processor.php     # Import batch processing engine
+    class-swift-csv-import-csv-parser.php          # Streamed CSV parsing and batch reads
+    class-swift-csv-import-wp-compatible.php       # WP-compatible import implementation
+    class-swift-csv-import-row-context.php         # Import row context management
+    class-swift-csv-import-row-processor.php       # Import row processing
+    class-swift-csv-import-log-store.php           # Import log persistence
 assets/
-  js/admin-scripts.js                  # Frontend JS (logging, AJAX, file upload)
-  js/admin-scripts.min.js              # Minified JS (built by esbuild)
-  css/admin-style.css                  # Admin CSS (two-column layout)
-  css/admin-style.min.css              # Minified CSS (built by esbuild)
-languages/                             # i18n files
-docs/                                  # Docsify documentation site
+  js/swift-csv-core.js                    # Shared JS utilities
+  js/swift-csv-export-unified.js          # Export UI and AJAX flow
+  js/swift-csv-import.js                  # Import UI and AJAX flow
+  js/swift-csv-license.js                 # License UI logic
+  js/swift-csv-main.js                    # Main initializer
+  js/export/swift-csv/*.js                # Export module files
+  css/swift-csv-style.css                 # Admin styles
+languages/                                # i18n files
+docs/                                     # Docsify documentation site
+.github/skills/                           # AI/developer guidance and troubleshooting knowledge
 ```
 
 ## CSV Column Prefix Convention
@@ -64,6 +74,7 @@ composer phpcs         # Run PHP CodeSniffer
 composer phpcbf        # Auto-fix PHP style
 npm run lint:js        # ESLint
 npm run format         # Prettier
+./test-release.sh      # Build a local release ZIP and clean artifacts afterward
 ```
 
 **After editing JS/CSS, always rebuild the minified files.**
@@ -140,21 +151,21 @@ Use local time, not UTC.
 2. Implement WP-compatible version
 3. Add proper PHPDoc with object types
 4. Update request parser if needed
-5. Test with real data, check `debug.log`
+5. Test with real data, then inspect the relevant WordPress or PHP error log destination
 6. Update documentation if new pattern discovered
 
 ### Changing Admin UI
 
-1. Edit PHP template in `class-swift-csv-admin.php`
-2. Update CSS in `admin-style.css`
-3. Update JS selectors in `admin-scripts.js`
+1. Edit PHP template in `includes/admin/class-swift-csv-admin-page.php`
+2. Update CSS in `assets/css/swift-csv-style.css`
+3. Update JS selectors in `assets/js/swift-csv-import.js`, `assets/js/swift-csv-export-unified.js`, or `assets/js/swift-csv-main.js`
 4. Rebuild minified assets: `npm run build`
 5. Test all element references in JS
 
 ### Debugging Export/Import
 
 1. Add `error_log()` at the suspected point
-2. Run the operation, check `debug.log`
+2. Run the operation, then inspect the relevant WordPress or PHP error log destination
 3. Look for: field detection → value retrieval → CSV output
 4. Fix root cause, not symptoms
 5. Document the fix in `SKILL.md`

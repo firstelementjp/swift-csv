@@ -33,8 +33,12 @@
 			buildLogMessage,
 			requestOptions,
 		}) {
-			if (enableLogs !== '1') return Promise.resolve();
-			if (!exportSession) return Promise.resolve();
+			if (enableLogs !== '1') {
+				return Promise.resolve();
+			}
+			if (!exportSession) {
+				return Promise.resolve();
+			}
 
 			const logFormData = new URLSearchParams({
 				action: 'swift_csv_ajax_export_logs',
@@ -51,7 +55,9 @@
 				.postForm(logFormData, requestOptions)
 				.then(response => response.json())
 				.then(data => {
-					if (!data || !data.success || !data.data) return;
+					if (!data || !data.success || !data.data) {
+						return;
+					}
 					const payload = data.data;
 					if (payload.last_id !== undefined) {
 						const nextAfterId = Number(payload.last_id) || afterId;
@@ -67,7 +73,9 @@
 						return;
 					}
 					payload.logs.forEach(item => {
-						if (!item || !item.detail) return;
+						if (!item || !item.detail) {
+							return;
+						}
 						const detail = item.detail;
 						const logMessage =
 							typeof buildLogMessage === 'function'

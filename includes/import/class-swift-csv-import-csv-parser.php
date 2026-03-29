@@ -54,39 +54,79 @@ class Swift_CSV_Import_Csv_Parser {
 	}
 
 	/**
-	 * Parse and validate CSV content.
+	 * Parse and validate CSV file.
 	 *
 	 * Extracted from parse_and_validate_csv() for better modularity.
 	 *
 	 * @since 0.9.8
-	 * @param string $csv_content CSV content.
-	 * @param array  $config Import configuration.
 	 * @param string $file_path Temporary file path for cleanup.
+	 * @param array  $config Import configuration.
 	 * @return array|null Parsed CSV data or null on error (sends JSON response).
 	 */
-	public function parse_and_validate_csv( string $csv_content, array $config, string $file_path ): ?array {
+	public function parse_and_validate_csv_file( string $file_path, array $config ): ?array {
 		Swift_CSV_Ajax_Util::set_stage( 'csv_parser:parse_and_validate_csv' );
 
 		try {
-			// Parse CSV content line by line to handle quoted fields with newlines.
-			$lines = $this->get_csv_util()->parse_csv_lines_preserving_quoted_newlines( $csv_content );
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+			$handle = fopen( $file_path, 'rb' );
+			if ( false === $handle ) {
+				Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed: unable to open file' );
+				return null;
+			}
+
+			$first_line = $this->read_next_logical_line( $handle );
+			if ( null === $first_line ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+				fclose( $handle );
+				Swift_CSV_Ajax_Util::send_error_response( 'CSV parsing failed: empty file' );
+				return null;
+			}
 
 			// Detect CSV delimiter from first line.
-			$delimiter = $this->get_csv_util()->detect_csv_delimiter( $lines );
+			$delimiter = $this->get_csv_util()->detect_csv_delimiter( [ $first_line ] );
 
 			// Read and normalize headers.
-			$headers = $this->get_csv_util()->read_and_normalize_headers( $lines, $delimiter );
+			$headers           = array_map(
+				[ $this->get_csv_util(), 'normalize_field_name' ],
+				str_getcsv( $first_line, $delimiter, '"', '' )
+			);
+			$data_start_offset = ftell( $handle );
 
 			$taxonomy_format = isset( $config['taxonomy_format'] ) ? (string) $config['taxonomy_format'] : '';
 			if ( '' === $taxonomy_format ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+				fclose( $handle );
 				Swift_CSV_Ajax_Util::send_error_response( 'Missing taxonomy_format' );
 				return null;
 			}
 
-			// Detect taxonomy format validation.
-			$taxonomy_format_validation = $this->detect_taxonomy_format_validation_or_send_error_and_cleanup(
-				$lines,
-				$delimiter,
+			$taxonomy_format_validation = [];
+			$total_rows                 = 0;
+			$first_data_row             = null;
+
+			try {
+				$line = $this->read_next_logical_line( $handle );
+				while ( null !== $line ) {
+					if ( '' === trim( $line ) ) {
+						$line = $this->read_next_logical_line( $handle );
+						continue;
+					}
+
+					++$total_rows;
+
+					if ( null === $first_data_row ) {
+						$first_data_row = $this->get_csv_util()->parse_csv_row( $line, $delimiter );
+					}
+
+					$line = $this->read_next_logical_line( $handle );
+				}
+			} finally {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+				fclose( $handle );
+			}
+
+			$taxonomy_format_validation = $this->analyze_taxonomy_format_validation_from_first_row(
+				(array) $first_data_row,
 				$headers,
 				$taxonomy_format,
 				$file_path
@@ -96,15 +136,14 @@ class Swift_CSV_Import_Csv_Parser {
 				return null;
 			}
 
-			// Count total rows.
-			$total_rows = $this->get_csv_util()->count_total_rows( $lines );
-
 			return [
-				'lines'                      => $lines,
 				'delimiter'                  => $delimiter,
 				'headers'                    => $headers,
 				'taxonomy_format_validation' => $taxonomy_format_validation,
 				'total_rows'                 => $total_rows,
+				'data_start_offset'          => false === $data_start_offset ? 0 : (int) $data_start_offset,
+				'next_offset'                => false === $data_start_offset ? 0 : (int) $data_start_offset,
+				'next_start_row'             => 0,
 			];
 		} catch ( Throwable $t ) {
 			Swift_CSV_Ajax_Util::send_error_response( 'CSV parser error: ' . $t->getMessage() );
@@ -113,75 +152,138 @@ class Swift_CSV_Import_Csv_Parser {
 	}
 
 	/**
+	 * Read current batch lines from CSV file.
+	 *
+	 * @since 0.9.8
+	 * @param string $file_path Temporary file path.
+	 * @param int    $start_row Start row offset.
+	 * @param int    $batch_size Batch size.
+	 * @param int    $data_start_offset Byte offset where data rows begin.
+	 * @param int    $next_offset Cached next byte offset.
+	 * @param int    $next_start_row Row number associated with cached next offset.
+	 * @return array{lines: array<int, string>, next_offset: int, next_start_row: int}
+	 */
+	public function read_batch_lines( string $file_path, int $start_row, int $batch_size, int $data_start_offset = 0, int $next_offset = 0, int $next_start_row = 0 ): array {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+		$handle = fopen( $file_path, 'rb' );
+		if ( false === $handle ) {
+			return [
+				'lines'          => [],
+				'next_offset'    => 0,
+				'next_start_row' => $start_row,
+			];
+		}
+
+		$logical_row_index = 0;
+		$batch_lines       = [];
+		$target_end_row    = $start_row + max( 0, $batch_size );
+		$current_offset    = $data_start_offset;
+
+		try {
+			if ( $start_row > 0 && $next_start_row === $start_row && $next_offset > 0 ) {
+				if ( 0 === fseek( $handle, $next_offset ) ) {
+					$current_offset    = $next_offset;
+					$logical_row_index = $start_row;
+				}
+			} elseif ( $data_start_offset > 0 ) {
+				if ( 0 === fseek( $handle, $data_start_offset ) ) {
+					$current_offset = $data_start_offset;
+				}
+			}
+
+			$line = $this->read_next_logical_line( $handle );
+			while ( null !== $line ) {
+				$current_offset_after_line = ftell( $handle );
+				if ( false !== $current_offset_after_line ) {
+					$current_offset = (int) $current_offset_after_line;
+				}
+
+				if ( $logical_row_index >= $start_row && $logical_row_index < $target_end_row ) {
+					$batch_lines[] = $line;
+				}
+				++$logical_row_index;
+
+				if ( $logical_row_index >= $target_end_row ) {
+					break;
+				}
+
+				$line = $this->read_next_logical_line( $handle );
+			}
+		} finally {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+			fclose( $handle );
+		}
+
+		return [
+			'lines'          => $batch_lines,
+			'next_offset'    => $current_offset,
+			'next_start_row' => $logical_row_index,
+		];
+	}
+
+	/**
 	 * Detect taxonomy format validation.
 	 *
 	 * @since 0.9.8
-	 * @param array  $lines CSV lines.
-	 * @param string $delimiter CSV delimiter.
+	 * @param array  $row First parsed CSV row.
 	 * @param array  $headers CSV headers.
 	 * @param string $taxonomy_format Taxonomy format selected in UI.
 	 * @param string $file_path Temporary file path for cleanup.
 	 * @return array|null Taxonomy validation data or null on error (sends JSON response).
 	 */
-	private function detect_taxonomy_format_validation_or_send_error_and_cleanup(
-		array $lines,
-		string $delimiter,
+	private function analyze_taxonomy_format_validation_from_first_row(
+		array $row,
 		array $headers,
 		string $taxonomy_format,
 		string $file_path
 	): ?array {
 		$taxonomy_util              = $this->get_taxonomy_util();
 		$taxonomy_format_validation = [];
-		$first_row_processed        = false;
 
-		// Process first row for format detection.
-		$data = [];
-		foreach ( $lines as $line ) {
-			$row = $this->get_csv_util()->parse_csv_row( $line, $delimiter );
-			if ( count( $row ) !== count( $headers ) ) {
-				continue; // Skip malformed rows.
+		if ( count( $row ) !== count( $headers ) ) {
+			return $taxonomy_format_validation;
+		}
+
+		foreach ( $headers as $j => $header_name ) {
+			$header_name_normalized = strtolower( trim( $header_name ) );
+
+			if ( strpos( $header_name_normalized, 'tax_' ) !== 0 ) {
+				continue;
 			}
-			$data[] = $row;
 
-			// Process taxonomies for format detection on first data row only.
-			if ( ! $first_row_processed ) {
-				foreach ( $headers as $j => $header_name ) {
-					$header_name_normalized = strtolower( trim( $header_name ) );
+			$taxonomy_name = substr( $header_name_normalized, 4 );
+			$taxonomy_obj  = get_taxonomy( $taxonomy_name );
+			if ( ! $taxonomy_obj ) {
+				continue;
+			}
 
-					if ( strpos( $header_name_normalized, 'tax_' ) === 0 ) {
-						$taxonomy_name = substr( $header_name_normalized, 4 ); // Remove tax_.
+			$meta_value = $row[ $j ] ?? '';
+			if ( '' === $meta_value ) {
+				continue;
+			}
 
-						// Get taxonomy object to validate.
-						$taxonomy_obj = get_taxonomy( $taxonomy_name );
-						if ( ! $taxonomy_obj ) {
-							continue; // Skip invalid taxonomy.
-						}
-
-						$meta_value = $row[ $j ] ?? '';
-						if ( '' !== $meta_value ) {
-							$term_values = [];
-							$pipe_parts  = $this->get_csv_util()->split_pipe_separated_values( (string) $meta_value );
-							foreach ( $pipe_parts as $pipe_part ) {
-								$comma_parts = explode( ',', (string) $pipe_part );
-								foreach ( $comma_parts as $comma_part ) {
-									$term_values[] = (string) $comma_part;
-								}
-							}
-							$term_values     = array_values( array_filter( array_map( 'trim', (array) $term_values ), 'strlen' ) );
-							$format_analysis = $taxonomy_util->analyze_term_values_format( $term_values );
-
-							$taxonomy_format_validation[ $taxonomy_name ] = array_merge(
-								$format_analysis,
-								[
-									'sample_values' => $term_values,
-									'taxonomy_name' => $taxonomy_name,
-								]
-							);
-						}
-					}
+			$term_values = [];
+			$pipe_parts  = $this->get_csv_util()->split_pipe_separated_values( (string) $meta_value );
+			foreach ( $pipe_parts as $pipe_part ) {
+				$comma_parts = explode( ',', (string) $pipe_part );
+				foreach ( $comma_parts as $comma_part ) {
+					$term_values[] = (string) $comma_part;
 				}
-				$first_row_processed = true;
 			}
+
+			$term_values = array_values( array_filter( array_map( 'trim', (array) $term_values ), 'strlen' ) );
+			if ( empty( $term_values ) ) {
+				continue;
+			}
+
+			$format_analysis                              = $taxonomy_util->analyze_term_values_format( $term_values );
+			$taxonomy_format_validation[ $taxonomy_name ] = array_merge(
+				$format_analysis,
+				[
+					'sample_values' => $term_values,
+					'taxonomy_name' => $taxonomy_name,
+				]
+			);
 		}
 
 		// Validate format consistency.
@@ -194,6 +296,43 @@ class Swift_CSV_Import_Csv_Parser {
 		}
 
 		return $taxonomy_format_validation;
+	}
+
+	/**
+	 * Read next logical CSV line while preserving quoted newlines.
+	 *
+	 * @since 0.9.8
+	 * @param resource $handle Open file handle.
+	 * @return string|null
+	 */
+	private function read_next_logical_line( $handle ): ?string {
+		$current_line = '';
+		$in_quotes    = false;
+
+		$line = fgets( $handle );
+		while ( false !== $line ) {
+			$line        = str_replace( [ "\r\n", "\r" ], "\n", $line );
+			$line        = rtrim( $line, "\n" );
+			$quote_count = substr_count( $line, '"' );
+
+			if ( $in_quotes ) {
+				$current_line .= "\n" . $line;
+			} else {
+				$current_line = $line;
+			}
+
+			if ( 1 === $quote_count % 2 ) {
+				$in_quotes = ! $in_quotes;
+			}
+
+			if ( ! $in_quotes ) {
+				return $current_line;
+			}
+
+			$line = fgets( $handle );
+		}
+
+		return '' !== $current_line ? $current_line : null;
 	}
 
 	/**

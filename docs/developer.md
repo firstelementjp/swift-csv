@@ -46,27 +46,27 @@ swift-csv/
 ### Key Areas
 
 - **`includes/admin/`**
-  - Admin page registration
-  - Asset loading
-  - License and updater integration
+    - Admin page registration
+    - Asset loading
+    - License and updater integration
 
 - **`includes/export/`**
-  - Export request handling
-  - Batch processing
-  - CSV row generation
-  - Export logging and download flow
+    - Export request handling
+    - Batch processing
+    - CSV row generation
+    - Export logging and download flow
 
 - **`includes/import/`**
-  - Request parsing
-  - CSV parsing
-  - Row context creation
-  - Row processing and persistence
-  - Taxonomy resolution and writing
+    - Request parsing
+    - CSV parsing
+    - Row context creation
+    - Row processing and persistence
+    - Taxonomy resolution and writing
 
 - **`assets/js/`**
-  - Import and export UI behavior
-  - AJAX request orchestration
-  - Progress display and log updates
+    - Import and export UI behavior
+    - AJAX request orchestration
+    - Progress display and log updates
 
 ## Core Components
 
@@ -94,6 +94,13 @@ Typical responsibilities include:
 - Determining whether a row creates or updates a post
 - Persisting post fields, meta, and taxonomy data
 - Returning progress and error information to the UI
+
+Recent implementation details that affect debugging and extension work:
+
+- Large imports read CSV rows incrementally from the uploaded file instead of storing the full CSV payload in memory
+- Batch processing can reuse parsed row data within a single batch to avoid duplicate CSV parsing overhead
+- Import completion preserves recent logs more reliably so the UI can still show the latest results after the final batch
+- CSV parsing follows RFC 4180 behavior more closely by disabling backslash escaping in core `str_getcsv()` usage
 
 ### Hook-Based Extensibility
 
@@ -164,6 +171,7 @@ composer phpcs
 composer phpcbf
 npm run build
 npm run dev
+./test-release.sh
 ```
 
 Use the commands that match the area you changed:
@@ -171,6 +179,7 @@ Use the commands that match the area you changed:
 - PHP changes: run coding standards and relevant tests
 - JS/CSS changes: rebuild assets
 - Documentation changes: verify links and page structure
+- Release validation: use `./test-release.sh [branch]` to create a local ZIP and confirm temporary release artifacts are cleaned up afterward
 
 ## Common Pitfalls
 
@@ -185,6 +194,14 @@ UI regressions often come from selectors no longer matching the rendered markup.
 ### Incomplete Cleanup on Error Paths
 
 Import processing can leave files or state behind if error paths are not handled fully.
+
+### CSV Edge Cases With Legacy Escaping
+
+Some legacy CSV sources contain backslash-escaped quotes such as `\"`, but the parser now follows RFC 4180 behavior and expects doubled quotes inside quoted fields.
+
+### Import Logs Missing at Completion
+
+If import results appear inconsistent, verify both the backend recent-log assembly order and the frontend log tab initialization/selector behavior.
 
 ### Hook Name Drift
 

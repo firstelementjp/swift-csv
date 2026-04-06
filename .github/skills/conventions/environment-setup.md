@@ -2,68 +2,80 @@
 
 ## Overview
 
-This document outlines the environment setup conventions for Swift CSV development, focusing on the integration between `.envrc`, `wp-config.php`, and secure API key management.
+This document outlines the recommended local development setup for Swift CSV, focusing on Local-style WordPress installs, Node/Composer tooling, and WP-CLI friendly environment conventions.
+
+## Local Development Baseline
+
+Use a local WordPress site with the plugin checked out under `wp-content/plugins/swift-csv`.
+
+Recommended baseline:
+
+```bash
+php >= 8.1
+wordpress >= 6.6
+node >= 22
+composer installed
+npm installed
+wp-cli available locally if possible
+```
 
 ## direnv + wp-config.php Pattern
 
-### Standard Pattern
+If you use `direnv`, keep local-only values in `.envrc` and convert them to WordPress constants in `wp-config.php`.
 
-Use `.envrc` for environment variables and `wp-config.php` to convert them to WordPress constants:
+Typical examples for local development:
 
 ```bash
 # .envrc (never commit this file)
-export OPENAI_API_KEY="sk-your-api-key-here"
-export AI_MODEL="gpt-4"
-export AI_TEMPERATURE="0.7"
+export DB_HOST=localhost
+export DB_NAME=local
+export DB_USER=root
+export DB_PASSWORD=root
+export WP_PATH="/Users/name/Local Sites/example/app/public"
+export WP_TESTS_DIR="/absolute/path/to/vendor/wp-phpunit/wp-phpunit"
 ```
 
 ```php
 // wp-config.php
-define('OPENAI_API_KEY', getenv('OPENAI_API_KEY') ?: '');
-define('AI_MODEL', getenv('AI_MODEL') ?: 'gpt-3.5-turbo');
-define('AI_TEMPERATURE', (float)(getenv('AI_TEMPERATURE') ?: '0.7'));
-```
-
-```php
-// Plugin code
-if (defined('OPENAI_API_KEY') && !empty(OPENAI_API_KEY)) {
-    $response = $this->call_ai_api(OPENAI_API_KEY, AI_MODEL);
-}
+define( 'DB_HOST', getenv( 'DB_HOST' ) ?: 'localhost' );
+define( 'DB_NAME', getenv( 'DB_NAME' ) ?: 'local' );
+define( 'DB_USER', getenv( 'DB_USER' ) ?: 'root' );
+define( 'DB_PASSWORD', getenv( 'DB_PASSWORD' ) ?: 'root' );
 ```
 
 ### Why This Pattern?
 
-1. **Security**: API keys never committed to Git
+1. **Security**: Local-only secrets and paths stay out of Git
 2. **Flexibility**: Easy to change values without touching code
-3. **WordPress Standard**: Uses familiar constant pattern
-4. **Testing**: Easy to override values in tests
-5. **Team Sharing**: `.envrc.example` provides template
+3. **WordPress Standard**: Uses familiar constant pattern in `wp-config.php`
+4. **WP-CLI Friendly**: Shared variables make local shell commands repeatable
+5. **Team Sharing**: Environment expectations can be documented without committing real values
 
 ## Security Guidelines
 
 ### ✅ Do
 
-- Use `.envrc.example` for templates
 - Add `.envrc` to `.gitignore`
-- Use environment-specific values
-- Test with different configurations
+- Keep machine-specific paths in local-only files
+- Use environment-specific values for DB and WP paths
+- Test WP-CLI commands after changing local configuration
 
 ### ❌ Don't
 
-- Commit actual API keys
-- Hard-code values in plugin files
-- Use `getenv()` directly in plugin code
+- Commit local DB credentials or private keys
+- Hard-code local machine paths in plugin source
+- Assume paths without testing when directories contain spaces
 - Share sensitive values in team chats
 
 ## File Structure
 
 ```
 project/
-├── .envrc.example         # Template (commit)
-├── .envrc                 # Actual values (don't commit)
-├── .gitignore             # Includes .envrc
-├── wp-config.php          # Converts env vars to constants
-└── plugin-files/          # Use constants only
+├── .envrc                 # Local direnv values (ignored)
+├── .gitignore             # Ignores .envrc and build artifacts
+├── wp-config.php          # Reads local constants/DB settings
+└── wp-content/plugins/
+    └── swift-csv/         # Plugin repository
 ```
 
 ## Development Workflow
@@ -71,10 +83,10 @@ project/
 ### 1. Initial Setup
 
 ```bash
-# Copy template
-cp .envrc.example .envrc
+# Create local environment file if using direnv
+touch .envrc
 
-# Edit with actual values
+# Edit local values
 nano .envrc
 
 # Allow direnv
@@ -85,109 +97,81 @@ direnv allow
 
 ```bash
 # Verify variables are set
-env | grep -E "(API_KEY|AI_)"
+env | grep -E "(DB_|WP_|PHPUNIT_)"
 
 # Test WordPress constants
 wp --path="$WP_PATH" eval "
-echo 'API Key: ' . OPENAI_API_KEY . PHP_EOL;
-echo 'Model: ' . AI_MODEL . PHP_EOL;
+echo 'ABSPATH: ' . ABSPATH . PHP_EOL;
+echo 'Site URL: ' . get_site_url() . PHP_EOL;
 "
 ```
 
-### 3. Development
+### 3. Install Dependencies
 
 ```bash
-# Change values without touching code
-export AI_MODEL="gpt-4-turbo"
-
-# Test immediately
-wp swift-csv test-ai
+composer install
+npm install
 ```
 
-## AI Development Example
-
-### Phase 1: Backend Testing (No UI)
+### 4. Day-to-Day Development
 
 ```bash
-# .envrc
-export OPENAI_API_KEY="sk-test-key"
-export AI_MODEL="gpt-4"
-export AI_TEMPERATURE="0.7"
+# PHP quality checks
+composer phpcs
+composer phpcbf
+
+# JS/CSS build and lint
+npm run lint:js
+npm run build
+npm run dev
+
+# PHPUnit
+composer test
+
+# Local release validation
+./test-release.sh
 ```
 
-```php
-// AI processor class
-class Swift_CSV_AI_Processor {
-    public function test_connection() {
-        $api_key = OPENAI_API_KEY;
-        $model = AI_MODEL;
+## PHPUnit Notes
 
-        return $this->call_api($api_key, $model, "Test connection");
-    }
-}
-```
-
-### Phase 2: PHPUnit Testing
-
-```php
-// tests/Unit/AITest.php
-public function test_ai_connection() {
-    $processor = new Swift_CSV_AI_Processor();
-    $result = $processor->test_connection();
-
-    $this->assertNotEmpty($result);
-}
-```
-
-### Phase 3: WP-CLI Testing
+Swift CSV uses `tests/bootstrap.php` and `phpunit.xml` to locate WordPress and the WP test library.
 
 ```bash
-# Terminal testing
-wp swift-csv test-ai --provider=openai
-wp swift-csv test-ai --provider=anthropic
-```
+# If WP test library path is custom
+export WP_TESTS_DIR="/absolute/path/to/vendor/wp-phpunit/wp-phpunit"
 
-### Phase 4: UI Implementation
-
-```php
-// Admin interface (constants already available)
-if (defined('OPENAI_API_KEY') && !empty(OPENAI_API_KEY)) {
-    // Show AI features
-}
+# Then run tests
+composer test
 ```
 
 ## Best Practices
 
-### Environment Variable Naming
+### Local Path Handling
 
-- Use `UPPER_CASE` with underscores
-- Include project prefix for common names: `SWIFT_CSV_AI_MODEL`
-- Group related variables: `OPENAI_*`, `ANTHROPIC_*`
+- Quote filesystem paths that contain spaces
+- Do not quote DB host/name/user values unless the environment requires it
+- Re-test WP-CLI commands after path changes
 
-### Default Values
+### Tooling Verification
 
-```php
-// Provide sensible defaults
-define('AI_MODEL', getenv('AI_MODEL') ?: 'gpt-3.5-turbo');
-define('AI_TEMPERATURE', (float)(getenv('AI_TEMPERATURE') ?: '0.7');
-```
+- `composer phpcs` should target `includes/`
+- `npm run lint:js` should complete without errors
+- `npm run build` should regenerate minified assets successfully
+- `composer test` should run from the plugin root
 
-### Error Handling
+### Build Artifacts
 
-```php
-// Graceful fallbacks
-if (!defined('OPENAI_API_KEY') || empty(OPENAI_API_KEY)) {
-    return new WP_Error('no_api_key', 'OpenAI API key not configured');
-}
-```
+- Generated `.min.js`, `.min.css`, `test-release/`, `tests/results/`, and `.phpunit.result.cache` are local/build artifacts unless intentionally committed
+- Validate release packaging with `./test-release.sh`, then verify the working tree is clean afterward
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Variables not available**: Check direnv is loaded (`direnv status`)
-2. **Constants not defined**: Verify wp-config.php changes
-3. **API calls failing**: Test API key validity first
+2. **WP-CLI cannot connect**: Re-check DB vars and quoted paths
+3. **PHPUnit bootstrap fails**: Verify `WP_TESTS_DIR` or local WordPress discovery paths
+4. **Build output missing**: Re-run `npm install` and `npm run build` from the plugin root
 
 ### Debug Commands
 
@@ -196,31 +180,28 @@ if (!defined('OPENAI_API_KEY') || empty(OPENAI_API_KEY)) {
 direnv status
 
 # Verify environment variables
-env | grep -E "(OPENAI|AI_)"
+env | grep -E "(DB_|WP_|PHPUNIT_)"
 
-# Test WordPress constants
-wp --path="$WP_PATH" eval "var_dump(OPENAI_API_KEY);"
+# Test WP-CLI
+wp --path="$WP_PATH" --info
+
+# Test plugin root commands
+composer phpcs
+npm run lint:js
 ```
 
 ## Team Collaboration
 
-### Sharing Environment Setup
-
-1. Update `.envrc.example` with new variables
-2. Document required values in this file
-3. Notify team members of changes
-
 ### Onboarding New Developers
 
 ```bash
-# Standard onboarding commands
+# Standard onboarding flow
 git clone repository
-cd repository
-cp .envrc.example .envrc
-# Edit .envrc with personal values
-direnv allow
+cd swift-csv
 composer install
+npm install
 composer test  # Verify setup
+npm run build  # Verify frontend tooling
 ```
 
 ## References

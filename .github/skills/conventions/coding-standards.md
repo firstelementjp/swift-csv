@@ -93,7 +93,7 @@ try {
 
 ### Module Pattern
 
-Each JS file exports via `window.*` global:
+Browser-facing JS integrates via `window.*` globals, even though assets are built with `esbuild` for distribution:
 
 ```javascript
 // At end of file
@@ -126,26 +126,24 @@ The JS is organized into modules:
 ```javascript
 // Core utilities
 window.SwiftCSVCore = {
-	__,
 	wpPost,
-	logging,
+	addLogEntry,
+	clearLog,
 };
 
 // Export functionality
 window.SwiftCSVExport = {
-	ajax,
-	download,
-	form,
-	logs,
-	original,
-	ui,
+	init,
 };
 
 // Import functionality
 window.SwiftCSVImport = {
-	fileUpload,
-	ajax,
-	progress,
+	init,
+};
+
+// License functionality
+window.SwiftCSVLicense = {
+	init,
 };
 ```
 
@@ -193,6 +191,12 @@ npm run dev
 # PHP code style
 composer phpcs
 composer phpcbf
+
+# JS lint
+npm run lint:js
+
+# Local release validation
+./test-release.sh
 ```
 
-After any JS/CSS changes, always rebuild minified assets for distribution.
+After any JS/CSS changes, always rebuild minified assets for distribution and verify that build artifacts do not leave the working tree dirty unintentionally.

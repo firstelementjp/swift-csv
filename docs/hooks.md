@@ -1057,6 +1057,24 @@ function my_swiftcsv_custom_export_handler( $action_url ) {
 
 **⚠️ Security Note:** Use with caution. Redirecting to external endpoints can expose sensitive export data. Always ensure proper authentication, HTTPS, and access controls when implementing custom handlers.
 
+**Secure Example:**
+
+```php
+add_filter('swift_csv_export_form_action', 'secure_export_handler', 10, 1);
+
+function secure_export_handler($action_url) {
+    // Only allow users with management capabilities
+    if (!current_user_can('manage_options')) {
+        return $action_url; // Return original URL if insufficient permissions
+    }
+
+    // Generate nonce for security verification
+    $nonce = wp_create_nonce('secure_export_' . get_current_user_id());
+
+    return home_url("/secure-export?nonce={$nonce}&user_id=" . get_current_user_id());
+}
+```
+
 #### `swift_csv_tools_page_capability`
 
 Filter the capability required to access the Swift CSV admin page.

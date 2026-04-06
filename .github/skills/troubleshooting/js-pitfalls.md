@@ -6,7 +6,7 @@
 
 **Cause**: JS was looking for old `#swift-csv-ajax-export-progress` element, but the new UI uses `.swift-csv-progress`.
 
-**Fix** (`swift-csv-export.js`):
+**Fix** (`assets/js/swift-csv-export-unified.js`):
 
 ```javascript
 // BEFORE
@@ -28,7 +28,7 @@ const progressFill = container.querySelector('.progress-bar-fill');
 
 **Cause**: String concatenation was missing `-` after `getFullYear()`.
 
-**Fix** (`swift-csv-export.js`):
+**Fix** (`assets/js/swift-csv-export-unified.js`):
 
 ```javascript
 // BEFORE
@@ -54,7 +54,7 @@ const dateStr = now.getFullYear() + '-' +
 2. Cancellation flags not isolated per export session
 3. Multiple cancel handlers registered simultaneously
 
-**Fix** (PHP — `class-swift-csv-ajax-export.php`):
+**Fix** (PHP — `includes/export/class-swift-csv-export-cancel-manager.php` and unified export handler flow):
 
 ```php
 // BEFORE — Option cache issue
@@ -68,7 +68,7 @@ $is_cancelled = $wpdb->get_var($wpdb->prepare(
 ));
 ```
 
-**Fix** (JS — `swift-csv-export.js`):
+**Fix** (JS — `assets/js/swift-csv-export-unified.js`):
 
 ```javascript
 // BEFORE — Multiple event handlers accumulate
@@ -98,7 +98,7 @@ cancelBtn.addEventListener('click', exportCancelHandler, { once: true });
 2. `addLogEntry()` also targeted the wrong container
 3. Modules tried to initialize before they were loaded
 
-**Fix** (`swift-csv-core.js` — don't clear parent):
+**Fix** (`assets/js/swift-csv-core.js` — don't clear parent):
 
 ```javascript
 // BEFORE — Destroys all child elements
@@ -113,7 +113,7 @@ function initLoggingSystem() {
 }
 ```
 
-**Fix** (`swift-csv-main.js` — correct selectors):
+**Fix** (`assets/js/swift-csv-main.js` — correct selectors):
 
 ```javascript
 // BEFORE — Wrong selector
@@ -125,7 +125,7 @@ const logContent = document.querySelector(`#${context}-log-content`);
 if (logContent) logContent.innerHTML = '';
 ```
 
-**Fix** (`swift-csv-main.js` — wait for modules):
+**Fix** (`assets/js/swift-csv-main.js` — wait for modules):
 
 ```javascript
 const checkModules = () => {
@@ -164,7 +164,7 @@ const postType = document.querySelector('#import_post_type')?.value || 'post';
 
 Selector returns `null`, fallback to `'post'` always sent to server. Update query fails: `ID=123 AND post_type='post'` vs actual `cafe-menu`.
 
-**Fix** (`swift-csv-import.js`):
+**Fix** (`assets/js/swift-csv-import.js`):
 
 ```javascript
 // BEFORE

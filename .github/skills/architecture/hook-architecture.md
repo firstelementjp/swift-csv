@@ -1,7 +1,7 @@
 # Hook Architecture
 
 > Export header generation uses a three-element merge pattern with strategic hook placement.
-> Import processing uses interface-based architecture with extensibility hooks.
+> Import and export requests now enter through unified AJAX handlers, then fan out into planner/handler/pipeline classes with extensibility hooks.
 
 ## Export Header Generation Flow
 
@@ -18,11 +18,27 @@
 ## Import Processing Flow
 
 ```
-1. Request parsing  → Swift_CSV_Import_Request Parser
-2. Row context     → Swift_CSV_Import_Row_Context
-3. Row processing  → Swift_CSV_Import_Row_Processor
-4. Data persistence → Swift_CSV_Import_Persister
-5. Taxonomy handling → Swift_CSV_Import_Taxonomy_Writer
+1. AJAX entry point      → Swift_CSV_Ajax_Import_Unified
+2. Request parsing       → Swift_CSV_Import_Request_Parser
+3. File processing       → Swift_CSV_Import_File_Processor
+4. Streamed CSV parsing  → Swift_CSV_Import_CSV_Parser / Swift_CSV_Import_CSV_Store
+5. Batch execution       → Swift_CSV_Import_Batch_Processor
+6. Row context           → Swift_CSV_Import_Row_Context
+7. Row processing        → Swift_CSV_Import_Row_Processor
+8. Data persistence      → Swift_CSV_Import_Persister
+9. Taxonomy handling     → Swift_CSV_Import_Taxonomy_Writer
+10. Response formatting  → Swift_CSV_Import_Response_Manager
+```
+
+## Export Processing Flow
+
+```
+1. AJAX entry point   → Swift_CSV_Ajax_Export_Unified
+2. Batch planning     → Swift_CSV_Ajax_Export_Batch_Planner
+3. Method routing     → WP-compatible / Direct SQL handlers
+4. Export execution   → Swift_CSV_Export_Base descendants
+5. Log persistence    → Swift_CSV_Export_Log_Store
+6. Cancellation check → Swift_CSV_Export_Cancel_Manager
 ```
 
 ## Hook Reference
@@ -45,11 +61,22 @@
 
 ### Import Hooks
 
-| Hook                      | Parameters         | Purpose                     |
-| ------------------------- | ------------------ | --------------------------- |
-| `swift_csv_before_import` | `$args`            | Pre-import preparation      |
-| `swift_csv_import_row`    | `$row_data, $args` | Per-row data transformation |
-| `swift_csv_after_import`  | `$stats, $args`    | Post-import cleanup         |
+| Hook                         | Parameters                | Purpose                                |
+| ---------------------------- | ------------------------- | -------------------------------------- |
+| `swift_csv_pre_ajax_import`  | `$result, $_POST`         | Preflight import request validation    |
+| `swift_csv_user_can_import`  | `$allowed`                | Override import capability checks      |
+| `swift_csv_before_import`    | `$args`                   | Pre-import preparation                 |
+| `swift_csv_import_row`       | `$row_data, $args`        | Per-row data transformation            |
+| `swift_csv_after_import`     | `$stats, $args`           | Post-import cleanup                    |
+| `swift_csv_cancelled_import` | `$cancelled, $session_id` | Override import cancellation detection |
+
+### Export Hooks
+
+| Hook                         | Parameters                | Purpose                                |
+| ---------------------------- | ------------------------- | -------------------------------------- |
+| `swift_csv_pre_ajax_export`  | `$result, $_POST`         | Preflight export request validation    |
+| `swift_csv_user_can_export`  | `$allowed`                | Override export capability checks      |
+| `swift_csv_cancelled_export` | `$cancelled, $session_id` | Override export cancellation detection |
 
 ### Import Processing Hooks
 
@@ -65,7 +92,8 @@
 2. **Single responsibility** — Each hook handles one data type (post fields OR taxonomies OR custom fields).
 3. **Object-level filtering** — Filter taxonomy/field objects before converting to headers, giving hooks access to full object properties.
 4. **Context parameters** — Pass `$args` array with `post_type`, `export_scope`, `context`, etc.
-5. **Interface-based extensibility** — Import system uses base classes with WP-compatible implementations for easy extension.
+5. **Unified handler entry** — AJAX endpoints stay thin; request parsing and execution live in specialized classes.
+6. **Interface-based extensibility** — Import/export systems use base classes with WP-compatible implementations for easy extension.
 
 ## Free/Pro Integration
 
@@ -84,9 +112,9 @@ Pro uses a three-stage custom field pipeline:
 2. **Meta key classification** — `swift_csv_classify_meta_keys` (returns `['enhanced' => [], 'regular' => [], 'private' => []]`)
 3. **Header generation** — `swift_csv_generate_custom_field_headers`
 
-## Import Architecture
+## Import/Export Runtime Architecture
 
-The import system uses interface-based architecture:
+The runtime keeps orchestration classes thin and delegates behavior to shared utilities and implementation classes:
 
 ```php
 // Base classes define the contract
@@ -96,6 +124,10 @@ Swift_CSV_Export_Base
 // WP-compatible implementations
 Swift_CSV_Import_WP_Compatible extends Swift_CSV_Import_Base
 Swift_CSV_Export_WP_Compatible extends Swift_CSV_Export_Base
+
+// Unified AJAX entry points
+Swift_CSV_Ajax_Import_Unified
+Swift_CSV_Ajax_Export_Unified
 
 // Specialized utilities
 Swift_CSV_Import_Taxonomy_Writer_Interface

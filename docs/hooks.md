@@ -1055,6 +1055,8 @@ function my_swiftcsv_custom_export_handler( $action_url ) {
 }
 ```
 
+**⚠️ Security Note:** Use with caution. Redirecting to external endpoints can expose sensitive export data. Always ensure proper authentication, HTTPS, and access controls when implementing custom handlers.
+
 #### `swift_csv_tools_page_capability`
 
 Filter the capability required to access the Swift CSV admin page.

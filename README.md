@@ -83,11 +83,17 @@ PHPUnit for Swift CSV is designed to run in a local WordPress environment.
 
 ### PHPUnit setup for Local by Flywheel
 
-1. Create a local `wp-tests-config.php` based on your Local site database settings
+1. Copy `wp-tests-config.php.example` to `wp-tests-config.php`
 2. If you use `direnv`, copy or create a `.envrc` file for `swift-csv`
 3. Set `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and `MYSQL_UNIX_PORT` for your Local site
 4. Approve the environment with `direnv allow`
 5. Run `composer install`
+
+Example setup command:
+
+```bash
+cp wp-tests-config.php.example wp-tests-config.php
+```
 
 Example environment values:
 

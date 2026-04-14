@@ -30,10 +30,15 @@
 			window.$docsify = {
 				name: '📊 Swift CSV',
 				repo: 'firstelementjp/swift-csv',
-				loadSidebar: '_nav.md',
+				loadSidebar: '_sidebar.md',
 				maxLevel: 4,
 				subMaxLevel: 2,
 				search: 'auto',
+				alias: {
+					'/': '/README.md',
+					'/ja/': '/ja/README.md',
+					'/ja/(.*)': '/ja/$1',
+				},
 				copyCode: {
 					buttonText: 'Copy to clipboard',
 					errorText: 'Failed to copy',
@@ -46,6 +51,33 @@
 				plugins: [
 					function (hook, vm) {
 						hook.doneEach(function () {
+							// Add language toggle button
+							const isJapanese = vm.route.path.startsWith('/ja/');
+							const langToggle = `
+								<div style="text-align: right; margin: 20px 0;">
+									<a href="/${isJapanese ? '' : 'ja/'}" style="
+										background: var(--theme-color);
+										color: white;
+										padding: 6px 12px;
+										border-radius: 4px;
+										text-decoration: none;
+										font-size: 14px;
+									">
+										${isJapanese ? 'English' : '日本語'}
+									</a>
+								</div>
+							`;
+
+							// Remove existing toggle if present
+							const existing = document.querySelector('.lang-toggle');
+							if (existing) existing.remove();
+
+							// Add new toggle
+							const content = document.querySelector('.content');
+							if (content && !content.querySelector('.lang-toggle')) {
+								content.insertAdjacentHTML('afterbegin', langToggle);
+							}
+
 							// Add custom styling for code blocks
 							document.querySelectorAll('pre[data-lang]').forEach(function (block) {
 								if (!block.classList.contains('enhanced')) {

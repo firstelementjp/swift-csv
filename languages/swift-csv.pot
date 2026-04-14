@@ -1,4 +1,4 @@
-# Copyright (C) 2026 FirstElement, Inc.
+# Copyright (C) 2026 FirstElement K.K.
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
@@ -31,7 +31,7 @@ msgstr ""
 
 #. Author of the plugin
 #: swift-csv.php
-msgid "FirstElement, Inc."
+msgid "FirstElement K.K."
 msgstr ""
 
 #. Author URI of the plugin

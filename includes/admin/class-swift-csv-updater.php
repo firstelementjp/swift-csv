@@ -118,13 +118,14 @@ class Swift_CSV_Updater {
 		// Compare versions.
 		$current_version = $plugin_data['Version'];
 		$latest_version  = ltrim( $latest_release->tag_name, 'v' );
+		$package_url     = $this->get_release_package_url( $latest_release );
 
-		if ( version_compare( $latest_version, $current_version, '>' ) ) {
+		if ( $package_url && version_compare( $latest_version, $current_version, '>' ) ) {
 			// Update available.
 			$transient->response[ $plugin_slug ] = (object) [
 				'slug'          => dirname( $plugin_slug ),
 				'new_version'   => $latest_version,
-				'package'       => $latest_release->zipball_url,
+				'package'       => $package_url,
 				'url'           => $latest_release->html_url,
 				'plugin'        => $plugin_slug,
 				'tested'        => get_bloginfo( 'version' ),
@@ -217,6 +218,7 @@ class Swift_CSV_Updater {
 		}
 
 		$plugin_data = get_plugin_data( $this->plugin_file );
+		$package_url = $this->get_release_package_url( $latest_release );
 
 		$res = (object) [
 			'name'              => $plugin_data['Name'],
@@ -231,7 +233,7 @@ class Swift_CSV_Updater {
 				'description' => $plugin_data['Description'],
 				'changelog'   => $this->format_changelog( $latest_release->body ),
 			],
-			'download_link'     => 'https://github.com/firstelementjp/swift-csv/releases/download/' . $latest_release->tag_name . '/swift-csv-' . ltrim( $latest_release->tag_name, 'v' ) . '.zip',
+			'download_link'     => $package_url,
 			'banners'           => [
 				'high' => SWIFT_CSV_PLUGIN_URL . 'assets/images/banner-772x250.png',
 				'low'  => SWIFT_CSV_PLUGIN_URL . 'assets/images/banner-772x250.png',
@@ -243,6 +245,60 @@ class Swift_CSV_Updater {
 		];
 
 		return $res;
+	}
+
+	/**
+	 * Get release package URL
+	 *
+	 * Resolves the GitHub release asset used for WordPress updates.
+	 *
+	 * @since  0.9.9
+	 * @param  object $release GitHub release object.
+	 * @return string Release package URL.
+	 */
+	private function get_release_package_url( $release ) {
+		if ( isset( $release->assets ) && is_array( $release->assets ) ) {
+			$expected_name = 'swift-csv-' . ltrim( $release->tag_name, 'v' ) . '.zip';
+
+			foreach ( $release->assets as $asset ) {
+				if ( ! is_object( $asset ) || ! isset( $asset->name, $asset->browser_download_url ) ) {
+					continue;
+				}
+
+				if ( $expected_name === $asset->name && is_string( $asset->browser_download_url ) ) {
+					return $asset->browser_download_url;
+				}
+			}
+
+			foreach ( $release->assets as $asset ) {
+				if ( ! is_object( $asset ) || ! isset( $asset->name, $asset->browser_download_url ) ) {
+					continue;
+				}
+
+				if ( is_string( $asset->name ) && preg_match( '/^swift-csv-.*\.zip$/', $asset->name ) && is_string( $asset->browser_download_url ) ) {
+					return $asset->browser_download_url;
+				}
+			}
+		}
+
+		return $this->get_release_package_fallback_url( $release );
+	}
+
+	/**
+	 * Get release package fallback URL
+	 *
+	 * Builds the expected GitHub release asset URL when the API asset list is unavailable.
+	 *
+	 * @since  0.9.9
+	 * @param  object $release GitHub release object.
+	 * @return string Release package URL.
+	 */
+	private function get_release_package_fallback_url( $release ) {
+		if ( ! isset( $release->tag_name ) || ! is_string( $release->tag_name ) ) {
+			return '';
+		}
+
+		return 'https://github.com/' . $this->repo_info['owner'] . '/' . $this->repo_info['repo'] . '/releases/download/' . $release->tag_name . '/swift-csv-' . ltrim( $release->tag_name, 'v' ) . '.zip';
 	}
 
 	/**

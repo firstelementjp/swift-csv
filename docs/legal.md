@@ -6,7 +6,7 @@ Swift CSV v0.9.9 is provided under the GPL-2.0+ license.
 
 ```
 Swift CSV WordPress Plugin
-Copyright (C) 2026 FirstElement
+Copyright (C) 2026 Daijiro Miyazawa, FirstElement K.K.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -38,7 +38,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 ### Current Version: v0.9.9
 
-**Release Date**: March 28, 2026
+**Release Date**: April 6, 2026
 
 **Key Features**:
 
@@ -105,9 +105,8 @@ See [composer.json](composer.json) for complete dependency information.
 
 ## Trademarks
 
-- **WordPress**: WordPress® is a registered trademark of the WordPress Foundation
-- **Swift CSV**: Trademark of FirstElement
-- **GitHub**: GitHub® is a registered trademark of GitHub, Inc.
+- **WordPress**: WordPress is a registered trademark of the WordPress Foundation
+- **GitHub**: GitHub is a registered trademark of GitHub, Inc.
 
 ## Support and Liability
 
@@ -128,27 +127,37 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 ### Support Channels
 
-**Community Support**:
+**Free User Support**:
 
-- **GitHub Issues**: [Report bugs](https://github.com/firstelementjp/swift-csv/issues)
+- **GitHub Issues**: [Bug reports and feature requests](https://github.com/firstelementjp/swift-csv/issues)
 - **Documentation**: Available in the [docs/](./) directory
-- **GitHub Repository**: [Source code](https://github.com/firstelementjp/swift-csv)
+- **Community**: Public discussion via the GitHub repository
 
-**Commercial Support**:
+**Paid User (Pro) Support**:
 
-- **Enterprise Support**: Contact FirstElement for enterprise support
-- **Priority Support**: Available for Pro version customers
-- **Custom Development**: Custom feature development services
-- **Training**: Plugin usage and customization training
+- **Email-based Individual Support**: Available via dedicated support email
+- **Dedicated Forum**: Support forum available for Pro users
+- **Priority Handling**: Priority handling for bug reports and feature requests
 
-### Support Scope
+### Support Details
 
-**Included Support**:
+**Support for Paid Users**:
 
-- Bug reports and issue tracking
-- Documentation and examples
-- Community discussions
-- Feature requests and feedback
+- **Individual Issue Resolution**: Site-specific issues such as plugin or theme conflicts
+- **CSV Data Analysis**: Analysis of CSV data when import/export does not work correctly, including temporary data review
+- **Customization Assistance**: Paid custom development using hooks
+- **Configuration Consulting**: Guidance for suitable operational settings
+
+**Support for Free Users**:
+
+- **Bug Reports**: Report issues through GitHub Issues
+- **Feature Requests**: Submit improvement requests through GitHub Issues
+- **Documentation**: Public documentation and configuration examples
+
+**How to Contact Support**:
+
+- Paid users: Contact us by email or through the dedicated forum
+- Free users: Please use GitHub Issues
 
 **Excluded Support**:
 
@@ -172,7 +181,7 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 **License Validation**:
 
 - **Local Validation**: License keys validated locally
-- **Optional Server Check**: Pro version may validate with license server
+- **Online Validation**: Pro version may validate with a license server
 - **No Personal Data**: No personal information transmitted
 - **User Control**: Users control license server communication
 
@@ -223,9 +232,9 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 **v0.9.9 Localization**:
 
 - Japanese translation support
-- Localized admin messaging
-- HTML tag rendering in translations
-- Context-aware messaging
+- Localized notification messages
+- HTML tag display within translated text (for example, using `<code>` tags to highlight technical terms)
+- Messages shown according to context (for example, different messages for error and success states)
 - RTL language support preparation
 
 ## Commercial Use
@@ -251,17 +260,14 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 **Commercial Add-ons**:
 
-- Enhanced license management
+- Advanced features available only in the Pro version
 - Priority support
-- Advanced features
-- Custom development options
+- Paid customization development services
 
 **License Compliance**:
 
-- Core plugin remains GPL-2.0+
-- Pro features are commercial add-ons
-- No GPL violations
-- Clear separation of commercial code
+- Both the Free and Pro versions are licensed under GPL-2.0+
+- The Pro version provides additional features and additional support
 
 ## Contributing
 
@@ -308,14 +314,14 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 - Website: [www.firstelement.co.jp](https://www.firstelement.co.jp)
 - Email: legal@firstelement.jp
-- Address: [Registered business address]
+- Address: Please refer to the official website for the latest information
 
 ### Legal Inquiries
 
 **License Questions**:
 
 - General license questions: legal@firstelement.jp
-- Commercial use inquiries: business@firstelement.jp
+- Commercial use inquiries: legal@firstelement.jp
 - Trademark usage: legal@firstelement.jp
 - DMCA notices: legal@firstelement.jp
 
@@ -356,7 +362,7 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 This legal information is provided for informational purposes only and does not constitute legal advice. For specific legal questions regarding your use of this plugin, please consult with a qualified legal professional.
 
-**Last Updated**: March 28, 2026
+**Last Updated**: April 6, 2026
 **Plugin Version**: v0.9.9
 **License Version**: GPL-2.0+
 

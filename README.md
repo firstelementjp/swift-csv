@@ -163,4 +163,4 @@ See LICENSE for details.
 ## 👨‍💻 Authors
 
 - [Daijiro Miyazawa](https://x.com/dxd5001)
-- [FirstElement, Inc.](https://www.firstelement.co.jp)
+- [FirstElement K.K.](https://www.firstelement.co.jp)

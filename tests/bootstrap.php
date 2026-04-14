@@ -1,26 +1,25 @@
 <?php
 /**
- * PHPUnit Bootstrap for Swift CSV
+ * PHPUnit bootstrap for Swift CSV
  *
- * This file sets up the WordPress testing environment for PHPUnit tests.
+ * This file prepares a WordPress-aware environment for plugin tests.
+ *
+ * @package Swift_CSV\Tests
  */
 
-// Check if we're running in a proper test environment.
 if ( ! defined( 'ABSPATH' ) ) {
-	// Try to locate WordPress installation.
 	$wp_dir = false;
 
-	// Common WordPress installation paths.
 	$possible_paths = [
-		'../../../wp',                    // Local Sites structure.
-		'../../../../wp',                 // Deeper structure.
-		dirname( dirname( dirname( __DIR__ ) ) ) . '/wp', // Plugin relative (wp subfolder).
-		dirname( dirname( dirname( dirname( __DIR__ ) ) ) ), // Standard wp-content hierarchy.
+		'../../../wp',
+		'../../../../wp',
+		dirname( dirname( dirname( __DIR__ ) ) ) . '/wp',
+		dirname( dirname( dirname( dirname( __DIR__ ) ) ) ),
 	];
 
-	foreach ( $possible_paths as $path ) {
-		if ( file_exists( $path . '/wp-config.php' ) ) {
-			$wp_dir = $path;
+	foreach ( $possible_paths as $candidate_path ) {
+		if ( file_exists( $candidate_path . '/wp-config.php' ) ) {
+			$wp_dir = $candidate_path;
 			break;
 		}
 	}
@@ -32,9 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	}
 }
 
-// Load WordPress test environment.
 if ( false === getenv( 'WP_TESTS_DIR' ) ) {
-	// Fallback to vendor directory.
 	$wp_tests_dir = dirname( __DIR__ ) . '/vendor/wp-phpunit/wp-phpunit';
 } else {
 	$wp_tests_dir = getenv( 'WP_TESTS_DIR' );
@@ -44,43 +41,62 @@ if ( ! file_exists( $wp_tests_dir . '/includes/functions.php' ) ) {
 	die( 'WordPress test files not found. Please run: composer install' );
 }
 
-// Load test environment.
+if ( ! defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
+	define( 'WP_TESTS_CONFIG_FILE_PATH', dirname( __DIR__ ) . '/wp-tests-config.php' );
+}
+
 require_once $wp_tests_dir . '/includes/functions.php';
+
+
+/**
+ * Load the Swift CSV plugin for the WordPress test bootstrap
+ *
+ * @return void
+ */
+function swift_csv_tests_load_plugin() {
+	require_once dirname( __DIR__ ) . '/swift-csv.php';
+	if ( function_exists( 'swift_csv_init' ) ) {
+		swift_csv_init();
+	}
+}
+
+tests_add_filter( 'muplugins_loaded', 'swift_csv_tests_load_plugin' );
+
 require_once $wp_tests_dir . '/includes/bootstrap.php';
 
-// Load our plugin.
-require_once dirname( __DIR__ ) . '/swift-csv.php';
+$swift_csv_results_dir = dirname( __DIR__ ) . '/tests/results';
 
-// Activate our plugin (if not already active).
-// if ( ! function_exists( 'swift_csv_activate' ) ) {
-// Manually call activation functions.
-// require_once dirname( __DIR__ ) . '/includes/class-swift-csv.php';
-// $swift_csv = new Swift_CSV();
-// $swift_csv->activate();
-// }
+if ( ! is_dir( $swift_csv_results_dir ) ) {
+	wp_mkdir_p( $swift_csv_results_dir );
+}
 
-// Global test helper functions.
-function swift_csv() {
-	static $instance = null;
-	if ( null === $instance ) {
-		$instance = new Swift_CSV();
+if ( ! function_exists( 'swift_csv' ) ) {
+	/**
+	 * Get a singleton-like Swift CSV instance for tests
+	 *
+	 * @return \Swift_CSV|null
+	 */
+	function swift_csv() {
+		static $instance = null;
+		if ( null === $instance && class_exists( 'Swift_CSV' ) ) {
+			$instance = new \Swift_CSV();
+		}
+
+		return $instance;
 	}
-	return $instance;
 }
 
-// Clean up after each test.
-function swift_csv_cleanup() {
-	// Remove any test data created during tests.
-	global $wpdb;
+if ( ! function_exists( 'swift_csv_cleanup' ) ) {
+	/**
+	 * Remove transient test data created during runs
+	 *
+	 * @return void
+	 */
+	function swift_csv_cleanup() {
+		global $wpdb;
 
-	// Clean up test posts.
-	$wpdb->query( "DELETE FROM {$wpdb->posts} WHERE post_title LIKE 'test_%'" );
-
-	// Clean up test post meta.
-	$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE 'test_%'" );
-
-	// Clean up test options.
-	$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'swift_csv_test_%'" );
+		$wpdb->query( "DELETE FROM {$wpdb->posts} WHERE post_title LIKE 'test_%'" );
+		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE 'test_%'" );
+		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'swift_csv_test_%'" );
+	}
 }
-
-echo "Swift CSV test environment loaded successfully!\n";

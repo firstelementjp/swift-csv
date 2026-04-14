@@ -79,10 +79,44 @@ After installing dependencies, place the plugin in your local WordPress environm
 
 ## 🧪 Testing
 
+PHPUnit for Swift CSV is designed to run in a local WordPress environment.
+
+### PHPUnit setup for Local by Flywheel
+
+1. Create a local `wp-tests-config.php` based on your Local site database settings
+2. If you use `direnv`, copy or create a `.envrc` file for `swift-csv`
+3. Set `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and `MYSQL_UNIX_PORT` for your Local site
+4. Approve the environment with `direnv allow`
+5. Run `composer install`
+
+Example environment values:
+
+```bash
+export DB_HOST=localhost
+export DB_NAME=local
+export DB_USER=root
+export DB_PASSWORD=root
+export MYSQL_UNIX_PORT="/Users/your-name/Library/Application Support/Local/run/xxxxxxx/mysql/mysqld.sock"
+```
+
+Verify the MySQL socket path from the **Database** tab in Local before running tests.
+
+Run PHPUnit from the plugin root:
+
+```bash
+cd wp-content/plugins/swift-csv
+```
+
 Run all tests:
 
 ```bash
 composer test
+```
+
+The equivalent direct PHPUnit command is:
+
+```bash
+./vendor/bin/phpunit
 ```
 
 Run coverage
@@ -96,12 +130,27 @@ Run specific test suites
 ```bash
 composer run test-unit
 composer run test-integration
+composer run test-standalone
 ```
 
 Coverage reports are generated in:
 
 ```
 tests/coverage/
+```
+
+If the test database connection fails in Local, confirm that `MYSQL_UNIX_PORT` is loaded in the current shell:
+
+```bash
+printenv | grep MYSQL_UNIX_PORT
+```
+
+If `.envrc` was updated, reload it before running PHPUnit:
+
+```bash
+direnv allow
+direnv reload
+composer test-unit
 ```
 
 ## 🛠️ Development Commands

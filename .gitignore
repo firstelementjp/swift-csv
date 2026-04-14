@@ -47,6 +47,7 @@ README.en.md
 tests/coverage/
 tests/results/
 phpunit-coverage/
+wp-tests-config.php
 
 # Cache files
 .phpunit.result.cache

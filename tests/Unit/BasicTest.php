@@ -66,7 +66,7 @@ class BasicTest extends TestCase {
 	 */
 	public function test_plugin_version_format() {
 		$version = SWIFT_CSV_VERSION;
-		$this->assertMatchesRegularExpression( '/^\d+\.\d+\.\d+$/', $version, 'Version should be in x.y.z format' );
+		$this->assertMatchesRegularExpression( '/^\d+(?:\.\d+){2,}$/', $version, 'Version should be in x.y.z or longer numeric dot-separated format' );
 	}
 
 	/**

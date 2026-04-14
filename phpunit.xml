@@ -23,11 +23,11 @@
     <coverage processUncoveredFiles="true">
         <include>
             <directory suffix=".php">includes</directory>
+            <file>swift-csv.php</file>
         </include>
         <exclude>
             <directory>vendor</directory>
             <directory>node_modules</directory>
-            <file>swift-csv.php</file>
         </exclude>
     </coverage>
     <logging>

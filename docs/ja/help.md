@@ -124,7 +124,7 @@ tail -f wp-content/debug.log | grep "Swift CSV"
 
 ## 関連ページ
 
-- [インストール](install.md)
-- [設定](config.md)
-- [例](example.md)
-- [開発者向けフック](hooks.md)
+- [インストール](ja/install.md)
+- [設定](ja/config.md)
+- [例](ja/example.md)
+- [開発者向けフック](ja/hooks.md)

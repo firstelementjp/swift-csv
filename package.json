@@ -54,5 +54,8 @@
 		"eslint-config-wordpress": "^2.0.0",
 		"eslint-plugin-prettier": "^5.5.5",
 		"prettier": "^3.8.1"
+	},
+	"overrides": {
+		"axios": "^1.15.0"
 	}
 }

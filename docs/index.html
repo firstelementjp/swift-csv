@@ -133,6 +133,8 @@
 				subMaxLevel: 2,
 				search: 'auto',
 				alias: {
+					'/ja/_sidebar.md': '/ja/_sidebar.md',
+					'/ja/(.*)/_sidebar.md': '/ja/_sidebar.md',
 					'/ja/.*/_sidebar.md': '/ja/_sidebar.md',
 					'/.*/_sidebar.md': '/_sidebar.md',
 					'/': '/README.md',
@@ -155,7 +157,7 @@
 							const isJapanese = vm.route.path.startsWith('/ja/');
 							const switchPath = isJapanese ? '#/' : '#/ja/';
 							const langToggle = `
-								<div class="lang-toggle" style="text-align: right; margin: 20px 0;">
+								<div class="lang-toggle" style="text-align: right; margin: 20px auto;">
 									<a href="${switchPath}" style="
 										background: var(--theme-color);
 										color: white;

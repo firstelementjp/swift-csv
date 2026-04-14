@@ -8,7 +8,7 @@
  * @package    swift-csv
  * @subpackage Core
  * @since      0.9.6
- * @author     FirstElement, Inc. <info@firstelement.co.jp>
+ * @author     FirstElement K.K. <info@firstelement.co.jp>
  * @license    GPL-2.0-or-later
  */
 
@@ -39,7 +39,7 @@ class Swift_CSV_License_Handler {
 	 * These IDs should be kept in sync with the
 	 * products used by the license server.
 	 */
-	public const PRODUCT_ID_PRO = 108;
+	public const PRODUCT_ID_PRO = 3551;
 
 	/**
 	 * Legacy product ID that was stored locally by mistake.

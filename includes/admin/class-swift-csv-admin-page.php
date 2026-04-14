@@ -488,6 +488,22 @@ class Swift_CSV_Admin_Page {
 			&& is_callable( [ 'Swift_CSV_License_Handler', 'is_pro_active' ] )
 			&& Swift_CSV_License_Handler::is_pro_active()
 			&& defined( 'SWIFT_CSV_PRO_VERSION' ); // Also check if Pro plugin is actually installed and active.
+		$version_label         = (string) SWIFT_CSV_VERSION;
+		$current_locale        = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+		$docs_url              = SWIFT_CSV_DOCS_URL;
+		$contact_url           = 'https://www.firstelement.co.jp/contact';
+		$site_url              = 'https://www.firstelement.co.jp/';
+
+		if ( defined( 'SWIFT_CSV_PRO_VERSION' ) && is_string( SWIFT_CSV_PRO_VERSION ) && '' !== SWIFT_CSV_PRO_VERSION ) {
+			$version_label .= ' / ' . SWIFT_CSV_PRO_VERSION;
+		}
+
+		if ( is_string( $current_locale ) && 0 === strpos( strtolower( $current_locale ), 'ja' ) ) {
+			$docs_url = trailingslashit( SWIFT_CSV_DOCS_URL ) . 'ja/';
+		} else {
+			$site_url    = 'https://www.firstelement.co.jp/en/';
+			$contact_url = 'https://www.firstelement.co.jp/en/contact';
+		}
 		?>
 		<div id="plugin_header">
 			<div id="plugin_header_upper">
@@ -500,15 +516,15 @@ class Swift_CSV_Admin_Page {
 				endif;
 				?>
 				</div>
-				<a href="https://www.firstelement.co.jp/" id="plugin_logo" target="_blank" title="Go to the developer's website">
+				<a href="<?php echo esc_url( $site_url ); ?>" id="plugin_logo" target="_blank" title="Go to the developer's website">
 					<img src="<?php echo esc_url( SWIFT_CSV_PLUGIN_URL . 'assets/images/logo-feas-white-shadow-s@2x-min.png' ); ?>" width="106" height="27" alt="FirstElement">
 				</a>
 			</div>
 			<div id="plugin_version">
-				version <?php echo esc_html( SWIFT_CSV_VERSION ); ?>
+				version <?php echo esc_html( $version_label ); ?>
 			</div>
 			<div id="plugin_support">
-				<a href="<?php echo esc_url( SWIFT_CSV_DOCS_URL ); ?>"
+				<a href="<?php echo esc_url( $docs_url ); ?>"
 					target="_blank"
 					title="<?php esc_attr_e( 'Go to the instruction manual', 'swift-csv' ); ?>">
 					<?php esc_html_e( 'Documentation', 'swift-csv' ); ?>
@@ -556,7 +572,7 @@ class Swift_CSV_Admin_Page {
 					title="<?php esc_attr_e( 'Go to Facebook page', 'swift-csv' ); ?>"
 					class="icon icon_fb">
 				</a>
-				<a href="https://www.firstelement.co.jp/contact"
+				<a href="<?php echo esc_url( $contact_url ); ?>"
 					target="_blank"
 					title="<?php esc_attr_e( 'Go to contact form', 'swift-csv' ); ?>"
 					class="icon icon_mail">

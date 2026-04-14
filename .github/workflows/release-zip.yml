@@ -48,6 +48,7 @@ jobs:
 
                   # Copy built/minified assets from working directory into the release tree.
                   mkdir -p release/swift-csv/assets/js/export/swift-csv
+                  mkdir -p release/swift-csv/assets/css
                   cp -f assets/js/*.min.js release/swift-csv/assets/js/ || true
                   cp -f assets/css/*.min.css release/swift-csv/assets/css/ || true
                   cp -f assets/js/export/swift-csv/*.min.js release/swift-csv/assets/js/export/swift-csv/ || true

@@ -6,7 +6,7 @@ Swift CSV v0.9.9 is provided under the GPL-2.0+ license.
 
 ```
 Swift CSV WordPress Plugin
-Copyright (C) 2026 Daijiro Miyazawa, FirstElement Inc.
+Copyright (C) 2026 Daijiro Miyazawa, FirstElement K.K.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

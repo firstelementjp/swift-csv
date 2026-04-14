@@ -2,7 +2,7 @@
 
 ![Swift CSV Banner](https://github.com/firstelementjp/swift-csv/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
 
-[![Version](https://img.shields.io/badge/version-0.9.9-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
+[![Version](https://img.shields.io/badge/version-0.9.9.2-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/firstelementjp/swift-csv)

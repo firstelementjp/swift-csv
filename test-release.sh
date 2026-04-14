@@ -4,8 +4,8 @@ set -euo pipefail
 
 BRANCH="${1:-$(git rev-parse --abbrev-ref HEAD)}"
 RELEASE_DIR="test-release"
-TAG="v0.9.9.1-dev"
-ZIP_NAME="swift-csv-$TAG.zip"
+TAG="v0.9.9.2-dev"
+ZIP_NAME="swift-csv-${TAG#v}.zip"
 GENERATED_MINIFIED_FILES=(
 	"assets/css/swift-csv-style.min.css"
 	"assets/js/export/swift-csv/ajax.min.js"
@@ -41,6 +41,7 @@ git archive --format=tar --prefix=swift-csv/ --worktree-attributes "$BRANCH" | t
 
 echo "=== Inject built minified assets into release tree ==="
 mkdir -p "$RELEASE_DIR/swift-csv/assets/js/export/swift-csv"
+mkdir -p "$RELEASE_DIR/swift-csv/assets/css"
 cp -f assets/js/*.min.js "$RELEASE_DIR/swift-csv/assets/js/" 2>/dev/null || true
 cp -f assets/css/*.min.css "$RELEASE_DIR/swift-csv/assets/css/" 2>/dev/null || true
 cp -f assets/js/export/swift-csv/*.min.js "$RELEASE_DIR/swift-csv/assets/js/export/swift-csv/" 2>/dev/null || true

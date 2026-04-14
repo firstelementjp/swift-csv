@@ -57,6 +57,7 @@
 	},
 	"overrides": {
 		"axios": "^1.15.0",
-		"basic-ftp": "^5.2.1"
+		"basic-ftp": "^5.2.1",
+		"lodash": "^4.18.0"
 	}
 }

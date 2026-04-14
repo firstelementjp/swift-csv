@@ -235,12 +235,12 @@ class Swift_CSV_Updater {
 			],
 			'download_link'     => $package_url,
 			'banners'           => [
-				'high' => SWIFT_CSV_PLUGIN_URL . 'assets/images/banner-772x250.png',
-				'low'  => SWIFT_CSV_PLUGIN_URL . 'assets/images/banner-772x250.png',
+				'high' => 'https://firstelementjp.github.io/swift-csv/assets/images/banner-772x250.png',
+				'low'  => 'https://firstelementjp.github.io/swift-csv/assets/images/banner-772x250.png',
 			],
 			'icons'             => [
-				'1x' => SWIFT_CSV_PLUGIN_URL . 'assets/images/icon-128x128.png',
-				'2x' => SWIFT_CSV_PLUGIN_URL . 'assets/images/icon-256x256.png',
+				'1x' => 'https://firstelementjp.github.io/swift-csv/assets/images/icon-128x128.png',
+				'2x' => 'https://firstelementjp.github.io/swift-csv/assets/images/icon-256x256.png',
 			],
 		];
 

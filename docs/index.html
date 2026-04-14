@@ -30,11 +30,13 @@
 			window.$docsify = {
 				name: '📊 Swift CSV',
 				repo: 'firstelementjp/swift-csv',
-				loadSidebar: '_sidebar.md',
+				loadSidebar: true,
 				maxLevel: 4,
 				subMaxLevel: 2,
 				search: 'auto',
 				alias: {
+					'/.*/_sidebar.md': '/_sidebar.md',
+					'/ja/.*/_sidebar.md': '/ja/_sidebar.md',
 					'/': '/README.md',
 					'/ja/': '/ja/README.md',
 					'/ja/(.*)': '/ja/$1',
@@ -53,9 +55,10 @@
 						hook.doneEach(function () {
 							// Add language toggle button
 							const isJapanese = vm.route.path.startsWith('/ja/');
+							const switchPath = isJapanese ? '#/' : '#/ja/';
 							const langToggle = `
-								<div style="text-align: right; margin: 20px 0;">
-									<a href="/${isJapanese ? '' : 'ja/'}" style="
+								<div class="lang-toggle" style="text-align: right; margin: 20px 0;">
+									<a href="${switchPath}" style="
 										background: var(--theme-color);
 										color: white;
 										padding: 6px 12px;
@@ -70,7 +73,9 @@
 
 							// Remove existing toggle if present
 							const existing = document.querySelector('.lang-toggle');
-							if (existing) existing.remove();
+							if (existing) {
+								existing.remove();
+							}
 
 							// Add new toggle
 							const content = document.querySelector('.content');

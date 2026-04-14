@@ -39,9 +39,12 @@ jobs:
               run: npm run build
 
             - name: Create ZIP
+              id: create_zip
               run: |
                   rm -rf release
                   mkdir -p release
+                  ZIP_VERSION="${GITHUB_REF_NAME#v}"
+                  ZIP_FILE="swift-csv-${ZIP_VERSION}.zip"
 
                   # Create release tree from git (respects .gitattributes export-ignore).
                   git archive --format=tar --prefix=swift-csv/ --worktree-attributes ${{ github.ref_name }} | tar -x -C release
@@ -54,13 +57,15 @@ jobs:
                   cp -f assets/js/export/swift-csv/*.min.js release/swift-csv/assets/js/export/swift-csv/ || true
 
                   cd release
-                  rm -f ../swift-csv-${{ github.ref_name }}.zip
-                  zip -r ../swift-csv-${{ github.ref_name }}.zip swift-csv
+                  rm -f ../${ZIP_FILE}
+                  zip -r ../${ZIP_FILE} swift-csv
+
+                  echo "zip_file=${ZIP_FILE}" >> "$GITHUB_OUTPUT"
 
             - name: Create Release
               uses: softprops/action-gh-release@v1
               with:
-                  files: swift-csv-${{ github.ref_name }}.zip
+                  files: ${{ steps.create_zip.outputs.zip_file }}
                   generate_release_notes: true
                   draft: false
                   prerelease: false

@@ -10,7 +10,7 @@
 
 ## 手動インストール
 
-1. [最新版 (v0.9.9) をダウンロード](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.9/swift-csv-v0.9.9.zip)
+1. [最新版をダウンロード](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.9.2/swift-csv-0.9.9.2.zip)
 2. ダウンロードした ZIP ファイルを展開
 3. `swift-csv` フォルダを `/wp-content/plugins/` にアップロード
 4. WordPress 管理画面の **プラグイン** に移動
@@ -116,7 +116,7 @@
 - **メモリ管理**: 自動クリーンアップ、ストリームされた CSV バッチ読み込み、より効率的なバッチ処理
 - **リアルタイム更新**: シマーアニメーション付きプログレスバー
 
-`v0.9.9` の最近のインポート改善により、同じバッチ内での繰り返し CSV 解析作業が削減され、管理 UI に表示される完了ログの信頼性が向上しています。
+最近のインポート改善により、同じバッチ内での繰り返し CSV 解析作業が削減され、管理 UI に表示される完了ログの信頼性が向上しています。
 
 **手動設定は不要**
 
@@ -197,7 +197,7 @@ ID,post_title,post_content,post_status
 ### サポートリソース
 
 1. **ドキュメント**: 詳細なガイドについては `docs/` ディレクトリを確認
-2. **トラブルシューティング**: 一般的な問題については `docs/help.md` を参照
+2. **トラブルシューティング**: 一般的な問題については `docs/ja/help.md` を参照
 3. **GitHub Issues**: バグ報告と機能リクエストは [GitHub Issues](https://github.com/firstelementjp/swift-csv/issues) で
 
 ### デバッグ情報
@@ -206,7 +206,7 @@ ID,post_title,post_content,post_status
 
 - **WordPress バージョン**: 現在の WordPress バージョン
 - **PHP バージョン**: 現在の PHP バージョン
-- **プラグインバージョン**: Swift CSV v0.9.9
+- **プラグインバージョン**: ご利用中の Swift CSV バージョン
 - **ブラウザ情報**: ブラウザとバージョン
 - **エラーメッセージ**: ブラウザコンソールからの完全なエラーメッセージ
 - **サンプルデータ**: テスト用の小さなサンプル CSV ファイル
@@ -237,7 +237,7 @@ tail -f wp-content/debug.log | grep "Swift CSV"
 
 ## 次のステップ
 
-- [はじめに](start.md) を読む
-- [設定](config.md) を確認
-- [例](example.md) をチェック
-- 必要に応じて [トラブルシューティング](help.md) を参照
+- [はじめに](ja/start.md) を読む
+- [設定](ja/config.md) を確認
+- [例](ja/example.md) をチェック
+- 必要に応じて [トラブルシューティング](ja/help.md) を参照

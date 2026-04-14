@@ -128,7 +128,7 @@ ID,post_title,post_content,post_status,category,post_tag,cf_price
 
 ## 関連ページ
 
-- [はじめに](start.md)
-- [インストール](install.md)
-- [設定](config.md)
-- [トラブルシューティング](help.md)
+- [はじめに](ja/start.md)
+- [インストール](ja/install.md)
+- [設定](ja/config.md)
+- [トラブルシューティング](ja/help.md)

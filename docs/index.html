@@ -21,6 +21,97 @@
 		<style>
 			:root {
 				--theme-color: #0073aa;
+				--theme-color-dark: #005f8d;
+				--doc-border: #e5e7eb;
+				--doc-surface: #f8fafc;
+				--doc-text-muted: #475569;
+			}
+
+			body {
+				text-rendering: optimizeLegibility;
+			}
+
+			.app-name-link img,
+			.sidebar-nav img,
+			.markdown-section img {
+				border-radius: 12px;
+			}
+
+			.sidebar {
+				border-right: 1px solid var(--doc-border);
+			}
+
+			.sidebar ul li a {
+				font-size: 14px;
+			}
+
+			.markdown-section {
+				max-width: 960px;
+				padding-bottom: 64px;
+			}
+
+			.markdown-section blockquote {
+				border-left: 4px solid var(--theme-color);
+				background: var(--doc-surface);
+				padding: 12px 16px;
+				border-radius: 0 8px 8px 0;
+				color: var(--doc-text-muted);
+			}
+
+			.markdown-section h1 + p img {
+				box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+			}
+
+			.markdown-section pre,
+			.markdown-section code {
+				border-radius: 8px;
+			}
+
+			.markdown-section pre {
+				border: 1px solid var(--doc-border);
+				box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+			}
+
+			.markdown-section table {
+				display: table;
+				width: 100%;
+				border-collapse: collapse;
+			}
+
+			.markdown-section table th,
+			.markdown-section table td {
+				border: 1px solid var(--doc-border);
+				padding: 10px 12px;
+			}
+
+			.markdown-section table th {
+				background: var(--doc-surface);
+			}
+
+			.markdown-section a.download-btn,
+			.markdown-section p a[href*='/releases/download/'] {
+				display: inline-block;
+				background: var(--theme-color);
+				color: #fff !important;
+				padding: 10px 16px;
+				border-radius: 8px;
+				text-decoration: none;
+				font-weight: 600;
+				box-shadow: 0 8px 20px rgba(0, 115, 170, 0.24);
+				transition:
+					background 0.2s ease,
+					transform 0.2s ease;
+			}
+
+			.markdown-section a.download-btn:hover,
+			.markdown-section p a[href*='/releases/download/']:hover {
+				background: var(--theme-color-dark);
+				transform: translateY(-1px);
+			}
+
+			.lang-toggle a {
+				display: inline-block;
+				box-shadow: 0 8px 20px rgba(0, 115, 170, 0.24);
 			}
 		</style>
 	</head>
@@ -35,8 +126,8 @@
 				subMaxLevel: 2,
 				search: 'auto',
 				alias: {
-					'/.*/_sidebar.md': '/_sidebar.md',
 					'/ja/.*/_sidebar.md': '/ja/_sidebar.md',
+					'/.*/_sidebar.md': '/_sidebar.md',
 					'/': '/README.md',
 					'/ja/': '/ja/README.md',
 					'/ja/(.*)': '/ja/$1',

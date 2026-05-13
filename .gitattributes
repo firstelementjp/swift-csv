@@ -46,6 +46,9 @@ assets/images/banner-772x250.png export-ignore
 assets/images/icon-256x256.png export-ignore
 assets/images/icon-128x128.png export-ignore
 
+# Exclude WordPress.org directory assets (screenshots, icons, banners)
+assets/screenshot-*.png export-ignore
+
 # Exclude temporary and cache files
 *.log export-ignore
 debug.log export-ignore

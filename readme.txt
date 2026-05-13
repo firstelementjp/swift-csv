@@ -1,4 +1,4 @@
-=== Swift CSV ===
+=== FirstElement Content CSV Import Export ===
 Contributors: dxd5001, firstelement
 Tags: csv, import, export, custom post types, custom fields
 Requires at least: 6.6
@@ -8,11 +8,11 @@ Stable tag: 0.9.9.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Swift CSV is a powerful CSV import/export plugin for WordPress. Supports posts, custom post types, taxonomies, custom fields with batch processing.
+FirstElement Content CSV Import Export is a powerful CSV import/export plugin for WordPress. Supports posts, custom post types, taxonomies, custom fields with batch processing.
 
 == Description ==
 
-Swift CSV helps you import and export WordPress content as CSV from the admin area.
+FirstElement Content CSV Import Export helps you import and export WordPress content as CSV from the admin area.
 It is designed for site owners who want a stress-free CSV workflow for daily operations and for developers who need extensibility through WordPress hooks.
 
 Main features:
@@ -37,20 +37,20 @@ Main features:
 * Extensibility through filter/action hooks for custom workflows
 * WordPress-compatible mode using WP_Query class
 
-Swift CSV is suitable for tasks such as:
+FirstElement Content CSV Import Export is suitable for tasks such as:
 
 * Bulk updating existing posts from spreadsheet data
 * Exporting content for reporting or external processing
 * Importing structured content into custom post types
 * Migrating content between sites
 
-For large imports, Swift CSV processes data in batches to reduce memory usage and improve reliability. It automatically adjusts batch size based on server settings (max_execution_time, memory_limit) to efficiently process large datasets without timeout.
+For large imports, this plugin processes data in batches to reduce memory usage and improve reliability. It automatically adjusts batch size based on server settings (max_execution_time, memory_limit) to efficiently process large datasets without timeout.
 
 Using filter hooks, you can output only necessary columns for external editing (e.g., title and content only) or add custom processing when exporting ACF (Advanced Custom Fields) related custom fields.
 
 == Pro Features ==
 
-Swift CSV Pro extends the free version with advanced features for power users and developers:
+FirstElement Content CSV Import Export Pro extends the free version with advanced features for power users and developers:
 
 * **Direct SQL Export Mode** - Customize export queries directly for advanced workflows and integrations
 * **UpdraftPlus Database Backup** - Automatic database backup before import operations for data safety
@@ -58,7 +58,7 @@ Swift CSV Pro extends the free version with advanced features for power users an
 * **Dedicated Support** - Priority customer support from the development team
 * **Automatic Updates** - Seamless updates from our update server
 
-Pro features are available through the separate Swift CSV Pro plugin, which integrates seamlessly with the free version via WordPress hooks.
+Pro features are available through the separate FirstElement Content CSV Import Export Pro plugin, which integrates seamlessly with the free version via WordPress hooks.
 
 Note:
 
@@ -78,7 +78,7 @@ Documentation and support resources:
 
 Pro Version:
 
-Swift CSV works completely on its own with the free version and provides sufficient functionality, but when used with the Pro version, you can access these convenient features:
+This plugin works completely on its own with the free version and provides sufficient functionality, but when used with the Pro version, you can access these convenient features:
 
 * ACF (Advanced Custom Fields) checkbox, select box, and other custom field items can be expanded to editable values for export. ACF data can also be edited/updated in spreadsheets.
 * When used with the backup plugin 'Updraft Plus', automatic SQL backup is executed during import and import begins after completion. If problems are discovered after import, you can immediately restore from backup.
@@ -90,7 +90,7 @@ Pro Version: https://www.firstelement.co.jp/en/products/swift-csv-import-export-
 
 == External Services ==
 
-Swift CSV Pro uses an external license API service for license validation and activation. This service is used solely for:
+FirstElement Content CSV Import Export Pro uses an external license API service for license validation and activation. This service is used solely for:
 
 * License key validation
 * License activation and deactivation
@@ -107,24 +107,24 @@ The license API service is operated by FirstElement Co., Ltd. and is used exclus
 
 1. Search for the plugin from the WordPress admin plugin add screen, or upload the plugin ZIP file.
 2. Activate the plugin.
-3. Open the Swift CSV screen from the WordPress admin area.
+3. Open the FirstElement Content CSV Import Export screen from the WordPress admin area.
 4. Run a small import or export test first.
 
 = Manual Installation =
 
 1. Upload the `swift-csv` folder to the `/wp-content/plugins/` directory.
 2. Activate the plugin through the WordPress Plugins screen.
-3. Open the Swift CSV screen from the admin area.
+3. Open the FirstElement Content CSV Import Export screen from the admin area.
 
 == Frequently Asked Questions ==
 
 = What content can I import or export? =
 
-Swift CSV supports standard WordPress posts and can also work with custom post types, taxonomies, and custom fields.
+This plugin supports standard WordPress posts and can also work with custom post types, taxonomies, and custom fields.
 
 = Can I use this plugin for large CSV files? =
 
-Yes. Swift CSV uses batch processing to improve reliability and reduce memory usage during large imports and exports.
+Yes. This plugin uses batch processing to improve reliability and reduce memory usage during large imports and exports.
 
 = Does it support updating existing posts? =
 
@@ -132,7 +132,7 @@ Yes. CSV workflows can be used for both creating new content and updating existi
 
 = Is this plugin developer-friendly? =
 
-Yes. Swift CSV provides WordPress hooks so developers can customize import/export behavior.
+Yes. This plugin provides WordPress hooks so developers can customize import/export behavior.
 
 = Is the Pro version required? =
 

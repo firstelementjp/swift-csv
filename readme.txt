@@ -115,9 +115,10 @@ No. The free version works on its own. A Pro version is available separately for
 
 == Screenshots ==
 
-1. Swift CSV admin screen for import and export operations.
-2. Import progress display with real-time logs.
-3. Export workflow from the WordPress admin area.
+1. Export interface with post type and field selection
+2. Import interface with CSV upload and configuration options
+3. Additional settings for import/export configuration
+4. License management and Pro version features
 
 == Changelog ==
 

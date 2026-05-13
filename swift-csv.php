@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:  FirstElement Content CSV Import Export
+ * Plugin Name:  FE CSV Import & Export
  * Plugin URI:   https://github.com/firstelementjp/swift-csv
  * Description:  Simple yet powerful CSV import/export plugin for WordPress. Supports custom post types, custom taxonomies, and custom fields.
  * Version:      0.9.9.3

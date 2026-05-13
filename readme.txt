@@ -1,4 +1,4 @@
-=== FirstElement Content CSV Import Export ===
+=== FE CSV Import & Export ===
 Contributors: dxd5001, firstelement
 Tags: csv, import, export, custom post types, custom fields
 Requires at least: 6.6
@@ -8,11 +8,11 @@ Stable tag: 0.9.9.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-FirstElement Content CSV Import Export is a powerful CSV import/export plugin for WordPress. Supports posts, custom post types, taxonomies, custom fields with batch processing.
+FE CSV Import & Export is a powerful CSV import/export plugin for WordPress. Supports posts, custom post types, taxonomies, custom fields with batch processing.
 
 == Description ==
 
-FirstElement Content CSV Import Export helps you import and export WordPress content as CSV from the admin area.
+FE CSV Import & Export helps you import and export WordPress content as CSV from the admin area.
 It is designed for site owners who want a stress-free CSV workflow for daily operations and for developers who need extensibility through WordPress hooks.
 
 Main features:
@@ -37,7 +37,7 @@ Main features:
 * Extensibility through filter/action hooks for custom workflows
 * WordPress-compatible mode using WP_Query class
 
-FirstElement Content CSV Import Export is suitable for tasks such as:
+FE CSV Import & Export is suitable for tasks such as:
 
 * Bulk updating existing posts from spreadsheet data
 * Exporting content for reporting or external processing
@@ -50,7 +50,7 @@ Using filter hooks, you can output only necessary columns for external editing (
 
 == Pro Features ==
 
-FirstElement Content CSV Import Export Pro extends the free version with advanced features for power users and developers:
+FE CSV Import & Export Pro extends the free version with advanced features for power users and developers:
 
 * **Direct SQL Export Mode** - Customize export queries directly for advanced workflows and integrations
 * **UpdraftPlus Database Backup** - Automatic database backup before import operations for data safety
@@ -58,7 +58,7 @@ FirstElement Content CSV Import Export Pro extends the free version with advance
 * **Dedicated Support** - Priority customer support from the development team
 * **Automatic Updates** - Seamless updates from our update server
 
-Pro features are available through the separate FirstElement Content CSV Import Export Pro plugin, which integrates seamlessly with the free version via WordPress hooks.
+Pro features are available through the separate FE CSV Import & Export Pro plugin, which integrates seamlessly with the free version via WordPress hooks.
 
 Note:
 
@@ -90,7 +90,7 @@ Pro Version: https://www.firstelement.co.jp/en/products/swift-csv-import-export-
 
 == External Services ==
 
-FirstElement Content CSV Import Export Pro uses an external license API service for license validation and activation. This service is used solely for:
+FE CSV Import & Export Pro uses an external license API service for license validation and activation. This service is used solely for:
 
 * License key validation
 * License activation and deactivation
@@ -107,14 +107,14 @@ The license API service is operated by FirstElement Co., Ltd. and is used exclus
 
 1. Search for the plugin from the WordPress admin plugin add screen, or upload the plugin ZIP file.
 2. Activate the plugin.
-3. Open the FirstElement Content CSV Import Export screen from the WordPress admin area.
+3. Open the FE CSV Import & Export screen from the WordPress admin area.
 4. Run a small import or export test first.
 
 = Manual Installation =
 
 1. Upload the `swift-csv` folder to the `/wp-content/plugins/` directory.
 2. Activate the plugin through the WordPress Plugins screen.
-3. Open the FirstElement Content CSV Import Export screen from the admin area.
+3. Open the FE CSV Import & Export screen from the admin area.
 
 == Frequently Asked Questions ==
 

@@ -1,11 +1,8 @@
 # Distribution files for git archive (release ZIP)
 # This file controls what is excluded from git archive.
 
-
-# Exclude source JS/CSS (built/minified assets are provided by the release workflow).
-assets/css/*.css export-ignore
-assets/js/*.js export-ignore
-assets/js/export/**/*.js export-ignore
+# Note: For WordPress.org submission, source CSS/JS files are included
+# (minified assets are provided by the GitHub release workflow only)
 
 # Exclude development and build files
 composer.json export-ignore
@@ -33,7 +30,7 @@ debug.php.example export-ignore
 .gitignore export-ignore
 .gitattributes export-ignore
 .github/ export-ignore
-swift-csv/ export-ignore
+/swift-csv/ export-ignore
 
 # Exclude documentation (keep LICENSE for release, use readme.txt for WordPress.org)
 README.md export-ignore
@@ -67,6 +64,7 @@ Thumbs.db export-ignore
 tests/ export-ignore
 phpunit.xml export-ignore
 phpunit-standalone.xml export-ignore
+wp-tests-config.php.example export-ignore
 
 # Exclude development directories
 _deprecated/ export-ignore

@@ -48,6 +48,18 @@ For large imports, Swift CSV processes data in batches to reduce memory usage an
 
 Using filter hooks, you can output only necessary columns for external editing (e.g., title and content only) or add custom processing when exporting ACF (Advanced Custom Fields) related custom fields.
 
+== Pro Features ==
+
+Swift CSV Pro extends the free version with advanced features for power users and developers:
+
+* **Direct SQL Export Mode** - Customize export queries directly for advanced workflows and integrations
+* **UpdraftPlus Database Backup** - Automatic database backup before import operations for data safety
+* **Enhanced Security** - Access control for the tools page and execution permissions
+* **Dedicated Support** - Priority customer support from the development team
+* **Automatic Updates** - Seamless updates from our update server
+
+Pro features are available through the separate Swift CSV Pro plugin, which integrates seamlessly with the free version via WordPress hooks.
+
 Note:
 
 For custom field output, by default, the plugin picks up fields associated with the first post (first row). If the first post does not contain all necessary custom fields, those fields will be ignored. To avoid this, consider these two approaches:
@@ -75,6 +87,19 @@ Swift CSV works completely on its own with the free version and provides suffici
 * You can require users to enter their login password for import/export execution.
 
 Pro Version: https://www.firstelement.co.jp/en/products/swift-csv-import-export-plugin/
+
+== External Services ==
+
+Swift CSV Pro uses an external license API service for license validation and activation. This service is used solely for:
+
+* License key validation
+* License activation and deactivation
+* License status checks
+
+**Privacy Policy**: https://www.firstelement.co.jp/privacy/
+**Terms of Service**: https://www.firstelement.co.jp/terms/
+
+The license API service is operated by FirstElement Co., Ltd. and is used exclusively for license management purposes. No content data is transmitted to this service.
 
 == Installation ==
 

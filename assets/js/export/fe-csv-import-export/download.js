@@ -11,7 +11,8 @@
 	/**
 	 * @namespace FeCsvImportExportExportUnifiedModules
 	 */
-	window.FeCsvImportExportExportUnifiedModules = window.FeCsvImportExportExportUnifiedModules || {};
+	window.FeCsvImportExportExportUnifiedModules =
+		window.FeCsvImportExportExportUnifiedModules || {};
 
 	window.FeCsvImportExportExportUnifiedModules.Download = {
 		/**
@@ -38,7 +39,7 @@
 				'-' +
 				String(now.getSeconds()).padStart(2, '0');
 
-			const filename = `fecsvimportexport_export_${postType}_${dateStr}.csv`;
+			const filename = `fe_csv_export_${postType}_${dateStr}.csv`;
 
 			const downloadBtn = document.querySelector('#export-download-btn');
 			if (downloadBtn) {

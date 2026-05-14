@@ -129,7 +129,7 @@ if (!container) return;
 ### Export Filename Format
 
 ```
-fecsvimportexport_export_{postType}_{YYYY-MM-DD_HH-mm-ss}.csv
+fe_csv_export_{postType}_{YYYY-MM-DD_HH-mm-ss}.csv
 ```
 
 Use local time, not UTC.

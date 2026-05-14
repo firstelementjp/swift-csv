@@ -40,7 +40,7 @@ env | grep -E "(DB_|WP_)"
 wp --path="$WP_PATH" core is-installed
 
 # Plugin status check
-wp --path="$WP_PATH" plugin status swift-csv
+wp --path="$WP_PATH" plugin status fe-csv-import-export
 ```
 
 **Lesson**: Database variables: unquoted. Paths with spaces: quoted. Always test WP-CLI connection after setup.

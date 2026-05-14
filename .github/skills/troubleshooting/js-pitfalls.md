@@ -4,16 +4,16 @@
 
 **Symptom**: Console error `Progress element not found!` after UI refactor.
 
-**Cause**: JS was looking for old `#swift-csv-ajax-export-progress` element, but the new UI uses `.swift-csv-progress`.
+**Cause**: JS was looking for old `#fe-csv-import-export-ajax-export-progress` element, but the new UI uses `.fe-csv-import-export-progress`.
 
-**Fix** (`assets/js/swift-csv-export-unified.js`):
+**Fix** (`assets/js/fe-csv-import-export-export-unified.js`):
 
 ```javascript
 // BEFORE
-const progressContainer = document.querySelector('#swift-csv-ajax-export-progress');
+const progressContainer = document.querySelector('#fe-csv-import-export-ajax-export-progress');
 
 // AFTER
-const container = document.querySelector('.swift-csv-progress');
+const container = document.querySelector('.fe-csv-import-export-progress');
 if (!container) return;
 const progressFill = container.querySelector('.progress-bar-fill');
 ```
@@ -28,7 +28,7 @@ const progressFill = container.querySelector('.progress-bar-fill');
 
 **Cause**: String concatenation was missing `-` after `getFullYear()`.
 
-**Fix** (`assets/js/swift-csv-export-unified.js`):
+**Fix** (`assets/js/fe-csv-import-export-export-unified.js`):
 
 ```javascript
 // BEFORE
@@ -54,7 +54,7 @@ const dateStr = now.getFullYear() + '-' +
 2. Cancellation flags not isolated per export session
 3. Multiple cancel handlers registered simultaneously
 
-**Fix** (PHP — `includes/export/class-swift-csv-export-cancel-manager.php` and unified export handler flow):
+**Fix** (PHP — `includes/export/class-fe-csv-import-export-export-cancel-manager.php` and unified export handler flow):
 
 ```php
 // BEFORE — Option cache issue
@@ -68,7 +68,7 @@ $is_cancelled = $wpdb->get_var($wpdb->prepare(
 ));
 ```
 
-**Fix** (JS — `assets/js/swift-csv-export-unified.js`):
+**Fix** (JS — `assets/js/fe-csv-import-export-export-unified.js`):
 
 ```javascript
 // BEFORE — Multiple event handlers accumulate
@@ -90,20 +90,20 @@ cancelBtn.addEventListener('click', exportCancelHandler, { once: true });
 
 ## #008 UI Disappears After JS Modularization (2026-02-10)
 
-**Symptom**: Log window, progress bar, and download button disappear on page load. DOM shows `.swift-csv-log` container is empty.
+**Symptom**: Log window, progress bar, and download button disappear on page load. DOM shows `.fe-csv-import-export-log` container is empty.
 
 **Cause**: Three compounding issues:
 
-1. `initLoggingSystem()` used `.swift-csv-log` (parent container) instead of `#export-log-content` (child), clearing all children including buttons and progress bar
+1. `initLoggingSystem()` used `.fe-csv-import-export-log` (parent container) instead of `#fe-csv-import-export-export-log-content` (child), clearing all children including buttons and progress bar
 2. `addLogEntry()` also targeted the wrong container
 3. Modules tried to initialize before they were loaded
 
-**Fix** (`assets/js/swift-csv-core.js` — don't clear parent):
+**Fix** (`assets/js/fe-csv-import-export-core.js` — don't clear parent):
 
 ```javascript
 // BEFORE — Destroys all child elements
 function initLoggingSystem() {
-	const logContainer = document.querySelector('.swift-csv-log');
+	const logContainer = document.querySelector('.fe-csv-import-export-log');
 	logContainer.innerHTML = '';
 }
 
@@ -113,11 +113,11 @@ function initLoggingSystem() {
 }
 ```
 
-**Fix** (`assets/js/swift-csv-main.js` — correct selectors):
+**Fix** (`assets/js/fe-csv-import-export-main.js` — correct selectors):
 
 ```javascript
 // BEFORE — Wrong selector
-const logContainer = document.querySelector('.swift-csv-log');
+const logContainer = document.querySelector('.fe-csv-import-export-log');
 logContainer.innerHTML = '';
 
 // AFTER — Target specific child
@@ -125,15 +125,15 @@ const logContent = document.querySelector(`#${context}-log-content`);
 if (logContent) logContent.innerHTML = '';
 ```
 
-**Fix** (`assets/js/swift-csv-main.js` — wait for modules):
+**Fix** (`assets/js/fe-csv-import-export-main.js` — wait for modules):
 
 ```javascript
 const checkModules = () => {
 	if (
-		window.SwiftCSVCore &&
-		window.SwiftCSVExport &&
-		window.SwiftCSVImport &&
-		window.SwiftCSVLicense
+		window.FeCsvImportExportCore &&
+		window.FeCsvImportExportExport &&
+		window.FeCsvImportExportImport &&
+		window.FeCsvImportExportLicense
 	) {
 		// Safe to initialize
 	} else {
@@ -164,7 +164,7 @@ const postType = document.querySelector('#import_post_type')?.value || 'post';
 
 Selector returns `null`, fallback to `'post'` always sent to server. Update query fails: `ID=123 AND post_type='post'` vs actual `cafe-menu`.
 
-**Fix** (`assets/js/swift-csv-import.js`):
+**Fix** (`assets/js/fe-csv-import-export-import.js`):
 
 ```javascript
 // BEFORE

@@ -1,11 +1,11 @@
-# Swift CSV
+# FE CSV Import & Export
 
-![Swift CSV Banner](https://github.com/firstelementjp/fe-csv-import-export/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
+![FE CSV Import & Export Banner](https://github.com/firstelementjp/fe-csv-import-export/blob/main/assets/images/fe-csv-import-export-banner.jpeg?raw=true)
 
 [![Version](https://img.shields.io/badge/version-0.9.9.3-green.svg)](https://github.com/firstelementjp/fe-csv-import-export/releases)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/firstelementjp/swift-csv)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/firstelementjp/fe-csv-import-export)
 
 FE CSV Import & Export is an easy-to-use WordPress plugin for importing and exporting CSV data.
 It combines a simple admin experience with extensibility through WordPress hooks.
@@ -22,7 +22,7 @@ For end-user guides and full documentation, see the links below.
 
 ## 📖 Overview
 
-Swift CSV provides:
+FE CSV Import & Export provides:
 
 - CSV import/export for WordPress content
 - Support for custom post types, taxonomies, and custom fields
@@ -32,12 +32,12 @@ Swift CSV provides:
 
 ## ⚡ Quick Links
 
-- **Documentation**: https://firstelementjp.github.io/swift-csv/
-- **Installation Guide**: https://firstelementjp.github.io/swift-csv/#/installation
-- **Getting Started**: https://firstelementjp.github.io/swift-csv/#/getting-started
-- **Configuration**: https://firstelementjp.github.io/swift-csv/#/configuration
-- **Examples**: https://firstelementjp.github.io/swift-csv/#/examples
-- **Troubleshooting**: https://firstelementjp.github.io/swift-csv/#/troubleshooting
+- **Documentation**: https://firstelementjp.github.io/fe-csv-import-export/
+- **Installation Guide**: https://firstelementjp.github.io/fe-csv-import-export/#/installation
+- **Getting Started**: https://firstelementjp.github.io/fe-csv-import-export/#/getting-started
+- **Configuration**: https://firstelementjp.github.io/fe-csv-import-export/#/configuration
+- **Examples**: https://firstelementjp.github.io/fe-csv-import-export/#/examples
+- **Troubleshooting**: https://firstelementjp.github.io/fe-csv-import-export/#/troubleshooting
 - **Releases**: https://github.com/firstelementjp/fe-csv-import-export/releases
 - **Issues**: https://github.com/firstelementjp/fe-csv-import-export/issues
 
@@ -70,7 +70,7 @@ Swift CSV provides:
 
 ```bash
 git clone https://github.com/firstelementjp/fe-csv-import-export.git
-cd swift-csv
+cd fe-csv-import-export
 composer install
 npm install
 ```
@@ -79,12 +79,12 @@ After installing dependencies, place the plugin in your local WordPress environm
 
 ## 🧪 Testing
 
-PHPUnit for Swift CSV is designed to run in a local WordPress environment.
+PHPUnit for FE CSV Import & Export is designed to run in a local WordPress environment.
 
 ### PHPUnit setup for Local by Flywheel
 
 1. Copy `wp-tests-config.php.example` to `wp-tests-config.php`
-2. If you use `direnv`, copy or create a `.envrc` file for `swift-csv`
+2. If you use `direnv`, copy or create a `.envrc` file for `fe-csv-import-export`
 3. Set `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and `MYSQL_UNIX_PORT` for your Local site
 4. Approve the environment with `direnv allow`
 5. Run `composer install`
@@ -110,7 +110,7 @@ Verify the MySQL socket path from the **Database** tab in Local before running t
 Run PHPUnit from the plugin root:
 
 ```bash
-cd wp-content/plugins/swift-csv
+cd wp-content/plugins/fe-csv-import-export
 ```
 
 Run all tests:
@@ -192,9 +192,9 @@ See the project documentation for detailed development and release workflows.
 
 For detailed implementation notes, see:
 
-- [Developer documentation](https://firstelementjp.github.io/swift-csv/#/developer)
-- [Architecture overview](https://firstelementjp.github.io/swift-csv/#/architecture)
-- [Hooks documentation](https://firstelementjp.github.io/swift-csv/#/hooks)
+- [Developer documentation](https://firstelementjp.github.io/fe-csv-import-export/#/developer)
+- [Architecture overview](https://firstelementjp.github.io/fe-csv-import-export/#/architecture)
+- [Hooks documentation](https://firstelementjp.github.io/fe-csv-import-export/#/hooks)
 
 ## 🤝 Contributing
 

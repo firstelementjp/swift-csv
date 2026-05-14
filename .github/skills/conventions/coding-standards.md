@@ -45,7 +45,7 @@ public function method( Specific_Class $util ): Specific_Class {
 When implementing interfaces, follow proper inheritance:
 
 ```php
-class Swift_CSV_Import_Taxonomy_Writer_WP implements Swift_CSV_Import_Taxonomy_Writer_Interface {
+class FE_CSV_Import_Export_Import_Taxonomy_Writer_WP implements FE_CSV_Import_Export_Import_Taxonomy_Writer_Interface {
     public function apply_taxonomies_for_post(
         wpdb $wpdb,
         int $post_id,
@@ -70,7 +70,7 @@ wp_send_json_success([
 
 // Error
 wp_send_json_error([
-    'message' => __( 'Error description', 'swift-csv' ),
+    'message' => __( 'Error description', 'fe-csv-import-export' ),
 ]);
 ```
 
@@ -97,7 +97,7 @@ Browser-facing JS integrates via `window.*` globals, even though assets are buil
 
 ```javascript
 // At end of file
-window.SwiftCSVExport = {
+window.FECsvImportExport = {
 	handleAjaxExport,
 	// ...
 };
@@ -110,7 +110,7 @@ window.SwiftCSVExport = {
 
 ### DOM Selectors
 
-- Use specific child selectors: `#export-log-content`, not `.swift-csv-log`
+- Use specific child selectors: `#export-log-content`, not `.fe-csv-import-export-log`
 - Always null-check: `if (!element) return;`
 - Use `document.querySelector()` for single elements, `querySelectorAll()` for collections
 
@@ -125,48 +125,48 @@ The JS is organized into modules:
 
 ```javascript
 // Core utilities
-window.SwiftCSVCore = {
+window.FECsvImportExportCore = {
 	wpPost,
 	addLogEntry,
 	clearLog,
 };
 
 // Export functionality
-window.SwiftCSVExport = {
+window.FECsvImportExport = {
 	init,
 };
 
 // Import functionality
-window.SwiftCSVImport = {
+window.FECsvImportExportImport = {
 	init,
 };
 
 // License functionality
-window.SwiftCSVLicense = {
+window.FECsvImportExportLicense = {
 	init,
 };
 ```
 
 ## CSS
 
-- File: `assets/css/swift-csv-style.css`
-- BEM-like naming: `.swift-csv-{component}`, `.swift-csv-{component}-{element}`
+- File: `assets/css/fe-csv-import-export-style.css`
+- BEM-like naming: `.fe-csv-import-export-{component}`, `.fe-csv-import-export-{component}-{element}`
 - No `!important` unless overriding WordPress admin styles
 
 ### Two-Column Layout
 
 ```css
-.swift-csv-layout {
+.fe-csv-import-export-layout {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 20px;
 }
 
-.swift-csv-settings {
+.fe-csv-import-export-settings {
 	/* Left column - forms */
 }
 
-.swift-csv-log {
+.fe-csv-import-export-log {
 	/* Right column - progress and logs */
 }
 ```

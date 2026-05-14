@@ -2,11 +2,11 @@
 
 ## Overview
 
-This document outlines the recommended local development setup for Swift CSV, focusing on Local-style WordPress installs, Node/Composer tooling, and WP-CLI friendly environment conventions.
+This document outlines the recommended local development setup for FE CSV Import & Export, focusing on Local-style WordPress installs, Node/Composer tooling, and WP-CLI friendly environment conventions.
 
 ## Local Development Baseline
 
-Use a local WordPress site with the plugin checked out under `wp-content/plugins/swift-csv`.
+Use a local WordPress site with the plugin checked out under `wp-content/plugins/fe-csv-import-export`.
 
 Recommended baseline:
 
@@ -75,7 +75,7 @@ project/
 ├── .gitignore             # Ignores .envrc and build artifacts
 ├── wp-config.php          # Reads local constants/DB settings
 └── wp-content/plugins/
-    └── swift-csv/         # Plugin repository
+    └── fe-csv-import-export/         # Plugin repository
 ```
 
 ## Development Workflow
@@ -134,7 +134,7 @@ composer test
 
 ## PHPUnit Notes
 
-Swift CSV uses `tests/bootstrap.php` and `phpunit.xml` to locate WordPress and the WP test library.
+FE CSV Import & Export uses `tests/bootstrap.php` and `phpunit.xml` to locate WordPress and the WP test library.
 
 ```bash
 # If WP test library path is custom
@@ -197,7 +197,7 @@ npm run lint:js
 ```bash
 # Standard onboarding flow
 git clone repository
-cd swift-csv
+cd fe-csv-import-export
 composer install
 npm install
 composer test  # Verify setup

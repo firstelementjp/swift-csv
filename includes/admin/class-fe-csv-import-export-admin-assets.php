@@ -210,7 +210,7 @@ class FE_CSV_Import_Export_Admin_Assets {
 
 			wp_localize_script(
 				'fe-csv-import-export-core',
-				'swiftCSV',
+				'feCsvImportExport',
 				[
 					'ajaxUrl'               => admin_url( 'admin-ajax.php' ),
 					'ajaxurl'               => admin_url( 'admin-ajax.php' ),
@@ -311,7 +311,7 @@ class FE_CSV_Import_Export_Admin_Assets {
 
 			wp_localize_script(
 				'fe-csv-import-export-main',
-				'swiftCsvAjax',
+				'feCsvImportExportAjax',
 				[
 					'ajaxurl' => admin_url( 'admin-ajax.php' ),
 					'nonce'   => wp_create_nonce( 'fe_csv_import_export_ajax_nonce' ),

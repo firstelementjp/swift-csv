@@ -11,7 +11,7 @@ Supports custom post types, custom taxonomies, and custom fields.
 - **Version**: 0.9.9
 - **License**: GPL-2.0+
 - **PHP**: >= 8.1 (recommended)
-- **Repository**: https://github.com/firstelementjp/swift-csv
+- **Repository**: https://github.com/firstelementjp/fe-csv-import-export
 
 ## Architecture
 

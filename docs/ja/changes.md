@@ -238,4 +238,4 @@
 
 ---
 
-完全な変更履歴については、[GitHub リポジトリ](https://github.com/firstelementjp/swift-csv/commits/main) を参照してください。
+完全な変更履歴については、[GitHub リポジトリ](https://github.com/firstelementjp/fe-csv-import-export/commits/main) を参照してください。

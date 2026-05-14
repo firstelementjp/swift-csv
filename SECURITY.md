@@ -22,7 +22,7 @@ To protect our users, **do not** open a public issue for security vulnerabilitie
 
 **Alternative Method**: GitHub Security Advisories (if enabled)
 
-1. Go to our [Security Advisories](https://github.com/firstelementjp/swift-csv/security/advisories)
+1. Go to our [Security Advisories](https://github.com/firstelementjp/fe-csv-import-export/security/advisories)
 2. Click "Report a vulnerability"
 3. Fill in the details with as much information as possible
 

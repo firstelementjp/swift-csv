@@ -1,9 +1,9 @@
 {
-	"name": "firstelementjp/swift-csv",
-	"description": "Swift CSV - Simple CSV Management Without the Complexity.",
+	"name": "firstelementjp/fe-csv-import-export",
+	"description": "FE CSV Import & Export - Simple CSV Management Without the Complexity.",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0+",
-	"homepage": "https://github.com/firstelementjp/swift-csv",
+	"homepage": "https://github.com/firstelementjp/fe-csv-import-export",
 	"require": {
 		"php": ">=8.0"
 	},

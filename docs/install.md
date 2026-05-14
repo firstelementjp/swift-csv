@@ -10,7 +10,7 @@
 
 ## Manual Installation
 
-1. [Download latest version (v0.9.9)](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.9/swift-csv-v0.9.9.zip)
+1. [Download latest version (v0.9.9)](https://github.com/firstelementjp/fe-csv-import-export/releases/download/v0.9.9/swift-csv-v0.9.9.zip)
 2. Extract the downloaded ZIP file
 3. Upload `swift-csv` folder to `/wp-content/plugins/`
 4. Navigate to **Plugins** in WordPress admin
@@ -198,7 +198,7 @@ ID,post_title,post_content,post_status
 
 1. **Documentation**: Check `docs/` directory for detailed guides
 2. **Troubleshooting**: See `docs/help.md` for common issues
-3. **GitHub Issues**: Report bugs and request features at [GitHub Issues](https://github.com/firstelementjp/swift-csv/issues)
+3. **GitHub Issues**: Report bugs and request features at [GitHub Issues](https://github.com/firstelementjp/fe-csv-import-export/issues)
 
 ### Debug Information
 

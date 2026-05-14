@@ -129,7 +129,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 **無料ユーザーサポート**:
 
-- **GitHub Issues**: [バグ報告と機能リクエスト](https://github.com/firstelementjp/swift-csv/issues)
+- **GitHub Issues**: [バグ報告と機能リクエスト](https://github.com/firstelementjp/fe-csv-import-export/issues)
 - **ドキュメント**: [docs/](./) ディレクトリで利用可能
 - **コミュニティ**: GitHub リポジトリでの公開議論
 
@@ -391,5 +391,5 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 ライセンスに関する質問または商用お問い合わせについては：
 
-- **GitHub Issues**: [Issue を作成](https://github.com/firstelementjp/swift-csv/issues)
-- **連絡**: [GitHub リポジトリ](https://github.com/firstelementjp/swift-csv) 経由
+- **GitHub Issues**: [Issue を作成](https://github.com/firstelementjp/fe-csv-import-export/issues)
+- **連絡**: [GitHub リポジトリ](https://github.com/firstelementjp/fe-csv-import-export) 経由

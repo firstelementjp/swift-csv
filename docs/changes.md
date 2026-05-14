@@ -238,4 +238,4 @@
 
 ---
 
-For complete changelog, see [GitHub repository](https://github.com/firstelementjp/swift-csv/commits/main).
+For complete changelog, see [GitHub repository](https://github.com/firstelementjp/fe-csv-import-export/commits/main).

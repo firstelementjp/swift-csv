@@ -153,7 +153,7 @@ msgstr "Swift CSV"
 
 #. Plugin URI of the plugin
 #: swift-csv.php
-msgid "https://github.com/firstelementjp/swift-csv"
+msgid "https://github.com/firstelementjp/fe-csv-import-export"
 msgstr ""
 
 #. Description of the plugin

@@ -1,11 +1,11 @@
 # 🚀 Swift CSV
 
-![Banner](https://github.com/firstelementjp/swift-csv/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
+![Banner](https://github.com/firstelementjp/fe-csv-import-export/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
 
 > シンプル＆直感的に使えるCSVインポート/エクスポート プラグイン for WordPress
 
 [![License](https://img.shields.io/badge/license-GPL--2.0%2B-blue.svg)](legal.md)
-[![Version](https://img.shields.io/badge/version-0.9.9.2-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
+[![Version](https://img.shields.io/badge/version-0.9.9.2-green.svg)](https://github.com/firstelementjp/fe-csv-import-export/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 
 Swift CSV は、管理画面から投稿データを CSV 形式でインポート/エクスポートする WordPress プラグインです。
@@ -29,7 +29,7 @@ Swift CSV は、管理画面から投稿データを CSV 形式でインポー�
 
 ## 📥 ダウンロード
 
-[Download swift-csv-0.9.9.2.zip](https://github.com/firstelementjp/swift-csv/releases/download/v0.9.9.2/swift-csv-0.9.9.2.zip){: .download-btn }
+[Download swift-csv-0.9.9.2.zip](https://github.com/firstelementjp/fe-csv-import-export/releases/download/v0.9.9.2/swift-csv-0.9.9.2.zip){: .download-btn }
 
 ## 🚀 クイックスタート
 
@@ -64,6 +64,6 @@ Swift CSV は、管理画面から投稿データを CSV 形式でインポー�
 
 <div style="text-align: center; margin-top: 40px;">
   <p>
-    <a href="https://github.com/firstelementjp/swift-csv" target="_blank">🔧 GitHub</a>
+    <a href="https://github.com/firstelementjp/fe-csv-import-export" target="_blank">🔧 GitHub</a>
   </p>
 </div>

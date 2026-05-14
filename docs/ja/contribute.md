@@ -6,14 +6,14 @@ Swift CSV への貢献を歓迎します！
 
 ### バグ報告
 
-1. [Issue](https://github.com/firstelementjp/swift-csv/issues) を開く
+1. [Issue](https://github.com/firstelementjp/fe-csv-import-export/issues) を開く
 2. バグを詳細に説明
 3. 再現手順を含める
 4. 利用可能な場合はデバッグログを追加（`WP_DEBUG` を true に設定）
 
 ### 機能リクエスト
 
-1. [Issue](https://github.com/firstelementjp/swift-csv/issues) を開く
+1. [Issue](https://github.com/firstelementjp/fe-csv-import-export/issues) を開く
 2. ユースケースを説明
 3. 実装アイデアを共有
 4. 既存機能への影響を考慮
@@ -40,7 +40,7 @@ Swift CSV への貢献を歓迎します！
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/firstelementjp/swift-csv.git
+git clone https://github.com/firstelementjp/fe-csv-import-export.git
 cd swift-csv
 
 # PHP 依存関係をインストール

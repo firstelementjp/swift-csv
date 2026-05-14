@@ -129,7 +129,7 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 **Free User Support**:
 
-- **GitHub Issues**: [Bug reports and feature requests](https://github.com/firstelementjp/swift-csv/issues)
+- **GitHub Issues**: [Bug reports and feature requests](https://github.com/firstelementjp/fe-csv-import-export/issues)
 - **Documentation**: Available in the [docs/](./) directory
 - **Community**: Public discussion via the GitHub repository
 
@@ -391,5 +391,5 @@ By contributing to this project, you agree that your contributions will be licen
 
 For licensing questions or commercial inquiries:
 
-- **GitHub Issues**: [Create an issue](https://github.com/firstelementjp/swift-csv/issues)
-- **Contact**: Through [GitHub repository](https://github.com/firstelementjp/swift-csv)
+- **GitHub Issues**: [Create an issue](https://github.com/firstelementjp/fe-csv-import-export/issues)
+- **Contact**: Through [GitHub repository](https://github.com/firstelementjp/fe-csv-import-export)

@@ -6,14 +6,14 @@ We welcome contributions to Swift CSV!
 
 ### Bug Reports
 
-1. Open an [Issue](https://github.com/firstelementjp/swift-csv/issues)
+1. Open an [Issue](https://github.com/firstelementjp/fe-csv-import-export/issues)
 2. Describe the bug in detail
 3. Include reproduction steps
 4. Add debug logs if available (set `WP_DEBUG` to true)
 
 ### Feature Requests
 
-1. Open an [Issue](https://github.com/firstelementjp/swift-csv/issues)
+1. Open an [Issue](https://github.com/firstelementjp/fe-csv-import-export/issues)
 2. Explain use cases
 3. Share implementation ideas
 4. Consider impact on existing functionality
@@ -40,7 +40,7 @@ We welcome contributions to Swift CSV!
 
 ```bash
 # Clone the repository
-git clone https://github.com/firstelementjp/swift-csv.git
+git clone https://github.com/firstelementjp/fe-csv-import-export.git
 cd swift-csv
 
 # Install PHP dependencies

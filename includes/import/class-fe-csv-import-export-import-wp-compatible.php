@@ -1,0 +1,199 @@
+<?php
+/**
+ * WP Compatible Import Class for Swift CSV
+ *
+ * Implements FE_CSV_Import_Export_Import_Base using WordPress core functions.
+ *
+ * @since 0.9.8
+ * @package Swift_CSV
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * WP Compatible Import Class
+ *
+ * @since 0.9.8
+ * @package Swift_CSV
+ */
+class FE_CSV_Import_Export_Import_WP_Compatible extends FE_CSV_Import_Export_Import_Base {
+
+	/**
+	 * Run the import.
+	 *
+	 * @since 0.9.8
+	 * @return void
+	 */
+	public function import(): void {
+		FE_CSV_Import_Export_Ajax_Util::set_stage( 'wp_compatible:start' );
+
+		FE_CSV_Import_Export_Ajax_Util::set_stage( 'wp_compatible:upload_file' );
+		$file_result = $this->upload_file_or_return_null();
+		if ( null === $file_result ) {
+			if ( ! FE_CSV_Import_Export_Ajax_Util::has_sent_response() ) {
+				FE_CSV_Import_Export_Ajax_Util::send_error_response( 'Upload failed' );
+			}
+			return;
+		}
+		$file_path = $file_result['file_path'];
+
+		FE_CSV_Import_Export_Ajax_Util::set_stage( 'wp_compatible:get_import_session' );
+		$import_session = $this->get_import_session_or_send_error();
+		if ( '' === $import_session ) {
+			if ( ! FE_CSV_Import_Export_Ajax_Util::has_sent_response() ) {
+				FE_CSV_Import_Export_Ajax_Util::send_error_response( 'Missing import session' );
+			}
+			return;
+		}
+
+		if ( $this->is_import_cancelled( $import_session ) ) {
+			$this->cleanup_import_session( $import_session );
+			FE_CSV_Import_Export_Ajax_Util::send_error_response( 'Import cancelled by user' );
+			return;
+		}
+
+		FE_CSV_Import_Export_Ajax_Util::set_stage( 'wp_compatible:parse_request' );
+		$start_row   = $this->request_parser->parse_start_row();
+		$enable_logs = $this->request_parser->parse_enable_logs();
+		$append_log  = $this->build_append_log_callback( $import_session, $enable_logs, $start_row );
+
+		$csv_data = $this->csv_store->get( $import_session );
+
+		$parsed_config = $this->request_parser->parse_import_config();
+		$config        = $this->build_import_config_from_parsed(
+			$parsed_config,
+			$file_path,
+			$start_row,
+			$import_session,
+			$append_log
+		);
+		if ( empty( $config ) ) {
+			if ( ! FE_CSV_Import_Export_Ajax_Util::has_sent_response() ) {
+				FE_CSV_Import_Export_Ajax_Util::send_error_response( 'Invalid import config' );
+			}
+			return;
+		}
+
+		$batch_started_at   = microtime( true );
+		$batch_memory_start = memory_get_usage( true );
+
+		FE_CSV_Import_Export_Ajax_Util::set_stage( 'wp_compatible:ensure_csv_data' );
+		$ensure_started_at = microtime( true );
+		$csv_data          = $this->ensure_csv_data_available( $csv_data, $start_row, $file_path, $config, $import_session );
+		$ensure_elapsed    = microtime( true ) - $ensure_started_at;
+		if ( null === $csv_data ) {
+			if ( ! FE_CSV_Import_Export_Ajax_Util::has_sent_response() ) {
+				FE_CSV_Import_Export_Ajax_Util::send_error_response( 'CSV parsing failed' );
+			}
+			return;
+		}
+
+		$sample_filter_args = [
+			'post_type' => $config['post_type'],
+			'context'   => 'import_field_detection',
+		];
+		apply_filters( 'fe_csv_import_export_filter_sample_posts', [], $sample_filter_args );
+
+		FE_CSV_Import_Export_Ajax_Util::set_stage( 'wp_compatible:count_rows' );
+		$total_rows             = (int) ( $csv_data['total_rows'] ?? 0 );
+		$csv_data['total_rows'] = $total_rows;
+
+		$batch_size                 = $this->batch_processor->calculate_batch_size( $total_rows, $config );
+		$config['batch_size']       = $batch_size;
+		$read_started_at            = microtime( true );
+		$batch_read_result          = $this->csv_parser->read_batch_lines(
+			$file_path,
+			$start_row,
+			$batch_size,
+			(int) ( $csv_data['data_start_offset'] ?? 0 ),
+			(int) ( $csv_data['next_offset'] ?? 0 ),
+			(int) ( $csv_data['next_start_row'] ?? 0 )
+		);
+		$read_elapsed               = microtime( true ) - $read_started_at;
+		$csv_data['batch_lines']    = $batch_read_result['lines'];
+		$csv_data['next_offset']    = (int) $batch_read_result['next_offset'];
+		$csv_data['next_start_row'] = (int) $batch_read_result['next_start_row'];
+		$this->csv_store->set( $import_session, $csv_data );
+
+		$cumulative_counts = $this->response_manager->get_cumulative_counts();
+
+		$previous_created = $cumulative_counts['created'];
+		$previous_updated = $cumulative_counts['updated'];
+		$previous_errors  = $cumulative_counts['errors'];
+
+		$process_started_at = microtime( true );
+		$counters           = $this->batch_processor->process_batch( $config, $csv_data );
+		$process_elapsed    = microtime( true ) - $process_started_at;
+
+		if ( $this->is_import_cancelled( $import_session ) ) {
+			$this->response_manager->cleanup_temp_file_if_complete( false, $config['file_path'] );
+			$this->cleanup_import_session( $import_session );
+			FE_CSV_Import_Export_Ajax_Util::send_error_response( 'Import cancelled by user' );
+			return;
+		}
+
+		if ( $enable_logs && ! empty( $counters['dry_run_details'] ) && is_array( $counters['dry_run_details'] ) ) {
+			foreach ( $counters['dry_run_details'] as $detail ) {
+				if ( ! is_array( $detail ) ) {
+					continue;
+				}
+				$this->log_store->append( $import_session, $detail );
+			}
+		}
+
+		$next_row        = $config['start_row'] + $counters['processed'];
+		$should_continue = $next_row < $total_rows;
+
+		$this->response_manager->cleanup_temp_file_if_complete( $should_continue, $config['file_path'] );
+		$recent_logs = $this->build_recent_logs_if_complete( $should_continue, $import_session );
+		if ( ! $should_continue ) {
+			$this->cleanup_import_session( $import_session );
+		}
+
+		if ( $enable_logs && is_callable( $append_log ) ) {
+			$append_log(
+				[
+					'action'  => 'profile',
+					'status'  => 'info',
+					'row'     => $start_row + 1,
+					'title'   => 'Batch profile',
+					'details' => sprintf(
+						'start=%d size=%d processed=%d ensure=%.4fs read=%.4fs process=%.4fs total=%.4fs memory_delta=%d peak=%d',
+						$start_row,
+						$batch_size,
+						(int) $counters['processed'],
+						$ensure_elapsed,
+						$read_elapsed,
+						$process_elapsed,
+						microtime( true ) - $batch_started_at,
+						memory_get_usage( true ) - $batch_memory_start,
+						memory_get_peak_usage( true )
+					),
+				]
+			);
+		}
+
+		$counters['dry_run_log']     = [];
+		$counters['dry_run_details'] = [];
+		unset( $csv_data );
+
+		FE_CSV_Import_Export_Ajax_Util::set_stage( 'wp_compatible:send_response' );
+		$this->response_manager->send_import_progress_response(
+			$config['start_row'],
+			$counters['processed'],
+			$total_rows,
+			$counters['errors'],
+			$counters['created'],
+			$counters['updated'],
+			$previous_created,
+			$previous_updated,
+			$previous_errors,
+			(bool) $config['dry_run'],
+			$counters['dry_run_log'],
+			$counters['dry_run_details'],
+			$recent_logs
+		);
+	}
+}

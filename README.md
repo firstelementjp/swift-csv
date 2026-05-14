@@ -1,13 +1,13 @@
 # Swift CSV
 
-![Swift CSV Banner](https://github.com/firstelementjp/swift-csv/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
+![Swift CSV Banner](https://github.com/firstelementjp/fe-csv-import-export/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
 
-[![Version](https://img.shields.io/badge/version-0.9.9.2-green.svg)](https://github.com/firstelementjp/swift-csv/releases)
+[![Version](https://img.shields.io/badge/version-0.9.9.3-green.svg)](https://github.com/firstelementjp/fe-csv-import-export/releases)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/firstelementjp/swift-csv)
 
-Swift CSV is an easy-to-use WordPress plugin for importing and exporting CSV data.
+FE CSV Import & Export is an easy-to-use WordPress plugin for importing and exporting CSV data.
 It combines a simple admin experience with extensibility through WordPress hooks.
 
 This repository contains the plugin source code, tests, and developer resources.
@@ -38,8 +38,8 @@ Swift CSV provides:
 - **Configuration**: https://firstelementjp.github.io/swift-csv/#/configuration
 - **Examples**: https://firstelementjp.github.io/swift-csv/#/examples
 - **Troubleshooting**: https://firstelementjp.github.io/swift-csv/#/troubleshooting
-- **Releases**: https://github.com/firstelementjp/swift-csv/releases
-- **Issues**: https://github.com/firstelementjp/swift-csv/issues
+- **Releases**: https://github.com/firstelementjp/fe-csv-import-export/releases
+- **Issues**: https://github.com/firstelementjp/fe-csv-import-export/issues
 
 ## ⚙️ Requirements
 
@@ -51,16 +51,16 @@ Swift CSV provides:
 
 ### From WordPress Admin
 
-1. Download the latest release ZIP from the [Releases page](https://github.com/firstelementjp/swift-csv/releases)
+1. Download the latest release ZIP from the [Releases page](https://github.com/firstelementjp/fe-csv-import-export/releases)
 2. Go to **Plugins → Add New → Upload Plugin**
 3. Select the ZIP file and upload it
 4. Activate the plugin
 
 ### Manual Installation
 
-1. Download the latest release ZIP from the [Releases page](https://github.com/firstelementjp/swift-csv/releases)
+1. Download the latest release ZIP from the [Releases page](https://github.com/firstelementjp/fe-csv-import-export/releases)
 2. Extract the ZIP file
-3. Upload the `swift-csv/` directory to `/wp-content/plugins/`
+3. Upload the `fe-csv-import-export/` directory to `/wp-content/plugins/`
 4. Activate the plugin from the WordPress admin screen
 
 > [!IMPORTANT]
@@ -69,7 +69,7 @@ Swift CSV provides:
 ## 💻 Local Development
 
 ```bash
-git clone https://github.com/firstelementjp/swift-csv.git
+git clone https://github.com/firstelementjp/fe-csv-import-export.git
 cd swift-csv
 composer install
 npm install

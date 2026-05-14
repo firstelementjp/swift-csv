@@ -493,7 +493,7 @@ class FE_CSV_Import_Export_Admin_Page {
 		?>
 		<div id="plugin_header">
 			<div id="plugin_header_upper">
-				<div id="plugin_header_title">Swift <span>CSV</span>
+				<div id="plugin_header_title">FE <span>CSV</span> Import & Export
 				<?php
 				if ( $is_pro_license_active ) :
 					?>

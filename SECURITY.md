@@ -18,7 +18,7 @@ To protect our users, **do not** open a public issue for security vulnerabilitie
 **Primary Method**: Email us directly
 
 - Send to: security@firstelement.co.jp
-- Use subject: `[Swift CSV Security] Brief description of issue`
+- Use subject: `[FE CSV Import & Export Security] Brief description of issue`
 
 **Alternative Method**: GitHub Security Advisories (if enabled)
 
@@ -67,9 +67,9 @@ Please include:
 - **Monitor logs**: Check import/export logs for suspicious activity
 - **Backup strategy**: Maintain regular site backups
 
-### Security Features in Swift CSV
+### Security Features in FE CSV Import & Export
 
-Swift CSV includes several security measures:
+FE CSV Import & Export includes several security measures:
 
 - **WordPress nonce protection** for all AJAX requests
 - **Capability checking** for import/export operations
@@ -94,7 +94,7 @@ Security updates are:
 
 ### Acknowledgments
 
-We thank security researchers who help us keep Swift CSV secure. All valid security reports will be acknowledged in our release notes (with reporter's permission).
+We thank security researchers who help us keep FE CSV Import & Export secure. All valid security reports will be acknowledged in our release notes (with reporter's permission).
 
 ### Legal
 

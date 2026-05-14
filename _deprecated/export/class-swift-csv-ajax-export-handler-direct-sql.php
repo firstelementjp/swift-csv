@@ -17,6 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 0.9.8
  * @package FE_CSV_Import_Export
+ * @deprecated 0.9.9.3 Migrated to FE CSV Import & Export Pro. Use fe_csv_import_export_export_direct_sql hook instead.
  */
 class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 

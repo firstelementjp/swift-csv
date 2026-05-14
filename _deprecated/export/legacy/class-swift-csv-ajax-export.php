@@ -7,6 +7,7 @@
  *
  * @since 0.9.0
  * @package FE_CSV_Import_Export
+ * @deprecated 0.9.5 Migrated to modern batch export system. Use FE_CSV_Import_Export_Export_Batch_Processor instead.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,6 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 0.9.0
  * @package FE_CSV_Import_Export
+ * @deprecated 0.9.5 Migrated to modern batch export system. Use FE_CSV_Import_Export_Export_Batch_Processor instead.
  */
 class Swift_CSV_Ajax_Export {
 

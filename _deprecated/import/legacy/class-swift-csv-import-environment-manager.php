@@ -7,6 +7,7 @@
  *
  * @since 0.9.8
  * @package FE_CSV_Import_Export
+ * @deprecated 0.9.8 Removed during refactoring. Environment preparation is now handled by FE_CSV_Import_Export_Import_Batch_Processor.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,6 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 0.9.8
  * @package FE_CSV_Import_Export
+ * @deprecated 0.9.8 Removed during refactoring. Environment preparation is now handled by FE_CSV_Import_Export_Import_Batch_Processor.
  */
 class Swift_CSV_Import_Environment_Manager {
 

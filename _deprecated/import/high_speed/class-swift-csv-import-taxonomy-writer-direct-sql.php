@@ -6,6 +6,7 @@
  *
  * @since 0.9.10
  * @package FE_CSV_Import_Export
+ * @deprecated 0.9.8 Migrated to FE CSV Import & Export Pro. Use fe_csv_import_export_import_direct_sql hook instead.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,6 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 0.9.10
  * @package FE_CSV_Import_Export
+ * @deprecated 0.9.8 Migrated to FE CSV Import & Export Pro. Use fe_csv_import_export_import_direct_sql hook instead.
  */
 class Swift_CSV_Import_Taxonomy_Writer_Direct_SQL implements Swift_CSV_Import_Taxonomy_Writer_Interface {
 	/**

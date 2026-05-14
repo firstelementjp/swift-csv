@@ -24,6 +24,7 @@ return;
  *
  * @since 0.9.0
  * @package FE_CSV_Import_Export
+ * @deprecated 0.9.9.3 Disabled for WordPress.org repository submission. Updates are handled through the official WordPress.org repository.
  */
 class Swift_CSV_Updater {
 

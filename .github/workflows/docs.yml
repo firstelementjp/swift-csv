@@ -16,7 +16,7 @@ concurrency:
 jobs:
     build:
         runs-on: ubuntu-latest
-        if: github.repository == 'firstelementjp/swift-csv'
+        if: github.repository == 'firstelementjp/fe-csv-import-export'
         permissions:
             contents: read
             pages: write

@@ -166,14 +166,6 @@ class FE_CSV_Import_Export_Admin_Settings {
 			'fe_csv_import_export_advanced_section'
 		);
 
-		add_settings_field(
-			'fe_csv_import_export_advanced_tools_access',
-			'',
-			[ $this, 'advanced_tools_access_field_html' ],
-			'fe-csv-import-export',
-			'fe_csv_import_export_advanced_section'
-		);
-
 		// License section.
 		add_settings_section(
 			'fe_csv_import_export_license_section',
@@ -539,59 +531,6 @@ class FE_CSV_Import_Export_Admin_Settings {
 				<?php esc_html_e( 'Test import without creating posts', 'fe-csv-import-export' ); ?>
 				</label>
 				<p class="description"><?php esc_html_e( 'Run a test import to preview changes without modifying your data. (Dry Run)', 'fe-csv-import-export' ); ?></p>
-			</dd>
-		</dl>
-		<?php
-	}
-
-	/**
-	 * Advanced tools access field callback
-	 *
-	 * Displays a Pro feature select for execution permission settings.
-	 * Shows the field even when Pro is inactive, but disables it.
-	 *
-	 * @since 0.9.8
-	 * @return void
-	 */
-	public function advanced_tools_access_field_html() {
-		$is_pro_license_active = class_exists( 'FE_CSV_Import_Export_License_Handler' )
-			&& is_callable( [ 'FE_CSV_Import_Export_License_Handler', 'is_pro_active' ] )
-			&& FE_CSV_Import_Export_License_Handler::is_pro_active();
-		$has_pro_plugin        = class_exists( 'FE_CSV_Import_Export_Pro_Admin' )
-			|| class_exists( 'FE_CSV_Import_Export_Pro_Settings_Helper' );
-		$is_pro_ready          = $is_pro_license_active && $has_pro_plugin;
-
-		$tools_scope = 'admin_only';
-		if ( class_exists( 'FE_CSV_Import_Export_Pro_Settings_Helper' ) ) {
-			$tools_scope = (string) FE_CSV_Import_Export_Pro_Settings_Helper::get( 'security', 'tools_access_scope', 'admin_only' );
-		} else {
-			$tools_scope = (string) get_option( 'fe_csv_import_export_pro_tools_access_scope', 'admin_only' );
-		}
-
-		$disabled_attr = $is_pro_ready ? '' : 'disabled';
-		?>
-		<dl>
-			<dt>
-				<?php esc_html_e( 'Execution Permission', 'fe-csv-import-export' ); ?>
-			</dt>
-			<dd>
-				<label>
-					<select name="tools_access_scope" id="fe-csv-import-export-pro-tools-access-scope" <?php echo esc_attr( $disabled_attr ); ?>>
-						<option value="admin_only" <?php selected( $tools_scope, 'admin_only' ); ?>><?php esc_html_e( 'Administrators only', 'fe-csv-import-export' ); ?></option>
-						<option value="admin_editor" <?php selected( $tools_scope, 'admin_editor' ); ?>><?php esc_html_e( 'Administrators and Editors', 'fe-csv-import-export' ); ?></option>
-					</select>
-					<?php
-					if ( ! $is_pro_ready ) {
-						echo ' (';
-						echo '<a href="?page=fe-csv-import-export&tab=license">';
-						esc_html_e( 'Pro', 'fe-csv-import-export' );
-						echo '</a>)';
-					}
-					?>
-				</label>
-				<p class="description">
-					<?php esc_html_e( 'Set which user roles can execute import and export operations.', 'fe-csv-import-export' ); ?>
-				</p>
 			</dd>
 		</dl>
 		<?php

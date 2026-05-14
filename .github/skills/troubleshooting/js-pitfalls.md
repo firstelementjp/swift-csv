@@ -58,13 +58,13 @@ const dateStr = now.getFullYear() + '-' +
 
 ```php
 // BEFORE — Option cache issue
-$is_cancelled = get_option("swift_csv_export_cancelled_{$user_id}");
+$is_cancelled = get_option("fe_csv_import_export_export_cancelled_{$user_id}");
 
 // AFTER — Direct DB read to bypass cache
 global $wpdb;
 $is_cancelled = $wpdb->get_var($wpdb->prepare(
     "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
-    "swift_csv_export_cancelled_{$user_id}_{$export_session}"
+    "fe_csv_import_export_export_cancelled_{$user_id}_{$export_session}"
 ));
 ```
 
@@ -154,7 +154,7 @@ const checkModules = () => {
 
 ```html
 <!-- HTML -->
-<select name="swift_csv_import_post_type" id="ajax_import_post_type" required></select>
+<select name="fe_csv_import_export_import_post_type" id="ajax_import_post_type" required></select>
 ```
 
 ```javascript

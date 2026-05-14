@@ -1,11 +1,11 @@
-# SKILL.md — Swift CSV Development Guide
+# SKILL.md — FE CSV Import & Export Development Guide
 
 > Top-level overview for AI assistants and developers.
 > Detailed documentation is in subdirectories — only load what you need.
 
 ## Project Overview
 
-**Swift CSV** is a WordPress plugin for CSV import/export with full support for custom post types, taxonomies, and custom fields. It ships as a Free version with an optional Pro add-on.
+**FE CSV Import & Export** is a WordPress plugin for CSV import/export with full support for custom post types, taxonomies, and custom fields. It ships as a Free version with an optional Pro add-on.
 
 | Item           | Value                                |
 | -------------- | ------------------------------------ |
@@ -19,68 +19,68 @@
 ## Repository Layout
 
 ```
-swift-csv/                          # Free version (this repo)
-├── swift-csv.php                   # Plugin entry point and bootstrap constants
+fe-csv-import-export/                          # Free version (this repo)
+├── fe-csv-import-export.php                   # Plugin entry point and bootstrap constants
 ├── uninstall.php                   # Plugin uninstallation cleanup
 ├── includes/
 │   ├── admin/
-│   │   ├── class-swift-csv-admin.php            # Admin bootstrap/orchestration
-│   │   ├── class-swift-csv-admin-assets.php     # Script/style enqueue and localized data
-│   │   ├── class-swift-csv-admin-page.php       # Admin page rendering
-│   │   ├── class-swift-csv-admin-settings.php   # Settings registration and persistence
-│   │   ├── class-swift-csv-admin-ajax.php       # Admin-side AJAX endpoints
-│   │   ├── class-swift-csv-admin-util.php       # Admin helper utilities
-│   │   ├── class-swift-csv-encryption-utils.php # Encryption helpers for stored settings
-│   │   ├── class-swift-csv-license-handler.php  # License validation/activation
-│   │   ├── class-swift-csv-settings-helper.php  # Settings helper methods
-│   │   └── class-swift-csv-updater.php          # Plugin update system
+│   │   ├── class-fe-csv-import-export-admin.php            # Admin bootstrap/orchestration
+│   │   ├── class-fe-csv-import-export-admin-assets.php     # Script/style enqueue and localized data
+│   │   ├── class-fe-csv-import-export-admin-page.php       # Admin page rendering
+│   │   ├── class-fe-csv-import-export-admin-settings.php   # Settings registration and persistence
+│   │   ├── class-fe-csv-import-export-admin-ajax.php       # Admin-side AJAX endpoints
+│   │   ├── class-fe-csv-import-export-admin-util.php       # Admin helper utilities
+│   │   ├── class-fe-csv-import-export-encryption-utils.php # Encryption helpers for stored settings
+│   │   ├── class-fe-csv-import-export-license-handler.php  # License validation/activation
+│   │   ├── class-fe-csv-import-export-settings-helper.php  # Settings helper methods
+│   │   └── class-fe-csv-import-export-updater.php          # Plugin update system
 │   ├── export/
-│   │   ├── class-swift-csv-ajax-export-unified.php          # Unified export entry point
-│   │   ├── class-swift-csv-ajax-export-batch-planner.php    # Export batch planning
-│   │   ├── class-swift-csv-ajax-export-handler-direct-sql.php # Direct SQL export handler
-│   │   ├── class-swift-csv-ajax-export-handler-wp-compatible.php # WP compatible export handler
-│   │   ├── class-swift-csv-export-base.php                  # Base export flow
-│   │   ├── class-swift-csv-export-wp-compatible.php         # WP compatible export implementation
-│   │   ├── class-swift-csv-export-direct-sql.php            # Direct SQL export implementation
-│   │   ├── class-swift-csv-export-cancel-manager.php        # Export cancellation state
-│   │   └── class-swift-csv-export-log-store.php             # Export log persistence
+│   │   ├── class-fe-csv-import-export-ajax-export-unified.php          # Unified export entry point
+│   │   ├── class-fe-csv-import-export-ajax-export-batch-planner.php    # Export batch planning
+│   │   ├── class-fe-csv-import-export-ajax-export-handler-direct-sql.php # Direct SQL export handler
+│   │   ├── class-fe-csv-import-export-ajax-export-handler-wp-compatible.php # WP compatible export handler
+│   │   ├── class-fe-csv-import-export-export-base.php                  # Base export flow
+│   │   ├── class-fe-csv-import-export-export-wp-compatible.php         # WP compatible export implementation
+│   │   ├── class-fe-csv-import-export-export-direct-sql.php            # Direct SQL export implementation
+│   │   ├── class-fe-csv-import-export-export-cancel-manager.php        # Export cancellation state
+│   │   └── class-fe-csv-import-export-export-log-store.php             # Export log persistence
 │   ├── import/
-│   │   ├── class-swift-csv-ajax-import-unified.php             # Unified import entry point
-│   │   ├── class-swift-csv-ajax-import-batch-planner.php       # Import batch planning
-│   │   ├── class-swift-csv-ajax-import-handler-direct-sql.php  # Direct SQL import handler
-│   │   ├── class-swift-csv-ajax-import-handler-wp-compatible.php # WP compatible import handler
-│   │   ├── class-swift-csv-import-base.php                     # Shared import orchestration
-│   │   ├── class-swift-csv-import-wp-compatible.php            # WP compatible import implementation
-│   │   ├── class-swift-csv-import-direct-sql.php               # Direct SQL import implementation
-│   │   ├── class-swift-csv-import-batch-processor.php          # Main batch execution pipeline
-│   │   ├── class-swift-csv-import-batch-processor-base.php     # Shared batch processor helpers
-│   │   ├── class-swift-csv-import-cancel-manager.php           # Import cancellation state
-│   │   ├── class-swift-csv-import-csv-parser.php               # Streamed CSV parsing and validation
-│   │   ├── class-swift-csv-import-csv-store.php                # Batch CSV state/cache store
-│   │   ├── class-swift-csv-import-csv.php                      # CSV utility helpers
-│   │   ├── class-swift-csv-import-file-processor.php           # Uploaded file handling / temp file setup
-│   │   ├── class-swift-csv-import-log-store.php                # Import log persistence
-│   │   ├── class-swift-csv-import-meta-tax.php                 # Meta and taxonomy processing
-│   │   ├── class-swift-csv-import-persister.php                # Post persistence helpers
-│   │   ├── class-swift-csv-import-request-parser.php           # Request parsing and sanitization
-│   │   ├── class-swift-csv-import-response-manager.php         # Import JSON/progress responses
-│   │   ├── class-swift-csv-import-row-context.php              # Per-row context construction
-│   │   ├── class-swift-csv-import-row-processor.php            # Per-row processing flow
-│   │   ├── class-swift-csv-import-taxonomy-util.php            # Taxonomy parsing utilities
-│   │   ├── class-swift-csv-import-taxonomy-writer-interface.php # Taxonomy writer interface
-│   │   └── class-swift-csv-import-taxonomy-writer-wp.php       # WP taxonomy writer
-│   ├── class-swift-csv-ajax-util.php        # Shared AJAX utilities and response helpers
-│   ├── class-swift-csv-file-util.php        # Filesystem helper methods
-│   └── class-swift-csv-helper.php           # Shared CSV/format helper methods
+│   │   ├── class-fe-csv-import-export-ajax-import-unified.php             # Unified import entry point
+│   │   ├── class-fe-csv-import-export-ajax-import-batch-planner.php       # Import batch planning
+│   │   ├── class-fe-csv-import-export-ajax-import-handler-direct-sql.php  # Direct SQL import handler
+│   │   ├── class-fe-csv-import-export-ajax-import-handler-wp-compatible.php # WP compatible import handler
+│   │   ├── class-fe-csv-import-export-import-base.php                     # Shared import orchestration
+│   │   ├── class-fe-csv-import-export-import-wp-compatible.php            # WP compatible import implementation
+│   │   ├── class-fe-csv-import-export-import-direct-sql.php               # Direct SQL import implementation
+│   │   ├── class-fe-csv-import-export-import-batch-processor.php          # Main batch execution pipeline
+│   │   ├── class-fe-csv-import-export-import-batch-processor-base.php     # Shared batch processor helpers
+│   │   ├── class-fe-csv-import-export-import-cancel-manager.php           # Import cancellation state
+│   │   ├── class-fe-csv-import-export-import-csv-parser.php               # Streamed CSV parsing and validation
+│   │   ├── class-fe-csv-import-export-import-csv-store.php                # Batch CSV state/cache store
+│   │   ├── class-fe-csv-import-export-import-csv.php                      # CSV utility helpers
+│   │   ├── class-fe-csv-import-export-import-file-processor.php           # Uploaded file handling / temp file setup
+│   │   ├── class-fe-csv-import-export-import-log-store.php                # Import log persistence
+│   │   ├── class-fe-csv-import-export-import-meta-tax.php                 # Meta and taxonomy processing
+│   │   ├── class-fe-csv-import-export-import-persister.php                # Post persistence helpers
+│   │   ├── class-fe-csv-import-export-import-request-parser.php           # Request parsing and sanitization
+│   │   ├── class-fe-csv-import-export-import-response-manager.php         # Import JSON/progress responses
+│   │   ├── class-fe-csv-import-export-import-row-context.php              # Per-row context construction
+│   │   ├── class-fe-csv-import-export-import-row-processor.php            # Per-row processing flow
+│   │   ├── class-fe-csv-import-export-import-taxonomy-util.php            # Taxonomy parsing utilities
+│   │   ├── class-fe-csv-import-export-import-taxonomy-writer-interface.php # Taxonomy writer interface
+│   │   └── class-fe-csv-import-export-import-taxonomy-writer-wp.php       # WP taxonomy writer
+│   ├── class-fe-csv-import-export-ajax-util.php        # Shared AJAX utilities and response helpers
+│   ├── class-fe-csv-import-export-file-util.php        # Filesystem helper methods
+│   └── class-fe-csv-import-export-helper.php           # Shared CSV/format helper methods
 ├── assets/
 │   ├── js/
-│   │   ├── swift-csv-core.js       # Shared utilities (AJAX, logging, formatting)
-│   │   ├── swift-csv-export-unified.js # Export UI and AJAX logic
-│   │   ├── swift-csv-import.js     # Import UI, file upload, polling, AJAX logic
-│   │   ├── swift-csv-license.js    # License activation/deactivation UI
-│   │   ├── swift-csv-main.js       # Admin entry point and module initializer
+│   │   ├── fe-csv-import-export-core.js       # Shared utilities (AJAX, logging, formatting)
+│   │   ├── fe-csv-import-export-export-unified.js # Export UI and AJAX logic
+│   │   ├── fe-csv-import-export-import.js     # Import UI, file upload, polling, AJAX logic
+│   │   ├── fe-csv-import-export-license.js    # License activation/deactivation UI
+│   │   ├── fe-csv-import-export-main.js       # Admin entry point and module initializer
 │   │   ├── export/
-│   │   │   └── swift-csv/          # Export modules (6 files)
+│   │   │   └── fe-csv-import-export/          # Export modules (6 files)
 │   │   │       ├── ajax.js         # Export AJAX handling
 │   │   │       ├── download.js     # File download logic
 │   │   │       ├── form.js         # Export form handling
@@ -89,8 +89,8 @@ swift-csv/                          # Free version (this repo)
 │   │   │       └── ui.js           # Export UI components
 │   │   └── *.min.js                # Minified versions (distribution only)
 │   └── css/
-│       ├── swift-csv-style.css     # Admin styles
-│       └── swift-csv-style.min.css # Minified (distribution only)
+│       ├── fe-csv-import-export-style.css     # Admin styles
+│       └── fe-csv-import-export-style.min.css # Minified (distribution only)
 ├── languages/                      # Translation files (.po/.mo)
 ├── docs/                           # Markdown documentation set
 ├── tests/                          # PHPUnit tests (Unit + Integration)
@@ -107,7 +107,7 @@ swift-csv/                          # Free version (this repo)
     ├── troubleshooting/            # Pitfall catalog by category
     └── conventions/                # Coding standards, environment setup & patterns
 
-swift-csv-pro/                      # Pro add-on (separate repo)
+fe-csv-import-export-pro/                      # Pro add-on (separate repo)
 └── Extends Free version via WordPress hooks (enhanced features)
 ```
 
@@ -128,7 +128,7 @@ swift-csv-pro/                      # Pro add-on (separate repo)
 
 1. **WordPress AJAX responses** must include `'success' => true/false`. Use `wp_send_json_success()` / `wp_send_json_error()`.
 2. **PHPDoc object types** — Use `object` in @param/@return for IDE compatibility, specific classes in method signatures.
-3. **DOM manipulation** — Target specific child elements (`#export-log-content`), never clear parent containers (`.swift-csv-log`).
+3. **DOM manipulation** — Target specific child elements (`#export-log-content`), never clear parent containers (`.fe-csv-import-export-log`).
 4. **Temporary files** — Call `wp_delete_file()` on ALL error paths, not just success.
 5. **Module loading** — Wait for all `window.SwiftCSV*` globals before calling module functions.
 6. **Build after JS/CSS changes** — Run `npm run build` (CSS + JS) or `npm run dev` for watch mode.

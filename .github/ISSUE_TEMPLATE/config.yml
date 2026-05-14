@@ -1,7 +1,7 @@
 blank_issues_enabled: true
 contact_links:
     - name: Documentation
-      url: https://firstelementjp.github.io/swift-csv/
+      url: https://firstelementjp.github.io/fe-csv-import-export/
       about: Please check the docs first.
     - name: Security
       url: https://github.com/firstelementjp/fe-csv-import-export/blob/main/SECURITY.md

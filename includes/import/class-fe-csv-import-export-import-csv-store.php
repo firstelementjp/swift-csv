@@ -2,10 +2,10 @@
 /**
  * Import CSV Store
  *
- * Manages transient-based parsed CSV data for Swift CSV import.
+ * Manages transient-based parsed CSV data for FE CSV Import & Export import.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Import CSV Store Class
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Import_Csv_Store {
 

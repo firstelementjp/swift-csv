@@ -1,5 +1,5 @@
 === FE CSV Import & Export ===
-Contributors: dxd5001, firstelement
+Contributors: firstelement, dxd5001
 Tags: csv, import, export, custom post types, custom fields
 Requires at least: 6.6
 Tested up to: 6.9
@@ -99,7 +99,7 @@ FE CSV Import & Export Pro uses an external license API service for license vali
 **Privacy Policy**: https://www.firstelement.co.jp/en/legal/privacy-policy/privacy-statement-eu/
 **Terms of Service**: https://www.firstelement.co.jp/en/legal/terms-of-use/fe-csv-import-export-pro/
 
-The license API service is operated by FirstElement Co., Ltd. and is used exclusively for license management purposes. No content data is transmitted to this service.
+The license API service is operated by FirstElement K.K. and is used exclusively for license management purposes. No content data is transmitted to this service.
 
 == Installation ==
 

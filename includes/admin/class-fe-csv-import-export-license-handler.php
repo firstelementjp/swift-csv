@@ -1,6 +1,6 @@
 <?php
 /**
- * License Handler for Swift CSV.
+ * License Handler for FE CSV Import & Export.
  *
  * This class handles the communication with the license server
  * and manages license activation/deactivation.
@@ -58,7 +58,7 @@ class FE_CSV_Import_Export_License_Handler {
 	private static $license_cache = null;
 
 	/**
-	 * Product ID for Swift CSV Pro.
+	 * Product ID for FE CSV Import & Export Pro.
 	 *
 	 * @since 0.9.6
 	 * @var int (deprecated, use PRODUCT_ID_PRO instead)
@@ -135,7 +135,7 @@ class FE_CSV_Import_Export_License_Handler {
 	 */
 	private function call_license_api( $action, $license_key, $token = '', $product_id = 0 ) {
 		if ( ! defined( 'FE_CSV_IMPORT_EXPORT_LICENSE_API_URL' ) || empty( FE_CSV_IMPORT_EXPORT_LICENSE_API_URL ) ) {
-			// Check if Swift CSV Pro is installed and active.
+			// Check if FE CSV Import & Export Pro is installed and active.
 			$pro_plugin_path = 'fe-csv-import-export-pro/fe-csv-import-export-pro.php';
 			$is_pro_active   = is_plugin_active( $pro_plugin_path );
 
@@ -144,10 +144,10 @@ class FE_CSV_Import_Export_License_Handler {
 
 			if ( ! $pro_plugin_exists ) {
 				// Pro plugin is not installed at all.
-				$message = __( 'Swift CSV Pro is not installed. Please install Swift CSV Pro to use license features.', 'fe-csv-import-export' );
+				$message = __( 'FE CSV Import & Export Pro is not installed. Please install FE CSV Import & Export Pro to use license features.', 'fe-csv-import-export' );
 			} elseif ( ! $is_pro_active ) {
 				// Pro plugin exists but is not active.
-				$message = __( 'Swift CSV Pro is installed but not activated. Please activate Swift CSV Pro to use license features.', 'fe-csv-import-export' );
+				$message = __( 'FE CSV Import & Export Pro is installed but not activated. Please activate FE CSV Import & Export Pro to use license features.', 'fe-csv-import-export' );
 			} else {
 				// Pro plugin is active but license server is not configured.
 				$message = __( 'License server is not configured. Please contact support.', 'fe-csv-import-export' );

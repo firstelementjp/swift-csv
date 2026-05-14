@@ -24,7 +24,7 @@ A clear and concise description of the bug.
 
 - WordPress version:
 - PHP version:
-- Swift CSV version:
+- FE CSV Import & Export version:
 - ACF version (if relevant):
 - Browser (if UI-related):
 

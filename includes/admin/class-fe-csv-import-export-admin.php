@@ -2,12 +2,12 @@
 /**
  * Admin class for managing plugin interface
  *
- * This file contains the admin functionality for the Swift CSV plugin,
+ * This file contains the admin functionality for the FE CSV Import & Export plugin,
  * including menu creation, style enqueueing, and rendering of the
  * import/export interface.
  *
  * @since   0.9.1
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,12 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Admin class for Swift CSV plugin
+ * Admin class for FE CSV Import & Export plugin
  *
  * Handles admin menu, settings, and UI for CSV import/export functionality.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Admin {
 
@@ -78,7 +78,7 @@ class FE_CSV_Import_Export_Admin {
 	/**
 	 * Add admin menu items
 	 *
-	 * Creates the main Swift CSV menu in WordPress admin.
+	 * Creates the main FE CSV Import & Export menu in WordPress admin.
 	 *
 	 * @since  0.9.0
 	 * @return void
@@ -92,8 +92,8 @@ class FE_CSV_Import_Export_Admin {
 
 		add_submenu_page(
 			'tools.php',
-			'Swift CSV',
-			'Swift CSV',
+			'FE CSV Import & Export',
+			'FE CSV Import & Export',
 			$capability,
 			'fe-csv-import-export',
 			[ $this->page, 'render_main_page' ]

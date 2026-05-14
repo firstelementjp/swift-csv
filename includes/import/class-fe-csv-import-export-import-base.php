@@ -1,11 +1,11 @@
 <?php
 /**
- * Base Import Class for Swift CSV
+ * Base Import Class for FE CSV Import & Export
  *
  * Provides common functionality for WP-compatible and future Direct SQL imports.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Base Import Class
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 abstract class FE_CSV_Import_Export_Import_Base {
 

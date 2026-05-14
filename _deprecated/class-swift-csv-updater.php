@@ -1,12 +1,12 @@
 <?php
 /**
- * Plugin Updater for Swift CSV
+ * Plugin Updater for FE CSV Import & Export
  *
  * This updater is disabled for WordPress.org repository submission.
  * For WordPress.org, updates are handled through the official repository.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,7 +23,7 @@ return;
  * and package download functionality.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class Swift_CSV_Updater {
 

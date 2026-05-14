@@ -2,10 +2,10 @@
 /**
  * Export Log Store
  *
- * Manages transient-based export logs for Swift CSV.
+ * Manages transient-based export logs for FE CSV Import & Export.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Export Log Store Class
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Export_Log_Store {
 

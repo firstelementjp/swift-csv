@@ -5,7 +5,7 @@
  * Provides shared logic for determining batch size.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * AJAX Import Batch Planner Class
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Ajax_Import_Batch_Planner {
 

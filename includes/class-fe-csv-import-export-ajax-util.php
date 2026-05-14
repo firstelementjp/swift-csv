@@ -1,9 +1,9 @@
 <?php
 /**
- * AJAX utilities for Swift CSV.
+ * AJAX utilities for FE CSV Import & Export.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * AJAX utilities.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Ajax_Util {
 	/**

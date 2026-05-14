@@ -5,7 +5,7 @@
  * Placeholder for future high-speed import implementation.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Ajax Import Handler (Direct SQL) Class
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class Swift_CSV_Ajax_Import_Handler_Direct_SQL extends Swift_CSV_Ajax_Import_Handler_Base {
 

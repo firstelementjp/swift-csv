@@ -2,10 +2,10 @@
 /**
  * Import Taxonomy Writer (WP)
  *
- * WP-compatible taxonomy writing strategy for Swift CSV import.
+ * WP-compatible taxonomy writing strategy for FE CSV Import & Export import.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Import taxonomy writer (WP compatible).
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Import_Taxonomy_Writer_WP implements FE_CSV_Import_Export_Import_Taxonomy_Writer_Interface {
 	/**

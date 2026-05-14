@@ -1,9 +1,9 @@
 <?php
 /**
- * File utilities for Swift CSV
+ * File utilities for FE CSV Import & Export
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * File utilities
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_File_Util {
 	/**

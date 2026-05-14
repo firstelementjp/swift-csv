@@ -2,10 +2,10 @@
 /**
  * Import Taxonomy Writer (Direct SQL)
  *
- * Direct SQL taxonomy writing strategy for Swift CSV import.
+ * Direct SQL taxonomy writing strategy for FE CSV Import & Export import.
  *
  * @since 0.9.10
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Import taxonomy writer (Direct SQL).
  *
  * @since 0.9.10
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class Swift_CSV_Import_Taxonomy_Writer_Direct_SQL implements Swift_CSV_Import_Taxonomy_Writer_Interface {
 	/**

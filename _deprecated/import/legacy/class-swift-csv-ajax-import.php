@@ -1,12 +1,12 @@
 <?php
 /**
- * Ajax Import Handler for Swift CSV
+ * Ajax Import Handler for FE CSV Import & Export
  *
  * Handles asynchronous CSV import with chunked processing for large files.
  * Supports custom post types, taxonomies, and meta fields.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * supporting custom post types, taxonomies, and meta fields.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class Swift_CSV_Ajax_Import {
 	/**

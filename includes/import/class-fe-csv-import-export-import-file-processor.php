@@ -1,12 +1,12 @@
 <?php
 /**
- * Import File Processor for Swift CSV
+ * Import File Processor for FE CSV Import & Export
  *
  * Handles file processing operations for CSV import.
  * Extracted from FE_CSV_Import_Export_Ajax_Import for better separation of concerns.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - File path generation
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Import_File_Processor {
 

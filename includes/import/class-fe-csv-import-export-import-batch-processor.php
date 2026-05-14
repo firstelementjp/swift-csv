@@ -1,12 +1,12 @@
 <?php
 /**
- * Import Batch Processor for Swift CSV
+ * Import Batch Processor for FE CSV Import & Export
  *
  * Handles batch processing operations for CSV import.
  * Extracted from FE_CSV_Import_Export_Ajax_Import for better separation of concerns.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - Import result management
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Import_Batch_Processor extends FE_CSV_Import_Export_Import_Batch_Processor_Base {
 	/**

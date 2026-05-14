@@ -1,10 +1,10 @@
 <?php
 /**
- * Uninstall hook for Swift CSV
+ * Uninstall hook for FE CSV Import & Export
  *
  * Removes plugin data when the plugin is uninstalled.
  *
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  * @since   0.9.4
  */
 

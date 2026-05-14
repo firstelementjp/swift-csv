@@ -2,10 +2,10 @@
 /**
  * Admin assets handler
  *
- * Handles enqueueing scripts and styles for the Swift CSV admin pages.
+ * Handles enqueueing scripts and styles for the FE CSV Import & Export admin pages.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Admin assets handler
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Admin_Assets {
 

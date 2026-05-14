@@ -1,12 +1,12 @@
 <?php
 /**
- * Ajax Export Handler for Swift CSV
+ * Ajax Export Handler for FE CSV Import & Export
  *
  * Handles asynchronous CSV export with chunked processing for large datasets.
  * Supports basic, all fields, and custom export scopes.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Ajax Export Handler Class
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class Swift_CSV_Ajax_Export {
 

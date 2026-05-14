@@ -1,9 +1,9 @@
 <?php
 /**
- * Meta and taxonomy processing for Swift CSV import.
+ * Meta and taxonomy processing for FE CSV Import & Export import.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * and is designed to be called from FE_CSV_Import_Export_Ajax_Import via delegation.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Import_Meta_Tax {
 	/**
@@ -116,7 +116,7 @@ class FE_CSV_Import_Export_Import_Meta_Tax {
 	): array {
 		$dry_run_log = &$counters['dry_run_log'];
 
-		// Process custom fields and taxonomies like original Swift CSV.
+		// Process custom fields and taxonomies like original FE CSV Import & Export.
 		$collected_fields = $this->collect_taxonomies_and_meta_fields_from_row( $headers, $data, $allowed_post_fields );
 
 		/**

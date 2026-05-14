@@ -426,10 +426,10 @@ class FE_CSV_Import_Export_Admin_Page {
 							<li>
 								<h4><?php esc_html_e( 'Security', 'fe-csv-import-export' ); ?></h4>
 								<ul>
+									<li><?php esc_html_e( 'When used with the backup plugin \'Updraft Plus\', automatic SQL backup is executed during import and import begins after completion. If problems are discovered after import, you can immediately restore from backup.', 'fe-csv-import-export' ); ?></li>
 									<li><?php esc_html_e( 'Shared execution-only password protection for import and export operations', 'fe-csv-import-export' ); ?></li>
 									<li><?php esc_html_e( 'Require the logged-in user password at execution time', 'fe-csv-import-export' ); ?></li>
 									<li><?php esc_html_e( 'Access control for the tools page and execution permissions', 'fe-csv-import-export' ); ?></li>
-									<?php do_action( 'fe_csv_import_export_pro_security_features' ); ?>
 								</ul>
 							</li>
 							<li>

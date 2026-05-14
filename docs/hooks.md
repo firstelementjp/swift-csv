@@ -29,7 +29,7 @@ It focuses on:
 
 ### Header generation
 
-#### `swift_csv_export_filter_taxonomy_objects`
+#### `fe_csv_import_export_export_filter_taxonomy_objects`
 
 Filter taxonomy objects used for building `tax_{taxonomy}` headers.
 
@@ -38,7 +38,7 @@ Filter taxonomy objects used for building `tax_{taxonomy}` headers.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_filter_taxonomy_objects', array $taxonomies, array $args ): array
+apply_filters( 'fe_csv_import_export_export_filter_taxonomy_objects', array $taxonomies, array $args ): array
 ```
 
 **Parameters:**
@@ -53,7 +53,7 @@ apply_filters( 'swift_csv_export_filter_taxonomy_objects', array $taxonomies, ar
 **Example:** (exclude internal taxonomies)
 
 ```php
-add_filter( 'swift_csv_export_filter_taxonomy_objects', 'my_swiftcsv_filter_taxonomies', 10, 2 );
+add_filter( 'fe_csv_import_export_export_filter_taxonomy_objects', 'my_swiftcsv_filter_taxonomies', 10, 2 );
 
 function my_swiftcsv_filter_taxonomies( $taxonomies, $args ) {
     // English comments only.
@@ -76,7 +76,7 @@ function my_swiftcsv_filter_taxonomies( $taxonomies, $args ) {
 }
 ```
 
-#### `swift_csv_export_sample_query_args`
+#### `fe_csv_import_export_export_sample_query_args`
 
 Filter the WP query args used to pick a "sample post" for meta key discovery.
 
@@ -85,7 +85,7 @@ Filter the WP query args used to pick a "sample post" for meta key discovery.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_sample_query_args', array $query_args, array $args ): array
+apply_filters( 'fe_csv_import_export_export_sample_query_args', array $query_args, array $args ): array
 ```
 
 **Parameters:**
@@ -98,7 +98,7 @@ apply_filters( 'swift_csv_export_sample_query_args', array $query_args, array $a
 **Example:** (prefer recent posts with meta)
 
 ```php
-add_filter( 'swift_csv_export_sample_query_args', 'my_swiftcsv_sample_query_args', 10, 2 );
+add_filter( 'fe_csv_import_export_export_sample_query_args', 'my_swiftcsv_sample_query_args', 10, 2 );
 
 function my_swiftcsv_sample_query_args( $query_args, $args ) {
     // Example: prefer posts that are likely to have custom fields.
@@ -108,7 +108,7 @@ function my_swiftcsv_sample_query_args( $query_args, $args ) {
 }
 ```
 
-#### `swift_csv_export_classify_meta_keys`
+#### `fe_csv_import_export_export_classify_meta_keys`
 
 Classify meta keys discovered from the sample post.
 
@@ -117,7 +117,7 @@ Classify meta keys discovered from the sample post.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_classify_meta_keys', array $all_meta_keys, array $args ): array
+apply_filters( 'fe_csv_import_export_export_classify_meta_keys', array $all_meta_keys, array $args ): array
 ```
 
 **Parameters:**
@@ -141,7 +141,7 @@ apply_filters( 'swift_csv_export_classify_meta_keys', array $all_meta_keys, arra
 **Example:** (exclude noisy keys)
 
 ```php
-add_filter( 'swift_csv_export_classify_meta_keys', 'my_swiftcsv_classify_meta_keys', 10, 2 );
+add_filter( 'fe_csv_import_export_export_classify_meta_keys', 'my_swiftcsv_classify_meta_keys', 10, 2 );
 
 function my_swiftcsv_classify_meta_keys( $all_meta_keys, $args ) {
     $regular = [];
@@ -172,7 +172,7 @@ function my_swiftcsv_classify_meta_keys( $all_meta_keys, $args ) {
 }
 ```
 
-#### `swift_csv_export_generate_custom_field_headers`
+#### `fe_csv_import_export_export_generate_custom_field_headers`
 
 Generate custom-field (meta) headers from classified meta keys.
 
@@ -181,13 +181,13 @@ Generate custom-field (meta) headers from classified meta keys.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_generate_custom_field_headers', array $headers, array $classified_meta_keys, array $args ): array
+apply_filters( 'fe_csv_import_export_export_generate_custom_field_headers', array $headers, array $classified_meta_keys, array $args ): array
 ```
 
 **Parameters:**
 
 - `$headers` (`array<string>`) Starts as an empty array.
-- `$classified_meta_keys` (`array`) Result of `swift_csv_export_classify_meta_keys`.
+- `$classified_meta_keys` (`array`) Result of `fe_csv_import_export_export_classify_meta_keys`.
 - `$args` (`array`) Context.
     - `post_type` (`string`)
     - `export_scope` (`string`)
@@ -197,7 +197,7 @@ apply_filters( 'swift_csv_export_generate_custom_field_headers', array $headers,
 **Example:** (only allow-listed meta keys)
 
 ```php
-add_filter( 'swift_csv_export_generate_custom_field_headers', 'my_swiftcsv_custom_field_headers', 10, 3 );
+add_filter( 'fe_csv_import_export_export_generate_custom_field_headers', 'my_swiftcsv_custom_field_headers', 10, 3 );
 
 function my_swiftcsv_custom_field_headers( $headers, $classified_meta_keys, $args ) {
     $allow = [ 'price', 'color', 'size' ];
@@ -214,7 +214,7 @@ function my_swiftcsv_custom_field_headers( $headers, $classified_meta_keys, $arg
 }
 ```
 
-#### `swift_csv_export_headers`
+#### `fe_csv_import_export_export_headers`
 
 Filter the final header list.
 
@@ -223,7 +223,7 @@ Filter the final header list.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_headers', array $headers, array $config, string $context ): array
+apply_filters( 'fe_csv_import_export_export_headers', array $headers, array $config, string $context ): array
 ```
 
 **Parameters:**
@@ -235,16 +235,16 @@ apply_filters( 'swift_csv_export_headers', array $headers, array $config, string
 **Example:** (add a custom computed column)
 
 ```php
-add_filter( 'swift_csv_export_headers', 'my_swiftcsv_add_custom_header', 10, 3 );
+add_filter( 'fe_csv_import_export_export_headers', 'my_swiftcsv_add_custom_header', 10, 3 );
 
 function my_swiftcsv_add_custom_header( $headers, $config, $context ) {
-    // Add a non-standard header. Its value will be provided by swift_csv_export_process_custom_header.
+    // Add a non-standard header. Its value will be provided by fe_csv_import_export_export_process_custom_header.
     $headers[] = 'my_permalink';
     return $headers;
 }
 ```
 
-#### `swift_csv_export_phase_headers`
+#### `fe_csv_import_export_export_phase_headers`
 
 Action fired after headers are finalized.
 
@@ -253,13 +253,13 @@ Action fired after headers are finalized.
 **Signature:**
 
 ```php
-do_action( 'swift_csv_export_phase_headers', array $headers, array $config, string $context ): void
+do_action( 'fe_csv_import_export_export_phase_headers', array $headers, array $config, string $context ): void
 ```
 
 **Example:** (log headers)
 
 ```php
-add_action( 'swift_csv_export_phase_headers', 'my_swiftcsv_log_headers', 10, 3 );
+add_action( 'fe_csv_import_export_export_phase_headers', 'my_swiftcsv_log_headers', 10, 3 );
 
 function my_swiftcsv_log_headers( $headers, $config, $context ) {
     error_log( '[FE CSV Import & Export] Export headers finalized (' . $context . '): ' . implode( ',', (array) $headers ) );
@@ -268,7 +268,7 @@ function my_swiftcsv_log_headers( $headers, $config, $context ) {
 
 ### Row generation
 
-#### `swift_csv_export_row`
+#### `fe_csv_import_export_export_row`
 
 Filter each row during export generation.
 
@@ -277,7 +277,7 @@ Filter each row during export generation.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_row', array $row, int $post_id, array $config, string $context ): array
+apply_filters( 'fe_csv_import_export_export_row', array $row, int $post_id, array $config, string $context ): array
 ```
 
 **Parameters:**
@@ -292,7 +292,7 @@ apply_filters( 'swift_csv_export_row', array $row, int $post_id, array $config, 
 **Example:** (format product prices)
 
 ```php
-add_filter( 'swift_csv_export_row', 'my_swiftcsv_export_row_format', 10, 4 );
+add_filter( 'fe_csv_import_export_export_row', 'my_swiftcsv_export_row_format', 10, 4 );
 
 function my_swiftcsv_export_row_format( $row, $post_id, $config, $context ) {
     // WP compatible export usually passes an indexed row aligned to headers.
@@ -304,7 +304,7 @@ function my_swiftcsv_export_row_format( $row, $post_id, $config, $context ) {
     }
 
     // Example: for wp_compatible, update by index (keep the shape intact).
-    // If you need header-aware edits here, also hook swift_csv_export_headers to locate indexes.
+    // If you need header-aware edits here, also hook fe_csv_import_export_export_headers to locate indexes.
     if ( 'wp_compatible' === $context && is_array( $row ) && isset( $row[0] ) ) {
         // No-op example: return row as-is.
         return $row;
@@ -314,7 +314,7 @@ function my_swiftcsv_export_row_format( $row, $post_id, $config, $context ) {
 }
 ```
 
-#### `swift_csv_export_process_custom_header`
+#### `fe_csv_import_export_export_process_custom_header`
 
 Provide a value for custom headers that are not standard `post_*`, `tax_*`, `cf_*`, or `ID`.
 
@@ -323,7 +323,7 @@ Provide a value for custom headers that are not standard `post_*`, `tax_*`, `cf_
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_process_custom_header', string $value, string $header, int $post_id, array $args ): string
+apply_filters( 'fe_csv_import_export_export_process_custom_header', string $value, string $header, int $post_id, array $args ): string
 ```
 
 **Parameters:**
@@ -338,7 +338,7 @@ apply_filters( 'swift_csv_export_process_custom_header', string $value, string $
 **Example:** (implement `my_permalink` header)
 
 ```php
-add_filter( 'swift_csv_export_process_custom_header', 'my_swiftcsv_custom_header_value', 10, 4 );
+add_filter( 'fe_csv_import_export_export_process_custom_header', 'my_swiftcsv_custom_header_value', 10, 4 );
 
 function my_swiftcsv_custom_header_value( $value, $header, $post_id, $args ) {
     if ( 'my_permalink' === $header ) {
@@ -353,7 +353,7 @@ function my_swiftcsv_custom_header_value( $value, $header, $post_id, $args ) {
 
 These hooks are primarily used by `Swift_CSV_Export_Direct_SQL`.
 
-#### `swift_csv_export_query_spec`
+#### `fe_csv_import_export_export_query_spec`
 
 Provide a unified query spec (tax_query/meta_query style) that can be applied to exports.
 
@@ -362,7 +362,7 @@ Provide a unified query spec (tax_query/meta_query style) that can be applied to
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_query_spec', array $query_spec, array $config, string $context ): array
+apply_filters( 'fe_csv_import_export_export_query_spec', array $query_spec, array $config, string $context ): array
 ```
 
 **Parameters:**
@@ -374,7 +374,7 @@ apply_filters( 'swift_csv_export_query_spec', array $query_spec, array $config, 
 **Example:** (export only items with a meta flag)
 
 ```php
-add_filter( 'swift_csv_export_query_spec', 'my_swiftcsv_export_query_spec', 10, 3 );
+add_filter( 'fe_csv_import_export_export_query_spec', 'my_swiftcsv_export_query_spec', 10, 3 );
 
 function my_swiftcsv_export_query_spec( $query_spec, $config, $context ) {
     if ( 'direct_sql' !== $context ) {
@@ -394,7 +394,7 @@ function my_swiftcsv_export_query_spec( $query_spec, $config, $context ) {
 }
 ```
 
-#### `swift_csv_export_data_query_args`
+#### `fe_csv_import_export_export_data_query_args`
 
 Filter the argument array used by the Direct SQL data query.
 
@@ -403,7 +403,7 @@ Filter the argument array used by the Direct SQL data query.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_data_query_args', array $query_args, array $args ): array
+apply_filters( 'fe_csv_import_export_export_data_query_args', array $query_args, array $args ): array
 ```
 
 **Parameters:**
@@ -417,7 +417,7 @@ apply_filters( 'swift_csv_export_data_query_args', array $query_args, array $arg
 **Example:** (override ordering)
 
 ```php
-add_filter( 'swift_csv_export_data_query_args', 'my_swiftcsv_export_data_query_args', 10, 2 );
+add_filter( 'fe_csv_import_export_export_data_query_args', 'my_swiftcsv_export_data_query_args', 10, 2 );
 
 function my_swiftcsv_export_data_query_args( $query_args, $args ) {
     // Currently Direct SQL export builds ORDER BY internally.
@@ -427,7 +427,7 @@ function my_swiftcsv_export_data_query_args( $query_args, $args ) {
 }
 ```
 
-#### `swift_csv_export_direct_sql_query_args`
+#### `fe_csv_import_export_export_direct_sql_query_args`
 
 Direct SQL specific filter for query args.
 
@@ -436,13 +436,13 @@ Direct SQL specific filter for query args.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_direct_sql_query_args', array $query_args, array $config ): array
+apply_filters( 'fe_csv_import_export_export_direct_sql_query_args', array $query_args, array $config ): array
 ```
 
 **Example:** (cap the limit)
 
 ```php
-add_filter( 'swift_csv_export_direct_sql_query_args', 'my_swiftcsv_cap_direct_sql_limit', 10, 2 );
+add_filter( 'fe_csv_import_export_export_direct_sql_query_args', 'my_swiftcsv_cap_direct_sql_limit', 10, 2 );
 
 function my_swiftcsv_cap_direct_sql_limit( $query_args, $config ) {
     if ( isset( $query_args['limit'] ) ) {
@@ -452,7 +452,7 @@ function my_swiftcsv_cap_direct_sql_limit( $query_args, $config ) {
 }
 ```
 
-#### `swift_csv_export_direct_sql_query_parts`
+#### `fe_csv_import_export_export_direct_sql_query_parts`
 
 Filter SQL and params right before `$wpdb->prepare()`.
 
@@ -461,7 +461,7 @@ Filter SQL and params right before `$wpdb->prepare()`.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_direct_sql_query_parts', array $query_parts, array $config, string $context ): array
+apply_filters( 'fe_csv_import_export_export_direct_sql_query_parts', array $query_parts, array $config, string $context ): array
 ```
 
 **Parameters:**
@@ -475,7 +475,7 @@ apply_filters( 'swift_csv_export_direct_sql_query_parts', array $query_parts, ar
 **Example:** (inject additional WHERE clause)
 
 ```php
-add_filter( 'swift_csv_export_direct_sql_query_parts', 'my_swiftcsv_direct_sql_query_parts', 10, 3 );
+add_filter( 'fe_csv_import_export_export_direct_sql_query_parts', 'my_swiftcsv_direct_sql_query_parts', 10, 3 );
 
 function my_swiftcsv_direct_sql_query_parts( $query_parts, $config, $context ) {
     if ( ! is_array( $query_parts ) || empty( $query_parts['sql'] ) ) {
@@ -489,7 +489,7 @@ function my_swiftcsv_direct_sql_query_parts( $query_parts, $config, $context ) {
 }
 ```
 
-#### `swift_csv_export_batch_data`
+#### `fe_csv_import_export_export_batch_data`
 
 Filter the entire batch data for Direct SQL export before CSV generation.
 
@@ -498,13 +498,13 @@ Filter the entire batch data for Direct SQL export before CSV generation.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_batch_data', array $batch_data, array $post_ids, array $config, string $context ): array
+apply_filters( 'fe_csv_import_export_export_batch_data', array $batch_data, array $post_ids, array $config, string $context ): array
 ```
 
 **Example:** (append computed field to each row)
 
 ```php
-add_filter( 'swift_csv_export_batch_data', 'my_swiftcsv_export_batch_data', 10, 4 );
+add_filter( 'fe_csv_import_export_export_batch_data', 'my_swiftcsv_export_batch_data', 10, 4 );
 
 function my_swiftcsv_export_batch_data( $batch_data, $post_ids, $config, $context ) {
     foreach ( (array) $batch_data as $i => $row ) {
@@ -523,7 +523,7 @@ function my_swiftcsv_export_batch_data( $batch_data, $post_ids, $config, $contex
 
 ### Batch / performance
 
-#### `swift_csv_export_batch_size`
+#### `fe_csv_import_export_export_batch_size`
 
 Filter the export batch size.
 
@@ -532,13 +532,13 @@ Filter the export batch size.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_batch_size', int $batch_size, int $total_count, string $post_type, array $config ): int
+apply_filters( 'fe_csv_import_export_export_batch_size', int $batch_size, int $total_count, string $post_type, array $config ): int
 ```
 
 **Example:**
 
 ```php
-add_filter( 'swift_csv_export_batch_size', 'my_swiftcsv_export_batch_size', 10, 4 );
+add_filter( 'fe_csv_import_export_export_batch_size', 'my_swiftcsv_export_batch_size', 10, 4 );
 
 function my_swiftcsv_export_batch_size( $batch_size, $total_count, $post_type, $config ) {
     // Example: reduce batch size for heavy post types.
@@ -555,7 +555,7 @@ function my_swiftcsv_export_batch_size( $batch_size, $total_count, $post_type, $
 
 ### Permission and validation
 
-#### `swift_csv_user_can_import`
+#### `fe_csv_import_export_user_can_import`
 
 Filter user permission to perform imports.
 
@@ -564,7 +564,7 @@ Filter user permission to perform imports.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_user_can_import', bool $can_import ): bool
+apply_filters( 'fe_csv_import_export_user_can_import', bool $can_import ): bool
 ```
 
 **Parameters:**
@@ -574,14 +574,14 @@ apply_filters( 'swift_csv_user_can_import', bool $can_import ): bool
 **Example:** (require custom capability)
 
 ```php
-add_filter( 'swift_csv_user_can_import', 'my_swiftcsv_import_permission', 10, 1 );
+add_filter( 'fe_csv_import_export_user_can_import', 'my_swiftcsv_import_permission', 10, 1 );
 
 function my_swiftcsv_import_permission( $can_import ) {
     return current_user_can( 'manage_options' ) || current_user_can( 'import_csv' );
 }
 ```
 
-#### `swift_csv_pre_ajax_import`
+#### `fe_csv_import_export_pre_ajax_import`
 
 Filter pre-import validation result.
 
@@ -590,7 +590,7 @@ Filter pre-import validation result.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_pre_ajax_import', bool|WP_Error $result, array $post_data ): bool|WP_Error
+apply_filters( 'fe_csv_import_export_pre_ajax_import', bool|WP_Error $result, array $post_data ): bool|WP_Error
 ```
 
 **Parameters:**
@@ -601,7 +601,7 @@ apply_filters( 'swift_csv_pre_ajax_import', bool|WP_Error $result, array $post_d
 **Example:** (validate business hours)
 
 ```php
-add_filter( 'swift_csv_pre_ajax_import', 'my_swiftcsv_business_hours_check', 10, 2 );
+add_filter( 'fe_csv_import_export_pre_ajax_import', 'my_swiftcsv_business_hours_check', 10, 2 );
 
 function my_swiftcsv_business_hours_check( $result, $post_data ) {
     $hour = (int) date( 'H' );
@@ -614,7 +614,7 @@ function my_swiftcsv_business_hours_check( $result, $post_data ) {
 
 ### Field preparation and mapping
 
-#### `swift_csv_prepare_import_fields`
+#### `fe_csv_import_export_prepare_import_fields`
 
 Filter prepared meta fields before import.
 
@@ -623,7 +623,7 @@ Filter prepared meta fields before import.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_prepare_import_fields', array $meta_fields, int $post_id, array $args ): array
+apply_filters( 'fe_csv_import_export_prepare_import_fields', array $meta_fields, int $post_id, array $args ): array
 ```
 
 **Parameters:**
@@ -635,7 +635,7 @@ apply_filters( 'swift_csv_prepare_import_fields', array $meta_fields, int $post_
 **Example:** (process custom field formats)
 
 ```php
-add_filter( 'swift_csv_prepare_import_fields', 'my_swiftcsv_process_custom_fields', 10, 3 );
+add_filter( 'fe_csv_import_export_prepare_import_fields', 'my_swiftcsv_process_custom_fields', 10, 3 );
 
 function my_swiftcsv_process_custom_fields( $meta_fields, $post_id, $args ) {
     foreach ( $meta_fields as $key => $value ) {
@@ -647,7 +647,7 @@ function my_swiftcsv_process_custom_fields( $meta_fields, $post_id, $args ) {
 }
 ```
 
-#### `swift_csv_import_phase_map_prepared`
+#### `fe_csv_import_export_import_phase_map_prepared`
 
 Action fired after field mapping is prepared.
 
@@ -656,10 +656,10 @@ Action fired after field mapping is prepared.
 **Signature:**
 
 ```php
-do_action( 'swift_csv_import_phase_map_prepared', int $post_id, array $prepared_fields, array $args ): void
+do_action( 'fe_csv_import_export_import_phase_map_prepared', int $post_id, array $prepared_fields, array $args ): void
 ```
 
-#### `swift_csv_import_phase_post_persist`
+#### `fe_csv_import_export_import_phase_post_persist`
 
 Action fired after post data is persisted.
 
@@ -668,12 +668,12 @@ Action fired after post data is persisted.
 **Signature:**
 
 ```php
-do_action( 'swift_csv_import_phase_post_persist', int $post_id, array $prepared_fields, array $args ): void
+do_action( 'fe_csv_import_export_import_phase_post_persist', int $post_id, array $prepared_fields, array $args ): void
 ```
 
 ### Batch processing
 
-#### `swift_csv_import_batch_size`
+#### `fe_csv_import_export_import_batch_size`
 
 Filter import batch size.
 
@@ -682,7 +682,7 @@ Filter import batch size.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_import_batch_size', int $batch_size, int $total_rows, array $config ): int
+apply_filters( 'fe_csv_import_export_import_batch_size', int $batch_size, int $total_rows, array $config ): int
 ```
 
 **Parameters:**
@@ -694,7 +694,7 @@ apply_filters( 'swift_csv_import_batch_size', int $batch_size, int $total_rows, 
 **Example:** (optimize for server performance)
 
 ```php
-add_filter( 'swift_csv_import_batch_size', 'my_swiftcsv_optimize_batch_size', 10, 3 );
+add_filter( 'fe_csv_import_export_import_batch_size', 'my_swiftcsv_optimize_batch_size', 10, 3 );
 
 function my_swiftcsv_optimize_batch_size( $batch_size, $total_rows, $config ) {
     // Reduce batch size for memory-constrained servers
@@ -708,7 +708,7 @@ function my_swiftcsv_optimize_batch_size( $batch_size, $total_rows, $config ) {
 
 ### Logging and diagnostics
 
-#### `swift_csv_max_log_entries`
+#### `fe_csv_import_export_max_log_entries`
 
 Filter maximum log entries to store.
 
@@ -717,7 +717,7 @@ Filter maximum log entries to store.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_max_log_entries', int $max_entries ): int
+apply_filters( 'fe_csv_import_export_max_log_entries', int $max_entries ): int
 ```
 
 **Parameters:**
@@ -727,7 +727,7 @@ apply_filters( 'swift_csv_max_log_entries', int $max_entries ): int
 **Example:** (increase logging for debugging)
 
 ```php
-add_filter( 'swift_csv_max_log_entries', 'my_swiftcsv_increase_logging', 10, 1 );
+add_filter( 'fe_csv_import_export_max_log_entries', 'my_swiftcsv_increase_logging', 10, 1 );
 
 function my_swiftcsv_increase_logging( $max_entries ) {
     if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -741,48 +741,48 @@ function my_swiftcsv_increase_logging( $max_entries ) {
 
 FE CSV Import & Export import exposes a phased model via `do_action`.
 
-- `swift_csv_import_phase_normalize`
-- `swift_csv_import_phase_validate`
-- `swift_csv_import_phase_map`
-- `swift_csv_import_phase_map_prepared`
-- `swift_csv_import_phase_post_persist`
+- `fe_csv_import_export_import_phase_normalize`
+- `fe_csv_import_export_import_phase_validate`
+- `fe_csv_import_export_import_phase_map`
+- `fe_csv_import_export_import_phase_map_prepared`
+- `fe_csv_import_export_import_phase_post_persist`
 
 These are intended for observability and integrations.
 
-#### `swift_csv_import_phase_normalize`
+#### `fe_csv_import_export_import_phase_normalize`
 
 **Type:** action
 
 **Signature (current implementation):**
 
 ```php
-do_action( 'swift_csv_import_phase_normalize', array $filtered_data, array $context ): void
+do_action( 'fe_csv_import_export_import_phase_normalize', array $filtered_data, array $context ): void
 ```
 
 **Example:**
 
 ```php
-add_action( 'swift_csv_import_phase_normalize', 'my_swiftcsv_phase_normalize', 10, 2 );
+add_action( 'fe_csv_import_export_import_phase_normalize', 'my_swiftcsv_phase_normalize', 10, 2 );
 
 function my_swiftcsv_phase_normalize( $filtered_data, $context ) {
     error_log( '[FE CSV Import & Export] normalize phase for post_type=' . (string) ( $context['post_type'] ?? '' ) );
 }
 ```
 
-#### `swift_csv_import_phase_validate`
+#### `fe_csv_import_export_import_phase_validate`
 
 **Type:** action
 
 **Signature (current implementation):**
 
 ```php
-do_action( 'swift_csv_import_phase_validate', array $row_validation, array $row_context, array $context ): void
+do_action( 'fe_csv_import_export_import_phase_validate', array $row_validation, array $row_context, array $context ): void
 ```
 
 **Example:**
 
 ```php
-add_action( 'swift_csv_import_phase_validate', 'my_swiftcsv_phase_validate', 10, 3 );
+add_action( 'fe_csv_import_export_import_phase_validate', 'my_swiftcsv_phase_validate', 10, 3 );
 
 function my_swiftcsv_phase_validate( $row_validation, $row_context, $context ) {
     if ( ! empty( $row_validation['errors'] ) ) {
@@ -791,20 +791,20 @@ function my_swiftcsv_phase_validate( $row_validation, $row_context, $context ) {
 }
 ```
 
-#### `swift_csv_import_phase_map`
+#### `fe_csv_import_export_import_phase_map`
 
 **Type:** action
 
 **Signature (current implementation):**
 
 ```php
-do_action( 'swift_csv_import_phase_map', array $collected_fields, array $headers, array $data ): void
+do_action( 'fe_csv_import_export_import_phase_map', array $collected_fields, array $headers, array $data ): void
 ```
 
 **Example:**
 
 ```php
-add_action( 'swift_csv_import_phase_map', 'my_swiftcsv_phase_map', 10, 3 );
+add_action( 'fe_csv_import_export_import_phase_map', 'my_swiftcsv_phase_map', 10, 3 );
 
 function my_swiftcsv_phase_map( $collected_fields, $headers, $data ) {
     // Example: observe field mapping.
@@ -814,29 +814,29 @@ function my_swiftcsv_phase_map( $collected_fields, $headers, $data ) {
 }
 ```
 
-#### `swift_csv_import_phase_map_prepared`
+#### `fe_csv_import_export_import_phase_map_prepared`
 
 **Type:** action
 
 **Signature (current implementation):**
 
 ```php
-do_action( 'swift_csv_import_phase_map_prepared', int $post_id, array $prepared_meta_fields, array $prepare_args ): void
+do_action( 'fe_csv_import_export_import_phase_map_prepared', int $post_id, array $prepared_meta_fields, array $prepare_args ): void
 ```
 
-#### `swift_csv_import_phase_post_persist`
+#### `fe_csv_import_export_import_phase_post_persist`
 
 **Type:** action
 
 **Signature (current implementation):**
 
 ```php
-do_action( 'swift_csv_import_phase_post_persist', int $post_id, array $prepared_meta_fields, array $prepare_args ): void
+do_action( 'fe_csv_import_export_import_phase_post_persist', int $post_id, array $prepared_meta_fields, array $prepare_args ): void
 ```
 
 ### Row validation and normalization
 
-#### `swift_csv_import_row_validation`
+#### `fe_csv_import_export_import_row_validation`
 
 Row-level validation filter.
 
@@ -845,13 +845,13 @@ Row-level validation filter.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_import_row_validation', array $row_validation, array $row_context, array $context ): array
+apply_filters( 'fe_csv_import_export_import_row_validation', array $row_validation, array $row_context, array $context ): array
 ```
 
 **Example:** (require `post_title` for creates)
 
 ```php
-add_filter( 'swift_csv_import_row_validation', 'my_swiftcsv_validate_row', 10, 3 );
+add_filter( 'fe_csv_import_export_import_row_validation', 'my_swiftcsv_validate_row', 10, 3 );
 
 function my_swiftcsv_validate_row( $row_validation, $row_context, $context ) {
     $post_fields = (array) ( $row_context['post_fields_from_csv'] ?? [] );
@@ -866,7 +866,7 @@ function my_swiftcsv_validate_row( $row_validation, $row_context, $context ) {
 }
 ```
 
-#### `swift_csv_import_data_filter`
+#### `fe_csv_import_export_import_data_filter`
 
 Normalize/filter raw parsed row data.
 
@@ -875,13 +875,13 @@ Normalize/filter raw parsed row data.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_import_data_filter', array $filtered_data, array $original_data, array $context ): array
+apply_filters( 'fe_csv_import_export_import_data_filter', array $filtered_data, array $original_data, array $context ): array
 ```
 
 **Example:** (trim fields)
 
 ```php
-add_filter( 'swift_csv_import_data_filter', 'my_swiftcsv_import_data_filter', 10, 3 );
+add_filter( 'fe_csv_import_export_import_data_filter', 'my_swiftcsv_import_data_filter', 10, 3 );
 
 function my_swiftcsv_import_data_filter( $filtered_data, $original_data, $context ) {
     $data = (array) ( $filtered_data['data'] ?? [] );
@@ -896,7 +896,7 @@ function my_swiftcsv_import_data_filter( $filtered_data, $original_data, $contex
 
 ### Field mapping and post-persist
 
-#### `swift_csv_import_field_mapping`
+#### `fe_csv_import_export_import_field_mapping`
 
 Filter collected meta/taxonomy fields derived from headers and row values.
 
@@ -905,13 +905,13 @@ Filter collected meta/taxonomy fields derived from headers and row values.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_import_field_mapping', array $collected_fields, array $headers, array $data, array $allowed_post_fields ): array
+apply_filters( 'fe_csv_import_export_import_field_mapping', array $collected_fields, array $headers, array $data, array $allowed_post_fields ): array
 ```
 
 **Example:** (rename a meta key)
 
 ```php
-add_filter( 'swift_csv_import_field_mapping', 'my_swiftcsv_import_field_mapping', 10, 4 );
+add_filter( 'fe_csv_import_export_import_field_mapping', 'my_swiftcsv_import_field_mapping', 10, 4 );
 
 function my_swiftcsv_import_field_mapping( $collected_fields, $headers, $data, $allowed_post_fields ) {
     if ( isset( $collected_fields['meta_fields']['old_key'] ) ) {
@@ -923,7 +923,7 @@ function my_swiftcsv_import_field_mapping( $collected_fields, $headers, $data, $
 }
 ```
 
-#### `swift_csv_prepare_import_fields`
+#### `fe_csv_import_export_prepare_import_fields`
 
 Prepare meta fields right before the post-persist phase.
 
@@ -932,13 +932,13 @@ Prepare meta fields right before the post-persist phase.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_prepare_import_fields', array $meta_fields, int $post_id, array $args ): array
+apply_filters( 'fe_csv_import_export_prepare_import_fields', array $meta_fields, int $post_id, array $args ): array
 ```
 
 **Example:** (sanitize a field)
 
 ```php
-add_filter( 'swift_csv_prepare_import_fields', 'my_swiftcsv_prepare_import_fields', 10, 3 );
+add_filter( 'fe_csv_import_export_prepare_import_fields', 'my_swiftcsv_prepare_import_fields', 10, 3 );
 
 function my_swiftcsv_prepare_import_fields( $meta_fields, $post_id, $args ) {
     if ( isset( $meta_fields['price'] ) ) {
@@ -948,7 +948,7 @@ function my_swiftcsv_prepare_import_fields( $meta_fields, $post_id, $args ) {
 }
 ```
 
-#### `swift_csv_process_custom_fields`
+#### `fe_csv_import_export_process_custom_fields`
 
 Legacy-compatible action called after field preparation and post-persist.
 
@@ -957,13 +957,13 @@ Legacy-compatible action called after field preparation and post-persist.
 **Signature:**
 
 ```php
-do_action( 'swift_csv_process_custom_fields', int $post_id, array $prepared_meta_fields ): void
+do_action( 'fe_csv_import_export_process_custom_fields', int $post_id, array $prepared_meta_fields ): void
 ```
 
 **Example:** (ACF update)
 
 ```php
-add_action( 'swift_csv_process_custom_fields', 'my_swiftcsv_process_custom_fields', 10, 2 );
+add_action( 'fe_csv_import_export_process_custom_fields', 'my_swiftcsv_process_custom_fields', 10, 2 );
 
 function my_swiftcsv_process_custom_fields( $post_id, $prepared_meta_fields ) {
     // Example: integrate with ACF safely.
@@ -975,7 +975,7 @@ function my_swiftcsv_process_custom_fields( $post_id, $prepared_meta_fields ) {
 
 ### Batch / performance
 
-#### `swift_csv_import_batch_size`
+#### `fe_csv_import_export_import_batch_size`
 
 Filter import batch size.
 
@@ -984,13 +984,13 @@ Filter import batch size.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_import_batch_size', int $batch_size, int $total_rows, array $config ): int
+apply_filters( 'fe_csv_import_export_import_batch_size', int $batch_size, int $total_rows, array $config ): int
 ```
 
 **Example:**
 
 ```php
-add_filter( 'swift_csv_import_batch_size', 'my_swiftcsv_import_batch_size', 10, 3 );
+add_filter( 'fe_csv_import_export_import_batch_size', 'my_swiftcsv_import_batch_size', 10, 3 );
 
 function my_swiftcsv_import_batch_size( $batch_size, $total_rows, $config ) {
     // Example: very small batches for complex imports.
@@ -1005,7 +1005,7 @@ function my_swiftcsv_import_batch_size( $batch_size, $total_rows, $config ) {
 
 ## Admin / UI Hooks
 
-#### `swift_csv_settings_tabs`
+#### `fe_csv_import_export_settings_tabs`
 
 Action fired when rendering settings tabs.
 
@@ -1014,10 +1014,10 @@ Action fired when rendering settings tabs.
 **Signature:**
 
 ```php
-do_action( 'swift_csv_settings_tabs', string $tab ): void
+do_action( 'fe_csv_import_export_settings_tabs', string $tab ): void
 ```
 
-#### `swift_csv_settings_tabs_content`
+#### `fe_csv_import_export_settings_tabs_content`
 
 Action fired when rendering tab content.
 
@@ -1026,10 +1026,10 @@ Action fired when rendering tab content.
 **Signature:**
 
 ```php
-do_action( 'swift_csv_settings_tabs_content', string $tab, array $import_results ): void
+do_action( 'fe_csv_import_export_settings_tabs_content', string $tab, array $import_results ): void
 ```
 
-#### `swift_csv_export_form_action`
+#### `fe_csv_import_export_export_form_action`
 
 Filter the form action URL for the export form.
 
@@ -1038,7 +1038,7 @@ Filter the form action URL for the export form.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_export_form_action', string $action_url ): string
+apply_filters( 'fe_csv_import_export_export_form_action', string $action_url ): string
 ```
 
 **Parameters:**
@@ -1048,7 +1048,7 @@ apply_filters( 'swift_csv_export_form_action', string $action_url ): string
 **Example:** (redirect to custom handler)
 
 ```php
-add_filter( 'swift_csv_export_form_action', 'my_swiftcsv_custom_export_handler', 10, 1 );
+add_filter( 'fe_csv_import_export_export_form_action', 'my_swiftcsv_custom_export_handler', 10, 1 );
 
 function my_swiftcsv_custom_export_handler( $action_url ) {
     return 'https://my-api.com/handle-fe-csv-import-export-export';
@@ -1060,7 +1060,7 @@ function my_swiftcsv_custom_export_handler( $action_url ) {
 **Secure Example:**
 
 ```php
-add_filter('swift_csv_export_form_action', 'secure_export_handler', 10, 1);
+add_filter('fe_csv_import_export_export_form_action', 'secure_export_handler', 10, 1);
 
 function secure_export_handler($action_url) {
     // Only allow users with management capabilities
@@ -1075,7 +1075,7 @@ function secure_export_handler($action_url) {
 }
 ```
 
-#### `swift_csv_tools_page_capability`
+#### `fe_csv_import_export_tools_page_capability`
 
 Filter the capability required to access the FE CSV Import & Export admin page.
 
@@ -1084,7 +1084,7 @@ Filter the capability required to access the FE CSV Import & Export admin page.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_tools_page_capability', string $capability ): string
+apply_filters( 'fe_csv_import_export_tools_page_capability', string $capability ): string
 ```
 
 **Parameters:**
@@ -1094,7 +1094,7 @@ apply_filters( 'swift_csv_tools_page_capability', string $capability ): string
 **Example:** (allow editors to access)
 
 ```php
-add_filter( 'swift_csv_tools_page_capability', 'my_swiftcsv_tools_capability', 10, 1 );
+add_filter( 'fe_csv_import_export_tools_page_capability', 'my_swiftcsv_tools_capability', 10, 1 );
 
 function my_swiftcsv_tools_capability( $capability ) {
     return 'edit_posts'; // Allow any user who can edit posts
@@ -1105,7 +1105,7 @@ function my_swiftcsv_tools_capability( $capability ) {
 
 ## Feature Flags / Diagnostics
 
-#### `swift_csv_enable_direct_sql_import`
+#### `fe_csv_import_export_enable_direct_sql_import`
 
 Feature flag to enable Direct SQL import.
 
@@ -1114,10 +1114,10 @@ Feature flag to enable Direct SQL import.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_enable_direct_sql_import', bool $enabled ): bool
+apply_filters( 'fe_csv_import_export_enable_direct_sql_import', bool $enabled ): bool
 ```
 
-#### `swift_csv_max_log_entries`
+#### `fe_csv_import_export_max_log_entries`
 
 Controls how many log entries are stored/displayed.
 
@@ -1126,10 +1126,10 @@ Controls how many log entries are stored/displayed.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_max_log_entries', int $max_entries ): int
+apply_filters( 'fe_csv_import_export_max_log_entries', int $max_entries ): int
 ```
 
-#### `swift_csv_user_can_export`
+#### `fe_csv_import_export_user_can_export`
 
 Filter user permission to perform exports.
 
@@ -1138,7 +1138,7 @@ Filter user permission to perform exports.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_user_can_export', bool $can_export ): bool
+apply_filters( 'fe_csv_import_export_user_can_export', bool $can_export ): bool
 ```
 
 **Parameters:**
@@ -1148,14 +1148,14 @@ apply_filters( 'swift_csv_user_can_export', bool $can_export ): bool
 **Example:** (require custom capability)
 
 ```php
-add_filter( 'swift_csv_user_can_export', 'my_swiftcsv_export_permission', 10, 1 );
+add_filter( 'fe_csv_import_export_user_can_export', 'my_swiftcsv_export_permission', 10, 1 );
 
 function my_swiftcsv_export_permission( $can_export ) {
     return current_user_can( 'manage_options' ) || current_user_can( 'export_csv' );
 }
 ```
 
-#### `swift_csv_pre_ajax_export`
+#### `fe_csv_import_export_pre_ajax_export`
 
 Filter pre-export validation result.
 
@@ -1164,7 +1164,7 @@ Filter pre-export validation result.
 **Signature:**
 
 ```php
-apply_filters( 'swift_csv_pre_ajax_export', bool|WP_Error $result, array $post_data ): bool|WP_Error
+apply_filters( 'fe_csv_import_export_pre_ajax_export', bool|WP_Error $result, array $post_data ): bool|WP_Error
 ```
 
 **Parameters:**
@@ -1175,11 +1175,11 @@ apply_filters( 'swift_csv_pre_ajax_export', bool|WP_Error $result, array $post_d
 **Example:** (validate export limits)
 
 ```php
-add_filter( 'swift_csv_pre_ajax_export', 'my_swiftcsv_export_limits', 10, 2 );
+add_filter( 'fe_csv_import_export_pre_ajax_export', 'my_swiftcsv_export_limits', 10, 2 );
 
 function my_swiftcsv_export_limits( $result, $post_data ) {
     $user_id = get_current_user_id();
-    $today_exports = get_transient( 'swift_csv_exports_' . $user_id ) ?: 0;
+    $today_exports = get_transient( 'fe_csv_import_export_exports_' . $user_id ) ?: 0;
 
     if ( $today_exports >= 10 ) {
         return new WP_Error( 'daily_limit', 'Daily export limit reached (10 exports per day)' );

@@ -29,7 +29,7 @@
 
 ### ヘッダー生成
 
-#### `swift_csv_export_filter_taxonomy_objects`
+#### `fe_csv_import_export_export_filter_taxonomy_objects`
 
 `tax_{taxonomy}` ヘッダーの構築に使用されるタクソノミーオブジェクトをフィルターします。
 
@@ -38,7 +38,7 @@
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_export_filter_taxonomy_objects', array $taxonomies, array $args): array
+apply_filters('fe_csv_import_export_export_filter_taxonomy_objects', array $taxonomies, array $args): array
 ```
 
 **パラメータ:**
@@ -53,7 +53,7 @@ apply_filters('swift_csv_export_filter_taxonomy_objects', array $taxonomies, arr
 **例:** (内部タクソノミーを除外)
 
 ```php
-add_filter('swift_csv_export_filter_taxonomy_objects', 'my_swiftcsv_filter_taxonomies', 10, 2);
+add_filter('fe_csv_import_export_export_filter_taxonomy_objects', 'my_swiftcsv_filter_taxonomies', 10, 2);
 
 function my_swiftcsv_filter_taxonomies($taxonomies, $args) {
     // 英語コメントのみ
@@ -76,7 +76,7 @@ function my_swiftcsv_filter_taxonomies($taxonomies, $args) {
 }
 ```
 
-#### `swift_csv_export_sample_query_args`
+#### `fe_csv_import_export_export_sample_query_args`
 
 メタキー発見のための「サンプル投稿」を選択するために使用される WP クエリ引数をフィルターします。
 
@@ -85,7 +85,7 @@ function my_swiftcsv_filter_taxonomies($taxonomies, $args) {
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_export_sample_query_args', array $query_args, array $args): array
+apply_filters('fe_csv_import_export_export_sample_query_args', array $query_args, array $args): array
 ```
 
 **パラメータ:**
@@ -98,7 +98,7 @@ apply_filters('swift_csv_export_sample_query_args', array $query_args, array $ar
 **例:** (メタ付きの最近の投稿を優先)
 
 ```php
-add_filter('swift_csv_export_sample_query_args', 'my_swiftcsv_sample_query_args', 10, 2);
+add_filter('fe_csv_import_export_export_sample_query_args', 'my_swiftcsv_sample_query_args', 10, 2);
 
 function my_swiftcsv_sample_query_args($query_args, $args) {
     // 例: カスタムフィールドを持つ可能性が高い投稿を優先
@@ -108,7 +108,7 @@ function my_swiftcsv_sample_query_args($query_args, $args) {
 }
 ```
 
-#### `swift_csv_export_classify_meta_keys`
+#### `fe_csv_import_export_export_classify_meta_keys`
 
 サンプル投稿から発見されたメタキーを分類します。
 
@@ -117,7 +117,7 @@ function my_swiftcsv_sample_query_args($query_args, $args) {
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_export_classify_meta_keys', array $all_meta_keys, array $args): array
+apply_filters('fe_csv_import_export_export_classify_meta_keys', array $all_meta_keys, array $args): array
 ```
 
 **パラメータ:**
@@ -141,7 +141,7 @@ apply_filters('swift_csv_export_classify_meta_keys', array $all_meta_keys, array
 **例:** (ノイズの多いキーを除外)
 
 ```php
-add_filter('swift_csv_export_classify_meta_keys', 'my_swiftcsv_classify_meta_keys', 10, 2);
+add_filter('fe_csv_import_export_export_classify_meta_keys', 'my_swiftcsv_classify_meta_keys', 10, 2);
 
 function my_swiftcsv_classify_meta_keys($all_meta_keys, $args) {
     $regular = [];
@@ -172,7 +172,7 @@ function my_swiftcsv_classify_meta_keys($all_meta_keys, $args) {
 }
 ```
 
-#### `swift_csv_export_generate_custom_field_headers`
+#### `fe_csv_import_export_export_generate_custom_field_headers`
 
 分類されたメタキーからカスタムフィールド（メタ）ヘッダーを生成します。
 
@@ -181,13 +181,13 @@ function my_swiftcsv_classify_meta_keys($all_meta_keys, $args) {
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_export_generate_custom_field_headers', array $headers, array $classified_meta_keys, array $args): array
+apply_filters('fe_csv_import_export_export_generate_custom_field_headers', array $headers, array $classified_meta_keys, array $args): array
 ```
 
 **パラメータ:**
 
 - `$headers` (`array<string>`) 空の配列から開始
-- `$classified_meta_keys` (`array`) `swift_csv_export_classify_meta_keys` の結果
+- `$classified_meta_keys` (`array`) `fe_csv_import_export_export_classify_meta_keys` の結果
 - `$args` (`array`) コンテキスト
   - `post_type` (`string`)
   - `export_scope` (`string`)
@@ -197,7 +197,7 @@ apply_filters('swift_csv_export_generate_custom_field_headers', array $headers, 
 **例:** (許可リストのメタキーのみ)
 
 ```php
-add_filter('swift_csv_export_generate_custom_field_headers', 'my_swiftcsv_custom_field_headers', 10, 3);
+add_filter('fe_csv_import_export_export_generate_custom_field_headers', 'my_swiftcsv_custom_field_headers', 10, 3);
 
 function my_swiftcsv_custom_field_headers($headers, $classified_meta_keys, $args) {
     $allow = ['price', 'color', 'size'];
@@ -214,7 +214,7 @@ function my_swiftcsv_custom_field_headers($headers, $classified_meta_keys, $args
 }
 ```
 
-#### `swift_csv_export_headers`
+#### `fe_csv_import_export_export_headers`
 
 最終的なヘッダーリストをフィルターします。
 
@@ -223,7 +223,7 @@ function my_swiftcsv_custom_field_headers($headers, $classified_meta_keys, $args
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_export_headers', array $headers, array $config, string $context): array
+apply_filters('fe_csv_import_export_export_headers', array $headers, array $config, string $context): array
 ```
 
 **パラメータ:**
@@ -235,16 +235,16 @@ apply_filters('swift_csv_export_headers', array $headers, array $config, string 
 **例:** (カスタム計算カラムを追加)
 
 ```php
-add_filter('swift_csv_export_headers', 'my_swiftcsv_add_custom_header', 10, 3);
+add_filter('fe_csv_import_export_export_headers', 'my_swiftcsv_add_custom_header', 10, 3);
 
 function my_swiftcsv_add_custom_header($headers, $config, $context) {
-    // 標準以外のヘッダーを追加。その値は swift_csv_export_process_custom_header によって提供される
+    // 標準以外のヘッダーを追加。その値は fe_csv_import_export_export_process_custom_header によって提供される
     $headers[] = 'my_permalink';
     return $headers;
 }
 ```
 
-#### `swift_csv_export_phase_headers`
+#### `fe_csv_import_export_export_phase_headers`
 
 ヘッダーが確定した後に発火されるアクション。
 
@@ -253,13 +253,13 @@ function my_swiftcsv_add_custom_header($headers, $config, $context) {
 **シグネチャ:**
 
 ```php
-do_action('swift_csv_export_phase_headers', array $headers, array $config, string $context): void
+do_action('fe_csv_import_export_export_phase_headers', array $headers, array $config, string $context): void
 ```
 
 **例:** (ヘッダーをログ記録)
 
 ```php
-add_action('swift_csv_export_phase_headers', 'my_swiftcsv_log_headers', 10, 3);
+add_action('fe_csv_import_export_export_phase_headers', 'my_swiftcsv_log_headers', 10, 3);
 
 function my_swiftcsv_log_headers($headers, $config, $context) {
     error_log('[FE CSV Import & Export] Export headers finalized (' . $context . '): ' . implode(',', (array) $headers));
@@ -268,7 +268,7 @@ function my_swiftcsv_log_headers($headers, $config, $context) {
 
 ### 行生成
 
-#### `swift_csv_export_row`
+#### `fe_csv_import_export_export_row`
 
 エクスポート生成中に各行をフィルターします。
 
@@ -277,7 +277,7 @@ function my_swiftcsv_log_headers($headers, $config, $context) {
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_export_row', array $row, int $post_id, array $config, string $context): array
+apply_filters('fe_csv_import_export_export_row', array $row, int $post_id, array $config, string $context): array
 ```
 
 **パラメータ:**
@@ -292,7 +292,7 @@ apply_filters('swift_csv_export_row', array $row, int $post_id, array $config, s
 **例:** (商品価格をフォーマット)
 
 ```php
-add_filter('swift_csv_export_row', 'my_swiftcsv_export_row_format', 10, 4);
+add_filter('fe_csv_import_export_export_row', 'my_swiftcsv_export_row_format', 10, 4);
 
 function my_swiftcsv_export_row_format($row, $post_id, $config, $context) {
     // WP 互換エクスポートは通常、ヘッダーに合わせたインデックス行を渡す
@@ -304,7 +304,7 @@ function my_swiftcsv_export_row_format($row, $post_id, $config, $context) {
     }
 
     // 例: wp_compatible の場合、インデックスで更新（形状を維持）
-    // ここでヘッダー対応の編集が必要な場合、インデックスを特定するために swift_csv_export_headers もフックする
+    // ここでヘッダー対応の編集が必要な場合、インデックスを特定するために fe_csv_import_export_export_headers もフックする
     if ('wp_compatible' === $context && is_array($row) && isset($row[0])) {
         // 何もしない例: 行をそのまま返す
         return $row;
@@ -314,7 +314,7 @@ function my_swiftcsv_export_row_format($row, $post_id, $config, $context) {
 }
 ```
 
-#### `swift_csv_export_process_custom_header`
+#### `fe_csv_import_export_export_process_custom_header`
 
 標準の `post_*`, `tax_*`, `cf_*`, `ID` ではないカスタムヘッダーの値を提供します。
 
@@ -323,7 +323,7 @@ function my_swiftcsv_export_row_format($row, $post_id, $config, $context) {
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_export_process_custom_header', string $value, string $header, int $post_id, array $args): string
+apply_filters('fe_csv_import_export_export_process_custom_header', string $value, string $header, int $post_id, array $args): string
 ```
 
 **パラメータ:**
@@ -338,7 +338,7 @@ apply_filters('swift_csv_export_process_custom_header', string $value, string $h
 **例:** (`my_permalink` ヘッダーを実装)
 
 ```php
-add_filter('swift_csv_export_process_custom_header', 'my_swiftcsv_custom_header_value', 10, 4);
+add_filter('fe_csv_import_export_export_process_custom_header', 'my_swiftcsv_custom_header_value', 10, 4);
 
 function my_swiftcsv_custom_header_value($value, $header, $post_id, $args) {
     if ('my_permalink' === $header) {
@@ -353,7 +353,7 @@ function my_swiftcsv_custom_header_value($value, $header, $post_id, $args) {
 
 これらのフックは主に `Swift_CSV_Export_Direct_SQL` によって使用されます。
 
-#### `swift_csv_export_query_spec`
+#### `fe_csv_import_export_export_query_spec`
 
 エクスポートに適用できる統一クエリ仕様（tax_query/meta_query スタイル）を提供します。
 
@@ -362,7 +362,7 @@ function my_swiftcsv_custom_header_value($value, $header, $post_id, $args) {
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_export_query_spec', array $query_spec, array $config, string $context): array
+apply_filters('fe_csv_import_export_export_query_spec', array $query_spec, array $config, string $context): array
 ```
 
 **パラメータ:**
@@ -374,7 +374,7 @@ apply_filters('swift_csv_export_query_spec', array $query_spec, array $config, s
 **例:** (メタフラグ付きのアイテムのみをエクスポート)
 
 ```php
-add_filter('swift_csv_export_query_spec', 'my_swiftcsv_export_query_spec', 10, 3);
+add_filter('fe_csv_import_export_export_query_spec', 'my_swiftcsv_export_query_spec', 10, 3);
 
 function my_swiftcsv_export_query_spec($query_spec, $config, $context) {
     if ('direct_sql' !== $context) {
@@ -394,7 +394,7 @@ function my_swiftcsv_export_query_spec($query_spec, $config, $context) {
 }
 ```
 
-#### `swift_csv_export_batch_size`
+#### `fe_csv_import_export_export_batch_size`
 
 エクスポートバッチサイズをフィルターします。
 
@@ -403,13 +403,13 @@ function my_swiftcsv_export_query_spec($query_spec, $config, $context) {
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_export_batch_size', int $batch_size, int $total_count, string $post_type, array $config): int
+apply_filters('fe_csv_import_export_export_batch_size', int $batch_size, int $total_count, string $post_type, array $config): int
 ```
 
 **例:**
 
 ```php
-add_filter('swift_csv_export_batch_size', 'my_swiftcsv_export_batch_size', 10, 4);
+add_filter('fe_csv_import_export_export_batch_size', 'my_swiftcsv_export_batch_size', 10, 4);
 
 function my_swiftcsv_export_batch_size($batch_size, $total_count, $post_type, $config) {
     // 例: 重い投稿タイプのバッチサイズを削減
@@ -426,7 +426,7 @@ function my_swiftcsv_export_batch_size($batch_size, $total_count, $post_type, $c
 
 ### 権限と検証
 
-#### `swift_csv_user_can_import`
+#### `fe_csv_import_export_user_can_import`
 
 インポートを実行するユーザー権限をフィルターします。
 
@@ -435,7 +435,7 @@ function my_swiftcsv_export_batch_size($batch_size, $total_count, $post_type, $c
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_user_can_import', bool $can_import): bool
+apply_filters('fe_csv_import_export_user_can_import', bool $can_import): bool
 ```
 
 **パラメータ:**
@@ -445,14 +445,14 @@ apply_filters('swift_csv_user_can_import', bool $can_import): bool
 **例:** (カスタム権限を要求)
 
 ```php
-add_filter('swift_csv_user_can_import', 'my_swiftcsv_import_permission', 10, 1);
+add_filter('fe_csv_import_export_user_can_import', 'my_swiftcsv_import_permission', 10, 1);
 
 function my_swiftcsv_import_permission($can_import) {
     return current_user_can('manage_options') || current_user_can('import_csv');
 }
 ```
 
-#### `swift_csv_pre_ajax_import`
+#### `fe_csv_import_export_pre_ajax_import`
 
 インポート前検証結果をフィルターします。
 
@@ -461,7 +461,7 @@ function my_swiftcsv_import_permission($can_import) {
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_pre_ajax_import', bool|WP_Error $result, array $post_data): bool|WP_Error
+apply_filters('fe_csv_import_export_pre_ajax_import', bool|WP_Error $result, array $post_data): bool|WP_Error
 ```
 
 **パラメータ:**
@@ -472,7 +472,7 @@ apply_filters('swift_csv_pre_ajax_import', bool|WP_Error $result, array $post_da
 **例:** (営業時間を検証)
 
 ```php
-add_filter('swift_csv_pre_ajax_import', 'my_swiftcsv_business_hours_check', 10, 2);
+add_filter('fe_csv_import_export_pre_ajax_import', 'my_swiftcsv_business_hours_check', 10, 2);
 
 function my_swiftcsv_business_hours_check($result, $post_data) {
     $hour = (int) date('H');
@@ -485,7 +485,7 @@ function my_swiftcsv_business_hours_check($result, $post_data) {
 
 ### フィールド準備とマッピング
 
-#### `swift_csv_prepare_import_fields`
+#### `fe_csv_import_export_prepare_import_fields`
 
 インポート前に準備されたメタフィールドをフィルターします。
 
@@ -494,7 +494,7 @@ function my_swiftcsv_business_hours_check($result, $post_data) {
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_prepare_import_fields', array $meta_fields, int $post_id, array $args): array
+apply_filters('fe_csv_import_export_prepare_import_fields', array $meta_fields, int $post_id, array $args): array
 ```
 
 **パラメータ:**
@@ -506,7 +506,7 @@ apply_filters('swift_csv_prepare_import_fields', array $meta_fields, int $post_i
 **例:** (カスタムフィールド形式を処理)
 
 ```php
-add_filter('swift_csv_prepare_import_fields', 'my_swiftcsv_process_custom_fields', 10, 3);
+add_filter('fe_csv_import_export_prepare_import_fields', 'my_swiftcsv_process_custom_fields', 10, 3);
 
 function my_swiftcsv_process_custom_fields($meta_fields, $post_id, $args) {
     foreach ($meta_fields as $key => $value) {
@@ -518,7 +518,7 @@ function my_swiftcsv_process_custom_fields($meta_fields, $post_id, $args) {
 }
 ```
 
-#### `swift_csv_import_batch_size`
+#### `fe_csv_import_export_import_batch_size`
 
 インポートバッチサイズをフィルターします。
 
@@ -527,7 +527,7 @@ function my_swiftcsv_process_custom_fields($meta_fields, $post_id, $args) {
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_import_batch_size', int $batch_size, int $total_rows, array $config): int
+apply_filters('fe_csv_import_export_import_batch_size', int $batch_size, int $total_rows, array $config): int
 ```
 
 **パラメータ:**
@@ -539,7 +539,7 @@ apply_filters('swift_csv_import_batch_size', int $batch_size, int $total_rows, a
 **例:** (サーバーパフォーマンスを最適化)
 
 ```php
-add_filter('swift_csv_import_batch_size', 'my_swiftcsv_optimize_batch_size', 10, 3);
+add_filter('fe_csv_import_export_import_batch_size', 'my_swiftcsv_optimize_batch_size', 10, 3);
 
 function my_swiftcsv_optimize_batch_size($batch_size, $total_rows, $config) {
     // メモリ制約のあるサーバーのバッチサイズを削減
@@ -555,7 +555,7 @@ function my_swiftcsv_optimize_batch_size($batch_size, $total_rows, $config) {
 
 ## 管理/UI フック
 
-#### `swift_csv_settings_tabs`
+#### `fe_csv_import_export_settings_tabs`
 
 設定タブのレンダリング時に発火されるアクション。
 
@@ -564,10 +564,10 @@ function my_swiftcsv_optimize_batch_size($batch_size, $total_rows, $config) {
 **シグネチャ:**
 
 ```php
-do_action('swift_csv_settings_tabs', string $tab): void
+do_action('fe_csv_import_export_settings_tabs', string $tab): void
 ```
 
-#### `swift_csv_settings_tabs_content`
+#### `fe_csv_import_export_settings_tabs_content`
 
 タブコンテンツのレンダリング時に発火されるアクション。
 
@@ -576,10 +576,10 @@ do_action('swift_csv_settings_tabs', string $tab): void
 **シグネチャ:**
 
 ```php
-do_action('swift_csv_settings_tabs_content', string $tab, array $import_results): void
+do_action('fe_csv_import_export_settings_tabs_content', string $tab, array $import_results): void
 ```
 
-#### `swift_csv_export_form_action`
+#### `fe_csv_import_export_export_form_action`
 
 エクスポートフォームのアクション URL をフィルターします。
 
@@ -588,7 +588,7 @@ do_action('swift_csv_settings_tabs_content', string $tab, array $import_results)
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_export_form_action', string $action_url): string
+apply_filters('fe_csv_import_export_export_form_action', string $action_url): string
 ```
 
 **パラメータ:**
@@ -598,7 +598,7 @@ apply_filters('swift_csv_export_form_action', string $action_url): string
 **例:** (カスタムハンドラにリダイレクト)
 
 ```php
-add_filter('swift_csv_export_form_action', 'my_swiftcsv_custom_export_handler', 10, 1);
+add_filter('fe_csv_import_export_export_form_action', 'my_swiftcsv_custom_export_handler', 10, 1);
 
 function my_swiftcsv_custom_export_handler($action_url) {
     return 'https://my-api.com/handle-fe-csv-import-export-export';
@@ -610,7 +610,7 @@ function my_swiftcsv_custom_export_handler($action_url) {
 **安全な実装例:**
 
 ```php
-add_filter('swift_csv_export_form_action', 'secure_export_handler', 10, 1);
+add_filter('fe_csv_import_export_export_form_action', 'secure_export_handler', 10, 1);
 
 function secure_export_handler($action_url) {
     // 管理権限を持つユーザーのみ許可
@@ -625,7 +625,7 @@ function secure_export_handler($action_url) {
 }
 ```
 
-#### `swift_csv_tools_page_capability`
+#### `fe_csv_import_export_tools_page_capability`
 
 FE CSV Import & Export 管理ページにアクセスするために必要な権限をフィルターします。
 
@@ -634,7 +634,7 @@ FE CSV Import & Export 管理ページにアクセスするために必要な権
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_tools_page_capability', string $capability): string
+apply_filters('fe_csv_import_export_tools_page_capability', string $capability): string
 ```
 
 **パラメータ:**
@@ -644,7 +644,7 @@ apply_filters('swift_csv_tools_page_capability', string $capability): string
 **例:** (編集者がアクセスできるようにする)
 
 ```php
-add_filter('swift_csv_tools_page_capability', 'my_swiftcsv_tools_capability', 10, 1);
+add_filter('fe_csv_import_export_tools_page_capability', 'my_swiftcsv_tools_capability', 10, 1);
 
 function my_swiftcsv_tools_capability($capability) {
     return 'edit_posts'; // 投稿を編集できるすべてのユーザーを許可
@@ -655,7 +655,7 @@ function my_swiftcsv_tools_capability($capability) {
 
 ## 機能フラグ / 診断
 
-#### `swift_csv_enable_direct_sql_import`
+#### `fe_csv_import_export_enable_direct_sql_import`
 
 Direct SQL インポートを有効にする機能フラグ。
 
@@ -664,10 +664,10 @@ Direct SQL インポートを有効にする機能フラグ。
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_enable_direct_sql_import', bool $enabled): bool
+apply_filters('fe_csv_import_export_enable_direct_sql_import', bool $enabled): bool
 ```
 
-#### `swift_csv_max_log_entries`
+#### `fe_csv_import_export_max_log_entries`
 
 保存/表示されるログエントリ数を制御します。
 
@@ -676,10 +676,10 @@ apply_filters('swift_csv_enable_direct_sql_import', bool $enabled): bool
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_max_log_entries', int $max_entries): int
+apply_filters('fe_csv_import_export_max_log_entries', int $max_entries): int
 ```
 
-#### `swift_csv_user_can_export`
+#### `fe_csv_import_export_user_can_export`
 
 エクスポートを実行するユーザー権限をフィルターします。
 
@@ -688,7 +688,7 @@ apply_filters('swift_csv_max_log_entries', int $max_entries): int
 **シグネチャ:**
 
 ```php
-apply_filters('swift_csv_user_can_export', bool $can_export): bool
+apply_filters('fe_csv_import_export_user_can_export', bool $can_export): bool
 ```
 
 **パラメータ:**
@@ -698,7 +698,7 @@ apply_filters('swift_csv_user_can_export', bool $can_export): bool
 **例:** (カスタム権限を要求)
 
 ```php
-add_filter('swift_csv_user_can_export', 'my_swiftcsv_export_permission', 10, 1);
+add_filter('fe_csv_import_export_user_can_export', 'my_swiftcsv_export_permission', 10, 1);
 
 function my_swiftcsv_export_permission($can_export) {
     return current_user_can('manage_options') || current_user_can('export_csv');

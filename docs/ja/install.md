@@ -4,17 +4,17 @@
 
 1. WordPress 管理画面にログイン
 2. **プラグイン** → **新規追加** に移動
-3. 「Swift CSV」を検索
+3. 「FE CSV Import & Export」を検索
 4. **今すぐインストール** をクリック
 5. **有効化** をクリック
 
 ## 手動インストール
 
-1. [最新版をダウンロード](https://github.com/firstelementjp/fe-csv-import-export/releases/download/v0.9.9.2/swift-csv-0.9.9.2.zip)
+1. [最新版をダウンロード](https://github.com/firstelementjp/fe-csv-import-export/releases/download/v0.9.9.2/fe-csv-import-export-0.9.9.2.zip)
 2. ダウンロードした ZIP ファイルを展開
-3. `swift-csv` フォルダを `/wp-content/plugins/` にアップロード
+3. `fe-csv-import-export` フォルダを `/wp-content/plugins/` にアップロード
 4. WordPress 管理画面の **プラグイン** に移動
-5. 「Swift CSV」を見つけて **有効化** をクリック
+5. 「FE CSV Import & Export」を見つけて **有効化** をクリック
 
 ## 動作環境
 
@@ -42,7 +42,7 @@
 
 ### 有効化後
 
-1. **プラグインにアクセス**: WordPress 管理メニューの **ツール** → **Swift CSV** に移動
+1. **プラグインにアクセス**: WordPress 管理メニューの **ツール** → **FE CSV Import & Export** に移動
 2. **設定を構成**: デフォルトの投稿タイプとエクスポート制限を設定
 3. **テストインポート**: まず小さな CSV ファイルのインポートを試す
 4. **テストエクスポート**: 数件の投稿をエクスポートして機能を確認
@@ -69,7 +69,7 @@
 
 **WordPress ディレクトリでプラグインが見つからない場合:**
 
-- `swift-csv` フォルダが `/wp-content/plugins/` にあることを確認
+- `fe-csv-import-export` フォルダが `/wp-content/plugins/` にあることを確認
 - フォルダ権限を確認（755 推奨）
 - すべてのファイルが完全にアップロードされていることを確認
 
@@ -100,7 +100,7 @@
 
 **ライセンス有効化の問題:**
 
-- Swift CSV Pro がインストールされ有効化されていることを確認
+- FE CSV Import & Export Pro がインストールされ有効化されていることを確認
 - ライセンスサーバーの設定を確認
 - 適切なメッセージ表示のために翻訳ファイルを確認
 - 有効なライセンスキーでテスト
@@ -168,7 +168,7 @@ ID,post_title,post_content,post_status
 **注**: `ID` カラムは必須です。新規投稿には空値（`""`）を、更新には実際の投稿 ID を使用してください。
 
 2. **インポート処理**:
-    - **ツール → Swift CSV → インポート** に移動
+    - **ツール → FE CSV Import & Export → インポート** に移動
     - 投稿タイプを選択
     - テスト CSV をアップロード
     - プログレスバー アニメーションを監視
@@ -177,7 +177,7 @@ ID,post_title,post_content,post_status
 ### テストエクスポート
 
 1. **エクスポート処理**:
-    - **ツール → Swift CSV → エクスポート** に移動
+    - **ツール → FE CSV Import & Export → エクスポート** に移動
     - 投稿タイプを選択
     - エクスポート制限を設定（5 投稿を試す）
     - **CSV をエクスポート** をクリック
@@ -206,7 +206,7 @@ ID,post_title,post_content,post_status
 
 - **WordPress バージョン**: 現在の WordPress バージョン
 - **PHP バージョン**: 現在の PHP バージョン
-- **プラグインバージョン**: ご利用中の Swift CSV バージョン
+- **プラグインバージョン**: ご利用中の FE CSV Import & Export バージョン
 - **ブラウザ情報**: ブラウザとバージョン
 - **エラーメッセージ**: ブラウザコンソールからの完全なエラーメッセージ
 - **サンプルデータ**: テスト用の小さなサンプル CSV ファイル
@@ -221,17 +221,17 @@ wp core version
 php -v
 
 # プラグインステータスを確認
-wp plugin status swift-csv
+wp plugin status fe-csv-import-export
 
 # デバッグログを確認
-tail -f wp-content/debug.log | grep "Swift CSV"
+tail -f wp-content/debug.log | grep "FE CSV Import & Export"
 ```
 
 ## アンインストール
 
 ### 安全な削除
 
-1. **プラグイン** から Swift CSV を無効化
+1. **プラグイン** から FE CSV Import & Export を無効化
 2. WordPress 管理画面からプラグインを削除
 3. クリーンアップ前に気になる一時ファイルやログを確認
 

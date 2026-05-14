@@ -1,11 +1,11 @@
 # 📄 License
 
-Swift CSV v0.9.9 is provided under the GPL-2.0+ license.
+FE CSV Import & Export v0.9.9 is provided under the GPL-2.0+ license.
 
 ## License Text
 
 ```
-Swift CSV WordPress Plugin
+FE CSV Import & Export WordPress Plugin
 Copyright (C) 2026 Daijiro Miyazawa, FirstElement K.K.
 
 This program is free software; you can redistribute it and/or
@@ -313,23 +313,23 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 **FirstElement**
 
 - Website: [www.firstelement.co.jp](https://www.firstelement.co.jp)
-- Email: legal@firstelement.jp
+- Email: legal@firstelement.co.jp
 - Address: Please refer to the official website for the latest information
 
 ### Legal Inquiries
 
 **License Questions**:
 
-- General license questions: legal@firstelement.jp
-- Commercial use inquiries: legal@firstelement.jp
-- Trademark usage: legal@firstelement.jp
-- DMCA notices: legal@firstelement.jp
+- General license questions: legal@firstelement.co.jp
+- Commercial use inquiries: legal@firstelement.co.jp
+- Trademark usage: legal@firstelement.co.jp
+- DMCA notices: legal@firstelement.co.jp
 
 **Reporting Issues**:
 
-- License violations: legal@firstelement.jp
-- Copyright infringement: legal@firstelement.jp
-- Trademark infringement: legal@firstelement.jp
+- License violations: legal@firstelement.co.jp
+- Copyright infringement: legal@firstelement.co.jp
+- Trademark infringement: legal@firstelement.co.jp
 
 ## Version History
 
@@ -362,8 +362,8 @@ In no event shall the authors or copyright holders be liable for any claim, dama
 
 This legal information is provided for informational purposes only and does not constitute legal advice. For specific legal questions regarding your use of this plugin, please consult with a qualified legal professional.
 
-**Last Updated**: April 6, 2026
-**Plugin Version**: v0.9.9
+**Last Updated**: May 14, 2026
+**Plugin Version**: Current Version
 **License Version**: GPL-2.0+
 
 ## Compliance

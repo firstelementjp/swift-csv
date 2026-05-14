@@ -1,6 +1,6 @@
-# Swift CSV Hooks
+# FE CSV Import & Export Hooks
 
-This document lists the hooks available in Swift CSV **as implemented in the current codebase**.
+This document lists the hooks available in FE CSV Import & Export **as implemented in the current codebase**.
 
 It focuses on:
 
@@ -262,7 +262,7 @@ do_action( 'swift_csv_export_phase_headers', array $headers, array $config, stri
 add_action( 'swift_csv_export_phase_headers', 'my_swiftcsv_log_headers', 10, 3 );
 
 function my_swiftcsv_log_headers( $headers, $config, $context ) {
-    error_log( '[Swift CSV] Export headers finalized (' . $context . '): ' . implode( ',', (array) $headers ) );
+    error_log( '[FE CSV Import & Export] Export headers finalized (' . $context . '): ' . implode( ',', (array) $headers ) );
 }
 ```
 
@@ -739,7 +739,7 @@ function my_swiftcsv_increase_logging( $max_entries ) {
 
 ### Phased import actions
 
-Swift CSV import exposes a phased model via `do_action`.
+FE CSV Import & Export import exposes a phased model via `do_action`.
 
 - `swift_csv_import_phase_normalize`
 - `swift_csv_import_phase_validate`
@@ -765,7 +765,7 @@ do_action( 'swift_csv_import_phase_normalize', array $filtered_data, array $cont
 add_action( 'swift_csv_import_phase_normalize', 'my_swiftcsv_phase_normalize', 10, 2 );
 
 function my_swiftcsv_phase_normalize( $filtered_data, $context ) {
-    error_log( '[Swift CSV] normalize phase for post_type=' . (string) ( $context['post_type'] ?? '' ) );
+    error_log( '[FE CSV Import & Export] normalize phase for post_type=' . (string) ( $context['post_type'] ?? '' ) );
 }
 ```
 
@@ -786,7 +786,7 @@ add_action( 'swift_csv_import_phase_validate', 'my_swiftcsv_phase_validate', 10,
 
 function my_swiftcsv_phase_validate( $row_validation, $row_context, $context ) {
     if ( ! empty( $row_validation['errors'] ) ) {
-        error_log( '[Swift CSV] validation errors: ' . implode( '; ', (array) $row_validation['errors'] ) );
+        error_log( '[FE CSV Import & Export] validation errors: ' . implode( '; ', (array) $row_validation['errors'] ) );
     }
 }
 ```
@@ -809,7 +809,7 @@ add_action( 'swift_csv_import_phase_map', 'my_swiftcsv_phase_map', 10, 3 );
 function my_swiftcsv_phase_map( $collected_fields, $headers, $data ) {
     // Example: observe field mapping.
     if ( isset( $collected_fields['meta_fields'] ) ) {
-        error_log( '[Swift CSV] mapped meta keys: ' . implode( ',', array_keys( (array) $collected_fields['meta_fields'] ) ) );
+        error_log( '[FE CSV Import & Export] mapped meta keys: ' . implode( ',', array_keys( (array) $collected_fields['meta_fields'] ) ) );
     }
 }
 ```
@@ -1051,7 +1051,7 @@ apply_filters( 'swift_csv_export_form_action', string $action_url ): string
 add_filter( 'swift_csv_export_form_action', 'my_swiftcsv_custom_export_handler', 10, 1 );
 
 function my_swiftcsv_custom_export_handler( $action_url ) {
-    return 'https://my-api.com/handle-swift-csv-export';
+    return 'https://my-api.com/handle-fe-csv-import-export-export';
 }
 ```
 
@@ -1077,7 +1077,7 @@ function secure_export_handler($action_url) {
 
 #### `swift_csv_tools_page_capability`
 
-Filter the capability required to access the Swift CSV admin page.
+Filter the capability required to access the FE CSV Import & Export admin page.
 
 **Type:** filter
 

@@ -4,17 +4,17 @@
 
 1. Log in to WordPress admin
 2. Navigate to **Plugins** → **Add New**
-3. Search for "Swift CSV"
+3. Search for "FE CSV Import & Export"
 4. Click **Install Now**
 5. Click **Activate**
 
 ## Manual Installation
 
-1. [Download latest version (v0.9.9)](https://github.com/firstelementjp/fe-csv-import-export/releases/download/v0.9.9/swift-csv-v0.9.9.zip)
+1. [Download latest version (v0.9.9)](https://github.com/firstelementjp/fe-csv-import-export/releases/download/v0.9.9/fe-csv-import-export-v0.9.9.zip)
 2. Extract the downloaded ZIP file
-3. Upload `swift-csv` folder to `/wp-content/plugins/`
+3. Upload `fe-csv-import-export` folder to `/wp-content/plugins/`
 4. Navigate to **Plugins** in WordPress admin
-5. Find "Swift CSV" and click **Activate**
+5. Find "FE CSV Import & Export" and click **Activate**
 
 ## Requirements
 
@@ -42,7 +42,7 @@
 
 ### After Activation
 
-1. **Access Plugin**: Navigate to **Tools** → **Swift CSV** in the WordPress admin menu
+1. **Access Plugin**: Navigate to **Tools** → **FE CSV Import & Export** in the WordPress admin menu
 2. **Configure Settings**: Set default post types and export limits
 3. **Test Import**: Try importing a small CSV file first
 4. **Test Export**: Export a few posts to verify functionality
@@ -69,7 +69,7 @@
 
 **Plugin not found in WordPress directory:**
 
-- Verify the `swift-csv` folder is in `/wp-content/plugins/`
+- Verify the `fe-csv-import-export` folder is in `/wp-content/plugins/`
 - Check folder permissions (755 recommended)
 - Ensure all files are uploaded completely
 
@@ -100,7 +100,7 @@
 
 **License activation issues:**
 
-- Check if Swift CSV Pro is installed and activated
+- Check if FE CSV Import & Export Pro is installed and activated
 - Verify license server configuration
 - Check translation files for proper message display
 - Test with valid license key
@@ -168,7 +168,7 @@ ID,post_title,post_content,post_status
 **Note**: The `ID` column is required. Use empty values (`""`) for new posts, or actual post IDs for updates.
 
 2. **Import Process**:
-    - Navigate to **Tools → Swift CSV → Import**
+    - Navigate to **Tools → FE CSV Import & Export → Import**
     - Select post type
     - Upload test CSV
     - Watch progress bar animation
@@ -177,7 +177,7 @@ ID,post_title,post_content,post_status
 ### Test Export
 
 1. **Export Process**:
-    - Navigate to **Tools → Swift CSV → Export**
+    - Navigate to **Tools → FE CSV Import & Export → Export**
     - Select post type
     - Set export limit (try 5 posts)
     - Click **Export CSV**
@@ -206,7 +206,7 @@ When reporting issues, please include:
 
 - **WordPress Version**: Current WordPress version
 - **PHP Version**: Current PHP version
-- **Plugin Version**: Swift CSV v0.9.9
+- **Plugin Version**: FE CSV Import & Export v0.9.9
 - **Browser Information**: Browser and version
 - **Error Messages**: Full error messages from browser console
 - **Sample Data**: Small sample CSV file for testing
@@ -221,17 +221,17 @@ wp core version
 php -v
 
 # Check plugin status
-wp plugin status swift-csv
+wp plugin status fe-csv-import-export
 
 # Check debug logs
-tail -f wp-content/debug.log | grep "Swift CSV"
+tail -f wp-content/debug.log | grep "FE CSV Import & Export"
 ```
 
 ## Uninstallation
 
 ### Safe Removal
 
-1. Deactivate Swift CSV from **Plugins**
+1. Deactivate FE CSV Import & Export from **Plugins**
 2. Delete the plugin from the WordPress admin
 3. Verify any temporary files or logs you care about before cleanup
 

@@ -1,10 +1,10 @@
 # 🚀 Getting Started
 
-Welcome to Swift CSV v0.9.9. This guide covers the shortest path from installation to your first successful import and export.
+Welcome to FE CSV Import & Export v0.9.9. This guide covers the shortest path from installation to your first successful import and export.
 
-## What Swift CSV Does
+## What FE CSV Import & Export Does
 
-Swift CSV helps you import and export WordPress content as CSV from the admin interface.
+FE CSV Import & Export helps you import and export WordPress content as CSV from the admin interface.
 
 It supports:
 
@@ -19,11 +19,11 @@ It supports:
 
 After activation, open:
 
-- **Tools → Swift CSV**
+- **Tools → FE CSV Import & Export**
 
 ## First Import
 
-1. Open **Tools → Swift CSV → Import**
+1. Open **Tools → FE CSV Import & Export → Import**
 2. Select the target post type
 3. Upload a CSV file
 4. Choose whether to update existing posts
@@ -54,7 +54,7 @@ Notes:
 
 ## First Export
 
-1. Open **Tools → Swift CSV → Export**
+1. Open **Tools → FE CSV Import & Export → Export**
 2. Select the post type
 3. Select the post status filter
 4. Select the export scope
@@ -63,7 +63,7 @@ Notes:
 
 ## What You Will See
 
-During processing, Swift CSV shows:
+During processing, FE CSV Import & Export shows:
 
 - Real-time progress updates
 - Animated progress UI
@@ -91,7 +91,7 @@ ID,post_title,category,post_tag
 
 You do not need to configure batch processing manually.
 
-Swift CSV automatically adjusts processing size based on:
+FE CSV Import & Export automatically adjusts processing size based on:
 
 - Dataset size
 - Server execution limits

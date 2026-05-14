@@ -1,11 +1,11 @@
 # 📄 ライセンス
 
-Swift CSV は GPL-2.0+ ライセンスで提供されています。
+FE CSV Import & Export は GPL-2.0+ ライセンスで提供されています。
 
 ## ライセンステキスト
 
 ```
-Swift CSV WordPress Plugin
+FE CSV Import & Export WordPress Plugin
 Copyright (C) 2026 Daijiro Miyazawa, FirstElement K.K.
 
 This program is free software; you can redistribute it and/or
@@ -313,23 +313,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **FirstElement**
 
 - ウェブサイト: [www.firstelement.co.jp](https://www.firstelement.co.jp)
-- メール: legal@firstelement.jp
+- メール: legal@firstelement.co.jp
 - 住所: 上記サイトをご参照ください
 
 ### 法的お問い合わせ
 
 **ライセンスに関する質問**:
 
-- 一般的なライセンスに関する質問: legal@firstelement.jp
-- 商用利用に関するお問い合わせ: legal@firstelement.jp
-- 商標使用: legal@firstelement.jp
-- DMCA 通知: legal@firstelement.jp
+- 一般的なライセンスに関する質問: legal@firstelement.co.jp
+- 商用利用に関するお問い合わせ: legal@firstelement.co.jp
+- 商標使用: legal@firstelement.co.jp
+- DMCA 通知: legal@firstelement.co.jp
 
 **問題報告**:
 
-- ライセンス違反: legal@firstelement.jp
-- 著作権侵害: legal@firstelement.jp
-- 商標侵害: legal@firstelement.jp
+- ライセンス違反: legal@firstelement.co.jp
+- 著作権侵害: legal@firstelement.co.jp
+- 商標侵害: legal@firstelement.co.jp
 
 ## バージョン履歴
 
@@ -362,7 +362,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 この法的情報は情報提供のみを目的としており、法的助言を構成するものではありません。このプラグインの使用に関する特定の法的質問については、資格のある法律専門家にご相談ください。
 
-**最終更新**: 2026年3月28日
+**最終更新**: 2026年5月14日
 **プラグインバージョン**: 現行バージョン
 **ライセンスバージョン**: GPL-2.0+
 

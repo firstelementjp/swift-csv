@@ -1,6 +1,6 @@
-# Swift CSV フック
+# FE CSV Import & Export フック
 
-このドキュメントは、現在のコードベースで実装されている Swift CSV の利用可能なフックを一覧表示します。
+このドキュメントは、現在のコードベースで実装されている FE CSV Import & Export の利用可能なフックを一覧表示します。
 
 以下に焦点を当てています：
 
@@ -262,7 +262,7 @@ do_action('swift_csv_export_phase_headers', array $headers, array $config, strin
 add_action('swift_csv_export_phase_headers', 'my_swiftcsv_log_headers', 10, 3);
 
 function my_swiftcsv_log_headers($headers, $config, $context) {
-    error_log('[Swift CSV] Export headers finalized (' . $context . '): ' . implode(',', (array) $headers));
+    error_log('[FE CSV Import & Export] Export headers finalized (' . $context . '): ' . implode(',', (array) $headers));
 }
 ```
 
@@ -601,7 +601,7 @@ apply_filters('swift_csv_export_form_action', string $action_url): string
 add_filter('swift_csv_export_form_action', 'my_swiftcsv_custom_export_handler', 10, 1);
 
 function my_swiftcsv_custom_export_handler($action_url) {
-    return 'https://my-api.com/handle-swift-csv-export';
+    return 'https://my-api.com/handle-fe-csv-import-export-export';
 }
 ```
 
@@ -627,7 +627,7 @@ function secure_export_handler($action_url) {
 
 #### `swift_csv_tools_page_capability`
 
-Swift CSV 管理ページにアクセスするために必要な権限をフィルターします。
+FE CSV Import & Export 管理ページにアクセスするために必要な権限をフィルターします。
 
 **タイプ:** filter
 

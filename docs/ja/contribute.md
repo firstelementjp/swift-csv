@@ -1,6 +1,6 @@
 # 🤝 貢献
 
-Swift CSV への貢献を歓迎します！
+FE CSV Import & Export への貢献を歓迎します！
 
 ## 貢献方法
 
@@ -41,7 +41,7 @@ Swift CSV への貢献を歓迎します！
 ```bash
 # リポジトリをクローン
 git clone https://github.com/firstelementjp/fe-csv-import-export.git
-cd swift-csv
+cd fe-csv-import-export
 
 # PHP 依存関係をインストール
 composer install
@@ -78,7 +78,7 @@ composer run phpcs
 
 - WordPress コーディング標準に従う
 - すべての関数とクラスに PHPDoc コメントを書く
-- デバッグログには `[Swift CSV]` プレフィックスを使用
+- デバッグログには `[FE CSV Import & Export]` プレフィックスを使用
 - PHPCS でコードをチェック: `composer run phpcs`
 - Prettier で JavaScript をフォーマット: `npm run format`
 
@@ -88,7 +88,7 @@ composer run phpcs
 
 ```php
 if (defined('WP_DEBUG') && WP_DEBUG) {
-    error_log('[Swift CSV] Your message here');
+    error_log('[FE CSV Import & Export] Your message here');
 }
 ```
 
@@ -105,7 +105,7 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
 
 - [ ] コードが WordPress コーディング標準に従っている
 - [ ] JavaScript がリントされフォーマットされている
-- [ ] デバッグログが `[Swift CSV]` プレフィックスを使用している
+- [ ] デバッグログが `[FE CSV Import & Export]` プレフィックスを使用している
 - [ ] アセットがビルドされている（`npm run build`）
 - [ ] 必要に応じてドキュメントが更新されている
 - [ ] 新機能のために変更履歴が更新されている
@@ -132,7 +132,7 @@ refactor: 重複 CSS ルールをクリーンアップ
 ## プロジェクト構造
 
 ```
-swift-csv/
+fe-csv-import-export/
 ├── assets/          # フロントエンドアセット（CSS、JS）
 ├── includes/        # PHP クラス
 ├── languages/       # 翻訳ファイル
@@ -140,7 +140,7 @@ swift-csv/
 ├── .github/         # GitHub ワークフロー
 ├── package.json     # Node.js 依存関係
 ├── composer.json    # PHP 依存関係
-└── swift-csv.php    # メインプラグインファイル
+└── fe-csv-import-export.php    # メインプラグインファイル
 ```
 
 ## ヘルプ

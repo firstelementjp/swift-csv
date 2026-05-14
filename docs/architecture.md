@@ -1,12 +1,12 @@
 # Architecture Overview
 
-This page describes the current high-level architecture of Swift CSV.
+This page describes the current high-level architecture of FE CSV Import & Export.
 
 For exact hook names and signatures, see [Developer Hooks](hooks.md).
 
 ## System Overview
 
-Swift CSV is organized around a WordPress admin workflow for importing and exporting CSV data.
+FE CSV Import & Export is organized around a WordPress admin workflow for importing and exporting CSV data.
 
 The major runtime areas are:
 
@@ -142,7 +142,7 @@ Both import and export use chunked AJAX processing.
 
 ### Why It Exists
 
-Chunked processing helps Swift CSV support large datasets without relying on one long-running request.
+Chunked processing helps FE CSV Import & Export support large datasets without relying on one long-running request.
 
 ### What It Affects
 
@@ -162,7 +162,7 @@ When changing import or export code, avoid assumptions such as:
 
 ## Hook Architecture
 
-Hooks are a first-class extension mechanism in Swift CSV.
+Hooks are a first-class extension mechanism in FE CSV Import & Export.
 
 Key design patterns include:
 

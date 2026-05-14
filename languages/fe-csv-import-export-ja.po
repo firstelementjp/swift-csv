@@ -802,11 +802,6 @@ msgstr "インポート・エクスポート操作用の共有実行専用パス
 msgid "Require the logged-in user password at execution time"
 msgstr "実行時にログインユーザーのパスワードを要求"
 
-msgid "UpdraftPlus database backup before import"
-msgstr "インポート前にUpdraftPlusでデータベースをバックアップ"
-
-msgid "Access control for the tools page and execution permissions"
-msgstr "設定画面へのアクセスと実行できる権限の設定"
 
 msgid "Support & Updates"
 msgstr "サポートとアップデート"
@@ -882,12 +877,6 @@ msgstr "タクソノミー"
 msgid "Safety"
 msgstr "安全対策"
 
-msgid "Run UpdraftPlus database backup before import (%1$sPro%2$s)"
-msgstr "インポート前にUpdraftPlusでデータベースをバックアップ（%1$sPro%2$s）"
-
-msgid "A backup dialog will open. Start the backup and the import will begin automatically after it completes."
-msgstr "バックアップ画面を開きます。バックアップ完了後に自動でインポートを開始します。"
-
 msgid "Activate FE CSV Import & Export %1$sPro%2$s to enable this safety feature."
 msgstr "この機能を有効にするにはFE CSV Import & Export %1$sPro%2$sをご利用ください。"
 
@@ -905,9 +894,6 @@ msgstr "インポート・エクスポート時にログを出力"
 msgid "If checked, detailed per-row logs will be generated and displayed during import and export. Disable for maximum speed."
 msgstr "インポート・エクスポート時にバッチごとの簡易ログを生成して表示します。最高速度を優先する場合は無効にしてください。"
 
-msgid "Run UpdraftPlus database backup before executing import"
-msgstr "インポート実行時、事前にUpdraftPlusでデータベースをバックアップ"
-
 msgid "Pro"
 msgstr "Pro"
 
@@ -916,18 +902,6 @@ msgstr "FE CSV Import & Exportを有効化"
 
 msgid "to enable this safety feature."
 msgstr "してこの安全機能を有効にしてください。"
-
-msgid "Execution Permission"
-msgstr "実行可能な権限"
-
-msgid "Administrators only"
-msgstr "管理者のみ"
-
-msgid "Administrators and Editors"
-msgstr "管理者と編集者"
-
-msgid "Set which user roles can execute import and export operations."
-msgstr "インポート・エクスポート操作を実行できるユーザーロールを設定します。"
 
 msgid "Direct SQL export failed: "
 msgstr "Direct SQLエクスポートに失敗しました: "

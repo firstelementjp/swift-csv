@@ -64,23 +64,6 @@ msgstr ""
 msgid "Post Type"
 msgstr ""
 
-#: includes/admin/class-fe-csv-import-export-admin-settings.php:280
-msgid "Safety"
-msgstr ""
-
-#: includes/admin/class-fe-csv-import-export-admin-settings.php:287
-msgid "Run UpdraftPlus database backup before executing import"
-msgstr ""
-
-#: includes/admin/class-fe-csv-import-export-admin-settings.php:299
-#: includes/admin/class-fe-csv-import-export-admin-settings.php:660
-msgid "Pro"
-msgstr ""
-
-#: includes/admin/class-fe-csv-import-export-admin-settings.php:305
-msgid "A backup dialog will open. Start the backup and the import will begin automatically after it completes."
-msgstr ""
-
 #: includes/admin/class-fe-csv-import-export-admin-settings.php:322
 msgid "Post Status"
 msgstr ""
@@ -223,22 +206,6 @@ msgstr ""
 
 #: includes/admin/class-fe-csv-import-export-admin-settings.php:614
 msgid "Run a test import to preview changes without modifying your data. (Dry Run)"
-msgstr ""
-
-#: includes/admin/class-fe-csv-import-export-admin-settings.php:648
-msgid "Execution Permission"
-msgstr ""
-
-#: includes/admin/class-fe-csv-import-export-admin-settings.php:653
-msgid "Administrators only"
-msgstr ""
-
-#: includes/admin/class-fe-csv-import-export-admin-settings.php:654
-msgid "Administrators and Editors"
-msgstr ""
-
-#: includes/admin/class-fe-csv-import-export-admin-settings.php:666
-msgid "Set which user roles can execute import and export operations."
 msgstr ""
 
 #: includes/admin/class-fe-csv-import-export-admin-settings.php:680

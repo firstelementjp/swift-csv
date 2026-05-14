@@ -55,7 +55,7 @@ class BasicTest extends TestCase {
 	 * @return void
 	 */
 	public function test_helper_functions_exist() {
-		$this->assertTrue( function_exists( 'swift_csv' ), 'fe_csv_import_export() helper function should exist' );
+		$this->assertTrue( function_exists( 'fe_csv_import_export' ), 'fe_csv_import_export() helper function should exist' );
 	}
 
 	/**

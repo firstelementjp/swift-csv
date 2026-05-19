@@ -387,11 +387,7 @@ class FE_CSV_Import_Export_License_Handler {
 	 * @param string $fallback_status Fallback status.
 	 * @return string
 	 */
-	private static function normalize_license_status_from_result( array $result, $fallback_status = 'inactive' ) {
-		if ( isset( $result['status'] ) && is_string( $result['status'] ) && '' !== $result['status'] ) {
-			return $result['status'];
-		}
-
+	public static function normalize_license_status_from_result( array $result, $fallback_status = 'inactive' ) {
 		$data = isset( $result['data'] ) && is_array( $result['data'] ) ? $result['data'] : [];
 		if ( isset( $data['status'] ) ) {
 			return self::normalize_license_status_value( $data['status'], $fallback_status );
@@ -399,6 +395,10 @@ class FE_CSV_Import_Export_License_Handler {
 
 		if ( isset( $data['data'] ) && is_array( $data['data'] ) && isset( $data['data']['status'] ) ) {
 			return self::normalize_license_status_value( $data['data']['status'], $fallback_status );
+		}
+
+		if ( isset( $result['status'] ) && is_string( $result['status'] ) && '' !== $result['status'] ) {
+			return self::normalize_license_status_value( $result['status'], $fallback_status );
 		}
 
 		return $fallback_status;

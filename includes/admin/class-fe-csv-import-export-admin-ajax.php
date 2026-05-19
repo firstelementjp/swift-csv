@@ -96,7 +96,9 @@ class FE_CSV_Import_Export_Admin_Ajax {
 		}
 
 		$token         = class_exists( 'FE_CSV_Import_Export_License_Handler' ) ? FE_CSV_Import_Export_License_Handler::extract_activation_token( $result['data'] ?? [] ) : '';
-		$remote_status = isset( $result['status'] ) ? (string) $result['status'] : 'inactive';
+		$remote_status = class_exists( 'FE_CSV_Import_Export_License_Handler' )
+			? FE_CSV_Import_Export_License_Handler::normalize_license_status_from_result( $result )
+			: (string) ( $result['status'] ?? 'inactive' );
 
 		$all_licenses = get_option( 'fe_csv_import_export_pro_license', [] );
 		$stored_key   = class_exists( 'FE_CSV_Import_Export_License_Handler' ) ? FE_CSV_Import_Export_License_Handler::prepare_license_key_for_storage( $license_key ) : $license_key;

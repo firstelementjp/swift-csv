@@ -447,7 +447,14 @@ class FE_CSV_Import_Export_Admin_Page {
 								</ul>
 							</li>
 						</ul>
-						<a href="<?php echo esc_url( FE_CSV_IMPORT_EXPORT_PRO_URL ); ?>" target="_blank" class="button button-primary button-hero">
+						<?php
+						$locale      = get_locale();
+						$is_japanese = strpos( $locale, 'ja' ) === 0;
+						$pro_url     = $is_japanese
+							? 'https://www.firstelement.co.jp/products/fe-csv-import-export-plugin/'
+							: 'https://www.firstelement.co.jp/en/products/fe-csv-import-export-plugin/';
+						?>
+						<a href="<?php echo esc_url( $pro_url ); ?>" target="_blank" class="button button-primary button-hero">
 						<?php esc_html_e( 'View FE CSV Import & Export Pro Details', 'fe-csv-import-export' ); ?>
 						</a>
 					</div>

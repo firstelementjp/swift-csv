@@ -1,6 +1,6 @@
 # 🚀 FE CSV Import & Export
 
-![Banner](https://github.com/firstelementjp/fe-csv-import-export/blob/main/assets/images/fe-csv-import-export-banner.jpeg?raw=true)
+![Banner](https://github.com/firstelementjp/fe-csv-import-export/blob/main/assets/images/img-sns-banner-80.jpg?raw=true)
 
 > CSV import/export for WordPress with localized admin UI, automatic batch processing, and developer extensibility.
 

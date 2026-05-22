@@ -1,6 +1,6 @@
 # 🔧 設定
 
-このページでは Swift CSV の現在の動作を説明します。
+このページでは FE CSV Import & Export の現在の動作を説明します。
 
 ## インポート設定
 
@@ -44,7 +44,7 @@
 
 ## 自動バッチ処理
 
-Swift CSV はバッチサイズを自動的に調整します。
+FE CSV Import & Export はバッチサイズを自動的に調整します。
 
 ### インポート
 
@@ -74,7 +74,7 @@ Swift CSV はバッチサイズを自動的に調整します。
 
 ## ライセンスと Pro 統合
 
-Swift CSV Free と Swift CSV Pro は WordPress フックと権限チェックを通じて統合されています。
+FE CSV Import & Export Free と FE CSV Import & Export Pro は WordPress フックと権限チェックを通じて統合されています。
 
 利用可能な動作：
 
@@ -91,7 +91,7 @@ Swift CSV Free と Swift CSV Pro は WordPress フックと権限チェックを
 
 ## 開発者拡張性
 
-Swift CSV には以下のためのフックベースの拡張ポイントが含まれています：
+FE CSV Import & Export には以下のためのフックベースの拡張ポイントが含まれています：
 
 - エクスポートヘッダーと行
 - インポート権限と検証

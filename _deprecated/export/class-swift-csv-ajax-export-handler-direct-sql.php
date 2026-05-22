@@ -5,7 +5,7 @@
  * Contains the request-scoped export logic for the Direct SQL export method.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Direct SQL AJAX Export Handler Class
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
+ * @deprecated 0.9.9.3 Migrated to FE CSV Import & Export Pro. Use fe_csv_import_export_export_direct_sql hook instead.
  */
 class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 
@@ -198,12 +199,12 @@ class Swift_CSV_Ajax_Export_Handler_Direct_SQL {
 	 *
 	 * @since 0.9.8
 	 * @param array $config Export configuration.
-	 * @throws Exception Always thrown because Direct SQL runtime is owned by Swift CSV Pro.
+	 * @throws Exception Always thrown because Direct SQL runtime is owned by FE CSV Import & Export Pro.
 	 */
 	protected function create_export_instance( array $config ): void {
 		unset( $config );
 
-		throw new Exception( 'Direct SQL runtime is available in Swift CSV Pro only.' );
+		throw new Exception( 'Direct SQL runtime is available in FE CSV Import & Export Pro only.' );
 	}
 
 	/**

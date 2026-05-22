@@ -1,4 +1,4 @@
-# Contributing to Swift CSV
+# Contributing to FE CSV Import & Export
 
 Thanks for taking the time to contribute!
 
@@ -71,9 +71,9 @@ npm run build
 
 The build process handles:
 
-- `assets/js/swift-csv-*.js` → `assets/js/swift-csv-*.min.js`
-- `assets/css/swift-csv-style.css` → `assets/css/swift-csv-style.min.css`
-- `assets/js/export/swift-csv/*.js` → `assets/js/export/swift-csv/*.min.js`
+- `assets/js/fe-csv-import-export-*.js` → `assets/js/fe-csv-import-export-*.min.js`
+- `assets/css/fe-csv-import-export-style.css` → `assets/css/fe-csv-import-export-style.min.css`
+- `assets/js/export/fe-csv-import-export/*.js` → `assets/js/export/fe-csv-import-export/*.min.js`
 
 ```bash
 npm run lint:js
@@ -86,7 +86,7 @@ When you refactor import code or touch CSV parsing / row processing / persistenc
 
 ### 1) Dry Run
 
-1. Open **Admin Dashboard → Tools → Swift CSV → Import**
+1. Open **Admin Dashboard → Tools → FE CSV Import & Export → Import**
 2. Select a known-good CSV
 3. Run **Dry Run** for:
     - New posts

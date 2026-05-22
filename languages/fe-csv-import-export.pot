@@ -1,0 +1,829 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: FE CSV Import & Export\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-14 06:16+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.8.3; wp-6.9.4; php-8.3.8\n"
+"X-Domain: fe-csv-import-export"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:432
+msgid "Access control for the tools page and execution permissions"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:419
+msgid "ACF Integration"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:588
+msgid "Activate"
+msgstr ""
+
+#. 1: times activated, 2: max activations
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:640
+#, php-format
+msgid "Activation count: %1$s / %2$s"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:51
+#: includes/admin/class-fe-csv-import-export-admin-page.php:124
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:148
+msgid "Advanced Settings"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-ajax.php:60
+msgid "Advanced settings saved successfully!"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:446
+msgid "AI (LLM)-powered data checks"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:277
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:283
+msgid "All Fields"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:250
+msgid "All statuses"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:244
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:303
+msgid "An error occurred. Please try again."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:439
+msgid "Automatic updates from our update server"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:273
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:282
+msgid "Basic Fields"
+msgstr ""
+
+#. 1: Batch number, 2: Number of posts processed
+#: includes/export/class-fe-csv-import-export-ajax-export-handler-wp-compatible.php:146
+#, php-format
+msgid "Batch %1$d: Bulk export %2$d posts"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:294
+msgid "Batch export started"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:236
+#: includes/admin/class-fe-csv-import-export-admin-page.php:339
+msgid "Cancel"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:320
+msgid ""
+"Choose how taxonomy terms are exported: names for readability or term IDs "
+"for data integrity."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:261
+msgid "Chunk processing start position (row):"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:202
+msgid "Configure advanced settings below."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:193
+msgid "Configure your CSV export settings below."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:385
+msgid "Configure your CSV import settings below."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:546
+msgid "Configure your license settings below."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:272
+msgid "Created posts:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:354
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:264
+msgid "Created:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:227
+msgid "CSV content not found in response"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:252
+msgid "Custom"
+msgstr ""
+
+#. 1: field name, 2: field value
+#: includes/import/class-fe-csv-import-export-import-meta-tax.php:478
+#, php-format
+msgid "Custom field (multi-value): %1$s = %2$s"
+msgstr ""
+
+#. 1: field name, 2: field value
+#: includes/import/class-fe-csv-import-export-import-meta-tax.php:491
+#, php-format
+msgid "Custom field: %1$s = %2$s"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:338
+msgid "Custom Fields"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:503
+msgid "Data Removal on Uninstall"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:586
+msgid "Deactivate"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:438
+msgid "Dedicated customer support"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:521
+msgid "DeepWiki"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:318
+msgid "Display hierarchy"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:516
+msgid "Documentation"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:255
+msgid "documentation"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:270
+msgid "Download CSV"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:293
+msgid "Download ready:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:445
+msgid "Downloadable detailed export/import operation logs"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:309
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:249
+msgid "Drop CSV file here or click to browse"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:526
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:275
+msgid "Dry Run"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:648
+msgid ""
+"Enter the license key you received at the time of purchase and press the "
+"\"Activate\" button."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:279
+msgid "Error"
+msgstr ""
+
+#. %s: Error message from exception.
+#: includes/import/class-fe-csv-import-export-import-row-processor.php:224
+#, php-format
+msgid "Error: %1$s"
+msgstr ""
+
+#: includes/import/class-fe-csv-import-export-import-row-processor.php:239
+msgid "Error: Failed to save the post."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:305
+msgid "Errors"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:356
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:266
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:274
+msgid "Errors:"
+msgstr ""
+
+#. 1: term name, 2: term ID, 3: taxonomy name
+#: includes/import/class-fe-csv-import-export-import-meta-tax.php:379
+#: includes/import/class-fe-csv-import-export-import-taxonomy-writer-wp.php:174
+#, php-format
+msgid "Existing term: %1$s (ID: %2$s, taxonomy: %3$s)"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:117
+#: includes/admin/class-fe-csv-import-export-admin-page.php:233
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:296
+msgid "Export"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:246
+msgid "Export cancelled"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:289
+msgid "Export cancelled by user"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:225
+msgid "Export Complete"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:292
+msgid "Export completed successfully!"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:268
+msgid "Export Content"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:286
+msgid "Export Content:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:234
+msgid "Export CSV"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:291
+msgid "Export error:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:247
+msgid "Export failed"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:226
+msgid "Export failed: "
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:368
+msgid "Export Limit"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:288
+msgid "Export Limit:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:246
+msgid "Export Log"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:213
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:52
+msgid "Export Settings"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:422
+msgid ""
+"Export taxonomy values as readable names and handle multi-value fields with "
+"pipe-separated values"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:295
+msgid "Exported"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:238
+msgid "Exporting..."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-ajax.php:57
+msgid "Failed to save advanced settings."
+msgstr ""
+
+#. Name of the plugin
+msgid "FE CSV Import & Export"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-license-handler.php:150
+msgid ""
+"FE CSV Import & Export Pro is installed but not activated. Please activate "
+"FE CSV Import & Export Pro to use license features."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-license-handler.php:147
+msgid ""
+"FE CSV Import & Export Pro is not installed. Please install FE CSV Import & "
+"Export Pro to use license features."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:258
+msgid "File Size:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:257
+msgid "File:"
+msgstr ""
+
+#. Author of the plugin
+msgid "FirstElement K.K., Daijiro Miyazawa"
+msgstr ""
+
+#. 1: taxonomy name, 2: UI format, 3: sample values
+#: includes/import/class-fe-csv-import-export-import-taxonomy-util.php:73
+#, php-format
+msgid ""
+"Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Names\" but "
+"CSV contains only numeric values: %2$s. Please check your data format."
+msgstr ""
+
+#. 1: taxonomy name, 2: UI format, 3: sample values
+#: includes/import/class-fe-csv-import-export-import-taxonomy-util.php:91
+#, php-format
+msgid ""
+"Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Term IDs\" "
+"but CSV contains only text values: %2$s. Please check your data format."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:563
+msgid "Go to contact form"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:520
+msgid "Go to DeepWiki documentation"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:558
+msgid "Go to Facebook page"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:525
+msgid "Go to GitHub repository"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:515
+msgid "Go to the instruction manual"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:542
+msgid "Go to X"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:307
+msgid "Hide"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:229
+msgid "High-Speed Import"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:281
+msgid ""
+"Hook-based customization is active. Export fields may be modified by code."
+msgstr ""
+
+#. URI of the plugin
+msgid "https://github.com/firstelementjp/fe-csv-import-export"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://www.firstelement.co.jp/"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:510
+msgid ""
+"If checked, all plugin settings, transients, and custom database tables will "
+"be removed when the plugin is uninstalled. Uncheck to preserve data for "
+"future reinstallation."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:484
+msgid ""
+"If checked, detailed per-row logs will be generated and displayed during "
+"import and export. Disable for maximum speed."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:431
+msgid ""
+"If checked, existing posts will be updated. If unchecked, only new posts "
+"will be created."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:120
+#: includes/admin/class-fe-csv-import-export-admin-page.php:336
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:230
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:276
+msgid "Import"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:421
+msgid "Import and export ACF data while preserving field formatting"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:268
+msgid "Import cancelled by user"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:231
+msgid "Import Complete"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:242
+msgid "Import Complete!"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:243
+msgid "Import completed successfully!"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:236
+msgid "Import CSV"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:269
+msgid "Import error:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:232
+msgid "Import Failed"
+msgstr ""
+
+#. 1: imported count, 2: updated count, 3: error count
+#: includes/admin/class-fe-csv-import-export-admin-page.php:619
+#, php-format
+msgid "Import finished. Created: %1$s, Updated: %2$s, Errors: %3$s"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:349
+msgid "Import Log"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:298
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:108
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:248
+msgid "Import Settings"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:304
+msgid "Imported"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:239
+msgid "Importing..."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:343
+msgid "Include custom field columns"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:349
+msgid "Include private meta fields"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:287
+msgid "Include Private Meta:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:304
+msgid "Include taxonomy columns"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-license-handler.php:197
+msgid "Invalid response from license server."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:155
+msgid "License"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-ajax.php:134
+msgid "License activation failed. Please check that your license key is valid."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-license-handler.php:113
+msgid "License deactivated locally. Server-side activation remains active."
+msgstr ""
+
+#. 1: expiration date, 2: remaining days
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:624
+#, php-format
+msgid "License expiration date: %1$s (remaining %2$s days)"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-license-handler.php:153
+msgid "License server is not configured. Please contact support."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:477
+msgid "Log Output"
+msgstr ""
+
+#. %s: File size (e.g., 10MB)
+#. %s: Maximum file size (e.g., 10MB).
+#: includes/admin/class-fe-csv-import-export-admin-page.php:315
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:251
+#, php-format
+msgid "Maximum file size: %s"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:372
+msgid "Maximum number of posts to export. Enter 0 for no limit."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:452
+msgid "Names"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:310
+msgid "Names (name)"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:277
+msgid "New"
+msgstr ""
+
+#. 1: post title
+#: includes/import/class-fe-csv-import-export-import-persister.php:283
+#, php-format
+msgid "New post: title=%1$s"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:301
+msgid "No"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:280
+msgid "No file selected"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:302
+msgid "No limit"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:371
+msgid "No limit (0 = all)"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:245
+msgid "Operation completed successfully!"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:482
+msgid "Output logs during import and export"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:241
+msgid "Post Status"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:216
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:399
+msgid "Post Type"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:259
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:285
+msgid "Post Type:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:566
+msgid "Pro License Key"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:262
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:290
+msgid "Processed"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:246
+msgid "Published posts only"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:253
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:240
+msgid "Ready to start export..."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:361
+#: includes/admin/class-fe-csv-import-export-admin-page.php:366
+#: includes/admin/class-fe-csv-import-export-admin-page.php:371
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:241
+msgid "Ready to start import..."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:326
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:281
+msgid "Remove"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:508
+msgid "Remove all plugin data when uninstalling"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:431
+msgid "Require the logged-in user password at execution time"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:299
+msgid "Row"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:263
+msgid "rows"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:265
+#: includes/admin/class-fe-csv-import-export-admin-page.php:383
+msgid "rows processed"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:533
+msgid ""
+"Run a test import to preview changes without modifying your data. (Dry Run)"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:298
+msgid "s"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:59
+msgid "Save All Settings"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:427
+msgid "Security"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:458
+msgid ""
+"Select whether the term values in the CSV are names (text) or term IDs "
+"(numeric)."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:430
+msgid ""
+"Shared execution-only password protection for import and export operations"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:583
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:306
+msgid "Show"
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"Simple yet powerful CSV import/export plugin for WordPress. Supports custom "
+"post types, custom taxonomies, and custom fields."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:235
+msgid "Start Export"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:237
+msgid "Start Import"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:297
+msgid "Starting export process (SQL)..."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:284
+msgid "Starting export process..."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:256
+msgid "Starting import process..."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:436
+msgid "Support & Updates"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:423
+msgid ""
+"Support major ACF field types including Taxonomy, User, File, Relationship, "
+"Repeater, and Flexible Content fields"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:267
+msgid "Sync Progress"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:299
+msgid "Taxonomies"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:447
+msgid "Taxonomy Format"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:456
+msgid "Term IDs"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:314
+msgid "Term IDs (term_id)"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:271
+msgid "Test completed!"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:531
+msgid "Test import without creating posts"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:270
+msgid "Test import without creating posts or modifying data."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:595
+msgid "The license is valid."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:228
+msgid "Unknown error"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:637
+msgid "Unlimited"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:415
+msgid "Unlock more with FE CSV Import & Export Pro"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:443
+msgid "Upcoming Features"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:278
+msgid "Update"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:424
+msgid "Update Existing"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:429
+msgid "Update existing posts if they match by ID"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:260
+msgid "Update Existing:"
+msgstr ""
+
+#. 1: post ID, 2: post title
+#: includes/import/class-fe-csv-import-export-import-persister.php:242
+#, php-format
+msgid "Update post: ID=%1$s, title=%2$s"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:273
+msgid "Updated posts:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:355
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:265
+msgid "Updated:"
+msgstr ""
+
+#. %1$s: Hook name, %2$s: Documentation link text.
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:254
+#, php-format
+msgid ""
+"Use the %1$s hook to specify custom export items and order. See %2$s for "
+"details."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:451
+msgid "View FE CSV Import & Export Pro Details"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:429
+msgid ""
+"When used with the backup plugin 'Updraft Plus', automatic SQL backup is "
+"executed during import and import begins after completion. If problems are "
+"discovered after import, you can immediately restore from backup."
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:416
+msgid "With a Pro license, you can:"
+msgstr ""
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:300
+msgid "Yes"
+msgstr ""

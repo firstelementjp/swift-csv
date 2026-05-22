@@ -4,7 +4,7 @@
  * Plugin URI:   https://github.com/firstelementjp/fe-csv-import-export
  * Description:  Simple yet powerful CSV import/export plugin for WordPress. Supports custom post types, custom taxonomies, and custom fields.
  * Version:      0.9.9.3
- * Author:       Daijiro Miyazawa, FirstElement K.K.
+ * Author:       FirstElement K.K., Daijiro Miyazawa
  * Author URI:   https://www.firstelement.co.jp/
  * License:      GPL-2.0+
  * License URI:  https://www.gnu.org/licenses/gpl-2.0.txt
@@ -24,7 +24,7 @@ define( 'FE_CSV_IMPORT_EXPORT_VERSION', '0.9.9.3' );
 define( 'FE_CSV_IMPORT_EXPORT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FE_CSV_IMPORT_EXPORT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'FE_CSV_IMPORT_EXPORT_BASENAME', plugin_basename( __FILE__ ) );
-define( 'FE_CSV_IMPORT_EXPORT_PRO_URL', 'https://www.firstelement.co.jp/en/products/fe-csv-import-export-import-export-plugin/' );
+define( 'FE_CSV_IMPORT_EXPORT_PRO_URL', 'https://www.firstelement.co.jp/en/products/fe-csv-import-export-plugin/' );
 define( 'FE_CSV_IMPORT_EXPORT_DOCS_URL', 'https://firstelementjp.github.io/fe-csv-import-export/#/' );
 define( 'FE_CSV_IMPORT_EXPORT_DEEPWIKI_URL', 'https://deepwiki.com/firstelementjp/fe-csv-import-export/' );
 

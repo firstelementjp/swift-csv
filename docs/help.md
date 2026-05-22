@@ -1,6 +1,6 @@
 # 🐛 Troubleshooting
 
-Common issues and solutions for the current Swift CSV implementation.
+Common issues and solutions for the current FE CSV Import & Export implementation.
 
 ## Quick Checks
 
@@ -8,7 +8,7 @@ Common issues and solutions for the current Swift CSV implementation.
 2. Check the browser console for JavaScript errors
 3. Test with a small CSV first
 4. Confirm your CSV headers match the expected format
-5. Confirm you are using **Tools → Swift CSV**
+5. Confirm you are using **Tools → FE CSV Import & Export**
 
 ## Common Issues
 
@@ -65,7 +65,7 @@ Check the following:
 
 ### Large Files Feel Slow
 
-Swift CSV already uses automatic batch processing.
+FE CSV Import & Export already uses automatic batch processing.
 
 If processing is still slow:
 
@@ -87,8 +87,8 @@ Check the following:
 
 Check the following:
 
-- Swift CSV Pro is installed if you expect Pro features
-- Swift CSV Pro is activated
+- FE CSV Import & Export Pro is installed if you expect Pro features
+- FE CSV Import & Export Pro is activated
 - License-related server configuration is valid
 
 ## Debug Logging
@@ -106,8 +106,8 @@ Useful checks:
 ```bash
 wp core version
 php -v
-wp plugin status swift-csv
-tail -f wp-content/debug.log | grep "Swift CSV"
+wp plugin status fe-csv-import-export
+tail -f wp-content/debug.log | grep "FE CSV Import & Export"
 ```
 
 ## When Reporting an Issue
@@ -116,7 +116,7 @@ Include:
 
 - WordPress version
 - PHP version
-- Swift CSV version
+- FE CSV Import & Export version
 - Browser and version
 - Exact error messages
 - A small sample CSV when possible

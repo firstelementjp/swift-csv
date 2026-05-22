@@ -11,8 +11,8 @@
 ```php
 // BEFORE — Specific class names in PHPDoc
 /**
- * @param Swift_CSV_Import_Persister $persister Persister utility.
- * @return Swift_CSV_Import_Row_Context
+ * @param FE_CSV_Import_Export_Import_Persister $persister Persister utility.
+ * @return FE_CSV_Import_Export_Import_Row_Context
  */
 
 // AFTER — Use object type in PHPDoc
@@ -20,7 +20,7 @@
  * @param object $persister Persister utility.
  * @return object
  */
-public function method( Swift_CSV_Import_Persister $persister ): Swift_CSV_Import_Row_Context {
+public function method( FE_CSV_Import_Export_Import_Persister $persister ): FE_CSV_Import_Export_Import_Row_Context {
     // Implementation
 }
 ```

@@ -130,7 +130,7 @@
 ### Improvements
 
 - **Code cleanup and optimization** - Removed duplicate code and unnecessary comments across all PHP files
-- **Debug logging system** - Added comprehensive debug logging with `[Swift CSV]` prefix for better troubleshooting
+- **Debug logging system** - Added comprehensive debug logging with `[FE CSV Import & Export]` prefix for better troubleshooting
 - **JavaScript debugging** - Implemented conditional debug logging in admin scripts based on WP_DEBUG
 - **Documentation improvements** - Updated SKILL.md with troubleshooting knowledge base
 - **Build system enhancements** - Improved GitHub Actions workflows for better automation

@@ -5,7 +5,8 @@
  * Handles asynchronous CSV import with WordPress-compatible processing.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
+ * @deprecated 0.9.8 Migrated to unified AJAX handler architecture. Use FE_CSV_Import_Export_Import_Batch_Processor instead.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Ajax Import Handler (WP Compatible) Class
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
+ * @deprecated 0.9.8 Migrated to unified AJAX handler architecture. Use FE_CSV_Import_Export_Import_Batch_Processor instead.
  */
 class Swift_CSV_Ajax_Import_Handler_WP_Compatible extends Swift_CSV_Ajax_Import_Handler_Base {
 

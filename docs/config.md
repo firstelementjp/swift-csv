@@ -1,6 +1,6 @@
 # 🔧 Configuration
 
-This page describes the current behavior of Swift CSV as implemented in v0.9.8.
+This page describes the current behavior of FE CSV Import & Export as implemented in v0.9.8.
 
 ## Import Configuration
 
@@ -44,7 +44,7 @@ This page describes the current behavior of Swift CSV as implemented in v0.9.8.
 
 ## Automatic Batch Processing
 
-Swift CSV automatically adjusts batch sizes.
+FE CSV Import & Export automatically adjusts batch sizes.
 
 ### Import
 
@@ -74,7 +74,7 @@ During import and export, the admin UI provides:
 
 ## License and Pro Integration
 
-Swift CSV Free and Swift CSV Pro are integrated through WordPress hooks and capability checks.
+FE CSV Import & Export Free and FE CSV Import & Export Pro are integrated through WordPress hooks and capability checks.
 
 Available behavior includes:
 
@@ -91,7 +91,7 @@ Available behavior includes:
 
 ## Developer Extensibility
 
-Swift CSV includes hook-based extension points for:
+FE CSV Import & Export includes hook-based extension points for:
 
 - Export headers and rows
 - Import permissions and validation

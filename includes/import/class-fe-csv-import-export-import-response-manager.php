@@ -1,12 +1,12 @@
 <?php
 /**
- * Import Response Manager for Swift CSV
+ * Import Response Manager for FE CSV Import & Export
  *
  * Handles response processing operations for CSV import.
  * Extracted from FE_CSV_Import_Export_Ajax_Import for better separation of concerns.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - JSON response management
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Import_Response_Manager {
 

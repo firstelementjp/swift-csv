@@ -1,13 +1,13 @@
 <?php
 /**
- * WP Compatible Export Class for Swift CSV
+ * WP Compatible Export Class for FE CSV Import & Export
  *
  * Implements FE_CSV_Import_Export_Export_Base using WordPress core functions.
  * This class is intended to be the standard (WP-compatible) counterpart
  * to the Direct SQL exporter.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Uses WP_Query and WordPress APIs to retrieve data.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Export_WP_Compatible extends \FE_CSV_Import_Export_Export_Base {
 

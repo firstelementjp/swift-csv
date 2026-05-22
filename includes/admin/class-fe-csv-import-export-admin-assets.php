@@ -2,10 +2,10 @@
 /**
  * Admin assets handler
  *
- * Handles enqueueing scripts and styles for the Swift CSV admin pages.
+ * Handles enqueueing scripts and styles for the FE CSV Import & Export admin pages.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Admin assets handler
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Admin_Assets {
 
@@ -208,9 +208,15 @@ class FE_CSV_Import_Export_Admin_Assets {
 				true
 			);
 
+			// Check if Pro license is active to enable Direct SQL export.
+			$enable_direct_sql_export = false;
+			if ( class_exists( 'FE_CSV_Import_Export_License_Handler' ) && method_exists( 'FE_CSV_Import_Export_License_Handler', 'is_pro_active' ) ) {
+				$enable_direct_sql_export = FE_CSV_Import_Export_License_Handler::is_pro_active();
+			}
+
 			wp_localize_script(
 				'fe-csv-import-export-core',
-				'swiftCSV',
+				'feCsvImportExport',
 				[
 					'ajaxUrl'               => admin_url( 'admin-ajax.php' ),
 					'ajaxurl'               => admin_url( 'admin-ajax.php' ),
@@ -221,6 +227,7 @@ class FE_CSV_Import_Export_Admin_Assets {
 					],
 					'hasProAdmin'           => class_exists( 'FE_CSV_Import_Export_Pro_Admin' ),
 					'enableDirectSqlImport' => (bool) apply_filters( 'fe_csv_import_export_enable_direct_sql_import', false ),
+					'enableDirectSqlExport' => $enable_direct_sql_export,
 					'maxLogEntries'         => apply_filters( 'fe_csv_import_export_max_log_entries', 30 ),
 					'exportCompleteText'    => esc_html__( 'Export Complete', 'fe-csv-import-export' ),
 					'exportFailedText'      => esc_html__( 'Export failed: ', 'fe-csv-import-export' ),
@@ -311,7 +318,7 @@ class FE_CSV_Import_Export_Admin_Assets {
 
 			wp_localize_script(
 				'fe-csv-import-export-main',
-				'swiftCsvAjax',
+				'feCsvImportExportAjax',
 				[
 					'ajaxurl' => admin_url( 'admin-ajax.php' ),
 					'nonce'   => wp_create_nonce( 'fe_csv_import_export_ajax_nonce' ),

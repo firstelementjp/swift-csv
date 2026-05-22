@@ -1,19 +1,20 @@
 /**
- * Swift CSV Export Scripts - Download Helper Module
+ * FE CSV Import & Export Export Scripts - Download Helper Module
  *
  * Handles enabling the Export UI download button and provides utility helpers
  * for triggering CSV downloads using data generated during export.
  *
- * @namespace SwiftCSVExportUnifiedModules
+ * @namespace FeCsvImportExportExportUnifiedModules
  */
 
 (function () {
 	/**
-	 * @namespace SwiftCSVExportUnifiedModules
+	 * @namespace FeCsvImportExportExportUnifiedModules
 	 */
-	window.SwiftCSVExportUnifiedModules = window.SwiftCSVExportUnifiedModules || {};
+	window.FeCsvImportExportExportUnifiedModules =
+		window.FeCsvImportExportExportUnifiedModules || {};
 
-	window.SwiftCSVExportUnifiedModules.Download = {
+	window.FeCsvImportExportExportUnifiedModules.Download = {
 		/**
 		 * Enable the download button once CSV export is ready and attach file metadata.
 		 *
@@ -38,7 +39,7 @@
 				'-' +
 				String(now.getSeconds()).padStart(2, '0');
 
-			const filename = `swiftcsv_export_${postType}_${dateStr}.csv`;
+			const filename = `fe_csv_export_${postType}_${dateStr}.csv`;
 
 			const downloadBtn = document.querySelector('#export-download-btn');
 			if (downloadBtn) {
@@ -47,9 +48,9 @@
 				downloadBtn.classList.add('enabled');
 			}
 
-			if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
-				window.SwiftCSVUtils.addLogEntry(
-					swiftCSV.messages.downloadReady + ' ' + filename,
+			if (window.FeCsvImportExportUtils && window.FeCsvImportExportUtils.addLogEntry) {
+				window.FeCsvImportExportUtils.addLogEntry(
+					feCsvImportExport.messages.downloadReady + ' ' + filename,
 					'info',
 					'export'
 				);

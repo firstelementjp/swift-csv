@@ -1,12 +1,12 @@
 <?php
 /**
- * Base Export Class for Swift CSV
+ * Base Export Class for FE CSV Import & Export
  *
  * Provides common functionality for both standard and Direct SQL exports.
  * Handles configuration validation, user permissions, rate limiting, and CSV generation.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Base Export Class
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 abstract class FE_CSV_Import_Export_Export_Base {
 
@@ -615,9 +615,6 @@ abstract class FE_CSV_Import_Export_Export_Base {
 	protected function set_performance_limits() {
 		// Increase memory limit for large exports.
 		wp_raise_memory_limit( 'admin' );
-
-		// Set time limit.
-		set_time_limit( 300 ); // 5 minutes.
 	}
 
 	/**

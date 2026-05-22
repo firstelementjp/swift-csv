@@ -2,10 +2,10 @@
 /**
  * Admin page renderer
  *
- * Renders the Swift CSV admin UI (tabs and tab content).
+ * Renders the FE CSV Import & Export admin UI (tabs and tab content).
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Admin page renderer
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Admin_Page {
 
@@ -412,7 +412,7 @@ class FE_CSV_Import_Export_Admin_Page {
 					?>
 					<div class="fe-csv-import-export-pro-promo">
 						<hr>
-						<h3><?php esc_html_e( 'Unlock more with Swift CSV Pro', 'fe-csv-import-export' ); ?></h3>
+						<h3><?php esc_html_e( 'Unlock more with FE CSV Import & Export Pro', 'fe-csv-import-export' ); ?></h3>
 						<p><?php esc_html_e( 'With a Pro license, you can:', 'fe-csv-import-export' ); ?></p>
 						<ul>
 							<li>
@@ -426,10 +426,10 @@ class FE_CSV_Import_Export_Admin_Page {
 							<li>
 								<h4><?php esc_html_e( 'Security', 'fe-csv-import-export' ); ?></h4>
 								<ul>
+									<li><?php esc_html_e( 'When used with the backup plugin \'Updraft Plus\', automatic SQL backup is executed during import and import begins after completion. If problems are discovered after import, you can immediately restore from backup.', 'fe-csv-import-export' ); ?></li>
 									<li><?php esc_html_e( 'Shared execution-only password protection for import and export operations', 'fe-csv-import-export' ); ?></li>
 									<li><?php esc_html_e( 'Require the logged-in user password at execution time', 'fe-csv-import-export' ); ?></li>
 									<li><?php esc_html_e( 'Access control for the tools page and execution permissions', 'fe-csv-import-export' ); ?></li>
-									<?php do_action( 'fe_csv_import_export_pro_security_features' ); ?>
 								</ul>
 							</li>
 							<li>
@@ -447,8 +447,15 @@ class FE_CSV_Import_Export_Admin_Page {
 								</ul>
 							</li>
 						</ul>
-						<a href="<?php echo esc_url( FE_CSV_IMPORT_EXPORT_PRO_URL ); ?>" target="_blank" class="button button-primary button-hero">
-						<?php esc_html_e( 'View Swift CSV Pro Details', 'fe-csv-import-export' ); ?>
+						<?php
+						$current_locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+						$is_japanese    = is_string( $current_locale ) && 0 === strpos( strtolower( $current_locale ), 'ja' );
+						$pro_url        = $is_japanese
+							? 'https://www.firstelement.co.jp/products/fe-csv-import-export-plugin/'
+							: 'https://www.firstelement.co.jp/en/products/fe-csv-import-export-plugin/';
+						?>
+						<a href="<?php echo esc_url( $pro_url ); ?>" target="_blank" class="button button-primary button-hero">
+						<?php esc_html_e( 'View FE CSV Import & Export Pro Details', 'fe-csv-import-export' ); ?>
 						</a>
 					</div>
 					<?php
@@ -493,7 +500,7 @@ class FE_CSV_Import_Export_Admin_Page {
 		?>
 		<div id="plugin_header">
 			<div id="plugin_header_upper">
-				<div id="plugin_header_title">Swift <span>CSV</span>
+				<div id="plugin_header_title">FE <span>CSV</span> Import & Export
 				<?php
 				if ( $is_pro_license_active ) :
 					?>

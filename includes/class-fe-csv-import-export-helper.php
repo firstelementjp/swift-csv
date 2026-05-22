@@ -1,12 +1,12 @@
 <?php
 /**
- * Helper functions for Swift CSV processing.
+ * Helper functions for FE CSV Import & Export processing.
  *
- * This file contains common utility functions used across the Swift CSV plugin
+ * This file contains common utility functions used across the FE CSV Import & Export plugin
  * for parsing, validation, and data processing.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -14,10 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Helper class for Swift CSV processing utilities.
+ * Helper class for FE CSV Import & Export processing utilities.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Helper {
 	/**

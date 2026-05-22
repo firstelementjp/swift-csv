@@ -1,45 +1,45 @@
 /**
- * Swift CSV Admin Scripts - Main Entry Point
+ * FE CSV Import & Export Admin Scripts - Main Entry Point
  *
- * Loads and initializes all Swift CSV modules.
+ * Loads and initializes all FE CSV Import & Export modules.
  *
  */
 
 /**
- * Bootstrap Swift CSV admin scripts when the DOM is ready.
+ * Bootstrap FE CSV Import & Export admin scripts when the DOM is ready.
  */
 document.addEventListener('DOMContentLoaded', function () {
 	// Log initialization (debug mode only)
-	if (window.SwiftCSVCore && window.swiftCSV && window.swiftCSV.debug) {
-		SwiftCSVCore.swiftCSVLog('JavaScript initialized');
+	if (window.FeCsvImportExportCore && window.feCsvImportExport && window.feCsvImportExport.debug) {
+		FeCsvImportExportCore.feCsvImportExportLog('JavaScript initialized');
 	}
 
 	// Initialize logging system
-	if (window.SwiftCSVCore) {
-		SwiftCSVCore.initLoggingSystem();
+	if (window.FeCsvImportExportCore) {
+		FeCsvImportExportCore.initLoggingSystem();
 	}
 
 	/**
-	 * Initialize Swift CSV modules once dependencies are available.
+	 * Initialize FE CSV Import & Export modules once dependencies are available.
 	 */
 	const initializeModules = () => {
 		/**
 		 * Verify module availability; retry until import/export modules are ready.
 		 */
 		const checkModules = () => {
-			if (window.SwiftCSVCore && window.SwiftCSVExport && window.SwiftCSVImport) {
+			if (window.FeCsvImportExportCore && window.FeCsvImportExportExport && window.FeCsvImportExportImport) {
 				const advancedSaveButton = document.getElementById('fe-csv-import-export-save-all-settings');
 				if (
 					advancedSaveButton &&
-					window.swiftCSV &&
-					!window.swiftCSV.hasProAdmin &&
-					advancedSaveButton.dataset.swiftCsvBound !== 'true'
+					window.feCsvImportExport &&
+					!window.feCsvImportExport.hasProAdmin &&
+					advancedSaveButton.dataset.feCsvImportExportBound !== 'true'
 				) {
-					advancedSaveButton.dataset.swiftCsvBound = 'true';
+					advancedSaveButton.dataset.feCsvImportExportBound = 'true';
 					advancedSaveButton.addEventListener('click', function () {
 						const spinner = advancedSaveButton.nextElementSibling;
 						const enableLogsCheckbox = document.getElementById(
-							'swift_csv_advanced_enable_logs'
+							'fe_csv_import_export_advanced_enable_logs'
 						);
 						const enableLogs =
 							enableLogsCheckbox && enableLogsCheckbox.checked ? '1' : '0';
@@ -49,14 +49,14 @@ document.addEventListener('DOMContentLoaded', function () {
 							spinner.style.display = 'inline-block';
 						}
 
-						fetch(window.swiftCSV.ajaxUrl, {
+						fetch(window.feCsvImportExport.ajaxUrl, {
 							method: 'POST',
 							headers: {
 								'Content-Type': 'application/x-www-form-urlencoded',
 							},
 							body: new URLSearchParams({
-								action: 'swift_csv_save_advanced_settings',
-								nonce: window.swiftCSV.nonce,
+								action: 'fe_csv_import_export_save_advanced_settings',
+								nonce: window.feCsvImportExport.nonce,
 								enable_logs: enableLogs,
 							}),
 						})
@@ -69,10 +69,10 @@ document.addEventListener('DOMContentLoaded', function () {
 									);
 								}
 
-								if (!window.swiftCSV.advancedSettings) {
-									window.swiftCSV.advancedSettings = {};
+								if (!window.feCsvImportExport.advancedSettings) {
+									window.feCsvImportExport.advancedSettings = {};
 								}
-								window.swiftCSV.advancedSettings.enableLogs = enableLogs === '1';
+								window.feCsvImportExport.advancedSettings.enableLogs = enableLogs === '1';
 								window.alert(data.data.message);
 							})
 							.catch(error => {
@@ -88,41 +88,41 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 
 				// All modules are available, initialize them
-				if (window.SwiftCSVImport) {
-					window.SwiftCSVImport.initFileUpload();
+				if (window.FeCsvImportExportImport) {
+					window.FeCsvImportExportImport.initFileUpload();
 				}
 
 				// Ajax export functionality
 				const ajaxExportForm = document.querySelector('#fe-csv-import-export-ajax-export-form');
-				if (ajaxExportForm && window.SwiftCSVExport) {
-					if (window.SwiftCSVCore && window.swiftCSV && window.swiftCSV.debug) {
-						SwiftCSVCore.swiftCSVLog('Ajax export form initialized');
+				if (ajaxExportForm && window.FeCsvImportExportExport) {
+					if (window.FeCsvImportExportCore && window.feCsvImportExport && window.feCsvImportExport.debug) {
+						FeCsvImportExportCore.feCsvImportExportLog('Ajax export form initialized');
 					}
 					ajaxExportForm.addEventListener(
 						'submit',
-						window.SwiftCSVExport.handleAjaxExport
+						window.FeCsvImportExportExport.handleAjaxExport
 					);
 				}
 
 				// Ajax import functionality
 				const ajaxImportForm = document.querySelector('#fe-csv-import-export-ajax-import-form');
-				if (ajaxImportForm && window.SwiftCSVImport) {
-					if (window.SwiftCSVCore && window.swiftCSV && window.swiftCSV.debug) {
-						SwiftCSVCore.swiftCSVLog('Ajax import form initialized');
+				if (ajaxImportForm && window.FeCsvImportExportImport) {
+					if (window.FeCsvImportExportCore && window.feCsvImportExport && window.feCsvImportExport.debug) {
+						FeCsvImportExportCore.feCsvImportExportLog('Ajax import form initialized');
 					}
 					ajaxImportForm.addEventListener(
 						'submit',
-						window.SwiftCSVImport.handleAjaxImport
+						window.FeCsvImportExportImport.handleAjaxImport
 					);
 				}
 
 				// License functionality (optional)
-				if (window.SwiftCSVLicense) {
-					window.SwiftCSVLicense.initLicense();
+				if (window.FeCsvImportExportLicense) {
+					window.FeCsvImportExportLicense.initLicense();
 				}
 
 				const taxonomyHierarchyCheckbox = document.getElementById(
-					'swift_csv_taxonomy_hierarchical'
+					'fe_csv_import_export_taxonomy_hierarchical'
 				);
 				const taxonomyFormatRadios = document.querySelectorAll(
 					'input[name="taxonomy_format"]'
@@ -197,7 +197,7 @@ function addLogEntry(message, level = 'info', context = 'export') {
 	}
 
 	// Get max log entries from localized data (default: 30)
-	const maxLogEntries = swiftCSV.maxLogEntries || 30;
+	const maxLogEntries = feCsvImportExport.maxLogEntries || 30;
 
 	// Keep only latest entries to prevent performance issues
 	if (logContent.children.length >= maxLogEntries) {
@@ -267,7 +267,7 @@ function clearLog(context = 'all') {
 }
 
 // Export utility functions for modules
-window.SwiftCSVUtils = {
+window.FeCsvImportExportUtils = {
 	addLogEntry,
 	clearLog,
 };

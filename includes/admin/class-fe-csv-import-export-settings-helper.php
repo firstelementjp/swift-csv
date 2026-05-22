@@ -1,11 +1,11 @@
 <?php
 /**
- * Settings helper for Swift CSV Free version
+ * Settings helper for FE CSV Import & Export Free version
  *
  * Centralizes settings storage in a single option array.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -13,10 +13,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Settings helper for Swift CSV Free version
+ * Settings helper for FE CSV Import & Export Free version
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Settings_Helper {
 

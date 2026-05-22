@@ -13,17 +13,17 @@
     timeoutForLargeTests="60"
 >
     <testsuites>
-        <testsuite name="Swift CSV Unit Tests">
+        <testsuite name="FE CSV Import & Export Unit Tests">
             <directory>tests/Unit</directory>
         </testsuite>
-        <testsuite name="Swift CSV Integration Tests">
+        <testsuite name="FE CSV Import & Export Integration Tests">
             <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
     <coverage processUncoveredFiles="true">
         <include>
             <directory suffix=".php">includes</directory>
-            <file>swift-csv.php</file>
+            <file>fe-csv-import-export.php</file>
         </include>
         <exclude>
             <directory>vendor</directory>

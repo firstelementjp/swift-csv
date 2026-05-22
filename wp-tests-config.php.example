@@ -1,37 +1,37 @@
 <?php
 /**
- * WordPress test configuration example for Swift CSV
+ * WordPress test configuration example for FE CSV Import & Export
  *
  * Copy this file to wp-tests-config.php and adjust the environment as needed.
  *
- * @package Swift_CSV\Tests
+ * @package FE_CSV_Import_Export\Tests
  */
 
-$swift_csv_mysql_socket = getenv( 'MYSQL_UNIX_PORT' );
+$fe_csv_import_export_mysql_socket = getenv( 'MYSQL_UNIX_PORT' );
 
-if ( $swift_csv_mysql_socket ) {
-	ini_set( 'mysqli.default_socket', $swift_csv_mysql_socket );
-	ini_set( 'pdo_mysql.default_socket', $swift_csv_mysql_socket );
+if ( $fe_csv_import_export_mysql_socket ) {
+	ini_set( 'mysqli.default_socket', $fe_csv_import_export_mysql_socket );
+	ini_set( 'pdo_mysql.default_socket', $fe_csv_import_export_mysql_socket );
 }
 
 if ( ! defined( 'ABSPATH' ) ) {
-	$swift_csv_wp_dir         = false;
-	$swift_csv_possible_paths = [
+	$fe_csv_import_export_wp_dir         = false;
+	$fe_csv_import_export_possible_paths = [
 		'../../wp',
 		'../../../wp',
 		dirname( __DIR__, 2 ) . '/wp',
 		dirname( __DIR__, 3 ),
 	];
 
-	foreach ( $swift_csv_possible_paths as $swift_csv_candidate_path ) {
-		if ( file_exists( $swift_csv_candidate_path . '/wp-load.php' ) ) {
-			$swift_csv_wp_dir = $swift_csv_candidate_path;
+	foreach ( $fe_csv_import_export_possible_paths as $fe_csv_import_export_candidate_path ) {
+		if ( file_exists( $fe_csv_import_export_candidate_path . '/wp-load.php' ) ) {
+			$fe_csv_import_export_wp_dir = $fe_csv_import_export_candidate_path;
 			break;
 		}
 	}
 
-	if ( $swift_csv_wp_dir ) {
-		define( 'ABSPATH', rtrim( $swift_csv_wp_dir, '/\\' ) . '/' );
+	if ( $fe_csv_import_export_wp_dir ) {
+		define( 'ABSPATH', rtrim( $fe_csv_import_export_wp_dir, '/\\' ) . '/' );
 	}
 }
 
@@ -54,7 +54,7 @@ if ( ! defined( 'WP_TESTS_EMAIL' ) ) {
 }
 
 if ( ! defined( 'WP_TESTS_TITLE' ) ) {
-	define( 'WP_TESTS_TITLE', 'Swift CSV Test Site' );
+	define( 'WP_TESTS_TITLE', 'FE CSV Import & Export Test Site' );
 }
 
 if ( ! defined( 'WP_PHP_BINARY' ) ) {

@@ -1,12 +1,13 @@
 <?php
 /**
- * Import Environment Manager for Swift CSV
+ * Import Environment Manager for FE CSV Import & Export
  *
  * Handles environment preparation operations for CSV import.
  * Extracted from Swift_CSV_Ajax_Import for better separation of concerns.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
+ * @deprecated 0.9.8 Removed during refactoring. Environment preparation is now handled by FE_CSV_Import_Export_Import_Batch_Processor.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,7 +24,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - File content reading
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
+ * @deprecated 0.9.8 Removed during refactoring. Environment preparation is now handled by FE_CSV_Import_Export_Import_Batch_Processor.
  */
 class Swift_CSV_Import_Environment_Manager {
 

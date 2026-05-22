@@ -1,0 +1,844 @@
+# Copyright (C) 2026 FirstElement K.K.
+# This file is distributed under the GPL-2.0+.
+# FirstElement K.K. <info@firstelement.co.jp>, 2026.
+msgid ""
+msgstr ""
+"Project-Id-Version: FE CSV Import & Export 0.9.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/fe-csv-import-"
+"export\n"
+"POT-Creation-Date: 2026-01-29T10:46:18+00:00\n"
+"PO-Revision-Date: 2026-05-22 00:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: 日本語\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Domain: fe-csv-import-export\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Loco-Version: 2.8.3; wp-7.0; php-8.3.8"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:432
+msgid "Access control for the tools page and execution permissions"
+msgstr "設定ページへのアクセス制御と実行権限"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:419
+msgid "ACF Integration"
+msgstr "ACF連携"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:588
+msgid "Activate"
+msgstr "有効化"
+
+#. 1: times activated, 2: max activations
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:640
+#, php-format
+msgid "Activation count: %1$s / %2$s"
+msgstr "有効化されたサイト数: %1$s / %2$s"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:51
+#: includes/admin/class-fe-csv-import-export-admin-page.php:124
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:148
+msgid "Advanced Settings"
+msgstr "詳細設定"
+
+#: includes/admin/class-fe-csv-import-export-admin-ajax.php:60
+msgid "Advanced settings saved successfully!"
+msgstr "詳細設定を保存しました！"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:446
+msgid "AI (LLM)-powered data checks"
+msgstr "AI (LLM) によるデータチェック"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:277
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:283
+msgid "All Fields"
+msgstr "全項目"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:250
+msgid "All statuses"
+msgstr "すべてのステータス"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:244
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:303
+msgid "An error occurred. Please try again."
+msgstr "エラーが発生しました。もう一度お試しください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:439
+msgid "Automatic updates from our update server"
+msgstr "アップデートサーバーからの自動アップデート"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:273
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:282
+msgid "Basic Fields"
+msgstr "基本項目"
+
+#. 1: Batch number, 2: Number of posts processed
+#: includes/export/class-fe-csv-import-export-ajax-export-handler-wp-compatible.php:146
+#, php-format
+msgid "Batch %1$d: Bulk export %2$d posts"
+msgstr "バッチ %1$d: %2$d件の投稿を一括エクスポート"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:294
+msgid "Batch export started"
+msgstr "バッチエクスポートを開始しました"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:236
+#: includes/admin/class-fe-csv-import-export-admin-page.php:339
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:320
+msgid ""
+"Choose how taxonomy terms are exported: names for readability or term IDs "
+"for data integrity."
+msgstr "タクソノミータームのエクスポート形式を選択：読みやすさのための名前、またはデータ整合性のためのタームID。"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:261
+msgid "Chunk processing start position (row):"
+msgstr "チャンク処理開始位置（行）:"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:202
+msgid "Configure advanced settings below."
+msgstr "以下で詳細設定を設定してください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:193
+msgid "Configure your CSV export settings below."
+msgstr "以下でCSVエクスポート設定を設定してください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:385
+msgid "Configure your CSV import settings below."
+msgstr "以下でCSVインポート設定を設定してください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:546
+msgid "Configure your license settings below."
+msgstr "以下でライセンス設定を設定してください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:272
+msgid "Created posts:"
+msgstr "作成された投稿:"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:354
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:264
+msgid "Created:"
+msgstr "作成:"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:227
+msgid "CSV content not found in response"
+msgstr "レスポンスにCSVコンテンツが見つかりません"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:252
+msgid "Custom"
+msgstr "カスタム"
+
+#. 1: field name, 2: field value
+#: includes/import/class-fe-csv-import-export-import-meta-tax.php:478
+#, php-format
+msgid "Custom field (multi-value): %1$s = %2$s"
+msgstr "カスタムフィールド（複数値）: %1$s = %2$s"
+
+#. 1: field name, 2: field value
+#: includes/import/class-fe-csv-import-export-import-meta-tax.php:491
+#, php-format
+msgid "Custom field: %1$s = %2$s"
+msgstr "カスタムフィールド: %1$s = %2$s"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:338
+msgid "Custom Fields"
+msgstr "カスタムフィールド"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:503
+msgid "Data Removal on Uninstall"
+msgstr "アンインストール時のデータ削除"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:586
+msgid "Deactivate"
+msgstr "無効化"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:438
+msgid "Dedicated customer support"
+msgstr "個別カスタマーサポート"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:521
+msgid "DeepWiki"
+msgstr "DeepWiki"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:318
+msgid "Display hierarchy"
+msgstr "階層を含める"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:516
+msgid "Documentation"
+msgstr "ドキュメント"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:255
+msgid "documentation"
+msgstr "ドキュメント"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:270
+msgid "Download CSV"
+msgstr "CSVをダウンロード"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:293
+msgid "Download ready:"
+msgstr "ダウンロード準備完了:"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:445
+msgid "Downloadable detailed export/import operation logs"
+msgstr "ダウンロード可能な詳細なエクスポート/インポート操作ログ"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:309
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:249
+msgid "Drop CSV file here or click to browse"
+msgstr "CSVファイルをここにドロップまたはクリックして参照"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:526
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:275
+msgid "Dry Run"
+msgstr "テスト"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:648
+msgid ""
+"Enter the license key you received at the time of purchase and press the "
+"\"Activate\" button."
+msgstr "購入時に受け取ったライセンスキーを入力し、「有効化」ボタンを押してください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:279
+msgid "Error"
+msgstr "エラー"
+
+#. %s: Error message from exception.
+#: includes/import/class-fe-csv-import-export-import-row-processor.php:224
+#, php-format
+msgid "Error: %1$s"
+msgstr "エラー: %1$s"
+
+#: includes/import/class-fe-csv-import-export-import-row-processor.php:239
+msgid "Error: Failed to save the post."
+msgstr "エラー: 投稿の保存に失敗しました。"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:305
+msgid "Errors"
+msgstr "エラー"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:356
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:266
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:274
+msgid "Errors:"
+msgstr "エラー:"
+
+#. 1: term name, 2: term ID, 3: taxonomy name
+#: includes/import/class-fe-csv-import-export-import-meta-tax.php:379
+#: includes/import/class-fe-csv-import-export-import-taxonomy-writer-wp.php:174
+#, php-format
+msgid "Existing term: %1$s (ID: %2$s, taxonomy: %3$s)"
+msgstr "既存ターム: %1$s (ID: %2$s, タクソノミー: %3$s)"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:117
+#: includes/admin/class-fe-csv-import-export-admin-page.php:233
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:296
+msgid "Export"
+msgstr "エクスポート"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:246
+msgid "Export cancelled"
+msgstr "エクスポートがキャンセルされました"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:289
+msgid "Export cancelled by user"
+msgstr "ユーザーによりエクスポートがキャンセルされました"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:225
+msgid "Export Complete"
+msgstr "エクスポート完了"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:292
+msgid "Export completed successfully!"
+msgstr "エクスポートが正常に完了しました！"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:268
+msgid "Export Content"
+msgstr "エクスポート内容"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:286
+msgid "Export Content:"
+msgstr "エクスポート内容:"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:234
+msgid "Export CSV"
+msgstr "CSVをエクスポート"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:291
+msgid "Export error:"
+msgstr "エクスポートエラー:"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:247
+msgid "Export failed"
+msgstr "エクスポートに失敗しました"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:226
+msgid "Export failed: "
+msgstr "エクスポートに失敗しました: "
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:368
+msgid "Export Limit"
+msgstr "エクスポート制限"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:288
+msgid "Export Limit:"
+msgstr "エクスポート制限:"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:246
+msgid "Export Log"
+msgstr "エクスポートログ"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:213
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:52
+msgid "Export Settings"
+msgstr "エクスポート設定"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:422
+msgid ""
+"Export taxonomy values as readable names and handle multi-value fields with "
+"pipe-separated values"
+msgstr "タクソノミー値を読み取り可能な名前で出力し、複数値フィールドはパイプ区切りで処理"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:295
+msgid "Exported"
+msgstr "エクスポート済み"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:238
+msgid "Exporting..."
+msgstr "エクスポート中..."
+
+#: includes/admin/class-fe-csv-import-export-admin-ajax.php:57
+msgid "Failed to save advanced settings."
+msgstr "詳細設定の保存に失敗しました。"
+
+#. Name of the plugin
+msgid "FE CSV Import & Export"
+msgstr "FE CSV Import & Export"
+
+#: includes/admin/class-fe-csv-import-export-license-handler.php:150
+msgid ""
+"FE CSV Import & Export Pro is installed but not activated. Please activate "
+"FE CSV Import & Export Pro to use license features."
+msgstr ""
+"FE CSV Import & Export Pro がインストールされていますが有効化されていません。ライセンス機能を使用するには FE CSV "
+"Import & Export Pro を有効化してください。"
+
+#: includes/admin/class-fe-csv-import-export-license-handler.php:147
+msgid ""
+"FE CSV Import & Export Pro is not installed. Please install FE CSV Import & "
+"Export Pro to use license features."
+msgstr ""
+"FE CSV Import & Export Pro がインストールされていません。ライセンス機能を使用するには FE CSV Import & "
+"Export Pro をインストールしてください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:258
+msgid "File Size:"
+msgstr "ファイルサイズ:"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:257
+msgid "File:"
+msgstr "ファイル:"
+
+#. Author of the plugin
+msgid "FirstElement K.K., Daijiro Miyazawa"
+msgstr ""
+
+#. 1: taxonomy name, 2: UI format, 3: sample values
+#: includes/import/class-fe-csv-import-export-import-taxonomy-util.php:73
+#, php-format
+msgid ""
+"Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Names\" but "
+"CSV contains only numeric values: %2$s. Please check your data format."
+msgstr ""
+"タクソノミー \"%1$s\" の形式不一致が検出されました。UIは \"名前\" に設定されていますが、CSVには数値のみが含まれています: "
+"%2$s。データ形式を確認してください。"
+
+#. 1: taxonomy name, 2: UI format, 3: sample values
+#: includes/import/class-fe-csv-import-export-import-taxonomy-util.php:91
+#, php-format
+msgid ""
+"Format mismatch detected for taxonomy \"%1$s\". UI is set to \"Term IDs\" "
+"but CSV contains only text values: %2$s. Please check your data format."
+msgstr ""
+"タクソノミー \"%1$s\" の形式不一致が検出されました。UIは \"タームID\" に設定されていますが、CSVにはテキストのみが含まれています: "
+"%2$s。データ形式を確認してください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:563
+msgid "Go to contact form"
+msgstr "お問い合わせフォームへ"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:520
+msgid "Go to DeepWiki documentation"
+msgstr "DeepWikiドキュメントへ"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:558
+msgid "Go to Facebook page"
+msgstr "Facebookページへ"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:525
+msgid "Go to GitHub repository"
+msgstr "GitHubリポジトリへ"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:515
+msgid "Go to the instruction manual"
+msgstr "取扱説明書へ"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:542
+msgid "Go to X"
+msgstr "Xへ"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:307
+msgid "Hide"
+msgstr "非表示"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:229
+msgid "High-Speed Import"
+msgstr "高速インポート"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:281
+msgid ""
+"Hook-based customization is active. Export fields may be modified by code."
+msgstr "フックによるカスタマイズが適用されています。エクスポート項目はコードによって変更されている可能性があります。"
+
+#. URI of the plugin
+msgid "https://github.com/firstelementjp/fe-csv-import-export"
+msgstr "https://github.com/firstelementjp/fe-csv-import-export"
+
+#. Author URI of the plugin
+msgid "https://www.firstelement.co.jp/"
+msgstr "https://www.firstelement.co.jp/"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:510
+msgid ""
+"If checked, all plugin settings, transients, and custom database tables will "
+"be removed when the plugin is uninstalled. Uncheck to preserve data for "
+"future reinstallation."
+msgstr ""
+"プラグインのアンインストール時にすべてのプラグイン設定、トランジェント、カスタムデータベーステーブルが削除されます。データを保持して将来の再インストールに備える場合はチェックを外してください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:484
+msgid ""
+"If checked, detailed per-row logs will be generated and displayed during "
+"import and export. Disable for maximum speed."
+msgstr "インポート・エクスポート時にバッチごとの簡易ログを生成して表示します。最高速度を優先する場合は無効にしてください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:431
+msgid ""
+"If checked, existing posts will be updated. If unchecked, only new posts "
+"will be created."
+msgstr "チェックすると既存投稿が更新されます。チェックしない場合、新しい投稿のみが作成されます。"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:120
+#: includes/admin/class-fe-csv-import-export-admin-page.php:336
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:230
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:276
+msgid "Import"
+msgstr "インポート"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:421
+msgid "Import and export ACF data while preserving field formatting"
+msgstr "ACFデータをフィールド書式を維持したままエクスポート・インポート"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:268
+msgid "Import cancelled by user"
+msgstr "ユーザーによりインポートがキャンセルされました"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:231
+msgid "Import Complete"
+msgstr "インポート完了"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:242
+msgid "Import Complete!"
+msgstr "インポート完了！"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:243
+msgid "Import completed successfully!"
+msgstr "インポートが正常に完了しました！"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:236
+msgid "Import CSV"
+msgstr "CSVをインポート"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:269
+msgid "Import error:"
+msgstr "インポートエラー:"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:232
+msgid "Import Failed"
+msgstr "インポートに失敗しました"
+
+#. 1: imported count, 2: updated count, 3: error count
+#: includes/admin/class-fe-csv-import-export-admin-page.php:619
+#, php-format
+msgid "Import finished. Created: %1$s, Updated: %2$s, Errors: %3$s"
+msgstr "インポート完了。作成: %1$s、更新: %2$s、エラー: %3$s"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:349
+msgid "Import Log"
+msgstr "インポートログ"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:298
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:108
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:248
+msgid "Import Settings"
+msgstr "インポート設定"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:304
+msgid "Imported"
+msgstr "インポート済み"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:239
+msgid "Importing..."
+msgstr "インポート中..."
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:343
+msgid "Include custom field columns"
+msgstr "カスタムフィールドを含める"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:349
+msgid "Include private meta fields"
+msgstr "プライベートメタを含める"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:287
+msgid "Include Private Meta:"
+msgstr "プライベートメタを含める:"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:304
+msgid "Include taxonomy columns"
+msgstr "タクソノミーを含める"
+
+#: includes/admin/class-fe-csv-import-export-license-handler.php:197
+msgid "Invalid response from license server."
+msgstr "ライセンスサーバーからの無効な応答です。"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:155
+msgid "License"
+msgstr "ライセンス"
+
+#: includes/admin/class-fe-csv-import-export-admin-ajax.php:134
+msgid "License activation failed. Please check that your license key is valid."
+msgstr "ライセンスの有効化に失敗しました。ライセンスキーが有効かどうかを確認してください。"
+
+#: includes/admin/class-fe-csv-import-export-license-handler.php:113
+msgid "License deactivated locally. Server-side activation remains active."
+msgstr "ライセンスがローカルで無効化されました。サーバーサイドの有効化は継続しています。"
+
+#. 1: expiration date, 2: remaining days
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:624
+#, php-format
+msgid "License expiration date: %1$s (remaining %2$s days)"
+msgstr "ライセンス有効期限: %1$s (残り %2$s 日)"
+
+#: includes/admin/class-fe-csv-import-export-license-handler.php:153
+msgid "License server is not configured. Please contact support."
+msgstr "ライセンスサーバーが設定されていません。サポートにお問い合わせください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:477
+msgid "Log Output"
+msgstr "ログ出力"
+
+#. %s: File size (e.g., 10MB)
+#. %s: Maximum file size (e.g., 10MB).
+#: includes/admin/class-fe-csv-import-export-admin-page.php:315
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:251
+#, php-format
+msgid "Maximum file size: %s"
+msgstr "最大ファイルサイズ: %s"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:372
+msgid "Maximum number of posts to export. Enter 0 for no limit."
+msgstr "エクスポートする最大投稿数。0を指定すると制限なし。"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:452
+msgid "Names"
+msgstr "名前"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:310
+msgid "Names (name)"
+msgstr "名前（name）"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:277
+msgid "New"
+msgstr "新規"
+
+#. 1: post title
+#: includes/import/class-fe-csv-import-export-import-persister.php:283
+#, php-format
+msgid "New post: title=%1$s"
+msgstr "新規投稿: タイトル=%1$s"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:301
+msgid "No"
+msgstr "いいえ"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:280
+msgid "No file selected"
+msgstr "ファイルが選択されていません"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:302
+msgid "No limit"
+msgstr "制限なし"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:371
+msgid "No limit (0 = all)"
+msgstr "制限なし（0 = 全件）"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:245
+msgid "Operation completed successfully!"
+msgstr "操作が正常に完了しました！"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:482
+msgid "Output logs during import and export"
+msgstr "インポート・エクスポート時にログを出力"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:241
+msgid "Post Status"
+msgstr "投稿ステータス"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:216
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:399
+msgid "Post Type"
+msgstr "投稿タイプ"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:259
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:285
+msgid "Post Type:"
+msgstr "投稿タイプ:"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:566
+msgid "Pro License Key"
+msgstr "Proライセンスキー"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:262
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:290
+msgid "Processed"
+msgstr "処理済み"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:246
+msgid "Published posts only"
+msgstr "公開記事のみ"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:253
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:240
+msgid "Ready to start export..."
+msgstr "エクスポート開始準備完了..."
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:361
+#: includes/admin/class-fe-csv-import-export-admin-page.php:366
+#: includes/admin/class-fe-csv-import-export-admin-page.php:371
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:241
+msgid "Ready to start import..."
+msgstr "インポート開始準備完了..."
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:326
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:281
+msgid "Remove"
+msgstr "削除"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:508
+msgid "Remove all plugin data when uninstalling"
+msgstr "アンインストール時にすべてのプラグインデータを削除"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:431
+msgid "Require the logged-in user password at execution time"
+msgstr "実行時にログインユーザーのパスワードを要求"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:299
+msgid "Row"
+msgstr "行"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:263
+msgid "rows"
+msgstr "行"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:265
+#: includes/admin/class-fe-csv-import-export-admin-page.php:383
+msgid "rows processed"
+msgstr "行処理済み"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:533
+msgid ""
+"Run a test import to preview changes without modifying your data. (Dry Run)"
+msgstr "データを変更せずに変更内容をプレビューするテストインポートを実行します。（Dry Run）"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:298
+msgid "s"
+msgstr "秒"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:59
+msgid "Save All Settings"
+msgstr "すべての設定を保存"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:427
+msgid "Security"
+msgstr "セキュリティ"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:458
+msgid ""
+"Select whether the term values in the CSV are names (text) or term IDs "
+"(numeric)."
+msgstr "CSV上のタームの値が名前（テキスト）かタームID（数値）かを選択してください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:430
+msgid ""
+"Shared execution-only password protection for import and export operations"
+msgstr "インポート・エクスポート操作用の共有実行専用パスワード保護"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:583
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:306
+msgid "Show"
+msgstr "表示"
+
+#. Description of the plugin
+msgid ""
+"Simple yet powerful CSV import/export plugin for WordPress. Supports custom "
+"post types, custom taxonomies, and custom fields."
+msgstr ""
+"WordPress用のシンプルかつ強力なCSVインポート/エクスポートプラグイン。カスタム投稿タイプ、カスタムタクソノミー、カスタムフィールドに対応。"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:235
+msgid "Start Export"
+msgstr "エクスポート開始"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:237
+msgid "Start Import"
+msgstr "インポート開始"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:297
+msgid "Starting export process (SQL)..."
+msgstr "エクスポートプロセスを開始中（SQL）..."
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:284
+msgid "Starting export process..."
+msgstr "エクスポートプロセスを開始中..."
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:256
+msgid "Starting import process..."
+msgstr "インポートプロセスを開始中..."
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:436
+msgid "Support & Updates"
+msgstr "サポートとアップデート"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:423
+msgid ""
+"Support major ACF field types including Taxonomy, User, File, Relationship, "
+"Repeater, and Flexible Content fields"
+msgstr "タクソノミー、ユーザー、ファイル、関連、リピーター、フレキシブルコンテンツフィールドなど主要なACFフィールドタイプをサポート"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:267
+msgid "Sync Progress"
+msgstr "同期進捗"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:299
+msgid "Taxonomies"
+msgstr "タクソノミー"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:447
+msgid "Taxonomy Format"
+msgstr "タクソノミー形式"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:456
+msgid "Term IDs"
+msgstr "タームID"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:314
+msgid "Term IDs (term_id)"
+msgstr "タームID（term_id）"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:271
+msgid "Test completed!"
+msgstr "テスト完了！"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:531
+msgid "Test import without creating posts"
+msgstr "投稿を作成せずにインポートをテスト"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:270
+msgid "Test import without creating posts or modifying data."
+msgstr "投稿を作成せず、データを変更せずにインポートをテストします。"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:595
+msgid "The license is valid."
+msgstr "ライセンスは有効です。"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:228
+msgid "Unknown error"
+msgstr "不明なエラー"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:637
+msgid "Unlimited"
+msgstr "無制限"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:415
+msgid "Unlock more with FE CSV Import & Export Pro"
+msgstr "FE CSV Import & Export Pro でさらに多くの機能を解放"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:443
+msgid "Upcoming Features"
+msgstr "今後の実装予定"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:278
+msgid "Update"
+msgstr "更新"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:424
+msgid "Update Existing"
+msgstr "既存投稿を更新"
+
+#: includes/admin/class-fe-csv-import-export-admin-settings.php:429
+msgid "Update existing posts if they match by ID"
+msgstr "IDが一致する場合に既存投稿を更新"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:260
+msgid "Update Existing:"
+msgstr "既存投稿を更新:"
+
+#. 1: post ID, 2: post title
+#: includes/import/class-fe-csv-import-export-import-persister.php:242
+#, php-format
+msgid "Update post: ID=%1$s, title=%2$s"
+msgstr "投稿を更新: ID=%1$s, タイトル=%2$s"
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:273
+msgid "Updated posts:"
+msgstr "更新された投稿:"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:355
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:265
+msgid "Updated:"
+msgstr "更新:"
+
+#. %1$s: Hook name, %2$s: Documentation link text.
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:254
+#, php-format
+msgid ""
+"Use the %1$s hook to specify custom export items and order. See %2$s for "
+"details."
+msgstr "%1$s フックを使用してカスタムエクスポート項目と順序を指定します。詳細については %2$s を参照してください。"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:451
+msgid "View FE CSV Import & Export Pro Details"
+msgstr "FE CSV Import & Export Pro の詳細をみる"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:429
+msgid ""
+"When used with the backup plugin 'Updraft Plus', automatic SQL backup is "
+"executed during import and import begins after completion. If problems are "
+"discovered after import, you can immediately restore from backup."
+msgstr ""
+"バックアッププラグイン 'Updraft Plus' "
+"と併用すると、インポート時に自動でSQLバックアップを実行し、バックアップ完了後に自動でインポートを開始します。インポート後に問題が発見された場合、バックアップから直ちに復元できます。"
+
+#: includes/admin/class-fe-csv-import-export-admin-page.php:416
+msgid "With a Pro license, you can:"
+msgstr "Proライセンスで以下の機能が利用できます："
+
+#: includes/admin/class-fe-csv-import-export-admin-assets.php:300
+msgid "Yes"
+msgstr "はい"

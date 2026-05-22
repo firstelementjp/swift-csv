@@ -1,5 +1,5 @@
 /**
- * Swift CSV Admin Scripts - Import
+ * FE CSV Import & Export Admin Scripts - Import
  *
  * Handles CSV import functionality with AJAX chunked processing.
  *
@@ -17,12 +17,12 @@ function initFileUpload() {
 	}
 
 	// Prevent multiple event listener registrations
-	if (uploadArea.dataset.swiftCsvInitialized === 'true') {
+	if (uploadArea.dataset.feCsvImportExportInitialized === 'true') {
 		return;
 	}
 
 	// Mark as initialized
-	uploadArea.dataset.swiftCsvInitialized = 'true';
+	uploadArea.dataset.feCsvImportExportInitialized = 'true';
 
 	const fileInfo = document.querySelector('#csv-file-info');
 	const removeBtn = document.querySelector('#remove-file-btn');
@@ -94,12 +94,12 @@ function initFileUpload() {
 
 	const highSpeedImportBtn = document.querySelector('#high-speed-import-btn');
 	if (highSpeedImportBtn) {
-		const directSqlEnabled = Boolean(swiftCSV && swiftCSV.enableDirectSqlImport);
+		const directSqlEnabled = Boolean(feCsvImportExport && feCsvImportExport.enableDirectSqlImport);
 		if (!directSqlEnabled) {
 			highSpeedImportBtn.disabled = true;
 			highSpeedImportBtn.style.display = '';
-			if (swiftCSV && swiftCSV.highSpeedImportText) {
-				highSpeedImportBtn.textContent = swiftCSV.highSpeedImportText;
+			if (feCsvImportExport && feCsvImportExport.highSpeedImportText) {
+				highSpeedImportBtn.textContent = feCsvImportExport.highSpeedImportText;
 			}
 		} else {
 			highSpeedImportBtn.disabled = false;
@@ -197,7 +197,7 @@ function appendImportRealtimeLog({ message, level, action, status }) {
 	}
 
 	const updateExisting = document.querySelector(
-		'input[name="swift_csv_import_update_existing"]'
+		'input[name="fe_csv_import_export_import_update_existing"]'
 	)?.checked;
 	let panelKey = updateExisting ? 'updated' : 'created';
 	if ('error' === status) {
@@ -216,7 +216,7 @@ function appendImportRealtimeLog({ message, level, action, status }) {
 		return;
 	}
 
-	const maxLogEntries = swiftCSV.maxLogEntries || 30;
+	const maxLogEntries = feCsvImportExport.maxLogEntries || 30;
 	if (logContent.children.length >= maxLogEntries) {
 		logContent.removeChild(logContent.firstChild);
 	}
@@ -280,15 +280,15 @@ function pollImportLogs() {
 
 	importLogPollingAbortController = new AbortController();
 	const logFormData = new URLSearchParams({
-		action: 'swift_csv_ajax_import_logs',
-		nonce: swiftCSV.nonce,
+		action: 'fe_csv_import_export_ajax_import_logs',
+		nonce: feCsvImportExport.nonce,
 		import_session: importSession,
 		enable_logs: currentEnableLogs,
 		after_id: String(importLogLastId),
 		limit: '200',
 	});
 
-	importLogPollingPromise = fetch(swiftCSV.ajaxUrl, {
+	importLogPollingPromise = fetch(feCsvImportExport.ajaxUrl, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/x-www-form-urlencoded',
@@ -315,15 +315,15 @@ function pollImportLogs() {
 						return;
 					}
 					const detail = item.detail;
-					const dryRunPrefixText = String(swiftCSV.messages.dryRunPrefix || '');
-					const importPrefixText = String(swiftCSV.messages.importPrefix || '');
+					const dryRunPrefixText = String(feCsvImportExport.messages.dryRunPrefix || '');
+					const importPrefixText = String(feCsvImportExport.messages.importPrefix || '');
 					const actionText =
 						detail.action === 'create'
-							? String(swiftCSV.messages.createAction || '').replace(/[：:]\s*$/, '')
-							: String(swiftCSV.messages.updateAction || '').replace(/[：:]\s*$/, '');
+							? String(feCsvImportExport.messages.createAction || '').replace(/[：:]\s*$/, '')
+							: String(feCsvImportExport.messages.updateAction || '').replace(/[：:]\s*$/, '');
 					const prefixText = currentDryRun === '1' ? dryRunPrefixText : importPrefixText;
 					const truncatedTitle = truncateTitle(detail.title);
-					const rowText = `${swiftCSV.messages.rowLabel}${detail.row}`;
+					const rowText = `${feCsvImportExport.messages.rowLabel}${detail.row}`;
 					const metaText = `${prefixText}:${rowText}:${actionText}`;
 					const logMessage = `[${metaText}]${truncatedTitle}`;
 					let logLevel = 'info';
@@ -362,7 +362,7 @@ function handleFileSelect(file) {
 
 	if (fileInfo && uploadArea && fileName && fileSize) {
 		fileName.textContent = file.name;
-		fileSize.textContent = SwiftCSVCore.formatFileSize(file.size);
+		fileSize.textContent = FeCsvImportExportCore.formatFileSize(file.size);
 		fileInfo.classList.add('visible');
 		uploadArea.classList.add('file-selected');
 	}
@@ -377,8 +377,8 @@ function startAjaxImport(importMethod) {
 	currentImportMethod = importMethod || 'wp_compatible';
 
 	// Reset flags for new import
-	window.swiftCSVLogsDisplayed = false;
-	window.swiftCSVLogTabsInitialized = false;
+	window.feCsvImportExportLogsDisplayed = false;
+	window.feCsvImportExportLogTabsInitialized = false;
 
 	// Reset global cumulative counters
 	globalCumulativeCreated = 0;
@@ -387,11 +387,11 @@ function startAjaxImport(importMethod) {
 
 	// Prepare tab state before writing initial logs.
 	initializeLogTabs();
-	window.swiftCSVLogTabsInitialized = true;
+	window.feCsvImportExportLogTabsInitialized = true;
 
 	// Clear import log
 	clearLog('import');
-	addLogEntry(swiftCSV.messages.startingImport, 'info', 'import');
+	addLogEntry(feCsvImportExport.messages.startingImport, 'info', 'import');
 
 	// Start progress bar animation immediately
 	const progressContainer = document.querySelector('.fe-csv-import-export-progress');
@@ -406,25 +406,25 @@ function startAjaxImport(importMethod) {
 	const file = document.querySelector('#ajax_csv_file')?.files[0];
 
 	if (!file) {
-		addLogEntry(swiftCSV.messages.noFileSelected, 'error', 'import');
+		addLogEntry(feCsvImportExport.messages.noFileSelected, 'error', 'import');
 		return;
 	}
 
 	const postType = document.querySelector('#ajax_import_post_type')?.value || 'post';
-	const updateExisting = document.querySelector('input[name="swift_csv_import_update_existing"]')
+	const updateExisting = document.querySelector('input[name="fe_csv_import_export_import_update_existing"]')
 		?.checked
 		? '1'
 		: '0';
 	const taxonomyFormat =
-		document.querySelector('input[name="swift_csv_import_taxonomy_format"]:checked')?.value ||
+		document.querySelector('input[name="fe_csv_import_export_import_taxonomy_format"]:checked')?.value ||
 		'name';
-	const dryRun = document.querySelector('input[name="swift_csv_import_dry_run"]')?.checked
+	const dryRun = document.querySelector('input[name="fe_csv_import_export_import_dry_run"]')?.checked
 		? '1'
 		: '0';
 	const enableLogs =
-		window.swiftCSV &&
-		window.swiftCSV.advancedSettings &&
-		window.swiftCSV.advancedSettings.enableLogs
+		window.feCsvImportExport &&
+		window.feCsvImportExport.advancedSettings &&
+		window.feCsvImportExport.advancedSettings.enableLogs
 			? '1'
 			: '0';
 
@@ -443,16 +443,16 @@ function startAjaxImport(importMethod) {
 	}
 
 	// Log import settings
-	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.fileInfo + ' ' + file.name, 'debug');
-	SwiftCSVCore.swiftCSVLog(
-		swiftCSV.messages.fileSize + ' ' + SwiftCSVCore.formatFileSize(file.size),
+	FeCsvImportExportCore.feCsvImportExportLog(feCsvImportExport.messages.fileInfo + ' ' + file.name, 'debug');
+	FeCsvImportExportCore.feCsvImportExportLog(
+		feCsvImportExport.messages.fileSize + ' ' + FeCsvImportExportCore.formatFileSize(file.size),
 		'debug'
 	);
-	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.postTypeInfo + ' ' + postType, 'debug');
+	FeCsvImportExportCore.feCsvImportExportLog(feCsvImportExport.messages.postTypeInfo + ' ' + postType, 'debug');
 	addLogEntry(
-		swiftCSV.messages.updateExistingInfo +
+		feCsvImportExport.messages.updateExistingInfo +
 			' ' +
-			(updateExisting === '1' ? swiftCSV.messages.yes : swiftCSV.messages.no),
+			(updateExisting === '1' ? feCsvImportExport.messages.yes : feCsvImportExport.messages.no),
 		'debug',
 		'import'
 	);
@@ -466,12 +466,12 @@ function startAjaxImport(importMethod) {
 			return;
 		}
 		const cancelFormData = new URLSearchParams({
-			action: 'swift_csv_cancel_import',
-			nonce: swiftCSV.nonce,
+			action: 'fe_csv_import_export_cancel_import',
+			nonce: feCsvImportExport.nonce,
 			import_session: importSession,
 		});
 
-		fetch(swiftCSV.ajaxUrl, {
+		fetch(feCsvImportExport.ajaxUrl, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
@@ -485,7 +485,7 @@ function startAjaxImport(importMethod) {
 	// Update button states
 	if (importBtn) {
 		importBtn.disabled = true;
-		importBtn.textContent = swiftCSV.messages.importing;
+		importBtn.textContent = feCsvImportExport.messages.importing;
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'inline-block';
@@ -493,10 +493,10 @@ function startAjaxImport(importMethod) {
 
 	// Cancel functionality
 	if (cancelBtn) {
-		const existingCancelHandler = cancelBtn._swiftCsvImportCancelHandler;
+		const existingCancelHandler = cancelBtn._feCsvImportExportImportCancelHandler;
 		if (existingCancelHandler) {
 			cancelBtn.removeEventListener('click', existingCancelHandler);
-			cancelBtn._swiftCsvImportCancelHandler = null;
+			cancelBtn._feCsvImportExportImportCancelHandler = null;
 		}
 
 		const cancelHandler = function () {
@@ -520,14 +520,14 @@ function startAjaxImport(importMethod) {
 			if (importBtn) {
 				importBtn.disabled = false;
 				importBtn.textContent =
-					importBtn.dataset.originalText || swiftCSV.messages.startImport;
+					importBtn.dataset.originalText || feCsvImportExport.messages.startImport;
 			}
 			if (cancelBtn) {
 				cancelBtn.style.display = 'none';
 			}
 		};
 
-		cancelBtn._swiftCsvImportCancelHandler = cancelHandler;
+		cancelBtn._feCsvImportExportImportCancelHandler = cancelHandler;
 		cancelBtn.addEventListener('click', cancelHandler, { once: true });
 	}
 
@@ -596,11 +596,11 @@ function processImportChunk(
 		return;
 	}
 
-	SwiftCSVCore.swiftCSVLog(swiftCSV.messages.processingChunk + ' ' + startRow, 'debug');
+	FeCsvImportExportCore.feCsvImportExportLog(feCsvImportExport.messages.processingChunk + ' ' + startRow, 'debug');
 
 	const formData = new FormData();
-	formData.append('action', 'swift_csv_ajax_import');
-	formData.append('nonce', swiftCSV.nonce);
+	formData.append('action', 'fe_csv_import_export_ajax_import');
+	formData.append('nonce', feCsvImportExport.nonce);
 	formData.append('import_session', importSession);
 
 	// Optional: Pro pre-action re-auth token (sent only on first request).
@@ -608,12 +608,12 @@ function processImportChunk(
 		const reauthTokenEl = document.getElementById('fe-csv-import-export-pro-reauth-token-import');
 		const reauthToken = reauthTokenEl ? reauthTokenEl.value : '';
 		if (reauthToken) {
-			formData.append('swift_csv_pro_reauth_token', reauthToken);
+			formData.append('fe_csv_import_export_pro_reauth_token', reauthToken);
 		}
 		const execTokenEl = document.getElementById('fe-csv-import-export-pro-exec-password-token-import');
 		const execToken = execTokenEl ? execTokenEl.value : '';
 		if (execToken) {
-			formData.append('swift_csv_pro_exec_password_token', execToken);
+			formData.append('fe_csv_import_export_pro_exec_password_token', execToken);
 		}
 	}
 
@@ -633,7 +633,7 @@ function processImportChunk(
 	formData.append('cumulative_updated', cumulativeUpdated);
 	formData.append('cumulative_errors', cumulativeErrors);
 
-	fetch(swiftCSV.ajaxUrl, {
+	fetch(feCsvImportExport.ajaxUrl, {
 		method: 'POST',
 		body: formData,
 		signal: abortController.signal,
@@ -669,10 +669,10 @@ function processImportChunk(
 					);
 				} else {
 					stopImportLogPolling({ abortRequest: false });
-					if (data.recent_logs && !window.swiftCSVLogsDisplayed) {
+					if (data.recent_logs && !window.feCsvImportExportLogsDisplayed) {
 						try {
 							displayImportLogs(data.recent_logs, data);
-							window.swiftCSVLogsDisplayed = true;
+							window.feCsvImportExportLogsDisplayed = true;
 						} catch (e) {
 							console.error('Failed to display import logs:', e);
 						}
@@ -681,12 +681,12 @@ function processImportChunk(
 				}
 			} else {
 				// Handle error
-				addLogEntry(swiftCSV.messages.importError + ' ' + data.error, 'error', 'import');
+				addLogEntry(feCsvImportExport.messages.importError + ' ' + data.error, 'error', 'import');
 				stopImportLogPolling({ abortRequest: true });
 
 				if (importBtn) {
 					importBtn.disabled = false;
-					importBtn.textContent = swiftCSV.messages.startImport;
+					importBtn.textContent = feCsvImportExport.messages.startImport;
 				}
 				if (cancelBtn) {
 					cancelBtn.style.display = 'none';
@@ -697,20 +697,20 @@ function processImportChunk(
 			// Handle fetch errors including cancellation
 			if (error.name === 'AbortError') {
 				// This is expected when user cancels - don't show as error
-				addLogEntry(swiftCSV.messages.importCancelledByUser, 'warning', 'import');
+				addLogEntry(feCsvImportExport.messages.importCancelledByUser, 'warning', 'import');
 				stopImportLogPolling({ abortRequest: true });
 				return;
 			}
 
 			// Handle other errors
 			const errorMessage = error.message || 'Unknown error occurred';
-			addLogEntry(swiftCSV.messages.importError + ' ' + errorMessage, 'error', 'import');
+			addLogEntry(feCsvImportExport.messages.importError + ' ' + errorMessage, 'error', 'import');
 			stopImportLogPolling({ abortRequest: true });
 
 			if (importBtn) {
 				importBtn.disabled = false;
 				importBtn.textContent =
-					importBtn.dataset.originalText || swiftCSV.messages.startImport;
+					importBtn.dataset.originalText || feCsvImportExport.messages.startImport;
 			}
 			if (cancelBtn) {
 				cancelBtn.style.display = 'none';
@@ -728,7 +728,7 @@ function updateImportProgress(data, startTime) {
 	// Find progress elements in the new UI structure
 	const progressContainer = document.querySelector('.fe-csv-import-export-progress');
 	if (!progressContainer) {
-		SwiftCSVCore.swiftCSVLog('Progress container not found');
+		FeCsvImportExportCore.feCsvImportExportLog('Progress container not found');
 		return;
 	}
 
@@ -764,9 +764,9 @@ function updateImportProgress(data, startTime) {
 		const effectiveStartTime =
 			startTime && typeof startTime === 'number' ? startTime : Date.now();
 		const elapsedSeconds = Math.floor((Date.now() - effectiveStartTime) / 1000);
-		const processedLabel = swiftCSV.messages.processedInfo || 'Processed';
-		const rowsLabel = swiftCSV.messages.rowsLabel || 'rows';
-		const secondsLabel = swiftCSV.messages.secondsLabel || 's';
+		const processedLabel = feCsvImportExport.messages.processedInfo || 'Processed';
+		const rowsLabel = feCsvImportExport.messages.rowsLabel || 'rows';
+		const secondsLabel = feCsvImportExport.messages.secondsLabel || 's';
 		progressStats.textContent = `${percentage}% ${processedLabel} ${data.processed}/${data.total} ${rowsLabel} (${elapsedSeconds}${secondsLabel})`;
 	}
 
@@ -804,9 +804,9 @@ function updateImportProgress(data, startTime) {
 	}
 
 	// Initialize tabs if not already done
-	if (!window.swiftCSVLogTabsInitialized) {
+	if (!window.feCsvImportExportLogTabsInitialized) {
 		initializeLogTabs();
-		window.swiftCSVLogTabsInitialized = true;
+		window.feCsvImportExportLogTabsInitialized = true;
 	}
 }
 
@@ -837,9 +837,9 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	// Add appropriate completion message
 	if (!hasTabbedImportLogs) {
 		if (isDryRun) {
-			addLogEntry('[Dry Run] ' + swiftCSV.messages.dryRunCompleted, 'success', 'import');
+			addLogEntry('[Dry Run] ' + feCsvImportExport.messages.dryRunCompleted, 'success', 'import');
 		} else {
-			addLogEntry(swiftCSV.messages.importCompleted, 'success', 'import');
+			addLogEntry(feCsvImportExport.messages.importCompleted, 'success', 'import');
 		}
 	}
 
@@ -847,25 +847,25 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	if (!hasTabbedImportLogs) {
 		if (data.cumulative_created !== undefined) {
 			const createdMessage = isDryRun
-				? '[Dry Run] ' + swiftCSV.messages.dryRunCreated + ' '
+				? '[Dry Run] ' + feCsvImportExport.messages.dryRunCreated + ' '
 				: (
-						swiftCSV.messages.dryRunCreated ||
-						swiftCSV.messages.createdInfo ||
-						swiftCSV.messages.totalImported ||
+						feCsvImportExport.messages.dryRunCreated ||
+						feCsvImportExport.messages.createdInfo ||
+						feCsvImportExport.messages.totalImported ||
 						''
 					).replace(/:\s*$/, '') + ' ';
 			addLogEntry(createdMessage + data.cumulative_created, 'success', 'import');
 		}
 		if (data.cumulative_updated !== undefined) {
 			const updatedMessage = isDryRun
-				? '[Dry Run] ' + swiftCSV.messages.dryRunUpdated + ' '
-				: swiftCSV.messages.totalUpdated + ' ';
+				? '[Dry Run] ' + feCsvImportExport.messages.dryRunUpdated + ' '
+				: feCsvImportExport.messages.totalUpdated + ' ';
 			addLogEntry(updatedMessage + data.cumulative_updated, 'success', 'import');
 		}
 		if (data.cumulative_errors !== undefined) {
 			const errorMessage = isDryRun
-				? '[Dry Run] ' + swiftCSV.messages.dryRunErrors + ' '
-				: swiftCSV.messages.totalErrors + ' ';
+				? '[Dry Run] ' + feCsvImportExport.messages.dryRunErrors + ' '
+				: feCsvImportExport.messages.totalErrors + ' ';
 			addLogEntry(
 				errorMessage + data.cumulative_errors,
 				data.cumulative_errors > 0 ? 'warning' : 'success',
@@ -877,7 +877,7 @@ function completeAjaxImport(data, importBtn, cancelBtn) {
 	// Reset buttons
 	if (importBtn) {
 		importBtn.disabled = false;
-		importBtn.textContent = importBtn.dataset.originalText || swiftCSV.messages.startImport;
+		importBtn.textContent = importBtn.dataset.originalText || feCsvImportExport.messages.startImport;
 	}
 	if (cancelBtn) {
 		cancelBtn.style.display = 'none';
@@ -918,14 +918,14 @@ function displayImportLogs(recentLogs, summaryData = {}) {
 		return String(label || '').replace(/[：:]\s*$/, '');
 	}
 
-	const dryRunPrefixText = swiftCSV.messages.dryRunPrefix || 'Test';
-	const importPrefixText = swiftCSV.messages.importPrefix || 'Import';
-	const rowLabelText = swiftCSV.messages.rowLabel || 'Row';
-	const dryRunCompleteText = swiftCSV.messages.dryRunCompleted || 'Test completed!';
-	const importCompleteText = swiftCSV.messages.importComplete || 'Import Complete!';
-	const createdLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunCreated || 'Created');
-	const updatedLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunUpdated || 'Updated');
-	const errorsLabelText = sanitizeSummaryLabel(swiftCSV.messages.dryRunErrors || 'Errors');
+	const dryRunPrefixText = feCsvImportExport.messages.dryRunPrefix || 'Test';
+	const importPrefixText = feCsvImportExport.messages.importPrefix || 'Import';
+	const rowLabelText = feCsvImportExport.messages.rowLabel || 'Row';
+	const dryRunCompleteText = feCsvImportExport.messages.dryRunCompleted || 'Test completed!';
+	const importCompleteText = feCsvImportExport.messages.importComplete || 'Import Complete!';
+	const createdLabelText = sanitizeSummaryLabel(feCsvImportExport.messages.dryRunCreated || 'Created');
+	const updatedLabelText = sanitizeSummaryLabel(feCsvImportExport.messages.dryRunUpdated || 'Updated');
+	const errorsLabelText = sanitizeSummaryLabel(feCsvImportExport.messages.dryRunErrors || 'Errors');
 
 	// Clear all panels first
 	if (createdPanel) {
@@ -945,7 +945,7 @@ function displayImportLogs(recentLogs, summaryData = {}) {
 		recentLogs.errors?.items?.length > 0;
 
 	if (!hasAnyLogs) {
-		const readyMessage = swiftCSV.messages.readyToImport || 'Ready to start import...';
+		const readyMessage = feCsvImportExport.messages.readyToImport || 'Ready to start import...';
 		if (createdPanel) {
 			createdPanel.innerHTML = createLogEntry(readyMessage, 'info');
 		}
@@ -973,12 +973,12 @@ function displayImportLogs(recentLogs, summaryData = {}) {
 
 	// Get update checkbox state
 	const updateExisting = document.querySelector(
-		'input[name="swift_csv_import_update_existing"]'
+		'input[name="fe_csv_import_export_import_update_existing"]'
 	)?.checked;
 
 	// Add start log to appropriate panel
 	if (isDryRun) {
-		const startMessage = `${dryRunPrefixText}:${swiftCSV.messages.startingImport || ''}`;
+		const startMessage = `${dryRunPrefixText}:${feCsvImportExport.messages.startingImport || ''}`;
 
 		if (updateExisting) {
 			// When update is checked, put logs in updated panel
@@ -990,7 +990,7 @@ function displayImportLogs(recentLogs, summaryData = {}) {
 			createdPanel.innerHTML = createLogEntry(startMessage, 'info');
 		}
 	} else {
-		const startMessage = `${importPrefixText}:${swiftCSV.messages.startingImport || ''}`;
+		const startMessage = `${importPrefixText}:${feCsvImportExport.messages.startingImport || ''}`;
 
 		if (updateExisting) {
 			if (updatedPanel) {
@@ -1008,7 +1008,7 @@ function displayImportLogs(recentLogs, summaryData = {}) {
 				const prefixText = isDryRun ? dryRunPrefixText : importPrefixText;
 				const truncatedTitle = truncateTitle(log.title);
 				const metaText = `${prefixText}:${rowLabelText}${log.row}:${sanitizeActionLabel(
-					swiftCSV.messages.createAction
+					feCsvImportExport.messages.createAction
 				)}`;
 				const message = `[${metaText}]${truncatedTitle}`;
 				return createLogEntry(message, 'success');
@@ -1026,7 +1026,7 @@ function displayImportLogs(recentLogs, summaryData = {}) {
 				const prefixText = isDryRun ? dryRunPrefixText : importPrefixText;
 				const truncatedTitle = truncateTitle(log.title);
 				const metaText = `${prefixText}:${rowLabelText}${log.row}:${sanitizeActionLabel(
-					swiftCSV.messages.updateAction
+					feCsvImportExport.messages.updateAction
 				)}`;
 				const message = `[${metaText}]${truncatedTitle}`;
 				return createLogEntry(message, 'update');
@@ -1048,7 +1048,7 @@ function displayImportLogs(recentLogs, summaryData = {}) {
 				const prefixText = isDryRun ? dryRunPrefixText : importPrefixText;
 				const truncatedTitle = truncateTitle(log.title);
 				const metaText = `${prefixText}:${rowLabelText}${log.row}:${sanitizeActionLabel(
-					swiftCSV.messages.errorAction
+					feCsvImportExport.messages.errorAction
 				)}`;
 				const message = `[${metaText}]${truncatedTitle}-${log.details}`;
 				return createLogEntry(message, 'error');
@@ -1135,7 +1135,7 @@ function initializeLogTabs() {
 
 	// Set default active tab based on update checkbox state
 	const updateExisting = document.querySelector(
-		'input[name="swift_csv_import_update_existing"]'
+		'input[name="fe_csv_import_export_import_update_existing"]'
 	)?.checked;
 	const defaultTab = document.querySelector(
 		updateExisting ? '.log-tab[data-tab="updated"]' : '.log-tab[data-tab="created"]'
@@ -1152,7 +1152,7 @@ function initializeLogTabs() {
 	});
 
 	// Add change listener to update checkbox to switch default tab
-	const updateCheckbox = document.querySelector('input[name="swift_csv_import_update_existing"]');
+	const updateCheckbox = document.querySelector('input[name="fe_csv_import_export_import_update_existing"]');
 	if (updateCheckbox) {
 		updateCheckbox.addEventListener('change', () => {
 			const newDefaultTab = document.querySelector(
@@ -1168,7 +1168,7 @@ function initializeLogTabs() {
 }
 
 // Export for use in main script
-window.SwiftCSVImport = {
+window.FeCsvImportExportImport = {
 	initFileUpload,
 	handleFileSelect,
 	handleAjaxImport,

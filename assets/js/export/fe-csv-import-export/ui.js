@@ -1,15 +1,15 @@
 /**
- * Swift CSV Export Unified UI Module
+ * FE CSV Import & Export Export Unified UI Module
  *
  * Provides UI management functions for the unified export system,
  * including button state management and user feedback.
  *
- * @module SwiftCSVExportUnifiedModules.UI
+ * @module FeCsvImportExportExportUnifiedModules.UI
  */
 (function () {
-	window.SwiftCSVExportUnifiedModules = window.SwiftCSVExportUnifiedModules || {};
+	window.FeCsvImportExportExportUnifiedModules = window.FeCsvImportExportExportUnifiedModules || {};
 
-	window.SwiftCSVExportUnifiedModules.UI = {
+	window.FeCsvImportExportExportUnifiedModules.UI = {
 		/**
 		 * Show completion state for export button
 		 *
@@ -18,11 +18,11 @@
 		showComplete(button) {
 			// For SQL export button, respect Pro license status
 			if (button.id === 'direct-sql-export-btn') {
-				button.disabled = !swiftCSV.enableDirectSqlExport;
+				button.disabled = !feCsvImportExport.enableDirectSqlExport;
 			} else {
 				button.disabled = false;
 			}
-			button.textContent = button.dataset.originalText || swiftCSV.highSpeedExportText;
+			button.textContent = button.dataset.originalText || feCsvImportExport.highSpeedExportText;
 		},
 
 		/**
@@ -34,24 +34,24 @@
 		showError(button, errorMessage) {
 			// For SQL export button, respect Pro license status
 			if (button.id === 'direct-sql-export-btn') {
-				button.disabled = !swiftCSV.enableDirectSqlExport;
+				button.disabled = !feCsvImportExport.enableDirectSqlExport;
 			} else {
 				button.disabled = false;
 			}
-			button.textContent = button.dataset.originalText || swiftCSV.highSpeedExportText;
+			button.textContent = button.dataset.originalText || feCsvImportExport.highSpeedExportText;
 			const failedLabel =
-				swiftCSV && swiftCSV.messages && swiftCSV.messages.failed
-					? String(swiftCSV.messages.failed)
+				feCsvImportExport && feCsvImportExport.messages && feCsvImportExport.messages.failed
+					? String(feCsvImportExport.messages.failed)
 					: '';
 			const prefix = failedLabel ? failedLabel + ':\n' : '';
 			let message = String(errorMessage || '');
 			// Translate known Pro-only runtime error message.
 			if (
-				message.indexOf('Direct SQL runtime is available in Swift CSV Pro only.') !== -1 &&
-				swiftCSV &&
-				swiftCSV.directSqlRuntimeUnavailable
+				message.indexOf('Direct SQL runtime is available in FE CSV Import & Export Pro only.') !== -1 &&
+				feCsvImportExport &&
+				feCsvImportExport.directSqlRuntimeUnavailable
 			) {
-				message = String(swiftCSV.directSqlRuntimeUnavailable);
+				message = String(feCsvImportExport.directSqlRuntimeUnavailable);
 			}
 			if (
 				failedLabel &&

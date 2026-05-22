@@ -16,4 +16,4 @@ assignees: ''
 ## Environment (optional)
 
 - WordPress version:
-- Swift CSV version:
+- FE CSV Import & Export version:

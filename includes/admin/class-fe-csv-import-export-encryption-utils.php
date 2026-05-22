@@ -1,11 +1,11 @@
 <?php
 /**
- * Encryption utilities for Swift CSV
+ * Encryption utilities for FE CSV Import & Export
  *
  * Provides secure encryption/decryption for sensitive data like license keys.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Encryption utilities class
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Encryption_Utils {
 

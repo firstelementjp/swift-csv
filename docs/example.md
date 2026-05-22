@@ -1,12 +1,12 @@
 # 💡 Examples
 
-This page shows practical CSV examples for the current Swift CSV implementation.
+This page shows practical CSV examples for the current FE CSV Import & Export implementation.
 
 ## Admin Usage Flow
 
 ### Import
 
-1. Open **Admin Dashboard → Tools → Swift CSV → Import**
+1. Open **Admin Dashboard → Tools → FE CSV Import & Export → Import**
 2. Select the target post type
 3. Upload the CSV file
 4. Choose update and dry-run options as needed
@@ -14,7 +14,7 @@ This page shows practical CSV examples for the current Swift CSV implementation.
 
 ### Export
 
-1. Open **Admin Dashboard → Tools → Swift CSV → Export**
+1. Open **Admin Dashboard → Tools → FE CSV Import & Export → Export**
 2. Select the post type
 3. Select post status and export scope
 4. Optionally set an export limit

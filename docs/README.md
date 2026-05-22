@@ -1,6 +1,6 @@
-# 🚀 Swift CSV
+# 🚀 FE CSV Import & Export
 
-![Banner](https://github.com/firstelementjp/fe-csv-import-export/blob/main/assets/images/swift-csv-banner.jpeg?raw=true)
+![Banner](https://github.com/firstelementjp/fe-csv-import-export/blob/main/assets/images/fe-csv-import-export-banner.jpeg?raw=true)
 
 > CSV import/export for WordPress with localized admin UI, automatic batch processing, and developer extensibility.
 
@@ -8,7 +8,7 @@
 [![Version](https://img.shields.io/badge/version-0.9.9.2-green.svg)](https://github.com/firstelementjp/fe-csv-import-export/releases)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 
-Swift CSV is a WordPress plugin for importing and exporting post data as CSV from the admin area.
+FE CSV Import & Export is a WordPress plugin for importing and exporting post data as CSV from the admin area.
 
 ## ✨ Features
 
@@ -29,13 +29,13 @@ Swift CSV is a WordPress plugin for importing and exporting post data as CSV fro
 
 ## 📥 Download
 
-[Download swift-csv-0.9.9.2.zip](https://github.com/firstelementjp/fe-csv-import-export/releases/download/v0.9.9.2/swift-csv-0.9.9.2.zip){: .download-btn }
+[Download fe-csv-import-export-0.9.9.2.zip](https://github.com/firstelementjp/fe-csv-import-export/releases/download/v0.9.9.2/fe-csv-import-export-0.9.9.2.zip){: .download-btn }
 
 ## 🚀 Quick Start
 
-1. Download `swift-csv-0.9.9.2.zip`
+1. Download `fe-csv-import-export-0.9.9.2.zip`
 2. Upload and activate the plugin in WordPress
-3. Open **Tools → Swift CSV**
+3. Open **Tools → FE CSV Import & Export**
 4. Run a small test import or export first
 
 For the import format, note that the `ID` column is required. Use an empty value for new posts.

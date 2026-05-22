@@ -1,14 +1,14 @@
 <?php
 /**
- * Direct SQL Import Class for Swift CSV
+ * Direct SQL Import Class for FE CSV Import & Export
  *
  * Legacy placeholder for Direct SQL import functionality.
- * This feature has been moved to Swift CSV Pro.
+ * This feature has been moved to FE CSV Import & Export Pro.
  * The class exists for compatibility but shows error messages.
  *
  * @since 0.9.8
- * @package Swift_CSV
- * @deprecated This functionality is now available in Swift CSV Pro.
+ * @package FE_CSV_Import_Export
+ * @deprecated This functionality is now available in FE CSV Import & Export Pro.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,12 +19,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Direct SQL Import Class
  *
  * Legacy compatibility class for Direct SQL import.
- * All methods throw exceptions or show errors directing users to Swift CSV Pro.
+ * All methods throw exceptions or show errors directing users to FE CSV Import & Export Pro.
  * This class maintains API compatibility while preventing usage.
  *
  * @since 0.9.8
- * @package Swift_CSV
- * @deprecated Use Swift CSV Pro for Direct SQL import functionality.
+ * @package FE_CSV_Import_Export
+ * @deprecated Use FE CSV Import & Export Pro for Direct SQL import functionality.
  */
 class Swift_CSV_Import_Direct_SQL extends Swift_CSV_Import_Base {
 

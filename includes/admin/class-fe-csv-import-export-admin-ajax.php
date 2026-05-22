@@ -2,10 +2,10 @@
 /**
  * Admin AJAX handler
  *
- * Handles AJAX endpoints for the Swift CSV admin pages.
+ * Handles AJAX endpoints for the FE CSV Import & Export admin pages.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Admin AJAX handler
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Admin_Ajax {
 
@@ -45,11 +45,15 @@ class FE_CSV_Import_Export_Admin_Ajax {
 		$uninstall_remove_all_data = isset( $_POST['uninstall_remove_all_data'] )
 			&& in_array( (string) wp_unslash( $_POST['uninstall_remove_all_data'] ), [ '1', 'true' ], true );
 
+		$updraft_backup_before_import = isset( $_POST['updraft_backup_before_import'] )
+			&& in_array( (string) wp_unslash( $_POST['updraft_backup_before_import'] ), [ '1', 'true' ], true );
+
 		$result = FE_CSV_Import_Export_Settings_Helper::update_section(
 			'advanced',
 			[
-				'enable_logs'               => $enable_logs,
-				'uninstall_remove_all_data' => $uninstall_remove_all_data,
+				'enable_logs'                  => $enable_logs,
+				'uninstall_remove_all_data'    => $uninstall_remove_all_data,
+				'updraft_backup_before_import' => $updraft_backup_before_import,
 			]
 		);
 
@@ -96,7 +100,9 @@ class FE_CSV_Import_Export_Admin_Ajax {
 		}
 
 		$token         = class_exists( 'FE_CSV_Import_Export_License_Handler' ) ? FE_CSV_Import_Export_License_Handler::extract_activation_token( $result['data'] ?? [] ) : '';
-		$remote_status = isset( $result['status'] ) ? (string) $result['status'] : 'inactive';
+		$remote_status = class_exists( 'FE_CSV_Import_Export_License_Handler' )
+			? FE_CSV_Import_Export_License_Handler::normalize_license_status_from_result( $result )
+			: (string) ( $result['status'] ?? 'inactive' );
 
 		$all_licenses = get_option( 'fe_csv_import_export_pro_license', [] );
 		$stored_key   = class_exists( 'FE_CSV_Import_Export_License_Handler' ) ? FE_CSV_Import_Export_License_Handler::prepare_license_key_for_storage( $license_key ) : $license_key;

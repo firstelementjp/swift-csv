@@ -2,7 +2,7 @@
 
 ## #007 Temporary CSV Files Security Risk (2026-02-10)
 
-**Symptom**: CSV files remain in `wp-content/uploads/swift-csv-temp/` after import errors or completion, creating potential data exposure.
+**Symptom**: CSV files remain in `wp-content/uploads/fe-csv-import-export-temp/` after import errors or completion, creating potential data exposure.
 
 **Cause**: Missing cleanup on one or more import error/exception/completion paths, especially when temp file handling is split across file processor, unified AJAX handler, and response manager classes.
 
@@ -23,7 +23,7 @@ if ($file_path && file_exists($file_path)) {
 wp_send_json_error(['message' => $message]);
 ```
 
-**Fix** (`swift-csv.php` and temp directory setup — defense in depth):
+**Fix** (`fe-csv-import-export.php` and temp directory setup — defense in depth):
 
 ```php
 // .htaccess to deny web access

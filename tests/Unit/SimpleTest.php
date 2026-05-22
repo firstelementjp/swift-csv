@@ -1,8 +1,8 @@
 <?php
 /**
- * Simple standalone tests for Swift CSV plugin
+ * Simple standalone tests for FE CSV Import & Export plugin
  *
- * @package Swift_CSV\Tests\Unit
+ * @package FE_CSV_Import_Export\Tests\Unit
  */
 
 use PHPUnit\Framework\TestCase;
@@ -21,7 +21,7 @@ class SimpleTest extends TestCase {
 	 * @return void
 	 */
 	public function test_plugin_main_file_exists() {
-		$plugin_file = dirname( dirname( __DIR__ ) ) . '/swift-csv.php';
+		$plugin_file = dirname( dirname( __DIR__ ) ) . '/fe-csv-import-export.php';
 		$this->assertTrue( file_exists( $plugin_file ), 'Main plugin file should exist' );
 		$this->assertTrue( is_readable( $plugin_file ), 'Main plugin file should be readable' );
 	}
@@ -33,13 +33,13 @@ class SimpleTest extends TestCase {
 	 * @return void
 	 */
 	public function test_plugin_header_info() {
-		$plugin_file    = dirname( dirname( __DIR__ ) ) . '/swift-csv.php';
+		$plugin_file    = dirname( dirname( __DIR__ ) ) . '/fe-csv-import-export.php';
 		$plugin_content = file_get_contents( $plugin_file );
 
 		// Check for plugin header comments
 		$this->assertStringContainsString( 'Plugin Name:', $plugin_content, 'Plugin name header should exist' );
 		$this->assertStringContainsString( 'Version:', $plugin_content, 'Version header should exist' );
-		$this->assertStringContainsString( 'Swift CSV', $plugin_content, 'Plugin name should be Swift CSV' );
+		$this->assertStringContainsString( 'FE CSV Import & Export', $plugin_content, 'Plugin name should be FE CSV Import & Export' );
 	}
 
 	/**
@@ -63,7 +63,7 @@ class SimpleTest extends TestCase {
 	 * @return void
 	 */
 	public function test_plugin_file_syntax() {
-		$plugin_file = dirname( dirname( __DIR__ ) ) . '/swift-csv.php';
+		$plugin_file = dirname( dirname( __DIR__ ) ) . '/fe-csv-import-export.php';
 		$output      = [];
 		$return_code = 0;
 

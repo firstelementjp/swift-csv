@@ -1,10 +1,10 @@
 <?php
 /**
- * PHPUnit bootstrap for Swift CSV
+ * PHPUnit bootstrap for FE CSV Import & Export
  *
  * This file prepares a WordPress-aware environment for plugin tests.
  *
- * @package Swift_CSV\Tests
+ * @package FE_CSV_Import_Export\Tests
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -49,54 +49,54 @@ require_once $wp_tests_dir . '/includes/functions.php';
 
 
 /**
- * Load the Swift CSV plugin for the WordPress test bootstrap
+ * Load the FE CSV Import & Export plugin for the WordPress test bootstrap
  *
  * @return void
  */
-function swift_csv_tests_load_plugin() {
-	require_once dirname( __DIR__ ) . '/swift-csv.php';
-	if ( function_exists( 'swift_csv_init' ) ) {
-		swift_csv_init();
+function fe_csv_import_export_tests_load_plugin() {
+	require_once dirname( __DIR__ ) . '/fe-csv-import-export.php';
+	if ( function_exists( 'fe_csv_import_export_init' ) ) {
+		fe_csv_import_export_init();
 	}
 }
 
-tests_add_filter( 'muplugins_loaded', 'swift_csv_tests_load_plugin' );
+tests_add_filter( 'muplugins_loaded', 'fe_csv_import_export_tests_load_plugin' );
 
 require_once $wp_tests_dir . '/includes/bootstrap.php';
 
-$swift_csv_results_dir = dirname( __DIR__ ) . '/tests/results';
+$fe_csv_import_export_results_dir = dirname( __DIR__ ) . '/tests/results';
 
-if ( ! is_dir( $swift_csv_results_dir ) ) {
-	wp_mkdir_p( $swift_csv_results_dir );
+if ( ! is_dir( $fe_csv_import_export_results_dir ) ) {
+	wp_mkdir_p( $fe_csv_import_export_results_dir );
 }
 
-if ( ! function_exists( 'swift_csv' ) ) {
+if ( ! function_exists( 'fe_csv_import_export' ) ) {
 	/**
-	 * Get a singleton-like Swift CSV instance for tests
+	 * Get a singleton-like FE CSV Import & Export instance for tests
 	 *
-	 * @return \Swift_CSV|null
+	 * @return \FE_CSV_Import_Export|null
 	 */
-	function swift_csv() {
+	function fe_csv_import_export() {
 		static $instance = null;
-		if ( null === $instance && class_exists( 'Swift_CSV' ) ) {
-			$instance = new \Swift_CSV();
+		if ( null === $instance && class_exists( 'FE_CSV_Import_Export' ) ) {
+			$instance = new \FE_CSV_Import_Export();
 		}
 
 		return $instance;
 	}
 }
 
-if ( ! function_exists( 'swift_csv_cleanup' ) ) {
+if ( ! function_exists( 'fe_csv_import_export_cleanup' ) ) {
 	/**
 	 * Remove transient test data created during runs
 	 *
 	 * @return void
 	 */
-	function swift_csv_cleanup() {
+	function fe_csv_import_export_cleanup() {
 		global $wpdb;
 
 		$wpdb->query( "DELETE FROM {$wpdb->posts} WHERE post_title LIKE 'test_%'" );
 		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE 'test_%'" );
-		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'swift_csv_test_%'" );
+		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'fe_csv_import_export_test_%'" );
 	}
 }

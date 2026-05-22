@@ -1,6 +1,6 @@
 # Developer Guide
 
-This guide is the public entry point for developers who want to understand or extend Swift CSV.
+This guide is the public entry point for developers who want to understand or extend FE CSV Import & Export.
 
 It complements the following documents:
 
@@ -12,7 +12,7 @@ It complements the following documents:
 
 ## Overview
 
-Swift CSV is a WordPress plugin for CSV import and export with support for:
+FE CSV Import & Export is a WordPress plugin for CSV import and export with support for:
 
 - Custom post types
 - Taxonomies
@@ -31,7 +31,7 @@ Swift CSV is a WordPress plugin for CSV import and export with support for:
 ## Repository Layout
 
 ```text
-swift-csv/
+fe-csv-import-export/
 ├── assets/
 │   ├── css/                 # Admin styles
 │   └── js/                  # Import/export/admin scripts
@@ -39,7 +39,7 @@ swift-csv/
 ├── includes/                # PHP classes and runtime logic
 ├── languages/               # Translation files
 ├── tests/                   # PHPUnit tests
-├── swift-csv.php            # Plugin bootstrap
+├── fe-csv-import-export.php            # Plugin bootstrap
 └── uninstall.php            # Cleanup on uninstall
 ```
 
@@ -104,7 +104,7 @@ Recent implementation details that affect debugging and extension work:
 
 ### Hook-Based Extensibility
 
-Swift CSV is designed so that Free and Pro functionality can coexist without tightly coupling implementations.
+FE CSV Import & Export is designed so that Free and Pro functionality can coexist without tightly coupling implementations.
 
 Common extension patterns include:
 

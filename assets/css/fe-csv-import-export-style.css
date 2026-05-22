@@ -1,4 +1,4 @@
-/* Swift CSV Admin Styles */
+/* FE CSV Import & Export Admin Styles */
 
 /* ==========================================================================
 	Header
@@ -75,7 +75,7 @@
 #plugin_header .icon {
 	-webkit-font-smoothing: antialiased;
 	font: normal 17px / 1 'dashicons';
-	color: #46aae6;
+	color: var(--wp-admin-theme-color);
 	text-align: center;
 }
 
@@ -126,6 +126,7 @@
 #plugin_header #plugin_header_title span {
 	color: #3a9b6a;
 	margin-left: 0.3rem;
+	margin-right: 0.3rem;
 }
 
 #plugin_header #plugin_header_title span.pro-badge {
@@ -164,7 +165,7 @@
 .nav-tab {
 	border: none;
 	padding: 0.5em 1em;
-	color: #0071a1;
+	color: var(--wp-admin-theme-color);
 	margin-bottom: 2px;
 	background: #f9f9f9;
 	font-size: 13px;

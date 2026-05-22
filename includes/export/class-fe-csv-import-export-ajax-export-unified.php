@@ -1,12 +1,12 @@
 <?php
 /**
- * Unified AJAX Export Handler for Swift CSV
+ * Unified AJAX Export Handler for FE CSV Import & Export
  *
  * Handles both standard and Direct SQL export methods through a single AJAX endpoint.
  * Routes requests based on the 'export_method' parameter.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Includes nonce verification, user capability checks, and rate limiting.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Ajax_Export_Unified {
 
@@ -119,7 +119,7 @@ class FE_CSV_Import_Export_Ajax_Export_Unified {
 			while ( function_exists( 'ob_get_level' ) && function_exists( 'ob_end_clean' ) && ob_get_level() > $initial_ob_level ) {
 				ob_end_clean();
 			}
-			wp_send_json_error( 'Direct SQL runtime is available in Swift CSV Pro only.' );
+			wp_send_json_error( 'Direct SQL runtime is available in FE CSV Import & Export Pro only.' );
 			return;
 		}
 

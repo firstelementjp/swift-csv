@@ -1,5 +1,5 @@
 /**
- * Swift CSV Export Scripts - AJAX Helper Module
+ * FE CSV Import & Export Export Scripts - AJAX Helper Module
  *
  * Provides a thin wrapper for posting export requests to the WordPress AJAX
  * endpoint, shared by the unified export UI modules.
@@ -8,11 +8,11 @@
 
 (function () {
 	/**
-	 * @namespace SwiftCSVExportUnifiedModules
+	 * @namespace FeCsvImportExportExportUnifiedModules
 	 */
-	window.SwiftCSVExportUnifiedModules = window.SwiftCSVExportUnifiedModules || {};
+	window.FeCsvImportExportExportUnifiedModules = window.FeCsvImportExportExportUnifiedModules || {};
 
-	window.SwiftCSVExportUnifiedModules.Ajax = {
+	window.FeCsvImportExportExportUnifiedModules.Ajax = {
 		/**
 		 * Send a POST request with form data to the WordPress AJAX endpoint.
 		 *
@@ -22,7 +22,7 @@
 		 */
 		postForm(formData, extraOptions) {
 			return fetch(
-				swiftCSV.ajaxUrl,
+				feCsvImportExport.ajaxUrl,
 				Object.assign(
 					{
 						method: 'POST',

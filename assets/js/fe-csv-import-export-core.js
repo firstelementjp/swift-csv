@@ -1,5 +1,5 @@
 /**
- * Swift CSV Admin Scripts - Core
+ * FE CSV Import & Export Admin Scripts - Core
  *
  * Common utilities and functions shared across all modules.
  *
@@ -29,10 +29,10 @@ function __(text) {
  * @param {string} message - The message to log
  * @param {string} type    - Log type (info, warn, error)
  */
-function swiftCSVLog(message, type = 'info') {
-	if (window.swiftCSV && window.swiftCSV.debug) {
+function feCsvImportExportLog(message, type = 'info') {
+	if (window.feCsvImportExport && window.feCsvImportExport.debug) {
 		const timestamp = new Date().toISOString();
-		const logMessage = `[Swift CSV] ${message}`;
+		const logMessage = `[FE CSV Import & Export] ${message}`;
 
 		switch (type) {
 			case 'warn':
@@ -89,7 +89,7 @@ async function wpPost(action, data) {
 		...data,
 	});
 
-	return fetch(swiftCSV.ajaxUrl, {
+	return fetch(feCsvImportExport.ajaxUrl, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/x-www-form-urlencoded',
@@ -99,9 +99,9 @@ async function wpPost(action, data) {
 }
 
 // Export for use in other modules
-window.SwiftCSVCore = {
+window.FeCsvImportExportCore = {
 	__,
-	swiftCSVLog,
+	feCsvImportExportLog,
 	initLoggingSystem,
 	formatFileSize,
 	wpPost,

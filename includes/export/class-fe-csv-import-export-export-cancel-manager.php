@@ -2,10 +2,10 @@
 /**
  * Export Cancel Manager
  *
- * Manages export cancellation flags for Swift CSV.
+ * Manages export cancellation flags for FE CSV Import & Export.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Export Cancel Manager Class
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Export_Cancel_Manager {
 

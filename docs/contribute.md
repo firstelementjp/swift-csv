@@ -1,6 +1,6 @@
 # 🤝 Contributing
 
-We welcome contributions to Swift CSV!
+We welcome contributions to FE CSV Import & Export!
 
 ## How to Contribute
 
@@ -41,7 +41,7 @@ We welcome contributions to Swift CSV!
 ```bash
 # Clone the repository
 git clone https://github.com/firstelementjp/fe-csv-import-export.git
-cd swift-csv
+cd fe-csv-import-export
 
 # Install PHP dependencies
 composer install
@@ -78,7 +78,7 @@ composer run phpcs
 
 - Follow WordPress coding standards
 - Write PHPDoc comments for all functions and classes
-- Use `[Swift CSV]` prefix for debug logs
+- Use `[FE CSV Import & Export]` prefix for debug logs
 - Check code with PHPCS: `composer run phpcs`
 - Format JavaScript with Prettier: `npm run format`
 
@@ -88,7 +88,7 @@ Add debug logging with consistent format:
 
 ```php
 if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-    error_log( '[Swift CSV] Your message here' );
+    error_log( '[FE CSV Import & Export] Your message here' );
 }
 ```
 
@@ -105,7 +105,7 @@ if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 
 - [ ] Code follows WordPress coding standards
 - [ ] JavaScript is linted and formatted
-- [ ] Debug logging uses `[Swift CSV]` prefix
+- [ ] Debug logging uses `[FE CSV Import & Export]` prefix
 - [ ] Assets are built (`npm run build`)
 - [ ] Documentation updated if needed
 - [ ] Changelog updated for new features
@@ -132,7 +132,7 @@ refactor: Clean up duplicate CSS rules
 ## Project Structure
 
 ```
-swift-csv/
+fe-csv-import-export/
 ├── assets/          # Frontend assets (CSS, JS)
 ├── includes/        # PHP classes
 ├── languages/        # Translation files
@@ -140,7 +140,7 @@ swift-csv/
 ├── .github/         # GitHub workflows
 ├── package.json     # Node.js dependencies
 ├── composer.json    # PHP dependencies
-└── swift-csv.php    # Main plugin file
+└── fe-csv-import-export.php    # Main plugin file
 ```
 
 ## Getting Help

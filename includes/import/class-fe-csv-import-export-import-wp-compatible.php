@@ -1,11 +1,11 @@
 <?php
 /**
- * WP Compatible Import Class for Swift CSV
+ * WP Compatible Import Class for FE CSV Import & Export
  *
  * Implements FE_CSV_Import_Export_Import_Base using WordPress core functions.
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * WP Compatible Import Class
  *
  * @since 0.9.8
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Import_WP_Compatible extends FE_CSV_Import_Export_Import_Base {
 

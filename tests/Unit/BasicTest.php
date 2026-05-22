@@ -1,8 +1,8 @@
 <?php
 /**
- * Basic unit tests for Swift CSV plugin
+ * Basic unit tests for FE CSV Import & Export plugin
  *
- * @package Swift_CSV\Tests\Unit
+ * @package FE_CSV_Import_Export\Tests\Unit
  */
 
 use PHPUnit\Framework\TestCase;
@@ -21,9 +21,9 @@ class BasicTest extends TestCase {
 	 * @return void
 	 */
 	public function test_plugin_constants_defined() {
-		$this->assertTrue( defined( 'SWIFT_CSV_VERSION' ), 'SWIFT_CSV_VERSION constant should be defined' );
-		$this->assertTrue( defined( 'SWIFT_CSV_PLUGIN_DIR' ), 'SWIFT_CSV_PLUGIN_DIR constant should be defined' );
-		$this->assertTrue( defined( 'SWIFT_CSV_BASENAME' ), 'SWIFT_CSV_BASENAME constant should be defined' );
+		$this->assertTrue( defined( 'FE_CSV_IMPORT_EXPORT_VERSION' ), 'FE_CSV_IMPORT_EXPORT_VERSION constant should be defined' );
+		$this->assertTrue( defined( 'FE_CSV_IMPORT_EXPORT_PLUGIN_DIR' ), 'FE_CSV_IMPORT_EXPORT_PLUGIN_DIR constant should be defined' );
+		$this->assertTrue( defined( 'FE_CSV_IMPORT_EXPORT_BASENAME' ), 'FE_CSV_IMPORT_EXPORT_BASENAME constant should be defined' );
 	}
 
 	/**
@@ -33,7 +33,7 @@ class BasicTest extends TestCase {
 	 * @return void
 	 */
 	public function test_plugin_main_class_exists() {
-		// Since Swift CSV is function-based, check that autoloader is registered instead.
+		// Since FE CSV Import & Export is function-based, check that autoloader is registered instead.
 		$this->assertTrue( function_exists( 'spl_autoload_register' ), 'Autoloader should be available' );
 	}
 
@@ -44,8 +44,8 @@ class BasicTest extends TestCase {
 	 * @return void
 	 */
 	public function test_plugin_initialization() {
-		// Since Swift CSV is function-based, check that key functions are loaded.
-		$this->assertTrue( function_exists( 'swift_csv_init' ), 'swift_csv_init() should be loaded' );
+		// Since FE CSV Import & Export is function-based, check that key functions are loaded.
+		$this->assertTrue( function_exists( 'fe_csv_import_export_init' ), 'fe_csv_import_export_init() should be loaded' );
 	}
 
 	/**
@@ -55,7 +55,7 @@ class BasicTest extends TestCase {
 	 * @return void
 	 */
 	public function test_helper_functions_exist() {
-		$this->assertTrue( function_exists( 'swift_csv' ), 'swift_csv() helper function should exist' );
+		$this->assertTrue( function_exists( 'fe_csv_import_export' ), 'fe_csv_import_export() helper function should exist' );
 	}
 
 	/**
@@ -65,7 +65,7 @@ class BasicTest extends TestCase {
 	 * @return void
 	 */
 	public function test_plugin_version_format() {
-		$version = SWIFT_CSV_VERSION;
+		$version = FE_CSV_IMPORT_EXPORT_VERSION;
 		$this->assertMatchesRegularExpression( '/^\d+(?:\.\d+){2,}$/', $version, 'Version should be in x.y.z or longer numeric dot-separated format' );
 	}
 
@@ -76,8 +76,8 @@ class BasicTest extends TestCase {
 	 * @return void
 	 */
 	public function test_plugin_directory_structure() {
-		$this->assertTrue( is_dir( SWIFT_CSV_PLUGIN_DIR . 'includes' ), 'Includes directory should exist' );
-		$this->assertTrue( is_dir( SWIFT_CSV_PLUGIN_DIR . 'languages' ), 'Languages directory should exist' );
-		$this->assertTrue( file_exists( SWIFT_CSV_PLUGIN_DIR . 'swift-csv.php' ), 'Main plugin file should exist' );
+		$this->assertTrue( is_dir( FE_CSV_IMPORT_EXPORT_PLUGIN_DIR . 'includes' ), 'Includes directory should exist' );
+		$this->assertTrue( is_dir( FE_CSV_IMPORT_EXPORT_PLUGIN_DIR . 'languages' ), 'Languages directory should exist' );
+		$this->assertTrue( file_exists( FE_CSV_IMPORT_EXPORT_PLUGIN_DIR . 'fe-csv-import-export.php' ), 'Main plugin file should exist' );
 	}
 }

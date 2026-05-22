@@ -1,11 +1,11 @@
-# AGENT.md - AI Assistant Guide for Swift CSV
+# AGENT.md - AI Assistant Guide for FE CSV Import & Export
 
 > Read this file first when working on this project.
 > For past bug fixes and troubleshooting knowledge, see `SKILL.md`.
 
 ## Project Overview
 
-**Swift CSV** is a WordPress plugin for CSV import/export.
+**FE CSV Import & Export** is a WordPress plugin for CSV import/export.
 Supports custom post types, custom taxonomies, and custom fields.
 
 - **Version**: 0.9.9
@@ -16,42 +16,42 @@ Supports custom post types, custom taxonomies, and custom fields.
 ## Architecture
 
 ```
-swift-csv.php                               # Entry point, constants, bootstrap
+fe-csv-import-export.php                               # Entry point, constants, bootstrap
 includes/
-  class-swift-csv-ajax-util.php            # Shared AJAX utilities and response helpers
-  class-swift-csv-file-util.php            # File helper utilities
-  class-swift-csv-helper.php               # Shared CSV and formatting helpers
+  class-fe-csv-import-export-ajax-util.php            # Shared AJAX utilities and response helpers
+  class-fe-csv-import-export-file-util.php            # File helper utilities
+  class-fe-csv-import-export-helper.php               # Shared CSV and formatting helpers
   admin/
-    class-swift-csv-admin.php              # Admin bootstrap
-    class-swift-csv-admin-page.php         # Admin UI rendering
-    class-swift-csv-admin-assets.php       # Script/style registration
-    class-swift-csv-admin-settings.php     # Plugin settings
-    class-swift-csv-license-handler.php    # License management
-    class-swift-csv-updater.php            # Plugin update checker
+    class-fe-csv-import-export-admin.php              # Admin bootstrap
+    class-fe-csv-import-export-admin-page.php         # Admin UI rendering
+    class-fe-csv-import-export-admin-assets.php       # Script/style registration
+    class-fe-csv-import-export-admin-settings.php     # Plugin settings
+    class-fe-csv-import-export-license-handler.php    # License management
+    class-fe-csv-import-export-updater.php            # Plugin update checker
   export/
-    class-swift-csv-ajax-export-unified.php        # Export AJAX entry point
-    class-swift-csv-ajax-export-handler-wp-compatible.php # WP-compatible export handler
-    class-swift-csv-export-base.php                # Export base class
-    class-swift-csv-export-wp-compatible.php       # WP-compatible export implementation
-    class-swift-csv-export-log-store.php           # Export log persistence
+    class-fe-csv-import-export-ajax-export-unified.php        # Export AJAX entry point
+    class-fe-csv-import-export-ajax-export-handler-wp-compatible.php # WP-compatible export handler
+    class-fe-csv-import-export-export-base.php                # Export base class
+    class-fe-csv-import-export-export-wp-compatible.php       # WP-compatible export implementation
+    class-fe-csv-import-export-export-log-store.php           # Export log persistence
   import/
-    class-swift-csv-ajax-import-unified.php        # Import AJAX entry point
-    class-swift-csv-ajax-import-handler-wp-compatible.php # WP-compatible import handler
-    class-swift-csv-import-base.php                # Import base class
-    class-swift-csv-import-batch-processor.php     # Import batch processing engine
-    class-swift-csv-import-csv-parser.php          # Streamed CSV parsing and batch reads
-    class-swift-csv-import-wp-compatible.php       # WP-compatible import implementation
-    class-swift-csv-import-row-context.php         # Import row context management
-    class-swift-csv-import-row-processor.php       # Import row processing
-    class-swift-csv-import-log-store.php           # Import log persistence
+    class-fe-csv-import-export-ajax-import-unified.php        # Import AJAX entry point
+    class-fe-csv-import-export-ajax-import-handler-wp-compatible.php # WP-compatible import handler
+    class-fe-csv-import-export-import-base.php                # Import base class
+    class-fe-csv-import-export-import-batch-processor.php     # Import batch processing engine
+    class-fe-csv-import-export-import-csv-parser.php          # Streamed CSV parsing and batch reads
+    class-fe-csv-import-export-import-wp-compatible.php       # WP-compatible import implementation
+    class-fe-csv-import-export-import-row-context.php         # Import row context management
+    class-fe-csv-import-export-import-row-processor.php       # Import row processing
+    class-fe-csv-import-export-import-log-store.php           # Import log persistence
 assets/
-  js/swift-csv-core.js                    # Shared JS utilities
-  js/swift-csv-export-unified.js          # Export UI and AJAX flow
-  js/swift-csv-import.js                  # Import UI and AJAX flow
-  js/swift-csv-license.js                 # License UI logic
-  js/swift-csv-main.js                    # Main initializer
-  js/export/swift-csv/*.js                # Export module files
-  css/swift-csv-style.css                 # Admin styles
+  js/fe-csv-import-export-core.js                    # Shared JS utilities
+  js/fe-csv-import-export-export-unified.js          # Export UI and AJAX flow
+  js/fe-csv-import-export-import.js                  # Import UI and AJAX flow
+  js/fe-csv-import-export-license.js                 # License UI logic
+  js/fe-csv-import-export-main.js                    # Main initializer
+  js/export/fe-csv-import-export/*.js                # Export module files
+  css/fe-csv-import-export-style.css                 # Admin styles
 languages/                                # i18n files
 docs/                                     # Docsify documentation site
 .github/skills/                           # AI/developer guidance and troubleshooting knowledge
@@ -99,8 +99,8 @@ npm run format         # Prettier
 
 ### CSS
 
-- Use `.swift-csv-` prefix for all custom classes
-- Two-column layout: `.swift-csv-layout` > `.swift-csv-settings` + `.swift-csv-log`
+- Use `.fe-csv-import-export-` prefix for all custom classes
+- Two-column layout: `.fe-csv-import-export-layout` > `.fe-csv-import-export-settings` + `.fe-csv-import-export-log`
 
 ## Critical Constraints
 
@@ -122,14 +122,14 @@ public function method( Specific_Class $util ): void
 After any UI structure change, update all JS selectors. Always check existence:
 
 ```javascript
-const container = document.querySelector('.swift-csv-progress');
+const container = document.querySelector('.fe-csv-import-export-progress');
 if (!container) return;
 ```
 
 ### Export Filename Format
 
 ```
-swiftcsv_export_{postType}_{YYYY-MM-DD_HH-mm-ss}.csv
+fe_csv_export_{postType}_{YYYY-MM-DD_HH-mm-ss}.csv
 ```
 
 Use local time, not UTC.
@@ -141,7 +141,7 @@ Use local time, not UTC.
 - **Right column**: Progress bar + real-time log + action area
 - **Log levels**: `info`, `success`, `warning`, `error`, `debug`
 - **Log containers**: `#export-log-content`, `#import-log-content`
-- **Progress**: `.swift-csv-progress .progress-bar-fill`
+- **Progress**: `.fe-csv-import-export-progress .progress-bar-fill`
 
 ## Workflow Checklists
 
@@ -156,9 +156,9 @@ Use local time, not UTC.
 
 ### Changing Admin UI
 
-1. Edit PHP template in `includes/admin/class-swift-csv-admin-page.php`
-2. Update CSS in `assets/css/swift-csv-style.css`
-3. Update JS selectors in `assets/js/swift-csv-import.js`, `assets/js/swift-csv-export-unified.js`, or `assets/js/swift-csv-main.js`
+1. Edit PHP template in `includes/admin/class-fe-csv-import-export-admin-page.php`
+2. Update CSS in `assets/css/fe-csv-import-export-style.css`
+3. Update JS selectors in `assets/js/fe-csv-import-export-import.js`, `assets/js/fe-csv-import-export-export-unified.js`, or `assets/js/fe-csv-import-export-main.js`
 4. Rebuild minified assets: `npm run build`
 5. Test all element references in JS
 

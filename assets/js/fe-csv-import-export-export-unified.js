@@ -1,5 +1,5 @@
 /**
- * Swift CSV Admin Scripts - Export
+ * FE CSV Import & Export Admin Scripts - Export
  *
  * Handles CSV export functionality with AJAX chunked processing.
  * Supports both standard export and Direct SQL export methods.
@@ -9,12 +9,12 @@
 /**
  * Unified Export Handler
  */
-const SwiftCSVExportUnified = {
+const FeCsvImportExportExportUnified = {
 	/**
 	 * Initialize unified export functionality and bind DOM events.
 	 */
 	init() {
-		if (!SwiftCSVExportUnifiedModulesReady) {
+		if (!FeCsvImportExportExportUnifiedModulesReady) {
 			return;
 		}
 		this.bindEvents();
@@ -27,7 +27,7 @@ const SwiftCSVExportUnified = {
 	 * @param {string} postType   Selected post type slug.
 	 */
 	enableDownloadButtonForExport(csvContent, postType) {
-		SwiftCSVExportUnifiedDownload.enableDownloadButtonForExport(csvContent, postType);
+		FeCsvImportExportExportUnifiedDownload.enableDownloadButtonForExport(csvContent, postType);
 	},
 
 	/**
@@ -48,7 +48,7 @@ const SwiftCSVExportUnified = {
 		document.addEventListener('click', function (e) {
 			if (e.target && e.target.id === 'direct-sql-export-btn') {
 				e.preventDefault();
-				if (!swiftCSV.enableDirectSqlExport || e.target.disabled) {
+				if (!feCsvImportExport.enableDirectSqlExport || e.target.disabled) {
 					self.showSqlProOnlyMessage();
 					return;
 				}
@@ -61,12 +61,12 @@ const SwiftCSVExportUnified = {
 	 * Show SQL export availability message.
 	 */
 	showSqlProOnlyMessage() {
-		if (window.SwiftCSVUtils && window.SwiftCSVUtils.showNotice) {
-			window.SwiftCSVUtils.showNotice(swiftCSV.messages.directSqlProOnly, 'warning');
+		if (window.FeCsvImportExportUtils && window.FeCsvImportExportUtils.showNotice) {
+			window.FeCsvImportExportUtils.showNotice(feCsvImportExport.messages.directSqlProOnly, 'warning');
 			return;
 		}
 
-		window.alert(swiftCSV.messages.directSqlProOnly);
+		window.alert(feCsvImportExport.messages.directSqlProOnly);
 	},
 
 	/**
@@ -100,8 +100,8 @@ const SwiftCSVExportUnified = {
 		this.showComplete(button);
 
 		// Add completion log
-		if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
-			window.SwiftCSVUtils.addLogEntry(swiftCSV.messages.exportCompleted, 'info', 'export');
+		if (window.FeCsvImportExportUtils && window.FeCsvImportExportUtils.addLogEntry) {
+			window.FeCsvImportExportUtils.addLogEntry(feCsvImportExport.messages.exportCompleted, 'info', 'export');
 		}
 	},
 
@@ -122,7 +122,7 @@ const SwiftCSVExportUnified = {
 
 		// Disable button and show loading
 		button.disabled = true;
-		button.textContent = swiftCSV.messages.exporting;
+		button.textContent = feCsvImportExport.messages.exporting;
 
 		// Prevent concurrent exports
 		if (standardBtn) {
@@ -135,12 +135,12 @@ const SwiftCSVExportUnified = {
 		// Add log entry if logging is enabled
 		if (
 			formData.enable_logs === '1' &&
-			window.SwiftCSVUtils &&
-			window.SwiftCSVUtils.addLogEntry
+			window.FeCsvImportExportUtils &&
+			window.FeCsvImportExportUtils.addLogEntry
 		) {
 			// Add export settings log (same as standard export)
-			window.SwiftCSVUtils.addLogEntry(
-				swiftCSV.messages.postTypeExport + ' ' + formData.post_type,
+			window.FeCsvImportExportUtils.addLogEntry(
+				feCsvImportExport.messages.postTypeExport + ' ' + formData.post_type,
 				'debug',
 				'export'
 			);
@@ -148,34 +148,34 @@ const SwiftCSVExportUnified = {
 			// Translate export scope
 			const exportScopeText =
 				formData.export_scope === 'basic'
-					? swiftCSV.messages.exportScopeBasic
-					: swiftCSV.messages.exportScopeAll;
-			window.SwiftCSVUtils.addLogEntry(
-				swiftCSV.messages.exportContent + ' ' + exportScopeText,
+					? feCsvImportExport.messages.exportScopeBasic
+					: feCsvImportExport.messages.exportScopeAll;
+			window.FeCsvImportExportUtils.addLogEntry(
+				feCsvImportExport.messages.exportContent + ' ' + exportScopeText,
 				'debug',
 				'export'
 			);
 
-			window.SwiftCSVUtils.addLogEntry(
-				swiftCSV.messages.includePrivateMeta +
+			window.FeCsvImportExportUtils.addLogEntry(
+				feCsvImportExport.messages.includePrivateMeta +
 					' ' +
 					(formData.include_private_meta === '1'
-						? swiftCSV.messages.yes
-						: swiftCSV.messages.no),
+						? feCsvImportExport.messages.yes
+						: feCsvImportExport.messages.no),
 				'debug',
 				'export'
 			);
-			window.SwiftCSVUtils.addLogEntry(
-				swiftCSV.messages.exportLimit +
+			window.FeCsvImportExportUtils.addLogEntry(
+				feCsvImportExport.messages.exportLimit +
 					' ' +
-					(formData.export_limit || swiftCSV.messages.noLimit),
+					(formData.export_limit || feCsvImportExport.messages.noLimit),
 				'debug',
 				'export'
 			);
 
 			// Add starting message
-			window.SwiftCSVUtils.addLogEntry(
-				swiftCSV.messages.startingDirectSqlExport || swiftCSV.messages.startingExport,
+			window.FeCsvImportExportUtils.addLogEntry(
+				feCsvImportExport.messages.startingDirectSqlExport || feCsvImportExport.messages.startingExport,
 				'info',
 				'export'
 			);
@@ -220,7 +220,7 @@ const SwiftCSVExportUnified = {
 		};
 
 		const pollExportLogs = function () {
-			return SwiftCSVExportUnifiedLogs.pollExportLogs({
+			return FeCsvImportExportExportUnifiedLogs.pollExportLogs({
 				enableLogs: formData.enable_logs,
 				exportSession,
 				afterId: exportLogLastId,
@@ -228,10 +228,10 @@ const SwiftCSVExportUnified = {
 					exportLogLastId = nextAfterId;
 				},
 				buildLogMessage(detail) {
-					const prefixText = swiftCSV.messages.exportPrefix || 'Export';
-					const rowLabelText = swiftCSV.messages.rowLabel || 'Row';
+					const prefixText = feCsvImportExport.messages.exportPrefix || 'Export';
+					const rowLabelText = feCsvImportExport.messages.rowLabel || 'Row';
 					const rowText = `${rowLabelText}${detail.row}`;
-					const truncatedTitle = SwiftCSVExportUnified.truncateTitle(detail.title, 20);
+					const truncatedTitle = FeCsvImportExportExportUnified.truncateTitle(detail.title, 20);
 					return `[${prefixText}:${rowText}]${truncatedTitle}`;
 				},
 			});
@@ -262,20 +262,20 @@ const SwiftCSVExportUnified = {
 				return;
 			}
 			const cancelFormData = new URLSearchParams({
-				action: 'swift_csv_cancel_export',
-				nonce: swiftCSV.nonce,
+				action: 'fe_csv_import_export_cancel_export',
+				nonce: feCsvImportExport.nonce,
 				export_session: exportSession,
 			});
-			SwiftCSVExportUnifiedAjax.postForm(cancelFormData).catch(() => {
+			FeCsvImportExportExportUnifiedAjax.postForm(cancelFormData).catch(() => {
 				// ignore
 			});
 		};
 
 		if (ui && ui.cancelBtn) {
-			const existingCancelHandler = ui.cancelBtn._swiftCsvDirectSqlCancelHandler;
+			const existingCancelHandler = ui.cancelBtn._feCsvImportExportDirectSqlCancelHandler;
 			if (existingCancelHandler) {
 				ui.cancelBtn.removeEventListener('click', existingCancelHandler);
-				ui.cancelBtn._swiftCsvDirectSqlCancelHandler = null;
+				ui.cancelBtn._feCsvImportExportDirectSqlCancelHandler = null;
 			}
 
 			cancelHandler = () => {
@@ -283,11 +283,11 @@ const SwiftCSVExportUnified = {
 				stopExportLogPolling();
 				if (
 					formData.enable_logs === '1' &&
-					window.SwiftCSVUtils &&
-					window.SwiftCSVUtils.addLogEntry
+					window.FeCsvImportExportUtils &&
+					window.FeCsvImportExportUtils.addLogEntry
 				) {
-					window.SwiftCSVUtils.addLogEntry(
-						swiftCSV.messages.exportCancelledByUser,
+					window.FeCsvImportExportUtils.addLogEntry(
+						feCsvImportExport.messages.exportCancelledByUser,
 						'warning',
 						'export'
 					);
@@ -297,11 +297,11 @@ const SwiftCSVExportUnified = {
 					currentAbortController.abort();
 				}
 				cleanupUi();
-				button.disabled = !swiftCSV.enableDirectSqlExport;
-				button.textContent = button.dataset.originalText || swiftCSV.highSpeedExportText;
+				button.disabled = !feCsvImportExport.enableDirectSqlExport;
+				button.textContent = button.dataset.originalText || feCsvImportExport.highSpeedExportText;
 			};
 
-			ui.cancelBtn._swiftCsvDirectSqlCancelHandler = cancelHandler;
+			ui.cancelBtn._feCsvImportExportDirectSqlCancelHandler = cancelHandler;
 			ui.cancelBtn.addEventListener('click', cancelHandler, { once: true });
 		}
 
@@ -319,12 +319,12 @@ const SwiftCSVExportUnified = {
 					// The UI module will prepend the common "Export failed" prefix.
 					if (
 						errorMessage.includes(
-							'Direct SQL runtime is available in Swift CSV Pro only.'
+							'Direct SQL runtime is available in FE CSV Import & Export Pro only.'
 						)
 					) {
 						errorMessage =
-							swiftCSV.directSqlRuntimeUnavailable ||
-							'Direct SQL runtime is available in Swift CSV Pro only.';
+							feCsvImportExport.directSqlRuntimeUnavailable ||
+							'Direct SQL runtime is available in FE CSV Import & Export Pro only.';
 					}
 					throw new Error(errorMessage);
 				}
@@ -390,31 +390,31 @@ const SwiftCSVExportUnified = {
 				if (isCancelled) {
 					return;
 				}
-				let localizedErrorMessage = error.message || swiftCSV.messages.unknownError;
+				let localizedErrorMessage = error.message || feCsvImportExport.messages.unknownError;
 				if (
 					localizedErrorMessage &&
 					localizedErrorMessage.includes(
-						'Direct SQL runtime is available in Swift CSV Pro only.'
+						'Direct SQL runtime is available in FE CSV Import & Export Pro only.'
 					)
 				) {
 					localizedErrorMessage =
-						swiftCSV.directSqlRuntimeUnavailable || localizedErrorMessage;
+						feCsvImportExport.directSqlRuntimeUnavailable || localizedErrorMessage;
 				}
 				// Add error log
 				if (
 					formData.enable_logs === '1' &&
-					window.SwiftCSVUtils &&
-					window.SwiftCSVUtils.addLogEntry
+					window.FeCsvImportExportUtils &&
+					window.FeCsvImportExportUtils.addLogEntry
 				) {
-					window.SwiftCSVUtils.addLogEntry(
-						'SQL ' + swiftCSV.messages.exportError + ' ' + localizedErrorMessage,
+					window.FeCsvImportExportUtils.addLogEntry(
+						'SQL ' + feCsvImportExport.messages.exportError + ' ' + localizedErrorMessage,
 						'error',
 						'export'
 					);
 				}
 
-				this.showError(button, localizedErrorMessage || swiftCSV.messages.failed);
-				button.disabled = !swiftCSV.enableDirectSqlExport;
+				this.showError(button, localizedErrorMessage || feCsvImportExport.messages.failed);
+				button.disabled = !feCsvImportExport.enableDirectSqlExport;
 			});
 	},
 
@@ -482,12 +482,12 @@ const SwiftCSVExportUnified = {
 	 */
 	processDirectSqlBatch(formData, startRow, exportSession, control) {
 		if (control && typeof control.getIsCancelled === 'function' && control.getIsCancelled()) {
-			return Promise.reject(new Error(swiftCSV.messages.exportCancelledByUser));
+			return Promise.reject(new Error(feCsvImportExport.messages.exportCancelledByUser));
 		}
 
 		const batchFormData = new FormData();
-		batchFormData.append('action', 'swift_csv_ajax_export');
-		batchFormData.append('nonce', swiftCSV.nonce);
+		batchFormData.append('action', 'fe_csv_import_export_ajax_export');
+		batchFormData.append('nonce', feCsvImportExport.nonce);
 		batchFormData.append('export_method', 'direct_sql');
 		batchFormData.append('start_row', startRow || 0);
 		batchFormData.append('export_session', exportSession || '');
@@ -497,12 +497,12 @@ const SwiftCSVExportUnified = {
 			const reauthTokenEl = document.getElementById('fe-csv-import-export-pro-reauth-token-export');
 			const reauthToken = reauthTokenEl ? reauthTokenEl.value : '';
 			if (reauthToken) {
-				batchFormData.append('swift_csv_pro_reauth_token', reauthToken);
+				batchFormData.append('fe_csv_import_export_pro_reauth_token', reauthToken);
 			}
 			const execTokenEl = document.getElementById('fe-csv-import-export-pro-exec-password-token-export');
 			const execToken = execTokenEl ? execTokenEl.value : '';
 			if (execToken) {
-				batchFormData.append('swift_csv_pro_exec_password_token', execToken);
+				batchFormData.append('fe_csv_import_export_pro_exec_password_token', execToken);
 			}
 		}
 
@@ -541,7 +541,7 @@ const SwiftCSVExportUnified = {
 		const elapsedSeconds = Math.floor(elapsed / 1000);
 
 		// Keep button text as "Exporting..." (don't update with progress)
-		// button.textContent remains as swiftCSV.messages.exporting
+		// button.textContent remains as feCsvImportExport.messages.exporting
 
 		// Update progress bar if exists
 		const progressContainer = document.querySelector('.fe-csv-import-export-progress');
@@ -568,9 +568,9 @@ const SwiftCSVExportUnified = {
 		}
 
 		if (progressStats) {
-			const processedLabel = swiftCSV.messages.processedInfo || 'Processed';
-			const rowsLabel = swiftCSV.messages.rowsLabel || 'rows';
-			const secondsLabel = swiftCSV.messages.secondsLabel || 's';
+			const processedLabel = feCsvImportExport.messages.processedInfo || 'Processed';
+			const rowsLabel = feCsvImportExport.messages.rowsLabel || 'rows';
+			const secondsLabel = feCsvImportExport.messages.secondsLabel || 's';
 			progressStats.textContent = `${percentage}% ${processedLabel} ${processed}/${total} ${rowsLabel} (${elapsedSeconds}${secondsLabel})`;
 		}
 	},
@@ -586,7 +586,7 @@ const SwiftCSVExportUnified = {
 		return new Promise((resolve, reject) => {
 			const formData = new URLSearchParams(data);
 
-			SwiftCSVExportUnifiedAjax.postForm(formData, extraOptions)
+			FeCsvImportExportExportUnifiedAjax.postForm(formData, extraOptions)
 				.then(response => response.json())
 				.then(responseData => {
 					if (responseData.success) {
@@ -615,7 +615,7 @@ const SwiftCSVExportUnified = {
 	 * @return {Object} Form data object
 	 */
 	getFormData() {
-		const postTypeElement = document.getElementById('swift_csv_export_post_type');
+		const postTypeElement = document.getElementById('fe_csv_import_export_export_post_type');
 		const postType = postTypeElement ? postTypeElement.value : 'post';
 
 		// Check if element exists and has value
@@ -630,43 +630,43 @@ const SwiftCSVExportUnified = {
 		const execToken = execTokenEl ? execTokenEl.value : '';
 
 		return {
-			action: 'swift_csv_ajax_export',
-			nonce: swiftCSV.nonce,
-			swift_csv_pro_reauth_token: reauthToken,
-			swift_csv_pro_exec_password_token: execToken,
+			action: 'fe_csv_import_export_ajax_export',
+			nonce: feCsvImportExport.nonce,
+			fe_csv_import_export_pro_reauth_token: reauthToken,
+			fe_csv_import_export_pro_exec_password_token: execToken,
 			post_type: postType,
 			post_status:
-				document.querySelector('input[name="swift_csv_export_post_status"]:checked')
+				document.querySelector('input[name="fe_csv_import_export_export_post_status"]:checked')
 					?.value || 'publish',
 			export_scope:
-				document.querySelector('input[name="swift_csv_export_scope"]:checked')?.value ||
+				document.querySelector('input[name="fe_csv_import_export_export_scope"]:checked')?.value ||
 				'all',
-			include_taxonomies: document.querySelector('input[name="swift_csv_include_taxonomies"]')
+			include_taxonomies: document.querySelector('input[name="fe_csv_import_export_include_taxonomies"]')
 				?.checked
 				? '1'
 				: '0',
 			include_custom_fields: document.querySelector(
-				'input[name="swift_csv_include_custom_fields"]'
+				'input[name="fe_csv_import_export_include_custom_fields"]'
 			)?.checked
 				? '1'
 				: '0',
 			include_private_meta: document.querySelector(
-				'input[name="swift_csv_include_private_meta"]'
+				'input[name="fe_csv_import_export_include_private_meta"]'
 			)?.checked
 				? '1'
 				: '0',
 			taxonomy_hierarchical: document.querySelector(
-				'input[name="swift_csv_taxonomy_hierarchical"]'
+				'input[name="fe_csv_import_export_taxonomy_hierarchical"]'
 			)?.checked
 				? '1'
 				: '0',
 			taxonomy_format:
 				document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name',
-			export_limit: document.getElementById('swift_csv_export_limit')?.value || '0',
+			export_limit: document.getElementById('fe_csv_import_export_export_limit')?.value || '0',
 			enable_logs:
-				window.swiftCSV &&
-				window.swiftCSV.advancedSettings &&
-				window.swiftCSV.advancedSettings.enableLogs
+				window.feCsvImportExport &&
+				window.feCsvImportExport.advancedSettings &&
+				window.feCsvImportExport.advancedSettings.enableLogs
 					? '1'
 					: '0',
 		};
@@ -678,7 +678,7 @@ const SwiftCSVExportUnified = {
 	 * @param {HTMLElement} button Button element
 	 */
 	showComplete(button) {
-		SwiftCSVExportUnifiedUI.showComplete(button);
+		FeCsvImportExportExportUnifiedUI.showComplete(button);
 	},
 
 	/**
@@ -688,7 +688,7 @@ const SwiftCSVExportUnified = {
 	 * @param {string}      errorMessage Error message
 	 */
 	showError(button, errorMessage) {
-		SwiftCSVExportUnifiedUI.showError(button, errorMessage);
+		FeCsvImportExportExportUnifiedUI.showError(button, errorMessage);
 	},
 
 	/**
@@ -698,15 +698,15 @@ const SwiftCSVExportUnified = {
 	 * @param {number} recordCount Number of records
 	 */
 	downloadCSV(csvContent, recordCount) {
-		SwiftCSVExportUnifiedDownload.downloadCSV(csvContent, recordCount);
+		FeCsvImportExportExportUnifiedDownload.downloadCSV(csvContent, recordCount);
 	},
 };
 
-const getSwiftCSVExportUnifiedModule = function (name) {
-	const modules = window.SwiftCSVExportUnifiedModules;
+const getFeCsvImportExportExportUnifiedModule = function (name) {
+	const modules = window.FeCsvImportExportExportUnifiedModules;
 	if (!modules || !modules[name]) {
 		throw new Error(
-			'Swift CSV export module is missing: ' +
+			'FE CSV Import & Export export module is missing: ' +
 				name +
 				'. Make sure assets/js/export/*.js scripts are enqueued.'
 		);
@@ -714,27 +714,27 @@ const getSwiftCSVExportUnifiedModule = function (name) {
 	return modules[name];
 };
 
-let SwiftCSVExportUnifiedDownload;
-let SwiftCSVExportUnifiedAjax;
-let SwiftCSVExportUnifiedLogs;
-let SwiftCSVExportUnifiedUI;
+let FeCsvImportExportExportUnifiedDownload;
+let FeCsvImportExportExportUnifiedAjax;
+let FeCsvImportExportExportUnifiedLogs;
+let FeCsvImportExportExportUnifiedUI;
 
-let SwiftCSVExportUnifiedModulesReady = false;
+let FeCsvImportExportExportUnifiedModulesReady = false;
 
 try {
-	SwiftCSVExportUnifiedDownload = getSwiftCSVExportUnifiedModule('Download');
-	SwiftCSVExportUnifiedAjax = getSwiftCSVExportUnifiedModule('Ajax');
-	SwiftCSVExportUnifiedLogs = getSwiftCSVExportUnifiedModule('Logs');
-	SwiftCSVExportUnifiedUI = getSwiftCSVExportUnifiedModule('UI');
-	SwiftCSVExportUnifiedModulesReady = true;
+	FeCsvImportExportExportUnifiedDownload = getFeCsvImportExportExportUnifiedModule('Download');
+	FeCsvImportExportExportUnifiedAjax = getFeCsvImportExportExportUnifiedModule('Ajax');
+	FeCsvImportExportExportUnifiedLogs = getFeCsvImportExportExportUnifiedModule('Logs');
+	FeCsvImportExportExportUnifiedUI = getFeCsvImportExportExportUnifiedModule('UI');
+	FeCsvImportExportExportUnifiedModulesReady = true;
 } catch (e) {
 	console.error(e);
 }
 
 // Initialize unified export handler
 document.addEventListener('DOMContentLoaded', function () {
-	if (!SwiftCSVExportUnifiedModulesReady) {
+	if (!FeCsvImportExportExportUnifiedModulesReady) {
 		return;
 	}
-	SwiftCSVExportUnified.init();
+	FeCsvImportExportExportUnified.init();
 });

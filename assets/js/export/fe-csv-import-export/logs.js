@@ -1,5 +1,5 @@
 /**
- * Swift CSV Export Scripts - Logs Helper Module
+ * FE CSV Import & Export Export Scripts - Logs Helper Module
  *
  * Handles polling of export log entries and exposes helpers for appending them
  * to the unified export UI log panel.
@@ -8,11 +8,11 @@
 
 (function () {
 	/**
-	 * @namespace SwiftCSVExportUnifiedModules
+	 * @namespace FeCsvImportExportExportUnifiedModules
 	 */
-	window.SwiftCSVExportUnifiedModules = window.SwiftCSVExportUnifiedModules || {};
+	window.FeCsvImportExportExportUnifiedModules = window.FeCsvImportExportExportUnifiedModules || {};
 
-	window.SwiftCSVExportUnifiedModules.Logs = {
+	window.FeCsvImportExportExportUnifiedModules.Logs = {
 		/**
 		 * Poll export logs from the server and append them to the export log panel.
 		 *
@@ -41,15 +41,15 @@
 			}
 
 			const logFormData = new URLSearchParams({
-				action: 'swift_csv_ajax_export_logs',
-				nonce: swiftCSV.nonce,
+				action: 'fe_csv_import_export_ajax_export_logs',
+				nonce: feCsvImportExport.nonce,
 				export_session: exportSession,
 				enable_logs: enableLogs,
 				after_id: String(afterId),
 				limit: '200',
 			});
 
-			const ajax = window.SwiftCSVExportUnifiedModules.Ajax;
+			const ajax = window.FeCsvImportExportExportUnifiedModules.Ajax;
 
 			return ajax
 				.postForm(logFormData, requestOptions)
@@ -81,8 +81,8 @@
 							typeof buildLogMessage === 'function'
 								? buildLogMessage(detail)
 								: String(detail.title || '');
-						if (window.SwiftCSVUtils && window.SwiftCSVUtils.addLogEntry) {
-							window.SwiftCSVUtils.addLogEntry(
+						if (window.FeCsvImportExportUtils && window.FeCsvImportExportUtils.addLogEntry) {
+							window.FeCsvImportExportUtils.addLogEntry(
 								logMessage,
 								detail.status === 'success' ? 'success' : 'error',
 								'export'

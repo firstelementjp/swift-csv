@@ -2,7 +2,7 @@
 /**
  * Basic sanitization functionality tests (without WordPress dependency)
  *
- * @package Swift_CSV\Tests\Unit
+ * @package FE_CSV_Import_Export\Tests\Unit
  */
 
 use PHPUnit\Framework\TestCase;

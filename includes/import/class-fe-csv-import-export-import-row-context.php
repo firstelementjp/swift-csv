@@ -1,9 +1,9 @@
 <?php
 /**
- * Row context builder for Swift CSV import.
+ * Row context builder for FE CSV Import & Export import.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * and is designed to be called from FE_CSV_Import_Export_Ajax_Import via delegation.
  *
  * @since 0.9.0
- * @package Swift_CSV
+ * @package FE_CSV_Import_Export
  */
 class FE_CSV_Import_Export_Import_Row_Context {
 	/**

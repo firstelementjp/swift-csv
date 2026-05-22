@@ -58,18 +58,58 @@ class FE_CSV_Import_Export_Ajax_Export_Batch_Planner {
 	 * @return int Batch size.
 	 */
 	public function get_export_batch_size( int $total_count, string $post_type, array $config ): int {
-		$batch_size = 1000;
+		// Get memory limit from server settings.
+		$memory_limit = ini_get( 'memory_limit' );
+		$memory_limit = $this->convert_memory_limit_to_bytes( $memory_limit );
+		$memory_limit = max( 64 * 1024 * 1024, $memory_limit ); // Minimum 64MB.
 
-		if ( $total_count > 10000 ) {
-			$batch_size = 2000;
-		} elseif ( $total_count > 5000 ) {
-			$batch_size = 1500;
-		} elseif ( $total_count > 1000 ) {
-			$batch_size = 1000;
-		} else {
-			$batch_size = 500;
-		}
+		// Reserve memory for WordPress core and plugin overhead (approximately 32MB).
+		$available_memory = $memory_limit - ( 32 * 1024 * 1024 );
+
+		// Estimate memory per post (approximately 50KB per post including meta and taxonomies).
+		$memory_per_post    = 50 * 1024;
+		$memory_based_batch = max( 1, (int) floor( $available_memory / $memory_per_post ) );
+
+		// Apply reasonable limits based on total count.
+		$batch_size = min( $memory_based_batch, $total_count );
+
+		// Set minimum and maximum batch sizes.
+		$batch_size = max( 100, min( 5000, $batch_size ) );
 
 		return (int) apply_filters( 'fe_csv_import_export_export_batch_size', $batch_size, $total_count, $post_type, $config );
+	}
+
+	/**
+	 * Convert memory limit string to bytes.
+	 *
+	 * @since 0.9.8
+	 * @param string $memory_limit Memory limit string (e.g., '128M', '1G').
+	 * @return int Memory limit in bytes.
+	 */
+	private function convert_memory_limit_to_bytes( string $memory_limit ): int {
+		$memory_limit = strtoupper( trim( $memory_limit ) );
+
+		if ( '-1' === $memory_limit ) {
+			return PHP_INT_MAX;
+		}
+
+		$unit  = substr( $memory_limit, -1 );
+		$value = (int) substr( $memory_limit, 0, -1 );
+
+		switch ( $unit ) {
+			case 'G':
+				$value *= 1024 * 1024 * 1024;
+				break;
+			case 'M':
+				$value *= 1024 * 1024;
+				break;
+			case 'K':
+				$value *= 1024;
+				break;
+			default:
+				$value *= 1024 * 1024; // Default to MB if no unit.
+		}
+
+		return $value;
 	}
 }

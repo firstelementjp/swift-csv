@@ -35,7 +35,6 @@ Main features:
 * Real-time progress display in the admin interface
 * Option to enable/disable logging (speed priority)
 * Extensibility through filter/action hooks for custom workflows
-* WordPress-compatible mode using WP_Query class
 
 FE CSV Import & Export is suitable for tasks such as:
 

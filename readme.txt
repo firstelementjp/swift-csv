@@ -59,9 +59,9 @@ Use a filter hook to specify a sample post ID for extracting custom field items 
 
 = Documentation and support resources: =
 
-* Documentation: https://firstelementjp.github.io/fe-csv-import-export/
-* GitHub Repository: https://github.com/firstelementjp/fe-csv-import-export
-* Issue Tracker: https://github.com/firstelementjp/fe-csv-import-export/issues
+* [Documentation](https://firstelementjp.github.io/fe-csv-import-export/)
+* [GitHub Repository](https://github.com/firstelementjp/fe-csv-import-export)
+* [Issue Tracker](https://github.com/firstelementjp/fe-csv-import-export/issues)
 
 = Pro Version: =
 
@@ -74,7 +74,7 @@ This plugin works completely on its own with the free version and provides suffi
 * **Dedicated Support** - Priority customer support from the development team
 * **Automatic Updates** - Seamless updates from our update server
 
-Pro Version: https://www.firstelement.co.jp/en/products/fe-csv-import-export-import-export-plugin/
+[Pro Version](https://www.firstelement.co.jp/en/products/fe-csv-import-export-import-export-plugin/)
 
 == External Services ==
 
@@ -84,8 +84,8 @@ FE CSV Import & Export Pro uses an external license API service for license vali
 * License activation and deactivation
 * License status checks
 
-**Privacy Policy**: https://www.firstelement.co.jp/en/legal/privacy-policy/privacy-statement-eu/
-**Terms of Service**: https://www.firstelement.co.jp/en/legal/terms-of-use/fe-csv-import-export-pro/
+[Privacy Policy](https://www.firstelement.co.jp/en/legal/privacy-policy/privacy-statement-eu/)
+[Terms of Service](https://www.firstelement.co.jp/en/legal/terms-of-use/fe-csv-import-export-pro/)
 
 The license API service is operated by FirstElement K.K. and is used exclusively for license management purposes. No content data is transmitted to this service.
 

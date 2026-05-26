@@ -52,6 +52,7 @@ Using filter hooks, you can output only necessary columns for external editing (
 
 FE CSV Import & Export Pro extends the free version with advanced features for power users and developers:
 
+* **ACF Integration** - Import and export ACF data while preserving field formatting. Export taxonomy values as readable names and handle multi-value fields with pipe-separated values. Support major ACF field types including Taxonomy, User, File, Relationship, Repeater, and Flexible Content fields
 * **Direct SQL Export Mode** - Customize export queries directly for advanced workflows and integrations
 * **UpdraftPlus Database Backup** - Automatic database backup before import operations for data safety
 * **Enhanced Security** - Access control for the tools page, execution permissions, shared execution-only password protection, and requirement of logged-in user password at execution time

@@ -10,7 +10,7 @@
 
 ## 手動インストール
 
-1. [最新版をダウンロード](https://github.com/firstelementjp/fe-csv-import-export/releases/download/v0.9.9.3/fe-csv-import-export-0.9.9.3.zip)
+1. [最新版をダウンロード](https://github.com/firstelementjp/fe-csv-import-export/releases/download/v0.9.9.4/fe-csv-import-export-0.9.9.4.zip)
 2. ダウンロードした ZIP ファイルを展開
 3. `fe-csv-import-export` フォルダを `/wp-content/plugins/` にアップロード
 4. WordPress 管理画面の **プラグイン** に移動

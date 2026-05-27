@@ -135,6 +135,11 @@ No. The free version works on its own. A Pro version is available separately for
 
 == Changelog ==
 
+= 0.9.9.4 =
+
+* Bundled JavaScript files to reduce HTTP requests and improve page load performance.
+* Updated export batch planner to use memory_limit for dynamic batch size calculation.
+
 = 0.9.9.3 =
 
 * Removed load_plugin_textdomain() as WordPress 4.6+ handles text domain loading automatically.

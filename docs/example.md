@@ -73,10 +73,10 @@ ID,post_title,post_content,post_date,post_status,cf_original_id
 "","My Second Post","More content","2026-01-16 10:00:00","draft","legacy-124"
 ```
 
-Good for:
+This scenario is suitable for:
 
-- Preserving original references
-- Migrating content in batches
+- Preserving original post IDs while migrating content
+- Migrating large amounts of content in batches
 - Testing with dry run before import
 
 ### Product Catalog
@@ -87,10 +87,10 @@ ID,post_title,post_content,post_status,cf_price,cf_sku,cf_stock,cf_color,cf_size
 "","Denim Jeans","Classic fit denim jeans","publish","49.99","DJ-001","25","blue","30|32|34"
 ```
 
-Good for:
+This scenario is suitable for:
 
-- Importing multiple product attributes
-- Storing lists in custom fields
+- Importing multiple product attributes in bulk
+- Storing data as lists in custom fields
 - Exporting product data for external tools
 
 ### Team Directory
@@ -101,7 +101,7 @@ ID,post_title,cf_name,cf_title,cf_email,cf_department,cf_skills
 "","Jane Doe","UX Designer","jane@company.com","Design","ux|ui|figma"
 ```
 
-Good for:
+This scenario is suitable for:
 
 - Managing structured profile data
 - Storing skills as pipe-separated values

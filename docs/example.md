@@ -123,7 +123,7 @@ Before importing:
 - Save the file as UTF-8
 - Keep the first row as headers
 - Include `ID` as the first column
-- Use quotes when values may contain commas
+- When manually creating CSV, use quotes when values may contain commas (tools like Google Sheets handle this automatically during export)
 - Start with a small test file
 
 ## Related Pages

@@ -109,7 +109,7 @@ ID,post_title,cf_name,cf_title,cf_email,cf_department,cf_skills
 
 ## エクスポート指向の例
 
-典型的なエクスポートには、標準フィールドに加えてオプションのカスタムフィールドとタクソノミーカラムが含まれます。
+典型的なエクスポートには、WordPressのコア項目に加えてオプションのカスタムフィールド列とタクソノミー列が含まれます。
 
 ```csv
 ID,post_title,post_content,post_status,category,post_tag,cf_price
@@ -123,7 +123,7 @@ ID,post_title,post_content,post_status,category,post_tag,cf_price
 - ファイルを UTF-8 で保存
 - 最初の行をヘッダーとして保持
 - 最初のカラムとして `ID` を含める
-- 値にカンマが含まれる可能性がある場合は引用符を使用
+- 手動でCSVを作成する場合、値にカンマが含まれる可能性がある場合は引用符を使用（Googleスプレッドシート等のツールからエクスポートする場合は自動的に処理されます）
 - 小さなテストファイルから開始
 
 ## 関連ページ

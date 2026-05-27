@@ -87,7 +87,7 @@ Available behavior includes:
 - Very large files still depend on server resources
 - Delimiter detection is automatic, but malformed CSV can still fail
 - Export format is fixed to CSV
-- Import behavior assumes WordPress-style field names and plugin conventions
+- Import behavior requires exact WordPress database column names (post_title, post_content, etc.) and custom field names
 
 ## Developer Extensibility
 

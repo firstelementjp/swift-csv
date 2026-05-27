@@ -71,9 +71,8 @@ npm run build
 
 The build process handles:
 
-- `assets/js/fe-csv-import-export-*.js` → `assets/js/fe-csv-import-export-*.min.js`
+- `assets/js/fe-csv-import-export-main.js` → `assets/js/fe-csv-import-export-admin.min.js` (bundled)
 - `assets/css/fe-csv-import-export-style.css` → `assets/css/fe-csv-import-export-style.min.css`
-- `assets/js/export/fe-csv-import-export/*.js` → `assets/js/export/fe-csv-import-export/*.min.js`
 
 ```bash
 npm run lint:js

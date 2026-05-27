@@ -1,5 +1,29 @@
 # 📋 Changelog
 
+## [0.9.9.4] - 2026-05-27
+
+### 🚀 Performance Improvements
+
+- **Bundled JavaScript files** - Bundled JavaScript files to reduce HTTP requests and improve page load performance.
+- **Updated export batch planner** - Updated export batch planner to use memory_limit for dynamic batch size calculation.
+
+## [0.9.9.3] - 2026-05-XX
+
+### 🛠️ Maintenance
+
+- Removed load_plugin_textdomain() as WordPress 4.6+ handles text domain loading automatically.
+- Renamed image files to remove special characters for WordPress.org compliance.
+- Updated image references in PHP and CSS files.
+- Added README.md to .gitattributes export-ignore for release ZIP.
+- Refactored uninstall.php to use WordPress API instead of direct database calls.
+- Removed hidden files (.DS_Store, .eslintignore, .prettierignore) from distribution.
+
+## [0.9.9.2] - 2026-XX-XX
+
+### 🛠️ Maintenance
+
+- Maintenance release for the latest public package.
+
 ## [0.9.9] - 2026-03-28
 
 ### 🚀 Import Reliability and Performance

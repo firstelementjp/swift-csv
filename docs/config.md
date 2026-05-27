@@ -8,9 +8,9 @@ This page describes the current behavior of FE CSV Import & Export as implemente
 
 - The first row is treated as headers.
 - The `ID` column is required.
-- Use an empty `ID` value for new posts.
-- Use an existing `ID` only when updating an existing post.
-- Delimiters are auto-detected for common CSV formats.
+- If the `ID` column has a value, existing posts will be overwritten.
+- Leave the `ID` column empty to create new posts from the CSV file.
+- Delimiters (comma, semicolon, or tab) are auto-detected.
 - The CSV enclosure is the standard double quote format.
 
 ### Supported Header Types

@@ -23,13 +23,14 @@ This page describes the current behavior of FE CSV Import & Export as implemente
 
 - Use `|` to separate multiple values in a single column (spaces before/after `|` do not affect functionality)
 - Use `>` to specify term hierarchy (spaces before/after `>` do not affect functionality)
+- Taxonomy output can be selected as term_id or name
 
 ## Export Configuration
 
 ### Export Options
 
 - **Post type**: Select the post type to export
-- **Post status**: Filter exported rows by status
+- **Post status**: Published posts, or all statuses, or filter exported posts by status
 - **Scope**: Export basic fields, all fields, or custom output via hooks
 - **Export limit**: Optional limit; `0` means unlimited
 - **Private meta**: Optionally include private meta keys
@@ -49,11 +50,12 @@ FE CSV Import & Export automatically adjusts batch sizes.
 
 - Import batches are calculated automatically
 - Current implementation targets roughly **10-50 rows** per batch depending on environment limits
+- Import time will be shortened through efficiency improvements similar to export in the near future
 
 ### Export
 
 - Export batches are calculated automatically
-- Current implementation uses **500-2000 posts** per batch depending on dataset size
+- Current implementation uses **500-5000 posts** per batch depending on dataset size
 
 ### Why This Matters
 
@@ -69,15 +71,14 @@ During import and export, the admin UI provides:
 
 - Real-time progress updates
 - Processing details while a job is running
-- Localized interface text through WordPress translations
+- During import, displays a summary of processed posts categorized as new, updated, or errors
 
 ## License and Pro Integration
 
 The Free and Pro versions work together. When the Pro version is installed, the following features become available:
 
 - License key activation and deactivation UI
-- Access to Pro-only features
-- Pro-aware admin messages
+- Access to Pro-only features (Advanced Custom Fields integration, UpdraftPlus integration, execution password settings, etc.)
 
 ## Current Practical Limits
 
@@ -88,12 +89,13 @@ The Free and Pro versions work together. When the Pro version is installed, the 
 
 ## Developer Extensibility
 
-FE CSV Import & Export includes hook-based extension points for:
+FE CSV Import & Export includes action/filter hooks for:
 
 - CSV header customization and row data transformation (export)
+- Specifying sample posts to determine custom field items to export (by default, custom fields to output are determined based on the first row post)
 - Permission checks and data validation before import
 - Field value transformation and processing before import
 - Customization of rows processed per batch (batch size)
-- Pro feature activation and admin access control
+- Pro feature activation and adding settings to the admin screen
 
 See [Developer Hooks](hooks.md) for the current hook reference.

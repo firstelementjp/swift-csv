@@ -55,6 +55,25 @@ find "$RELEASE_DIR/fe-csv-import-export/assets" -name "*.js" -not -name "*.min.j
 echo "Source CSS files (should be 0):"
 find "$RELEASE_DIR/fe-csv-import-export/assets" -name "*.css" -not -name "*.min.css" | wc -l
 
+echo "=== Security checks in release tree ==="
+echo "Files starting with underscore (should be 0):"
+UNDERSCORE_COUNT=$(find "$RELEASE_DIR/fe-csv-import-export" -name "_*" | wc -l)
+echo "$UNDERSCORE_COUNT"
+if [ "$UNDERSCORE_COUNT" -gt 0 ]; then
+	echo "ERROR: Found files starting with underscore:"
+	find "$RELEASE_DIR/fe-csv-import-export" -name "_*"
+	exit 1
+fi
+
+echo "Files starting with dot (should be 0):"
+DOT_COUNT=$(find "$RELEASE_DIR/fe-csv-import-export" -name ".*" | wc -l)
+echo "$DOT_COUNT"
+if [ "$DOT_COUNT" -gt 0 ]; then
+	echo "ERROR: Found files starting with dot:"
+	find "$RELEASE_DIR/fe-csv-import-export" -name ".*"
+	exit 1
+fi
+
 echo "=== Create ZIP ==="
 rm -f "$ZIP_NAME"
 ( cd "$RELEASE_DIR" && zip -qr "../$ZIP_NAME" fe-csv-import-export )

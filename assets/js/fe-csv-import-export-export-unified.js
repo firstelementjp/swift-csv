@@ -62,7 +62,10 @@ const FeCsvImportExportExportUnified = {
 	 */
 	showSqlProOnlyMessage() {
 		if (window.FeCsvImportExportUtils && window.FeCsvImportExportUtils.showNotice) {
-			window.FeCsvImportExportUtils.showNotice(feCsvImportExport.messages.directSqlProOnly, 'warning');
+			window.FeCsvImportExportUtils.showNotice(
+				feCsvImportExport.messages.directSqlProOnly,
+				'warning'
+			);
 			return;
 		}
 
@@ -101,7 +104,11 @@ const FeCsvImportExportExportUnified = {
 
 		// Add completion log
 		if (window.FeCsvImportExportUtils && window.FeCsvImportExportUtils.addLogEntry) {
-			window.FeCsvImportExportUtils.addLogEntry(feCsvImportExport.messages.exportCompleted, 'info', 'export');
+			window.FeCsvImportExportUtils.addLogEntry(
+				feCsvImportExport.messages.exportCompleted,
+				'info',
+				'export'
+			);
 		}
 	},
 
@@ -175,7 +182,8 @@ const FeCsvImportExportExportUnified = {
 
 			// Add starting message
 			window.FeCsvImportExportUtils.addLogEntry(
-				feCsvImportExport.messages.startingDirectSqlExport || feCsvImportExport.messages.startingExport,
+				feCsvImportExport.messages.startingDirectSqlExport ||
+					feCsvImportExport.messages.startingExport,
 				'info',
 				'export'
 			);
@@ -231,7 +239,10 @@ const FeCsvImportExportExportUnified = {
 					const prefixText = feCsvImportExport.messages.exportPrefix || 'Export';
 					const rowLabelText = feCsvImportExport.messages.rowLabel || 'Row';
 					const rowText = `${rowLabelText}${detail.row}`;
-					const truncatedTitle = FeCsvImportExportExportUnified.truncateTitle(detail.title, 20);
+					const truncatedTitle = FeCsvImportExportExportUnified.truncateTitle(
+						detail.title,
+						20
+					);
 					return `[${prefixText}:${rowText}]${truncatedTitle}`;
 				},
 			});
@@ -298,7 +309,8 @@ const FeCsvImportExportExportUnified = {
 				}
 				cleanupUi();
 				button.disabled = !feCsvImportExport.enableDirectSqlExport;
-				button.textContent = button.dataset.originalText || feCsvImportExport.highSpeedExportText;
+				button.textContent =
+					button.dataset.originalText || feCsvImportExport.highSpeedExportText;
 			};
 
 			ui.cancelBtn._feCsvImportExportDirectSqlCancelHandler = cancelHandler;
@@ -390,7 +402,8 @@ const FeCsvImportExportExportUnified = {
 				if (isCancelled) {
 					return;
 				}
-				let localizedErrorMessage = error.message || feCsvImportExport.messages.unknownError;
+				let localizedErrorMessage =
+					error.message || feCsvImportExport.messages.unknownError;
 				if (
 					localizedErrorMessage &&
 					localizedErrorMessage.includes(
@@ -407,7 +420,10 @@ const FeCsvImportExportExportUnified = {
 					window.FeCsvImportExportUtils.addLogEntry
 				) {
 					window.FeCsvImportExportUtils.addLogEntry(
-						'SQL ' + feCsvImportExport.messages.exportError + ' ' + localizedErrorMessage,
+						'SQL ' +
+							feCsvImportExport.messages.exportError +
+							' ' +
+							localizedErrorMessage,
 						'error',
 						'export'
 					);
@@ -494,12 +510,16 @@ const FeCsvImportExportExportUnified = {
 
 		// Optional: Pro pre-action re-auth token (sent only on first request).
 		if ((startRow || 0) === 0) {
-			const reauthTokenEl = document.getElementById('fe-csv-import-export-pro-reauth-token-export');
+			const reauthTokenEl = document.getElementById(
+				'fe-csv-import-export-pro-reauth-token-export'
+			);
 			const reauthToken = reauthTokenEl ? reauthTokenEl.value : '';
 			if (reauthToken) {
 				batchFormData.append('fe_csv_import_export_pro_reauth_token', reauthToken);
 			}
-			const execTokenEl = document.getElementById('fe-csv-import-export-pro-exec-password-token-export');
+			const execTokenEl = document.getElementById(
+				'fe-csv-import-export-pro-exec-password-token-export'
+			);
 			const execToken = execTokenEl ? execTokenEl.value : '';
 			if (execToken) {
 				batchFormData.append('fe_csv_import_export_pro_exec_password_token', execToken);
@@ -605,8 +625,9 @@ const FeCsvImportExportExportUnified = {
 	 * Handle Standard export (original functionality)
 	 */
 	handleStandardExport() {
-		// Use original handleAjaxExport function
-		handleAjaxExport({ preventDefault: () => {} });
+		if (window.FeCsvImportExportExport && window.FeCsvImportExportExport.handleAjaxExport) {
+			window.FeCsvImportExportExport.handleAjaxExport({ preventDefault: () => {} });
+		}
 	},
 
 	/**
@@ -624,9 +645,13 @@ const FeCsvImportExportExportUnified = {
 			throw new Error('Post type selection is required');
 		}
 
-		const reauthTokenEl = document.getElementById('fe-csv-import-export-pro-reauth-token-export');
+		const reauthTokenEl = document.getElementById(
+			'fe-csv-import-export-pro-reauth-token-export'
+		);
 		const reauthToken = reauthTokenEl ? reauthTokenEl.value : '';
-		const execTokenEl = document.getElementById('fe-csv-import-export-pro-exec-password-token-export');
+		const execTokenEl = document.getElementById(
+			'fe-csv-import-export-pro-exec-password-token-export'
+		);
 		const execToken = execTokenEl ? execTokenEl.value : '';
 
 		return {
@@ -636,13 +661,15 @@ const FeCsvImportExportExportUnified = {
 			fe_csv_import_export_pro_exec_password_token: execToken,
 			post_type: postType,
 			post_status:
-				document.querySelector('input[name="fe_csv_import_export_export_post_status"]:checked')
-					?.value || 'publish',
+				document.querySelector(
+					'input[name="fe_csv_import_export_export_post_status"]:checked'
+				)?.value || 'publish',
 			export_scope:
-				document.querySelector('input[name="fe_csv_import_export_export_scope"]:checked')?.value ||
-				'all',
-			include_taxonomies: document.querySelector('input[name="fe_csv_import_export_include_taxonomies"]')
-				?.checked
+				document.querySelector('input[name="fe_csv_import_export_export_scope"]:checked')
+					?.value || 'all',
+			include_taxonomies: document.querySelector(
+				'input[name="fe_csv_import_export_include_taxonomies"]'
+			)?.checked
 				? '1'
 				: '0',
 			include_custom_fields: document.querySelector(
@@ -662,7 +689,8 @@ const FeCsvImportExportExportUnified = {
 				: '0',
 			taxonomy_format:
 				document.querySelector('input[name="taxonomy_format"]:checked')?.value || 'name',
-			export_limit: document.getElementById('fe_csv_import_export_export_limit')?.value || '0',
+			export_limit:
+				document.getElementById('fe_csv_import_export_export_limit')?.value || '0',
 			enable_logs:
 				window.feCsvImportExport &&
 				window.feCsvImportExport.advancedSettings &&

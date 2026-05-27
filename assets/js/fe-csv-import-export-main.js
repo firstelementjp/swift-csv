@@ -5,12 +5,30 @@
  *
  */
 
+// Import core modules
+import './fe-csv-import-export-core.js';
+
+// Import export modules
+import './export/fe-csv-import-export/ajax.js';
+import './export/fe-csv-import-export/download.js';
+import './export/fe-csv-import-export/form.js';
+import './export/fe-csv-import-export/ui.js';
+import './export/fe-csv-import-export/logs.js';
+import './fe-csv-import-export-export-unified.js';
+import './export/fe-csv-import-export/original.js';
+import './fe-csv-import-export-import.js';
+import './fe-csv-import-export-license.js';
+
 /**
  * Bootstrap FE CSV Import & Export admin scripts when the DOM is ready.
  */
 document.addEventListener('DOMContentLoaded', function () {
 	// Log initialization (debug mode only)
-	if (window.FeCsvImportExportCore && window.feCsvImportExport && window.feCsvImportExport.debug) {
+	if (
+		window.FeCsvImportExportCore &&
+		window.feCsvImportExport &&
+		window.feCsvImportExport.debug
+	) {
 		FeCsvImportExportCore.feCsvImportExportLog('JavaScript initialized');
 	}
 
@@ -27,8 +45,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		 * Verify module availability; retry until import/export modules are ready.
 		 */
 		const checkModules = () => {
-			if (window.FeCsvImportExportCore && window.FeCsvImportExportExport && window.FeCsvImportExportImport) {
-				const advancedSaveButton = document.getElementById('fe-csv-import-export-save-all-settings');
+			if (
+				window.FeCsvImportExportCore &&
+				window.FeCsvImportExportExport &&
+				window.FeCsvImportExportImport
+			) {
+				const advancedSaveButton = document.getElementById(
+					'fe-csv-import-export-save-all-settings'
+				);
 				if (
 					advancedSaveButton &&
 					window.feCsvImportExport &&
@@ -72,7 +96,8 @@ document.addEventListener('DOMContentLoaded', function () {
 								if (!window.feCsvImportExport.advancedSettings) {
 									window.feCsvImportExport.advancedSettings = {};
 								}
-								window.feCsvImportExport.advancedSettings.enableLogs = enableLogs === '1';
+								window.feCsvImportExport.advancedSettings.enableLogs =
+									enableLogs === '1';
 								window.alert(data.data.message);
 							})
 							.catch(error => {
@@ -93,9 +118,15 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 
 				// Ajax export functionality
-				const ajaxExportForm = document.querySelector('#fe-csv-import-export-ajax-export-form');
+				const ajaxExportForm = document.querySelector(
+					'#fe-csv-import-export-ajax-export-form'
+				);
 				if (ajaxExportForm && window.FeCsvImportExportExport) {
-					if (window.FeCsvImportExportCore && window.feCsvImportExport && window.feCsvImportExport.debug) {
+					if (
+						window.FeCsvImportExportCore &&
+						window.feCsvImportExport &&
+						window.feCsvImportExport.debug
+					) {
 						FeCsvImportExportCore.feCsvImportExportLog('Ajax export form initialized');
 					}
 					ajaxExportForm.addEventListener(
@@ -105,9 +136,15 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 
 				// Ajax import functionality
-				const ajaxImportForm = document.querySelector('#fe-csv-import-export-ajax-import-form');
+				const ajaxImportForm = document.querySelector(
+					'#fe-csv-import-export-ajax-import-form'
+				);
 				if (ajaxImportForm && window.FeCsvImportExportImport) {
-					if (window.FeCsvImportExportCore && window.feCsvImportExport && window.feCsvImportExport.debug) {
+					if (
+						window.FeCsvImportExportCore &&
+						window.feCsvImportExport &&
+						window.feCsvImportExport.debug
+					) {
 						FeCsvImportExportCore.feCsvImportExportLog('Ajax import form initialized');
 					}
 					ajaxImportForm.addEventListener(
@@ -177,7 +214,9 @@ document.addEventListener('DOMContentLoaded', function () {
 function addLogEntry(message, level = 'info', context = 'export') {
 	let logContent = null;
 	if ('import' === context) {
-		logContent = document.querySelector('.fe-csv-import-export-logs-area .log-panel.active .log-content');
+		logContent = document.querySelector(
+			'.fe-csv-import-export-logs-area .log-panel.active .log-content'
+		);
 		if (!logContent) {
 			logContent = document.querySelector(
 				'.fe-csv-import-export-logs-area .log-panel[data-panel="created"] .log-content'
@@ -267,6 +306,8 @@ function clearLog(context = 'all') {
 }
 
 // Export utility functions for modules
+window.addLogEntry = addLogEntry;
+window.clearLog = clearLog;
 window.FeCsvImportExportUtils = {
 	addLogEntry,
 	clearLog,

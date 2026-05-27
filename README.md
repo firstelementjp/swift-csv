@@ -2,7 +2,7 @@
 
 ![FE CSV Import & Export Banner](https://github.com/firstelementjp/fe-csv-import-export/blob/main/assets/images/img-sns-banner-80.jpg?raw=true)
 
-[![Version](https://img.shields.io/badge/version-0.9.9.3-green.svg)](https://github.com/firstelementjp/fe-csv-import-export/releases)
+[![Version](https://img.shields.io/badge/version-0.9.9.4-green.svg)](https://github.com/firstelementjp/fe-csv-import-export/releases)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue.svg)](https://wordpress.org/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/firstelementjp/fe-csv-import-export)
@@ -15,6 +15,8 @@ For end-user guides and full documentation, see the links below.
 
 ## ✨ Recent Highlights
 
+- Bundled JavaScript files to reduce HTTP requests and improve page load performance
+- Updated export batch planner to use memory_limit for dynamic batch size calculation
 - Reduced memory usage for large CSV imports by streaming batch reads and reusing file offsets
 - Improved import log tab behavior and preserved recent logs at completion
 - Fixed CSV quote parsing for edge cases involving backslash-escaped double quotes in legacy data

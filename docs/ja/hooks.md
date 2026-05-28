@@ -348,51 +348,6 @@ function my_swiftcsv_custom_header_value($value, $header, $post_id, $args) {
 }
 ```
 
-### Direct SQL エクスポートクエリのカスタマイズ
-
-これらのフックは主に `Swift_CSV_Export_Direct_SQL` によって使用されます。
-
-#### `fe_csv_import_export_export_query_spec`
-
-エクスポートに適用できる統一クエリ仕様（tax_query/meta_query スタイル）を提供します。
-
-**タイプ:** filter
-
-**シグネチャ:**
-
-```php
-apply_filters('fe_csv_import_export_export_query_spec', array $query_spec, array $config, string $context): array
-```
-
-**パラメータ:**
-
-- `$query_spec` (`array`) デフォルトは空
-- `$config` (`array`) エクスポート設定
-- `$context` (`string`) 現在 `direct_sql`
-
-**例:** (メタフラグ付きのアイテムのみをエクスポート)
-
-```php
-add_filter('fe_csv_import_export_export_query_spec', 'my_swiftcsv_export_query_spec', 10, 3);
-
-function my_swiftcsv_export_query_spec($query_spec, $config, $context) {
-    if ('direct_sql' !== $context) {
-        return $query_spec;
-    }
-
-    // 例: メタキー "export_enabled" が "1" の投稿のみをエクスポート
-    return [
-        'meta_query' => [
-            [
-                'key'     => 'export_enabled',
-                'compare' => '=',
-                'value'   => '1',
-            ],
-        ],
-    ];
-}
-```
-
 #### `fe_csv_import_export_export_batch_size`
 
 エクスポートバッチサイズをフィルターします。

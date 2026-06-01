@@ -285,20 +285,6 @@ class FE_CSV_Import_Export_Import_Meta_Tax {
 			$taxonomy_name                = substr( $header_name_normalized, 4 ); // Remove 'tax_'.
 			$taxonomies[ $taxonomy_name ] = $terms;
 
-			if ( taxonomy_exists( $taxonomy_name ) ) {
-				$term_ids = [];
-				foreach ( $terms as $term_name ) {
-					if ( ! empty( $term_name ) ) {
-						$term = get_term_by( 'name', $term_name, $taxonomy_name );
-						if ( $term ) {
-							$term_ids[] = $term->term_id;
-						}
-					}
-				}
-				if ( ! empty( $term_ids ) ) {
-					$taxonomy_term_ids[ $taxonomy_name ] = $term_ids;
-				}
-			}
 		}
 
 		return [
